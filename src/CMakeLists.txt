@@ -1,4 +1,11 @@
-add_executable(emi-editor main.cpp)
+add_executable(emi-editor
+  main.cpp
+  app/app.cpp
+  app/editorLayer.cpp
+)
+
+target_include_directories(emi-editor PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
 target_link_libraries(emi-editor PRIVATE ImGui-SFML::ImGui-SFML)
 
 # Copy DLLs needed for runtime on Windows
@@ -10,6 +17,6 @@ if(WIN32)
           $<TARGET_FILE:sfml-graphics>
           $<TARGET_FILE:sfml-window>
           $<TARGET_FILE:sfml-system>
-          $<TARGET_FILE_DIR:example_exe>)
+          $<TARGET_FILE_DIR:emi-editor>)
   endif()
 endif()
