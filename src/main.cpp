@@ -1,7 +1,9 @@
-#include "app/App.h"
+#include "app/app.h"
 
-int main() {
+int main()
+{
     App app;
     app.run();
+    
     return 0;
 }
