@@ -2,7 +2,7 @@
 #define LEFTPANEL_H
 
 #include "panel.h"
-#include "appConstants.h"
+#include "constants.h"
 #include <vector>
 
 /**

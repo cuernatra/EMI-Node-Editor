@@ -3,12 +3,6 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 
-struct Position
-{
-    float x;
-    float y;
-};
-
 class Panel 
 {
 public: 

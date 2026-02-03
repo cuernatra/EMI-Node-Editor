@@ -10,7 +10,7 @@ LeftPanel::LeftPanel()
 
 void LeftPanel::draw()
 {   
-    ImGui::SetNextWindowPos(ImVec2{0, 0});
+    ImGui::SetNextWindowPos(ImVec2{m_position.x, m_position.y});
     ImGui::SetNextWindowSize({m_width, m_height});
 
     ImGui::Begin("NODE PALETTE");
