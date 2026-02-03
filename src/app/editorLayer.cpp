@@ -33,7 +33,7 @@ void EditorLayer::draw() {
     if (active) stateText = "ON";
     else stateText = "OFF";
 
-    ImGui::Text("State: %s", stateText);
+    ImGui::Text("State: %s", stateText.c_str());
 
     ImGui::End();
 }
