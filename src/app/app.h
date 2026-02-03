@@ -2,7 +2,7 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Clock.hpp>
-#include "EditorLayer.h"
+#include "editorLayer.h"
 
 #ifndef APP_H
 #define APP_H
