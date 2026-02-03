@@ -2,7 +2,7 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Clock.hpp>
-#include "editorLayer.h"
+#include "leftPanel.h"
 
 #ifndef APP_H
 #define APP_H
@@ -13,7 +13,8 @@
  *
  * @author Joel Turkka
  */
-class App {
+class App 
+{
 public:
     App();
     void run();
@@ -23,9 +24,9 @@ private:
     void update();
     void render();
 
-    sf::RenderWindow window;
-    sf::Clock deltaClock;
-    EditorLayer editor;
+    sf::RenderWindow m_window;
+    sf::Clock m_deltaClock;
+    LeftPanel m_leftPanel;
 };
 
 #endif

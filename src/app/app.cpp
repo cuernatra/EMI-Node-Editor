@@ -1,15 +1,20 @@
 #include "app.h"
+#include "panel.h"
 #include <imgui-SFML.h>
 #include <SFML/Window/Event.hpp>
 
 App::App()
-    : window(sf::VideoMode(1280, 720), "ImGui + SFML") {
-    window.setFramerateLimit(60);
-    ImGui::SFML::Init(window);
+    : m_window(sf::VideoMode(appConstants::windowWidth, appConstants::windowheight), 
+    "ImGui + SFML") 
+{
+    m_window.setFramerateLimit(60);
+    ImGui::SFML::Init(m_window);
 }
 
-void App::run() {
-    while (window.isOpen()) {
+void App::run() 
+{
+    while(m_window.isOpen()) 
+    {
         processEvents();
         update();
         render();
@@ -17,25 +22,30 @@ void App::run() {
     ImGui::SFML::Shutdown();
 }
 
-void App::processEvents() {
+void App::processEvents() 
+{
     sf::Event event;
-    while (window.pollEvent(event)) {
+    while (m_window.pollEvent(event)) 
+    {
         ImGui::SFML::ProcessEvent(event);
-         switch (event.type) {
+         switch (event.type) 
+         {
             case sf::Event::Closed:
-                window.close();
+                m_window.close();
                 break;
          }
     }
 }
 
-void App::update() {
-    ImGui::SFML::Update(window, deltaClock.restart());
-    editor.draw();
+void App::update() 
+{
+    ImGui::SFML::Update(m_window, m_deltaClock.restart());
+    m_leftPanel.draw();
 }
 
-void App::render() {
-    window.clear();
-    ImGui::SFML::Render(window);
-    window.display();
+void App::render() 
+{
+    m_window.clear();
+    ImGui::SFML::Render(m_window);
+    m_window.display();
 }
