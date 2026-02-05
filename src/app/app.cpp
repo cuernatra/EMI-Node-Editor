@@ -4,14 +4,7 @@
 
 App::App()
     : m_window(sf::VideoMode(appConstants::windowWidth, appConstants::windowheight), 
-<<<<<<< HEAD
     "ImGui + SFML") 
-=======
-    "ImGui + SFML")
-    , m_mainEditor{}
-    , m_topPanel{}
-    , m_leftPanel{}
->>>>>>> d985bd6935f89068094f0ced9ac3acb1fc82d5c0
 {
     m_window.setFramerateLimit(60);
     ImGui::SFML::Init(m_window);
@@ -46,14 +39,8 @@ void App::processEvents()
 void App::update() 
 {
     ImGui::SFML::Update(m_window, m_deltaClock.restart());
-<<<<<<< HEAD
     m_ui.draw();
-
-=======
-    m_mainEditor.draw();
-    m_topPanel.draw();
-    m_leftPanel.draw();
->>>>>>> d985bd6935f89068094f0ced9ac3acb1fc82d5c0
+    //m_topPanel.draw();
 }
 
 void App::render() 
