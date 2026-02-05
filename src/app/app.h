@@ -2,8 +2,7 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Clock.hpp>
-#include "mainEditor.h"
-#include "leftPanel.h"
+#include "ui.h"
 
 #ifndef APP_H
 #define APP_H
@@ -27,8 +26,7 @@ private:
 
     sf::RenderWindow m_window;
     sf::Clock m_deltaClock;
-    MainEditor m_mainEditor;
-    LeftPanel m_leftPanel;
+    Ui m_ui;
 };
 
 #endif

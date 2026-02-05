@@ -9,11 +9,7 @@ MainEditor::MainEditor()
 
 void MainEditor::draw()
 {
-    ImGui::SetNextWindowPos(ImVec2{m_position.x, m_position.y});
-    ImGui::SetNextWindowSize({m_width, m_height});
-
-    ImGui::SetNextWindowBgAlpha(0.0f);
-    
+    /*
     ImGui::Begin(
         "mainEditor",
         nullptr,
@@ -31,4 +27,10 @@ void MainEditor::draw()
     );
 
     ImGui::End();
+    */
+}
+
+const float MainEditor::getWidth() const
+{
+    return m_width;
 }

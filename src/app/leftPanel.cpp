@@ -10,13 +10,9 @@ LeftPanel::LeftPanel()
 
 void LeftPanel::draw()
 {   
-    ImGui::SetNextWindowPos(ImVec2{m_position.x, m_position.y});
-    ImGui::SetNextWindowSize({m_width, m_height});
+    ImGui::Text("NODE PALETTE");
 
-    ImGui::Begin("NODE PALETTE");
-
-    // Resizing only horizontally
-    m_width = ImGui::GetWindowWidth();
+    ImGui::Separator();
 
     if(ImGui::TreeNode("Control"))
     {
@@ -45,5 +41,14 @@ void LeftPanel::draw()
         ImGui::TreePop();
     }
     
-    ImGui::End();
+}
+
+const float LeftPanel::getWidth() const
+{
+    return m_width;
+}
+
+void LeftPanel::setWidth(float width)
+{
+    m_width = width;
 }
