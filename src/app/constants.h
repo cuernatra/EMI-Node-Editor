@@ -3,6 +3,12 @@
 
 #include <imgui.h>
 
+struct Position
+{
+    float x;
+    float y;
+};
+
 namespace appConstants
 {
     const float windowWidth = 1280;
@@ -19,12 +25,13 @@ namespace colors
 namespace elementSizes
 {
     const float topBarHeight = appConstants::windowheight / 12;
+    const float dropBarHeight = appConstants::windowheight / 10;
+    const float dropBarWidth = appConstants::windowheight / 10;
 }
 
-struct Position
+namespace elementLocations
 {
-    float x;
-    float y;
-};
+    const Position dropBarLocation_A = {10.0f, 50.0f};
+}
 
 #endif
