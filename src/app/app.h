@@ -3,6 +3,7 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Clock.hpp>
 #include "mainEditor.h"
+#include "topPanel.h"
 #include "leftPanel.h"
 
 #ifndef APP_H
@@ -28,6 +29,7 @@ private:
     sf::RenderWindow m_window;
     sf::Clock m_deltaClock;
     MainEditor m_mainEditor;
+    TopPanel m_topPanel;
     LeftPanel m_leftPanel;
 };
 
