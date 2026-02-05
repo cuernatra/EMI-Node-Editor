@@ -16,22 +16,14 @@ class LeftPanel
 public: 
     LeftPanel();
     void draw();
-    const float getWidth() const;
-    void setWidth(float width);
-    
 private:
-    float m_width;
-    float m_height;
-    Position m_position;
-    bool m_open;
-
     std::vector<DropBar> m_dropBars_A;
     
     //std::vector<Node> m_controlFlowNodes;
     //std::vector<Node> m_dataNodes;
     //std::vector<Node> m_IONodes;
 
-    void drawLeftPanels(Position pos, std::vector<DropBar>& vectorGroupName);
+    void drawNodeGroups(std::vector<DropBar>& vectorGroupName);
 };
 
 

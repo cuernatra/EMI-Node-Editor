@@ -13,12 +13,6 @@ class MainEditor
 public: 
     MainEditor();
     void draw();
-    const float getWidth() const;
-    
-private:
-    float m_width;
-    float m_height;
-    Position m_position;
 };
 
 #endif
