@@ -1,5 +1,4 @@
 #include "app.h"
-#include "panel.h"
 #include <imgui-SFML.h>
 #include <SFML/Window/Event.hpp>
 
@@ -7,6 +6,7 @@ App::App()
     : m_window(sf::VideoMode(appConstants::windowWidth, appConstants::windowheight), 
     "ImGui + SFML")
     , m_mainEditor{}
+    , m_topPanel{}
     , m_leftPanel{}
 {
     m_window.setFramerateLimit(60);
@@ -43,6 +43,7 @@ void App::update()
 {
     ImGui::SFML::Update(m_window, m_deltaClock.restart());
     m_mainEditor.draw();
+    m_topPanel.draw();
     m_leftPanel.draw();
 }
 

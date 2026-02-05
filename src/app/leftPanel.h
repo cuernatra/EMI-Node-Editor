@@ -1,7 +1,6 @@
 #ifndef LEFTPANEL_H
 #define LEFTPANEL_H
 
-#include "panel.h"
 #include "constants.h"
 #include <vector>
 
@@ -11,11 +10,11 @@
  *
  * @author Atte Perkiö
  */
-class LeftPanel : public Panel
+class LeftPanel
 {
 public: 
     LeftPanel();
-    virtual void draw() override;
+    void draw();
     
 private:
     float m_width;

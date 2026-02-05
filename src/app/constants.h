@@ -16,6 +16,11 @@ namespace colors
     const ImU32 test = IM_COL32(120, 168, 179, 255);
 }
 
+namespace elementSizes
+{
+    const float topBarHeight = appConstants::windowheight / 12;
+}
+
 struct Position
 {
     float x;
