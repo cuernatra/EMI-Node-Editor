@@ -3,6 +3,7 @@ add_executable(emi-editor
   app/app.cpp
   app/leftPanel.cpp
   app/mainEditor.cpp
+  app/ui.cpp
 )
 
 target_include_directories(emi-editor PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
