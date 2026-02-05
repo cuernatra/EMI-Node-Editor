@@ -24,7 +24,7 @@ namespace colors
 
 namespace elementSizes
 {
-    const float topBarHeight = appConstants::windowheight / 12;
+    const float topBarHeight = appConstants::windowheight / 20;
     const float dropBarHeight = appConstants::windowheight / 10;
     const float dropBarWidth = appConstants::windowheight / 10;
 }

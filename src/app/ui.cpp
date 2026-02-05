@@ -31,6 +31,10 @@ void Ui::draw()
         m_leftPanelWidth = std::clamp(totalWidth * 0.25f, minLeft, totalWidth - minRight - 5.f);
     }
 
+    ImGui::BeginChild("TOP BAR", ImVec2(totalWidth, elementSizes::topBarHeight), true);
+    m_topPanel.draw();
+    ImGui::EndChild();
+
     ImGui::BeginChild("NODE PALETTE", ImVec2(m_leftPanelWidth, 0), true);
     m_leftPanel.draw();
     ImGui::EndChild();

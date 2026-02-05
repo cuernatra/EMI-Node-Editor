@@ -15,7 +15,9 @@ void TopPanel::draw()
         ImGuiWindowFlags_NoBringToFrontOnFocus |
         ImGuiWindowFlags_NoFocusOnAppearing |
         ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoResize
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoCollapse |
+        ImGuiWindowFlags_NoTitleBar
     );
     
     ImGui::End();
