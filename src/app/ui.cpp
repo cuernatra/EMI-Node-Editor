@@ -1,5 +1,6 @@
 #include "ui.h"
 #include <imgui-SFML.h>
+#include <algorithm>
 
 Ui::Ui() 
 {
@@ -7,6 +8,11 @@ Ui::Ui()
 
 void Ui::draw()
 {   
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+
+    // Make window responsive
+    ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize, ImGuiCond_Always);
+
     ImGui::Begin(
         "EMI EDITOR", 
         nullptr, 
