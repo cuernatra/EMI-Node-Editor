@@ -1,7 +1,6 @@
 #ifndef MAINEDITOR_H
 #define MAINEDITOR_H
 
-#include "editor.h"
 #include "constants.h"
 
 /**
@@ -9,11 +8,12 @@
  *
  * @author Joel Turkka
  */
-class MainEditor : public Editor
+class MainEditor
 {
 public: 
     MainEditor();
-    virtual void draw() override;
+    void draw();
+    const float getWidth() const;
     
 private:
     float m_width;
