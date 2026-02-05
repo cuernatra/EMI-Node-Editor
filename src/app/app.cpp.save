@@ -4,8 +4,9 @@
 
 App::App()
     : m_window(sf::VideoMode(appConstants::windowWidth, appConstants::windowheight), 
-<<<<<<< HEAD
     "ImGui + SFML") 
+u<<<<<<< HEAD
+<<<<<<< HEAD
 =======
     "ImGui + SFML")
     , m_mainEditor{}
