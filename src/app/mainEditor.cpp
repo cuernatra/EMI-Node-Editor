@@ -66,6 +66,40 @@ void MainEditor::draw()
     for (const auto& l : m_links)
         ed::Link(l.id, l.startPinId, l.endPinId);
 
+    // delete link with ALT + click
+    if (ed::BeginDelete())
+    {
+        ed::LinkId linkId;
+        while (ed::QueryDeletedLink(&linkId))
+        {
+            if (ImGui::GetIO().KeyAlt)
+            {
+                if (ed::AcceptDeletedItem())
+                {
+                    auto it = std::remove_if(
+                        m_links.begin(),
+                        m_links.end(),
+                        [&](const Link& l)
+                        {
+                            return l.id == linkId;
+                        }
+                    );
+
+                    if (it != m_links.end())
+                    {
+                        m_links.erase(it, m_links.end());
+                        saveGraph("graph.json");
+                    }
+                }
+            }
+            else
+            {
+                ed::RejectDeletedItem();
+            }
+        }
+    }
+    ed::EndDelete();
+
     // create new link
     if (ed::BeginCreate())
     {
