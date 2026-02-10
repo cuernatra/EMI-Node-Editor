@@ -1,8 +1,6 @@
 #include "mainEditor.h"
 #include "imgui.h"
 
-namespace ed = ax::NodeEditor;
-
 MainEditor::MainEditor()
 {
     ed::Config config;
@@ -28,11 +26,13 @@ void MainEditor::draw()
     {
         m_firstFrame = false;
         ed::SetNodePosition(ed::NodeId(1), ImVec2(60, 60));
+        ed::SetNodePosition(ed::NodeId(10), ImVec2(320, 60));
         ed::NavigateToContent();
     }
 
+    // Node 1
     ed::BeginNode(ed::NodeId(1));
-    ImGui::TextUnformatted("Test Node");
+    ImGui::TextUnformatted("Node A");
 
     ed::BeginPin(ed::PinId(2), ed::PinKind::Input);
     ImGui::Text("-> In");
@@ -43,6 +43,54 @@ void MainEditor::draw()
     ed::EndPin();
 
     ed::EndNode();
+
+    // Node 2
+    ed::BeginNode(ed::NodeId(10));
+    ImGui::TextUnformatted("Node B");
+
+    ed::BeginPin(ed::PinId(5), ed::PinKind::Input);
+    ImGui::Text("-> In");
+    ed::EndPin();
+
+    ed::BeginPin(ed::PinId(6), ed::PinKind::Output);
+    ImGui::Text("Out ->");
+    ed::EndPin();
+
+    ed::EndNode();
+
+    for (const auto& l : m_links)
+        ed::Link(l.id, l.startPinId, l.endPinId);
+
+    // create new link
+    if (ed::BeginCreate())
+    {
+        ed::PinId startPinId, endPinId;
+        if (ed::QueryNewLink(&startPinId, &endPinId))
+        {
+            auto isOutput = [](ed::PinId p) { return p.Get() == 3 || p.Get() == 6; };
+            auto isInput  = [](ed::PinId p) { return p.Get() == 2 || p.Get() == 5; };
+
+            bool ok = (isOutput(startPinId) && isInput(endPinId)) ||
+                      (isOutput(endPinId) && isInput(startPinId));
+
+            if (ok)
+            {
+                // accept link creation only if it has valid pin types connected
+                if (ed::AcceptNewItem())
+                {
+                    ed::PinId outPin = isOutput(startPinId) ? startPinId : endPinId;
+                    ed::PinId inPin  = isInput(endPinId) ? endPinId : startPinId;
+
+                    m_links.push_back({ ed::LinkId(m_nextLinkId++), outPin, inPin });
+                }
+            }
+            else
+            {
+                ed::RejectNewItem();
+            }
+        }
+    }
+    ed::EndCreate();
 
     ed::End();
     ed::SetCurrentEditor(nullptr);
