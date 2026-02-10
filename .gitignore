@@ -43,3 +43,5 @@
 # new staff
 *.ini
 build/
+graph.txt
+node_editor.json
