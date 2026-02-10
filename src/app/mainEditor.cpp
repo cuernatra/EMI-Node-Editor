@@ -1,15 +1,20 @@
 #include "mainEditor.h"
 #include "imgui.h"
+#include <fstream>
+#include <string>
 
 MainEditor::MainEditor()
 {
     ed::Config config;
     config.SettingsFile = "node_editor.json";
     m_ctx = ed::CreateEditor(&config);
+
+    loadGraph("graph.txt");
 }
 
 MainEditor::~MainEditor()
 {
+    saveGraph("graph.txt");
     ed::DestroyEditor(m_ctx);
     m_ctx = nullptr;
 }
@@ -82,6 +87,7 @@ void MainEditor::draw()
                     ed::PinId inPin  = isInput(endPinId) ? endPinId : startPinId;
 
                     m_links.push_back({ ed::LinkId(m_nextLinkId++), outPin, inPin });
+                    saveGraph("graph.txt");
                 }
             }
             else
@@ -94,4 +100,48 @@ void MainEditor::draw()
 
     ed::End();
     ed::SetCurrentEditor(nullptr);
+}
+
+void MainEditor::saveGraph(const char* path) const
+{
+    std::ofstream out(path, std::ios::trunc);
+    if (!out.is_open())
+        return;
+
+    out << "nextLinkId " << m_nextLinkId << "\n";
+    for (const auto& l : m_links)
+    {
+        out << "link " << l.id.Get()
+            << " " << l.startPinId.Get()
+            << " " << l.endPinId.Get() << "\n";
+    }
+}
+
+void MainEditor::loadGraph(const char* path)
+{
+    std::ifstream in(path);
+    if (!in.is_open())
+        return;
+
+    m_links.clear();
+
+    std::string type;
+    while (in >> type)
+    {
+        if (type == "nextLinkId")
+        {
+            in >> m_nextLinkId;
+        }
+        else if (type == "link")
+        {
+            int id, start, end;
+            in >> id >> start >> end;
+            m_links.push_back({ ed::LinkId(id), ed::PinId(start), ed::PinId(end) });
+        }
+        else
+        {
+            std::string dummy;
+            std::getline(in, dummy);
+        }
+    }
 }

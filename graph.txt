@@ -1,0 +1,2 @@
+nextLinkId 101
+link 100 6 2

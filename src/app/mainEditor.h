@@ -4,8 +4,6 @@
 #include "constants.h"
 #include "imgui_node_editor.h"
 #include <vector>
-#include <fstream>
-#include <sstream>
 
 /**
  * @brief Represent node-editor.
@@ -35,6 +33,9 @@ private:
 
     int m_nextLinkId = 100;
     std::vector<Link> m_links;
+
+    void saveGraph(const char* path) const;
+    void loadGraph(const char* path);
 };
 
 #endif
