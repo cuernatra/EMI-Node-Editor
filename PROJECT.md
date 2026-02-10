@@ -10,7 +10,7 @@ This document defines the planned features and working practices of the project.
   - [1.3.2 Recommended Labels](#132-recommended-labels)
   - [1.3.3 Example Issue Structure](#133-example-issue-structure)
 - [1.4 Code Style & Documentation](#14-code-style--documentation)
-- [1.5 Architecture](#15-architecture)
+- [1.5 Architecture](#15-architecture-and-features)
 
 ---
 
@@ -80,13 +80,15 @@ Node search in the editor.
 
 | Area | Practice |
 |----|----|
-| Code Style | https://google.github.io/styleguide/cppguide.html  |
+| Code Style | https://micro-os-plus.github.io/develop/sutter-101/  |
 | Doxygen | Public classes, structs, features and interfaces must have Doxygen comments. Template in `doxygenTemplate.txt`|
 | TODOs | TODOs must reference a GitHub issue |
 
 ---
 
-## 1.5 Architecture
+## 1.5 Architecture and Features
 
 Linkt to Miro (architecture): https://miro.com/app/board/uXjVGG3LPcY=/
+
+Features are listed in github issues.
 
