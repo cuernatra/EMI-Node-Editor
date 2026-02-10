@@ -60,7 +60,8 @@ Each issue has a label
 | ui          | Frontend / node rendering / interaction      |
 | refactor    | Code restructuring or cleanup                 |
 | discussion  | Needs team discussion before implementation   |
-| tested      | Implementation verified / tested              |
+| wontfix     | This will not be worked on           |
+
 
 
 
