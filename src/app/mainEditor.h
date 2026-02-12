@@ -29,6 +29,7 @@ struct SimpleNode {
     std::string title;
     ImVec2 initialPos{0,0};
     bool positioned = false;
+    bool alive = true;
 };
 
 // struct Node
@@ -66,10 +67,11 @@ private:
     std::vector<Link> m_links;
 
     IdGen gen;
-    SimpleNode nodeA, nodeB;
-
+    std::vector<SimpleNode> m_nodes;
+    
     void saveGraph(const char* path) const;
     void loadGraph(const char* path);
+    void removeLinksForNode(const SimpleNode& n);
 };
 
 #endif
