@@ -43,5 +43,6 @@
 # new staff
 *.ini
 build/
+.vscode/
 graph.txt
 node_editor.json

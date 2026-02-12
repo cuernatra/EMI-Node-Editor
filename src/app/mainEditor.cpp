@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include <fstream>
 #include <string>
+#include <algorithm>
 
 MainEditor::MainEditor()
 {
@@ -88,7 +89,7 @@ void MainEditor::draw()
                     if (it != m_links.end())
                     {
                         m_links.erase(it, m_links.end());
-                        saveGraph("graph.json");
+                        saveGraph("graph.txt");
                     }
                 }
             }
