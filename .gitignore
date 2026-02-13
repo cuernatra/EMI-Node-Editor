@@ -46,3 +46,6 @@ build/
 .vscode/
 graph.txt
 node_editor.json
+
+# cmake preset
+CMakePresets.json
