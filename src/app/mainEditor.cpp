@@ -31,10 +31,9 @@ void MainEditor::draw()
     ed::Suspend();
 
     const ImGuiPayload* pl = ImGui::GetDragDropPayload();
-    const bool dragging_spawn_node =
-        pl && pl->IsDataType("SPAWN_TEST_NODE");
+    const bool dragging_spawn_node = pl && pl->IsDataType("SPAWN_TEST_NODE");
 
-    if (dragging_spawn_node)
+    if(dragging_spawn_node)
     {
         ImVec2 dropSize = ImGui::GetContentRegionAvail();
         if (dropSize.x < 1) dropSize.x = 1;
@@ -42,9 +41,9 @@ void MainEditor::draw()
 
         ImGui::InvisibleButton("##editor_drop_area", dropSize);
 
-        if (ImGui::BeginDragDropTarget())
+        if(ImGui::BeginDragDropTarget())
         {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SPAWN_TEST_NODE"))
+            if(const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SPAWN_TEST_NODE"))
             {
                 const char* title = (const char*)payload->Data;
 
@@ -59,103 +58,50 @@ void MainEditor::draw()
 
     ed::Resume();
 
-    if (m_firstFrame)
+    if(m_firstFrame)
     {
         m_firstFrame = false;
-
         m_nodes.push_back(CreateSimpleNode(gen, "Node A", ImVec2(60, 60)));
         m_nodes.push_back(CreateSimpleNode(gen, "Node B", ImVec2(320, 60)));
-
         ed::NavigateToContent();
     }
 
-    for (auto& n : m_nodes)
-        if (n.alive) DrawSimpleNode(n);
+    for(auto& n : m_nodes)
+    {
+        if(n.alive) DrawSimpleNode(n);
+    }
         
-    for (const auto& l : m_links)
+    for(const auto& l : m_links)
+    {
         ed::Link(l.id, l.startPinId, l.endPinId);
-
+    }
+        
     static bool backspaceDelete = false;
-    if (ImGui::IsKeyPressed(ImGuiKey_Backspace))
-        backspaceDelete = true;
 
+    if(ImGui::IsKeyPressed(ImGuiKey_Backspace))
+    {
+        backspaceDelete = true;
+    }
+        
     const bool deleting = ed::BeginDelete() || backspaceDelete;
-    if (deleting)
+
+    if(deleting)
     {
         // delete links
         ed::LinkId linkId;
-        while (ed::QueryDeletedLink(&linkId))
-        {
-            if (ed::AcceptDeletedItem())
-            {
-                auto it = std::remove_if(m_links.begin(), m_links.end(),
-                    [&](const Link& l){ return l.id == linkId; });
-
-                if (it != m_links.end())
-                {
-                    m_links.erase(it, m_links.end());
-                    saveGraph("graph.txt");
-                }
-            }
-        }
+        deleteLinks(linkId);
 
         // delete nodes
         ed::NodeId nodeId;
-        while (ed::QueryDeletedNode(&nodeId))
-        {
-            if (ed::AcceptDeletedItem())
-            {
-                auto it = std::find_if(m_nodes.begin(), m_nodes.end(),
-                    [&](const SimpleNode& n){ return n.alive && n.id == nodeId; });
-
-                if (it != m_nodes.end())
-                {
-                    removeLinksForNode(*it);
-                    it->alive = false;
-                    saveGraph("graph.txt");
-                }
-            }
-        }
-
+        deleteNodes(nodeId);
         ed::EndDelete();
         backspaceDelete = false;
     }
 
     // create new link
-    if (ed::BeginCreate())
+    if(ed::BeginCreate())
     {
-        ed::PinId startPinId, endPinId;
-        if (ed::QueryNewLink(&startPinId, &endPinId))
-        {
-        auto isOutput = [&](ed::PinId p) {
-            for (auto& n : m_nodes) if (n.alive && n.outPin == p) return true;
-            return false;
-        };
-        auto isInput = [&](ed::PinId p) {
-            for (auto& n : m_nodes) if (n.alive && n.inPin == p) return true;
-            return false;
-        };
-
-            bool ok = (isOutput(startPinId) && isInput(endPinId)) ||
-                      (isOutput(endPinId) && isInput(startPinId));
-
-            if (ok)
-            {
-                // accept link creation only if it has valid pin types connected
-                if (ed::AcceptNewItem())
-                {
-                    ed::PinId outPin = isOutput(startPinId) ? startPinId : endPinId;
-                    ed::PinId inPin  = isInput(endPinId) ? endPinId : startPinId;
-
-                    m_links.push_back({ gen.NewLink(), outPin, inPin });
-                    saveGraph("graph.txt");
-                }
-            }
-            else
-            {
-                ed::RejectNewItem();
-            }
-        }
+        createNewLink();
     }
     ed::EndCreate();
 
@@ -218,4 +164,86 @@ void MainEditor::removeLinksForNode(const SimpleNode& n)
 
     if (it != m_links.end())
         m_links.erase(it, m_links.end());
+}
+
+void MainEditor::createNewLink()
+{
+    ed::PinId startPinId, endPinId;
+    if(ed::QueryNewLink(&startPinId, &endPinId))
+    {
+        auto isOutput = [&](ed::PinId p) 
+        {
+            for (auto& n : m_nodes)
+            {
+                if (n.alive && n.outPin == p) return true;
+            } 
+            return false;
+        };
+
+        auto isInput = [&](ed::PinId p) 
+        {
+            for(auto& n : m_nodes) 
+            {
+                if (n.alive && n.inPin == p) return true;
+            }
+            return false;
+        };
+
+        bool ok = (isOutput(startPinId) && 
+            isInput(endPinId)) || (isOutput(endPinId) && isInput(startPinId));
+
+        if(ok)
+        {
+            // accept link creation only if it has valid pin types connected
+            if(ed::AcceptNewItem())
+            {
+                ed::PinId outPin = isOutput(startPinId) ? startPinId : endPinId;
+                ed::PinId inPin  = isInput(endPinId) ? endPinId : startPinId;
+
+                m_links.push_back({gen.NewLink(), outPin, inPin});
+                saveGraph("graph.txt");
+            }
+        }
+        else
+        {
+            ed::RejectNewItem();
+        }
+    }
+}
+
+void MainEditor::deleteNodes(ed::NodeId nodeId)
+{
+    while(ed::QueryDeletedNode(&nodeId))
+    {
+        if (ed::AcceptDeletedItem())
+        {
+            auto it = std::find_if(m_nodes.begin(), m_nodes.end(),
+                [&](const SimpleNode& n){ return n.alive && n.id == nodeId; });
+
+            if(it != m_nodes.end())
+            {
+                removeLinksForNode(*it);
+                it->alive = false;
+                saveGraph("graph.txt");
+            }
+        }
+    }
+}
+
+void MainEditor::deleteLinks(ed::LinkId linkId)
+{
+    while(ed::QueryDeletedLink(&linkId))
+    {
+        if(ed::AcceptDeletedItem())
+        {
+            auto it = std::remove_if(m_links.begin(), m_links.end(),
+                [&](const Link& l){ return l.id == linkId; });
+
+            if(it != m_links.end())
+            {
+                m_links.erase(it, m_links.end());
+                saveGraph("graph.txt");
+            }
+        }
+    }
 }

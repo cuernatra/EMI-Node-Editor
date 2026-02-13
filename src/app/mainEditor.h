@@ -35,6 +35,9 @@ private:
     void saveGraph(const char* path) const;
     void loadGraph(const char* path);
     void removeLinksForNode(const SimpleNode& n);
+    void createNewLink();
+    void deleteLinks(ed::LinkId linkId);
+    void deleteNodes(ed::NodeId nodeId);
 };
 
 #endif
