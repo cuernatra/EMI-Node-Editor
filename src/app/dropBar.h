@@ -13,7 +13,7 @@
 class DropBar
 {
 public: 
-    DropBar(std::string name, int id, float width, float height);
+    DropBar(std::string name, int id, float width, float height, bool hasSpawnButton = false);
     void draw();
     
 private:
@@ -22,6 +22,8 @@ private:
     float m_width;
     float m_height;
     bool m_open;
+
+    bool m_hasSpawnButton;
 };
 
 #endif

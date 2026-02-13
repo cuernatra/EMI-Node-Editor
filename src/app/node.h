@@ -33,6 +33,11 @@ struct Link
     ed::PinId  endPinId;   // input
 };
 
+struct NodeSpawnPayload
+{
+    char title[32];
+};
+
 SimpleNode CreateSimpleNode(IdGen& gen, std::string title, ImVec2 pos);
 void DrawSimpleNode(SimpleNode& n);
 

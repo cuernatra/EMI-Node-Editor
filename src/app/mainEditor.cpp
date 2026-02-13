@@ -28,6 +28,37 @@ void MainEditor::draw()
     ed::SetCurrentEditor(m_ctx);
     ed::Begin("MainGraph");
 
+    ed::Suspend();
+
+    const ImGuiPayload* pl = ImGui::GetDragDropPayload();
+    const bool dragging_spawn_node =
+        pl && pl->IsDataType("SPAWN_TEST_NODE");
+
+    if (dragging_spawn_node)
+    {
+        ImVec2 dropSize = ImGui::GetContentRegionAvail();
+        if (dropSize.x < 1) dropSize.x = 1;
+        if (dropSize.y < 1) dropSize.y = 1;
+
+        ImGui::InvisibleButton("##editor_drop_area", dropSize);
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SPAWN_TEST_NODE"))
+            {
+                const char* title = (const char*)payload->Data;
+
+                ImVec2 screenPos = ImGui::GetMousePos();
+                ImVec2 canvasPos = ed::ScreenToCanvas(screenPos);
+
+                m_nodes.push_back(CreateSimpleNode(gen, title, canvasPos));
+            }
+            ImGui::EndDragDropTarget();
+        }
+    }
+
+    ed::Resume();
+
     if (m_firstFrame)
     {
         m_firstFrame = false;
@@ -42,7 +73,7 @@ void MainEditor::draw()
         if (n.alive) DrawSimpleNode(n);
         
     for (const auto& l : m_links)
-    ed::Link(l.id, l.startPinId, l.endPinId);
+        ed::Link(l.id, l.startPinId, l.endPinId);
 
     static bool backspaceDelete = false;
     if (ImGui::IsKeyPressed(ImGuiKey_Backspace))
