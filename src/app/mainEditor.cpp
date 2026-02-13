@@ -188,37 +188,3 @@ void MainEditor::removeLinksForNode(const SimpleNode& n)
     if (it != m_links.end())
         m_links.erase(it, m_links.end());
 }
-
-
-SimpleNode CreateSimpleNode(IdGen& gen, std::string title, ImVec2 pos)
-{
-    SimpleNode n;
-    n.id = gen.NewNode();
-    n.inPin  = gen.NewPin();
-    n.outPin = gen.NewPin();
-    n.title = std::move(title);
-    n.initialPos = pos;
-    return n;
-}
-
-void DrawSimpleNode(SimpleNode& n)
-{
-    if (!n.positioned) {
-        ed::SetNodePosition(n.id, n.initialPos);
-        n.positioned = true;
-    }
-
-    ed::BeginNode(n.id);
-
-    ImGui::TextUnformatted(n.title.c_str());
-
-    ed::BeginPin(n.inPin, ed::PinKind::Input);
-    ImGui::Text("-> In");
-    ed::EndPin();
-
-    ed::BeginPin(n.outPin, ed::PinKind::Output);
-    ImGui::Text("Out ->");
-    ed::EndPin();
-
-    ed::EndNode();
-}
