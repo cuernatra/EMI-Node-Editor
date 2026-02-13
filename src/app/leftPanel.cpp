@@ -5,7 +5,7 @@ LeftPanel::LeftPanel()
     float width = elementSizes::dropBarWidth;
     float height = elementSizes::dropBarHeight;
 
-    m_dropBars_A.emplace_back("test_1", 0, width, height);
+    m_dropBars_A.emplace_back("test_1", 0, width, height, true);
     m_dropBars_A.emplace_back("test_2", 1, width, height);
     m_dropBars_A.emplace_back("test_3", 2, width, height);
 }
