@@ -6,6 +6,7 @@ add_executable(emi-editor
   app/mainEditor.cpp
   app/ui.cpp
   app/dropBar.cpp
+  app/node.cpp
 
   ../dependencies/imgui-node-editor/imgui_node_editor.cpp
   ../dependencies/imgui-node-editor/imgui_node_editor_api.cpp
