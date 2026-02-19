@@ -23,7 +23,6 @@ public:
 
 private:
     ax::NodeEditor::EditorContext* m_ctx = nullptr;
-    bool m_firstFrame = true;
 
     int m_nextLinkId = 100;
 

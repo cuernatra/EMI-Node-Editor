@@ -7,9 +7,15 @@
 
 namespace ed = ax::NodeEditor;
 
-struct IdGen 
+struct IdGen
 {
     int next = 1;
+
+    void SetNext(int v)
+    {
+        next = v;
+    }
+
     ed::NodeId NewNode() { return ed::NodeId(next++); }
     ed::PinId  NewPin()  { return ed::PinId(next++); }
     ed::LinkId NewLink() { return ed::LinkId(next++); }
@@ -40,5 +46,6 @@ struct NodeSpawnPayload
 
 SimpleNode CreateSimpleNode(IdGen& gen, std::string title, ImVec2 pos);
 void DrawSimpleNode(SimpleNode& n);
-
+SimpleNode CreateSimpleNodeWithId(int nodeId, int inPinId, int outPinId,
+                                  std::string title, ImVec2 pos);
 #endif

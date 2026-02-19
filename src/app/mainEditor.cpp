@@ -58,14 +58,6 @@ void MainEditor::draw()
 
     ed::Resume();
 
-    if(m_firstFrame)
-    {
-        m_firstFrame = false;
-        m_nodes.push_back(CreateSimpleNode(gen, "Node A", ImVec2(60, 60)));
-        m_nodes.push_back(CreateSimpleNode(gen, "Node B", ImVec2(320, 60)));
-        ed::NavigateToContent();
-    }
-
     for(auto& n : m_nodes)
     {
         if(n.alive) DrawSimpleNode(n);
@@ -115,14 +107,26 @@ void MainEditor::saveGraph(const char* path) const
     if (!out.is_open())
         return;
 
-    out << "nextLinkId " << m_nextLinkId << "\n";
+    for (const auto& n : m_nodes)
+    {
+        if (!n.alive) continue;
+
+        out << "node "
+            << n.id.Get() << " "
+            << n.inPin.Get() << " "
+            << n.outPin.Get() << " "
+            << n.title << "\n";
+    }
+
     for (const auto& l : m_links)
     {
-        out << "link " << l.id.Get()
-            << " " << l.startPinId.Get()
-            << " " << l.endPinId.Get() << "\n";
+        out << "link "
+            << l.id.Get() << " "
+            << l.startPinId.Get() << " "
+            << l.endPinId.Get() << "\n";
     }
 }
+
 
 void MainEditor::loadGraph(const char* path)
 {
@@ -130,7 +134,10 @@ void MainEditor::loadGraph(const char* path)
     if (!in.is_open())
         return;
 
+    m_nodes.clear();
     m_links.clear();
+
+    int maxId = 0;
 
     std::string type;
     while (in >> type)
@@ -139,11 +146,38 @@ void MainEditor::loadGraph(const char* path)
         {
             in >> m_nextLinkId;
         }
+        else if (type == "node")
+        {
+            int nid, inPin, outPin;
+            std::string title;
+
+            in >> nid >> inPin >> outPin;
+            in >> std::ws;
+            std::getline(in, title);
+
+            m_nodes.push_back(
+                CreateSimpleNodeWithId(nid, inPin, outPin, title, ImVec2(0,0))
+            );
+
+            // all possible id places
+            maxId = std::max(maxId, nid);
+            maxId = std::max(maxId, inPin);
+            maxId = std::max(maxId, outPin);
+        }
         else if (type == "link")
         {
             int id, start, end;
             in >> id >> start >> end;
-            m_links.push_back({ ed::LinkId(id), ed::PinId(start), ed::PinId(end) });
+
+            m_links.push_back({
+                ed::LinkId(id),
+                ed::PinId(start),
+                ed::PinId(end)
+            });
+
+            maxId = std::max(maxId, id);
+            maxId = std::max(maxId, start);
+            maxId = std::max(maxId, end);
         }
         else
         {
@@ -151,6 +185,8 @@ void MainEditor::loadGraph(const char* path)
             std::getline(in, dummy);
         }
     }
+
+    gen.SetNext(maxId + 1);
 }
 
 void MainEditor::removeLinksForNode(const SimpleNode& n)
