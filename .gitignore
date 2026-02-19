@@ -49,3 +49,6 @@ node_editor.json
 
 # cmake preset
 CMakePresets.json
+
+compile_commands.json
+.clangd
