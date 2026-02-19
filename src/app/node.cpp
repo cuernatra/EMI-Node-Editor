@@ -11,6 +11,20 @@ SimpleNode CreateSimpleNode(IdGen& gen, std::string title, ImVec2 pos)
     return n;
 }
 
+SimpleNode CreateSimpleNodeWithId(int nodeId, int inPinId, int outPinId,
+                                  std::string title, ImVec2 pos)
+{
+    SimpleNode n;
+    n.id = ed::NodeId(nodeId);
+    n.inPin = ed::PinId(inPinId);
+    n.outPin = ed::PinId(outPinId);
+    n.title = std::move(title);
+    n.initialPos = pos;
+    
+    n.positioned = true;
+    return n;
+}
+
 void DrawSimpleNode(SimpleNode& n)
 {
     if (!n.positioned) 
