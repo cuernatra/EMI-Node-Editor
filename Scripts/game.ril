@@ -1,0 +1,358 @@
+def makeArray(size : number, value) : array {
+	var out : array;
+	Array.Resize(out, size);
+	for (out) {
+		out[_index_] = Copy(value);
+	}
+	return out;
+}
+
+object MapContainer
+{
+	keys : array;
+	values : array;
+	equality : function;
+}
+
+extend Map:
+
+public def insert(map : MapContainer, key, value) {
+	var itemFound = false;
+	var index = 0;
+	for (item in map.keys) {
+		if (map.equality(item, key)) {
+			index = _index_;
+			itemFound = true;
+			break;
+		}
+	}
+	if (!itemFound) {
+		index = Array.Size(map.keys);
+		Array.Push(map.keys, key);
+	}
+	
+	Array.Resize(map.values, Array.Size(map.keys));
+	map.values[index] = value;
+}
+
+public def Clear(map : MapContainer) {
+	Array.Clear(map.keys);
+	Array.Clear(map.values);
+}
+
+public def Erase(map : MapContainer, key) {
+	for (item in map.keys) {
+		if (map.equality(key, item)) {
+			Array.RemoveIndex(map.keys, _index_);
+			Array.RemoveIndex(map.values, _index_);
+			break;
+		}
+	}
+}
+
+public def Get(map : MapContainer, key) {
+	for (item in map.keys) {
+		if (map.equality(key, item)) {
+			return map.values[_index_];
+		}
+	}
+	return null;
+}
+
+extend Global:
+
+object Coord
+{
+	x = 0;
+	y = 0;
+}
+
+object Node{
+	actionID : number = -1;
+	prevNode : Node = null;
+	state : Coord;
+	Cost = 0;
+	G = 0;
+}
+
+var Actions : array;
+var Target : Coord;
+var Exit : bool = true;
+
+const wall = 219;
+const wall2 = 178;
+const wall3 = 177;
+const wall4 = 176;
+const shade = 111;
+const empty = 255;
+
+const x_size = 40;
+const y_size = 40;
+const Top = 10;
+const Left = 10;
+
+def ValidPostCheck(loc : Coord) {
+	return true;
+}
+
+def ValidPreCheck(loc : Coord, act : Coord) {
+	var x : number = loc.x + act.x;
+	var y : number = loc.y + act.y;
+	if (x >= 0 && x < x_size && y >= 0 && y < y_size) {
+		return Game.GetPixel(x + Left, y + Top) != wall;
+	}
+	return false;
+}
+
+def GetStateCost(state, id) {
+	return 1.0;
+}
+
+def GetCost(state, g) {
+	var x_dist = Target.x - state.x;
+	var y_dist = Target.y - state.y;
+	return g + 2 * Math.Sqrt(x_dist * x_dist + y_dist * y_dist);
+}
+
+def Visit(state : Coord) {
+	return !equal(Target, state);
+}
+
+def Act(state, action) {
+	return Coord{state.x + action.x, state.y + action.y};
+}
+
+def equal(l : Coord, r : Coord) : bool {
+	return l.x == r.x && l.y == r.y;
+}
+
+def calculateCost (n : Node) {
+	var current = n;
+	n.G = 0.0;
+	while (current != null) {
+		n.G += GetStateCost(current.state, current.actionID);
+		current = current.prevNode; # does not work
+	}
+	n.Cost = GetCost(n.state, n.G);
+}
+
+def getNextLegalStates(n : Node) {
+
+	var nextStates : array;
+	Array.Resize(nextStates, Array.Size(Actions));
+	var size = Array.Size(Actions);
+	for (var act = 0; act < size; act++) {
+		if (!ValidPreCheck(n.state, Actions[act])) continue;
+		var newState = transition(n, Actions[act], act);
+		if (newState != null && ValidPostCheck(newState.state)) {
+			Array.Push(nextStates, newState);
+		}
+		else newState.prevNode = null;
+	}
+	return nextStates;
+}
+
+def transition(currentState : Node, act : Coord, actionID : number) {
+	var newState = Act(currentState.state, act);
+	var node = Node{actionID, currentState, newState};
+	return node;
+}
+
+def find(arr : array, value, equality : function) {
+	for (item in arr) {
+		if (equality(item, value)) {
+			return item;
+		}
+	}
+	return null;
+}
+
+def findPath(begin : Coord, target : Coord) : array {
+
+	var openList : MapContainer;
+	openList.equality = equal;
+	var closedList : array;
+	Array.Clear(closedList);
+	Array.Clear(openList.keys);
+	Array.Clear(openList.values);
+
+	var currentNode = Node{0, null, begin};
+
+	Array.PushUnique(closedList, currentNode.state);
+
+	while (currentNode != null) {
+		if (Visit(currentNode.state)) {
+			for (child in getNextLegalStates(currentNode)) {
+
+				if (child == null) continue;
+
+				calculateCost(child);
+				
+				if (find(closedList, child.state, equal) != null) {
+					continue;
+				}
+
+				var s = Map.Get(openList, child.state);
+				if (s != null) {
+					if (s.G > child.G) {
+						Map.insert(openList, child.state, child);
+					}
+				}
+				else Map.insert(openList, child.state, child);
+			}
+		}
+		else {
+			break;
+		}
+		
+		if (Array.Size(openList.keys) == 0) {
+			break;
+		}
+		
+		var maxValue = 10000000;
+		for (item in openList.values) {
+			var nVal = item.Cost;
+			if (nVal < maxValue) {
+				maxValue = nVal;
+				currentNode = item;
+			}
+		}
+
+		Array.PushUnique(closedList, currentNode.state);
+		Map.Erase(openList, currentNode.state);
+	}
+
+	var actionPath : array;
+
+	while (currentNode.prevNode != null) {
+		Array.PushFront(actionPath, currentNode.actionID);
+		currentNode = currentNode.prevNode;
+	}
+	
+	return actionPath;
+}
+
+public def input() {
+	
+	var topOffset = Top;
+	var leftOffset = Left;
+	
+	while (Exit) {
+		var inp : number = Input.WaitInput();
+		if (inp == -1) continue;
+		var in_x : number = Input.GetMouseX();
+		var in_y : number = Input.GetMouseY();
+		var x = in_x - leftOffset;
+		var y = in_y - topOffset;
+		if (inp == 1) {
+			if (x >= 0 && x < x_size && y >= 0 && y < y_size) {
+				writepixel(in_x, in_y, wall, 0);
+			}
+		} else if (inp == 2) {
+			if (x >= 0 && x < x_size && y >= 0 && y < y_size) {
+				writepixel(in_x, in_y, empty, 0);
+			}
+		} else if (inp == 27) {
+			Exit = false;
+		}
+	}
+}
+
+public def renderFrame() {
+	while(Exit) {
+		render();
+		delay(50);
+	}
+}
+
+extend Global:
+
+public def game() {
+	var charCoord : Coord;
+	var actions : array;
+	var actionIdx = 0;
+	Target = Coord{5, 5};
+	
+	Actions = [ 
+		Coord{-1,  0}, 
+		Coord{ 1,  0}, 
+		Coord{ 0, -1}, 
+		Coord{ 0,  1}, 
+	];
+	
+	var topOffset = Top;
+	var leftOffset = Left;
+	
+	setupconsole(2 * leftOffset + x_size, 2 * topOffset + y_size);
+	
+	for (x_size + 2) {
+		writepixel(leftOffset - 1 + _index_	, topOffset - 1				, wall, 0);
+		writepixel(leftOffset - 1 + _index_	, topOffset + y_size		, wall, 0);
+	}
+	for (y_size + 2) {
+		writepixel(leftOffset - 1			, topOffset - 1 + _index_	, wall, 0);
+		writepixel(leftOffset + x_size		, topOffset - 1 + _index_	, wall, 0);
+	}
+	
+	while(Exit) {
+		var size : number = Array.Size(actions);
+		if (actionIdx < size) {
+			writepixel(leftOffset + charCoord.x, topOffset + charCoord.y, empty, 0);
+			
+			var act = Actions[actions[actionIdx]];
+			if (ValidPreCheck(charCoord, act)) {
+				charCoord.x += act.x;
+				charCoord.y += act.y;
+			} else {
+				var cc = Copy(charCoord);
+				while (actionIdx < Array.Size(actions)) {
+					var acti = Actions[actions[actionIdx]];
+					++actionIdx;
+					cc.x += acti.x;
+					cc.y += acti.y;
+					if (Game.GetPixel(leftOffset + cc.x, topOffset + cc.y) == wall2)
+						writepixel(leftOffset + cc.x, topOffset + cc.y, empty, 0);
+				}
+				writepixel(leftOffset + Target.x, topOffset + Target.y, empty, 2);
+				Array.Clear(actions);
+				size = 0;
+			}
+			
+			++actionIdx;
+			writepixel(leftOffset + charCoord.x, topOffset + charCoord.y, wall, 1);
+			
+		} 
+		if (actionIdx >= size) {
+			#writepixel(leftOffset + Target.x, topOffset + Target.y, empty, 2);
+			Target.x = random(0, x_size);
+			Target.y = random(0, y_size);
+			
+			var x_dist = Target.x - charCoord.x;
+			var y_dist = Target.y - charCoord.y;
+			while (Game.GetPixel(Target.x + Left, Target.y + Top) != empty) {
+				Target.x = random(0, x_size);
+				Target.y = random(0, y_size);
+				x_dist = Target.x - charCoord.x;
+				y_dist = Target.y - charCoord.y;
+			}
+			
+			actions = findPath(charCoord, Target);
+			actionIdx = 0;
+			
+			var location = Copy(charCoord);
+			for (item in actions) {
+				var act = Actions[item];
+				location.x += act.x;
+				location.y += act.y;
+				writepixel(leftOffset + location.x, topOffset + location.y, wall2, 4);
+			}
+			
+			delay(50);
+			writepixel(leftOffset + Target.x, topOffset + Target.y, wall2, 2);
+		} else {
+			delay(50);
+		}
+	}
+	
+	return true;
+}
