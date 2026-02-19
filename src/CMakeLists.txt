@@ -17,10 +17,13 @@ add_executable(emi-editor
 target_include_directories(emi-editor PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}
   ../dependencies/imgui-node-editor
+  ${emi_SOURCE_DIR}/include
+  ${emi_SOURCE_DIR}/src
 )
 
 target_link_libraries(emi-editor PRIVATE
   ImGui-SFML::ImGui-SFML
+  EMI
 )
 
 # Copy DLLs needed for runtime on Windows

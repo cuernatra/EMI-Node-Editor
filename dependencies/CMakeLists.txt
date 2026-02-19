@@ -24,3 +24,12 @@ FetchContent_Declare(
   GIT_TAG 82dc2033e51b8323857c3ae1cf1f458b3a933c35 # 2.3
 )
 add_subdirectory(imgui-sfml)
+
+# Emi script
+FetchContent_Declare(
+    EMI
+    GIT_REPOSITORY https://github.com/Atte2002/EMI-Script.git
+    GIT_TAG master
+)
+
+FetchContent_MakeAvailable(EMI)
