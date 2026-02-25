@@ -17,7 +17,7 @@ jobs:
           submodules: recursive
 
       - name: Install dependencies
-        run: sudo apt-get install -y libsfml-dev
+        run: sudo apt-get install -y libsfml-dev libxrandr-dev libxcursor-dev libudev-dev libfreetype-dev libopenal-dev libflac-dev libvorbis-dev libgl1-mesa-dev libegl1-mesa-dev
 
       - name: Cache CMake dependencies
         uses: actions/cache@v4
