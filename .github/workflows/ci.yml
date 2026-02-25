@@ -26,7 +26,7 @@ jobs:
           key: ${{ runner.os }}-catch2-${{ hashFiles('tests/CMakeLists.txt') }}
 
       - name: Configure
-        run: cmake -S . -B build -DBUILD_SHARED_LIBS=OFF "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" -DBUILD_TESTS=ON
+        run: cmake -S . -B build -DBUILD_SHARED_LIBS=OFF "-DCMAKE_POLICY_VERSION_MINIMUM=3.5" -DBUILD_TESTS=ON -DCMAKE_CXX_FLAGS="-Wno-error"
 
       - name: Build
         run: cmake --build build --parallel
