@@ -27,9 +27,10 @@ add_subdirectory(imgui-sfml)
 
 # Emi script
 FetchContent_Declare(
-    EMI
-    GIT_REPOSITORY https://github.com/IlkkaTakala/EMI-Script.git
-    GIT_TAG master # e97f3bca68d23b1f25ec645edf01eecc31a08306
+  EMI
+  GIT_REPOSITORY https://github.com/IlkkaTakala/EMI-Script.git
+  GIT_TAG master # e97f3bca68d23b1f25ec645edf01eecc31a08306
 )
-
 FetchContent_MakeAvailable(EMI)
+
+FetchContent_GetProperties(EMI)
