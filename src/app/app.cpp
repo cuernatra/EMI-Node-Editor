@@ -47,10 +47,6 @@ void App::render()
 {
     m_window.clear();
 
-    
-
-
-
     ImGui::SFML::Render(m_window);
     m_window.display();
 }
