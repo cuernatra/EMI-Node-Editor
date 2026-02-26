@@ -14,11 +14,25 @@ add_executable(emi-editor
   ../dependencies/imgui-node-editor/crude_json.cpp
 )
 
+set(_emi_src_dir "")
+set(_emi_inc_dir "")
+
+if(DEFINED EMI_SOURCE_DIR AND EXISTS "${EMI_SOURCE_DIR}/src/VM.h")
+  set(_emi_src_dir "${EMI_SOURCE_DIR}/src")
+  set(_emi_inc_dir "${EMI_SOURCE_DIR}/include")
+elseif(EXISTS "${CMAKE_BINARY_DIR}/_deps/emi-src/src/VM.h")
+  set(_emi_src_dir "${CMAKE_BINARY_DIR}/_deps/emi-src/src")
+  set(_emi_inc_dir "${CMAKE_BINARY_DIR}/_deps/emi-src/include")
+else()
+  message(FATAL_ERROR
+    "EMI-Script not found. Make sure that FetchContent_MakeAvailable(EMI) is called before add_subdirectory(src).")
+endif()
+
 target_include_directories(emi-editor PRIVATE
+  ${EMI_SOURCE_DIR}/include
+
   ${CMAKE_CURRENT_SOURCE_DIR}
   ../dependencies/imgui-node-editor
-  ${emi_SOURCE_DIR}/include
-  ${emi_SOURCE_DIR}/src
 )
 
 target_link_libraries(emi-editor PRIVATE
