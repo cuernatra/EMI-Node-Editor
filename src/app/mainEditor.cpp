@@ -50,7 +50,7 @@ void MainEditor::draw()
                 ImVec2 screenPos = ImGui::GetMousePos();
                 ImVec2 canvasPos = ed::ScreenToCanvas(screenPos);
 
-                m_nodes.push_back(CreateSimpleNode(gen, title, canvasPos));
+                m_nodes.push_back(CreateVisualNode(gen, title, canvasPos, "test_type", "test_data"));
             }
             ImGui::EndDragDropTarget();
         }
@@ -60,7 +60,7 @@ void MainEditor::draw()
 
     for(auto& n : m_nodes)
     {
-        if(n.alive) DrawSimpleNode(n);
+        if(n.alive) DrawVisualNode(n);
     }
         
     for(const auto& l : m_links)
@@ -156,7 +156,7 @@ void MainEditor::loadGraph(const char* path)
             std::getline(in, title);
 
             m_nodes.push_back(
-                CreateSimpleNodeWithId(nid, inPin, outPin, title, ImVec2(0,0))
+                CreateVisualNodeWithId(nid, inPin, outPin, title, ImVec2(0,0), "test_type", "test_data")
             );
 
             // all possible id places
@@ -189,7 +189,7 @@ void MainEditor::loadGraph(const char* path)
     gen.SetNext(maxId + 1);
 }
 
-void MainEditor::removeLinksForNode(const SimpleNode& n)
+void MainEditor::removeLinksForNode(const VisualNode& n)
 {
     auto it = std::remove_if(m_links.begin(), m_links.end(),
         [&](const Link& l)
@@ -254,7 +254,7 @@ void MainEditor::deleteNodes(ed::NodeId nodeId)
         if (ed::AcceptDeletedItem())
         {
             auto it = std::find_if(m_nodes.begin(), m_nodes.end(),
-                [&](const SimpleNode& n){ return n.alive && n.id == nodeId; });
+                [&](const VisualNode& n){ return n.alive && n.id == nodeId; });
 
             if(it != m_nodes.end())
             {

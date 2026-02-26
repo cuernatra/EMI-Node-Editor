@@ -3,7 +3,7 @@
 
 #include "constants.h"
 #include "imgui_node_editor.h"
-#include "node.h"
+#include "visualNode.h"
 #include <vector>
 #include <string>
 
@@ -29,11 +29,11 @@ private:
     std::vector<Link> m_links;
 
     IdGen gen;
-    std::vector<SimpleNode> m_nodes;
+    std::vector<VisualNode> m_nodes;
     
     void saveGraph(const char* path) const;
     void loadGraph(const char* path);
-    void removeLinksForNode(const SimpleNode& n);
+    void removeLinksForNode(const VisualNode& n);
     void createNewLink();
     void deleteLinks(ed::LinkId linkId);
     void deleteNodes(ed::NodeId nodeId);
