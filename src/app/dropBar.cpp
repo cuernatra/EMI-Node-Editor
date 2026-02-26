@@ -1,5 +1,5 @@
 #include "dropBar.h"
-#include "node.h"
+#include "visualNode.h"
 #include <cstring>
 
 DropBar::DropBar(std::string name, int id, float width, float height, bool hasSpawnButton)

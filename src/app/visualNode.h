@@ -1,5 +1,5 @@
-#ifndef NODE_H
-#define NODE_H
+#ifndef VISUALNODE_H
+#define VISUALNODE_H
 
 #include "imgui_node_editor.h"
 #include <vector>
@@ -21,12 +21,14 @@ struct IdGen
     ed::LinkId NewLink() { return ed::LinkId(next++); }
 };
 
-struct SimpleNode 
+struct VisualNode 
 {
     ed::NodeId id{};
     ed::PinId  inPin{};
     ed::PinId  outPin{};
     std::string title;
+    std::string type;
+    std::string value;
     ImVec2 initialPos{0,0};
     bool positioned = false;
     bool alive = true;
@@ -44,8 +46,8 @@ struct NodeSpawnPayload
     char title[32];
 };
 
-SimpleNode CreateSimpleNode(IdGen& gen, std::string title, ImVec2 pos);
-void DrawSimpleNode(SimpleNode& n);
-SimpleNode CreateSimpleNodeWithId(int nodeId, int inPinId, int outPinId,
-                                  std::string title, ImVec2 pos);
+VisualNode CreateVisualNode(IdGen& gen, std::string title, ImVec2 pos, std::string type, std::string value);
+void DrawVisualNode(VisualNode& n);
+VisualNode CreateVisualNodeWithId(int nodeId, int inPinId, int outPinId,
+                                  std::string title, ImVec2 pos, std::string type, std::string value);
 #endif
