@@ -21,10 +21,10 @@ struct IdGen
     ed::LinkId NewLink() { return ed::LinkId(next++); }
 };
 
-struct VisualNode 
+struct VisualNode
 {
     ed::NodeId id{};
-    ed::PinId  inPin{};
+    std::vector<ed::PinId> inPins;
     ed::PinId  outPin{};
     std::string title;
     std::string type;
@@ -46,8 +46,15 @@ struct NodeSpawnPayload
     char title[32];
 };
 
-VisualNode CreateVisualNode(IdGen& gen, std::string title, ImVec2 pos, std::string type, std::string value);
 void DrawVisualNode(VisualNode& n);
-VisualNode CreateVisualNodeWithId(int nodeId, int inPinId, int outPinId,
-                                  std::string title, ImVec2 pos, std::string type, std::string value);
+
+VisualNode CreateVisualNode(IdGen& gen, std::string title, ImVec2 pos,
+                            std::string type, std::string value,
+                            int inputCount);
+                            
+VisualNode CreateVisualNodeWithId(int nodeId,
+                                  const std::vector<int>& inputPinIds,
+                                  int outPinId,
+                                  std::string title, ImVec2 pos,
+                                  std::string type, std::string value);
 #endif

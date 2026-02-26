@@ -50,7 +50,7 @@ void MainEditor::draw()
                 ImVec2 screenPos = ImGui::GetMousePos();
                 ImVec2 canvasPos = ed::ScreenToCanvas(screenPos);
 
-                m_nodes.push_back(CreateVisualNode(gen, title, canvasPos, "test_type", "test_data"));
+                m_nodes.push_back(CreateVisualNode(gen, title, canvasPos, "test_type", "test_data", 2));
             }
             ImGui::EndDragDropTarget();
         }
@@ -113,8 +113,9 @@ void MainEditor::saveGraph(const char* path) const
 
         out << "node "
             << n.id.Get() << " "
-            << n.inPin.Get() << " "
-            << n.outPin.Get() << " "
+            << (int)n.inPins.size() << " ";
+        for (auto ip : n.inPins) out << ip.Get() << " ";
+        out << n.outPin.Get() << " "
             << n.title << "\n";
     }
 
@@ -148,20 +149,42 @@ void MainEditor::loadGraph(const char* path)
         }
         else if (type == "node")
         {
-            int nid, inPin, outPin;
-            std::string title;
+            int nid, inputCount;
+            in >> nid >> inputCount;
 
-            in >> nid >> inPin >> outPin;
+            if (inputCount < 1) inputCount = 1;
+
+            std::vector<int> inputPins;
+            inputPins.reserve(inputCount);
+
+            for (int i = 0; i < inputCount; ++i)
+            {
+                int pin;
+                in >> pin;
+                inputPins.push_back(pin);
+            }
+
+            int outPin;
+            in >> outPin;
+
+            std::string title;
             in >> std::ws;
             std::getline(in, title);
 
             m_nodes.push_back(
-                CreateVisualNodeWithId(nid, inPin, outPin, title, ImVec2(0,0), "test_type", "test_data")
+                CreateVisualNodeWithId(
+                    nid,
+                    inputPins,
+                    outPin,
+                    title,
+                    ImVec2(0,0),
+                    "test_type",
+                    "test_data"
+                )
             );
 
-            // all possible id places
             maxId = std::max(maxId, nid);
-            maxId = std::max(maxId, inPin);
+            for (int p : inputPins) maxId = std::max(maxId, p);
             maxId = std::max(maxId, outPin);
         }
         else if (type == "link")
@@ -191,11 +214,18 @@ void MainEditor::loadGraph(const char* path)
 
 void MainEditor::removeLinksForNode(const VisualNode& n)
 {
+    auto isAnyInput = [&](ed::PinId p)
+    {
+        for (auto ip : n.inPins)
+            if (ip == p) return true;
+        return false;
+    };
+
     auto it = std::remove_if(m_links.begin(), m_links.end(),
         [&](const Link& l)
         {
-            return l.startPinId == n.outPin || l.endPinId == n.inPin
-                || l.startPinId == n.inPin  || l.endPinId == n.outPin;
+            return l.startPinId == n.outPin || l.endPinId == n.outPin
+                || isAnyInput(l.startPinId) || isAnyInput(l.endPinId);
         });
 
     if (it != m_links.end())
@@ -216,11 +246,13 @@ void MainEditor::createNewLink()
             return false;
         };
 
-        auto isInput = [&](ed::PinId p) 
+        auto isInput = [&](ed::PinId p)
         {
-            for(auto& n : m_nodes) 
+            for (auto& n : m_nodes)
             {
-                if (n.alive && n.inPin == p) return true;
+                if (!n.alive) continue;
+                for (auto ip : n.inPins)
+                    if (ip == p) return true;
             }
             return false;
         };
