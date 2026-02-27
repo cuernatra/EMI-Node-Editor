@@ -6,7 +6,6 @@
  * and compilation status. Provides CRUD operations for graph elements
  * and accessors for various subsystems.
  * 
- * @author Atte Perkiö
  */
 
 #pragma once
@@ -31,7 +30,6 @@ namespace ed = ax::NodeEditor;
  * Provides a clean interface for editor operations while keeping
  * the internal data structure private.
  * 
- * @author Atte Perkiö
  */
 class GraphState
 {

@@ -6,7 +6,6 @@
  * descriptors. Handles both fresh node creation (with new IDs) and
  * deserialization (with existing IDs).
  * 
- * @author Atte Perkiö
  */
 
 #ifndef NODE_FACTORY_H
