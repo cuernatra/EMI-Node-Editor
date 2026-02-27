@@ -1,12 +1,22 @@
 add_executable(emi-editor
   main.cpp
   app/app.cpp
-  app/leftPanel.cpp
-  app/topPanel.cpp
-  app/mainEditor.cpp
   app/ui.cpp
-  app/dropBar.cpp
-  app/visualNode.cpp
+  ui/leftPanel.cpp
+  ui/topPanel.cpp
+  ui/dropBar.cpp
+  editor/mainEditor.cpp
+  editor/graphEditor.cpp
+  editor/graphCompilation.cpp
+  editor/graphState.cpp
+  editor/graphSerializer.cpp
+  core/graph/visualNode.cpp
+  core/graph/link.cpp
+  core/registry/fieldWidget.cpp
+  core/registry/nodeFactory.cpp
+  core/registry/nodeRegistry.cpp
+  core/compiler/graphCompiler.cpp
+  core/compiler/pinResolver.cpp
 
   ../dependencies/imgui-node-editor/imgui_node_editor.cpp
   ../dependencies/imgui-node-editor/imgui_node_editor_api.cpp
@@ -33,6 +43,7 @@ target_include_directories(emi-editor PRIVATE
   ${_emi_src_dir}
 
   ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/core/graph
   ../dependencies/imgui-node-editor
 )
 
@@ -40,6 +51,10 @@ target_link_libraries(emi-editor PRIVATE
   ImGui-SFML::ImGui-SFML
   EMI
 )
+
+if(MSVC)
+  target_compile_options(emi-editor PRIVATE /FS)
+endif()
 
 if(WIN32)
   if(BUILD_SHARED_LIBS)
