@@ -1,6 +1,7 @@
 #include "app.h"
 #include <imgui-SFML.h>
 #include <SFML/Window/Event.hpp>
+#include <iostream>
 
 App::App()
     : m_window(sf::VideoMode(appConstants::windowWidth, appConstants::windowheight), 

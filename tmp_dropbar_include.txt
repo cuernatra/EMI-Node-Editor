@@ -1,0 +1,5 @@
+#include "../app/constants.h"
+#include "../core/graph/pin.h"           // NodeType
+#include "../core/graph/link.h"          // NodeSpawnPayload
+#include <vector>
+#include <string>
