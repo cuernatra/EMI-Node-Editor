@@ -5,7 +5,6 @@
  * Provides a scrollable list of node types that can be dragged into the
  * main editor canvas. Organizes nodes into collapsible categories.
  * 
- * @author Atte Perkiö
  */
 
 #ifndef LEFTPANEL_H
@@ -24,7 +23,6 @@
  * 
  * The panel width is resizable via the main UI splitter.
  * 
- * @author Atte Perkiö
  */
 class LeftPanel
 {

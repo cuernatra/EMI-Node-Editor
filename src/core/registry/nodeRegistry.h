@@ -6,7 +6,6 @@
  * All supported node types are registered here with their pin/field
  * configurations.
  * 
- * @author Atte Perkiö
  */
 
 #ifndef NODE_REGISTRY_H
@@ -37,7 +36,6 @@
  * }
  * @endcode
  * 
- * @author Atte Perkiö
  */
 class NodeRegistry
 {

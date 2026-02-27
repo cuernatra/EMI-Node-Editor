@@ -6,7 +6,6 @@
  * plain text files. Uses a simple custom format for storing nodes,
  * links, and their properties.
  * 
- * @author Atte Perkiö
  */
 
 #pragma once
@@ -26,7 +25,6 @@ class GraphState;
  * - Link IDs and connections
  * - Next available ID for the generator
  * 
- * @author Atte Perkiö
  */
 class GraphSerializer
 {

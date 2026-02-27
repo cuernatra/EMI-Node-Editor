@@ -6,7 +6,6 @@
  * handling user interactions (dragging, connecting, deleting),
  * and displaying context menus.
  * 
- * @author Atte Perkiö
  */
 
 #pragma once
@@ -30,7 +29,6 @@ namespace ed = ax::NodeEditor;
  * 
  * Operates on a GraphState reference but doesn't own it.
  * 
- * @author Atte Perkiö
  */
 class GraphEditor
 {

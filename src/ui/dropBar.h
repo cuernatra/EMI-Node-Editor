@@ -6,7 +6,6 @@
  * Each DropBar represents a specific node type and handles drag-and-drop
  * spawning of that node type into the editor canvas.
  * 
- * @author Atte Perkiö
  */
 
 #ifndef DROPBAR_H

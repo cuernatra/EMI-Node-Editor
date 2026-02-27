@@ -6,7 +6,6 @@
  * into executable EMI-Script code. Acts as a bridge between the editor
  * and the core GraphCompiler, managing EMI environment and execution.
  * 
- * @author Atte Perkiö
  */
 
 #pragma once
@@ -25,7 +24,6 @@ class GraphState;
  * Currently creates and prints the AST. Future integration will use
  * EMI's Parser::ParseAST() and internal execution APIs.
  * 
- * @author Atte Perkiö
  */
 class GraphCompilation
 {
