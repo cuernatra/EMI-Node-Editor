@@ -2,6 +2,7 @@
 #include "nodeRegistry.h"
 #include "fieldWidget.h"
 #include <cassert>
+#include <iostream>
 
 // Internal helpers
 
@@ -59,7 +60,11 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
                                      ImVec2 pos)
 {
     const NodeDescriptor* desc = NodeRegistry::Get().Find(type);
-    assert(desc && "NodeType not registered");
+    if (!desc) 
+    {
+    std::cerr << "NodeType not registered\n";
+    return {};
+    }
     assert(pinIds.size() == desc->pins.size() && "Pin ID count mismatch");
 
     VisualNode n;
