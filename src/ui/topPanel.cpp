@@ -16,7 +16,7 @@ void TopPanel::draw()
 
     if (ImGui::Button("test1", ImVec2(80, m_height - 14)))
     {
-        printf("test1\n");
+        printf("miau\n");
     }
 
     ImGui::SameLine(0, 55);

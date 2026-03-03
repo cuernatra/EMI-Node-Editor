@@ -103,6 +103,7 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
     resolver_.Build(nodes, links);
 
     // Build a Scope containing one statement per Output/Function sink.
+    // TODO: mitä vittua
     Node* body = MakeNode(Token::Scope);
 
     for (const VisualNode& n : nodes)

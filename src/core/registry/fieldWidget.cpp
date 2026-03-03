@@ -10,6 +10,7 @@ namespace ed = ax::NodeEditor;
 
 // HELPERS
 
+// TODO: Miksi static??
 static float ParseFloat(const std::string& s)
 {
     return s.empty() ? 0.0f : std::stof(s);
