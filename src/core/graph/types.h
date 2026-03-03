@@ -61,6 +61,7 @@ inline NodeType NodeTypeFromString(const std::string& s)
     return NodeType::Unknown;
 }
 
+// TODO: mitä helee??
 namespace std {
     template<>
     struct hash<NodeType>

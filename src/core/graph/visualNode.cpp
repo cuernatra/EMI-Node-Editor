@@ -20,6 +20,7 @@ static void DrawPin(const Pin& pin)
     ed::EndPin();
 }
 
+// TODO: compile/clear nappia painaessa viiva menee ylös alas
 bool DrawVisualNode(VisualNode& n)
 {
     if (!n.positioned)
