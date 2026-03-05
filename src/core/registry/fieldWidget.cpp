@@ -165,6 +165,7 @@ bool DrawField(NodeField& field)
                 static const char* kLogic[] = { "AND", "OR", "NOT", nullptr };
 
                 const char** items = kArith;
+
                 if (field.value == "==" || field.value == "!=" ||
                     field.value == "<"  || field.value == "<=" ||
                     field.value == ">"  || field.value == ">=")
@@ -177,6 +178,15 @@ bool DrawField(NodeField& field)
                 }
 
                 if (OpPopupCombo("##OpCombo", field.value, items, 100.0f))
+                    changed = true;
+            }
+            else if (field.name == "Type")
+            {
+                static const char* kTypes[] = {
+                    "Number", "Boolean", "String", "Array", "Function", "Flow", "Any", nullptr
+                };
+
+                if (OpPopupCombo("##TypeCombo", field.value, kTypes, 100.0f))
                     changed = true;
             }
             else
@@ -197,6 +207,7 @@ bool DrawField(NodeField& field)
 
                 ImGui::PopItemWidth();
             }
+
             break;
         }
 

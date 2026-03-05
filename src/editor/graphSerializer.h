@@ -13,6 +13,7 @@
 #include <string>
 
 class GraphState;
+struct VisualNode;
 
 /**
  * @brief Graph file I/O operations
@@ -48,4 +49,6 @@ public:
      * If the file doesn't exist or is malformed, state is left empty.
      */
     static void Load(GraphState& state, const char* path);
+
+    static void ApplyConstantTypeFromFields(VisualNode& n);
 };

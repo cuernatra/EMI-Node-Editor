@@ -31,7 +31,6 @@ void GraphEditor::DrawNodeCanvas()
 {
     ed::Begin("MainGraph");
 
-
     ed::Suspend();
 
     // Handle drag-drop spawn
@@ -64,11 +63,16 @@ void GraphEditor::DrawNodeCanvas()
 
     // Draw all nodes
     bool anyChanged = false;
-for (auto& n : m_state.GetNodes())
-    if (n.alive) anyChanged |= DrawVisualNode(n);
+    for (auto& n : m_state.GetNodes())
+    {
+        if (n.alive)
+            anyChanged |= DrawVisualNode(n);
+    }
 
-    if (anyChanged)
+    if (anyChanged) 
+    {
         m_state.MarkDirty();
+    }
 
     // Draw all links
     DrawLinks(m_state.GetLinks());

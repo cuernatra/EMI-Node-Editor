@@ -11,17 +11,18 @@ NodeRegistry::NodeRegistry()
     // ------------------------------------------------------------------
     // Constant  —  single editable Number output
     // ------------------------------------------------------------------
-    descriptors_[NodeType::Constant] = {
-        NodeType::Constant,
-        "Constant",
-        {
-            { "Value", PinType::Number, /*isInput=*/false }
-        },
-        {
-            { "Value", PinType::Number, "0.0" }
-        },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildConstant(n); }
-    };
+descriptors_[NodeType::Constant] = {
+    NodeType::Constant,
+    "Constant",
+    {
+        { "Value", PinType::Any, /*isInput=*/false }
+    },
+    {
+        { "Value", PinType::String, "0.0" },
+        { "Type",  PinType::String, "String" }
+    },
+    [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildConstant(n); }
+};
 
     // ------------------------------------------------------------------
     // Operator  —  A op B -> Result  (operator chosen via field)

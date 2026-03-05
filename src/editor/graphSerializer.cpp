@@ -56,6 +56,60 @@ void GraphSerializer::Save(const GraphState& state, const char* path)
     }
 }
 
+static NodeField* FindField(std::vector<NodeField>& fields, const char* name)
+{
+    for (auto& f : fields)
+        if (f.name == name) return &f;
+    return nullptr;
+}
+
+void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n)
+{
+    if (n.nodeType != NodeType::Constant) return;
+
+    NodeField* typeF  = FindField(n.fields, "Type");
+    NodeField* valueF = FindField(n.fields, "Value");
+    if (!typeF || !valueF) return;
+
+    const std::string& t = typeF->value;
+
+    if (t == "Boolean")
+    {
+        valueF->valueType = PinType::Boolean;
+        if (!n.outPins.empty()) n.outPins[0].type = PinType::Boolean;
+    }
+    else if (t == "Number")
+    {
+        valueF->valueType = PinType::Number;
+        if (!n.outPins.empty()) n.outPins[0].type = PinType::Number;
+    }
+    else if (t == "String")
+    {
+        valueF->valueType = PinType::String;
+        if (!n.outPins.empty()) n.outPins[0].type = PinType::String;
+    }
+    else if (t == "Array")
+    {
+        valueF->valueType = PinType::Array;
+        if (!n.outPins.empty()) n.outPins[0].type = PinType::Array;
+    }
+    else if (t == "Flow")
+    {
+        valueF->valueType = PinType::Flow;
+        if (!n.outPins.empty()) n.outPins[0].type = PinType::Flow;
+    }
+    else if (t == "Function")
+    {
+        valueF->valueType = PinType::Function;
+        if (!n.outPins.empty()) n.outPins[0].type = PinType::Function;
+    }
+    else
+    {
+        valueF->valueType = PinType::String;
+        if (!n.outPins.empty()) n.outPins[0].type = PinType::Any;
+    }
+}
+
 void GraphSerializer::Load(GraphState& state, const char* path)
 {
     std::ifstream in(path);
@@ -86,11 +140,17 @@ void GraphSerializer::Load(GraphState& state, const char* path)
                 maxId = std::max(maxId, pid);
             }
 
-            int fieldCount; in >> fieldCount;
+            int fieldCount; 
+            in >> fieldCount;
+
             std::vector<std::pair<std::string, std::string>> fieldValues;
+            fieldValues.reserve(fieldCount);
+
             for (int i = 0; i < fieldCount; ++i)
             {
-                std::string pair; in >> pair;
+                std::string pair; 
+                in >> pair;
+
                 auto eq = pair.find('=');
                 if (eq != std::string::npos)
                 {
@@ -101,14 +161,27 @@ void GraphSerializer::Load(GraphState& state, const char* path)
                 }
             }
 
-            float px, py; in >> px >> py;
+            float px, py; 
+            in >> px >> py;
+
             maxId = std::max(maxId, nid);
 
             VisualNode n = CreateNodeFromTypeWithIds(nodeType, nid, pinIds, ImVec2(px, py));
 
+            // Apply loaded field values
             for (auto& [name, val] : fieldValues)
+            {
                 for (NodeField& f : n.fields)
-                    if (f.name == name) { f.value = val; break; }
+                {
+                    if (f.name == name)
+                    {
+                        f.value = val;
+                        break;
+                    }
+                }
+            }
+
+            ApplyConstantTypeFromFields(n);
 
             state.AddNode(n);
         }

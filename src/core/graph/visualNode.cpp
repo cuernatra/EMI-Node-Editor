@@ -1,5 +1,6 @@
 #include "visualNode.h"
 #include "../registry/fieldWidget.h"
+#include "editor/graphSerializer.h"
 #include "imgui_node_editor.h"
 
 static void DrawPin(const Pin& pin)
@@ -46,6 +47,9 @@ bool DrawVisualNode(VisualNode& n)
         ImGui::PopID();
         ImGui::Spacing();
     }
+
+    if (changed)
+        GraphSerializer::ApplyConstantTypeFromFields(n);
 
     for (const Pin& pin : n.outPins)
         DrawPin(pin);
