@@ -131,14 +131,12 @@ bool DrawField(NodeField& field)
 
             float v = ParseFloat(field.value);
 
-            ed::Suspend();
             if (ImGui::InputFloat("##value", &v, 0.0f, 0.0f, "%.3f"))
             {
                 field.value = std::to_string(v);
                 changed = true;
             }
             HandleShortcutToggle("##value");
-            ed::Resume();
 
             ImGui::PopItemWidth();
             break;
@@ -148,14 +146,12 @@ bool DrawField(NodeField& field)
         {
             bool v = ParseBool(field.value);
 
-            ed::Suspend();
             if (ImGui::Checkbox(field.name.c_str(), &v))
             {
                 field.value = v ? "true" : "false";
                 changed = true;
             }
             HandleShortcutToggle(field.name.c_str());
-            ed::Resume();
 
             break;
         }
@@ -192,14 +188,12 @@ bool DrawField(NodeField& field)
                 char buf[128] = {};
                 std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
 
-                ed::Suspend();
                 if (ImGui::InputText("##value", buf, sizeof(buf)))
                 {
                     field.value = buf;
                     changed = true;
                 }
                 HandleShortcutToggle("##value");
-                ed::Resume();
 
                 ImGui::PopItemWidth();
             }
