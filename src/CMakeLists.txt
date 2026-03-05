@@ -46,7 +46,7 @@ target_include_directories(emi-editor PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/core/graph
   ../dependencies/imgui-node-editor
 )
-
+target_include_directories(emi-editor PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(emi-editor PRIVATE
   ImGui-SFML::ImGui-SFML
   EMI
