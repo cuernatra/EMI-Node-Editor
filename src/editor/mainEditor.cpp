@@ -68,6 +68,11 @@ void MainEditor::draw()
         ImGui::PopStyleColor();
     }
 
+    else
+    {
+        ImGui::TextUnformatted(" ");
+    }
+
     ImGui::Separator();
     // Draw the node editor canvas
     m_graphEditor->Draw();
