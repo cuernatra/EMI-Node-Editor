@@ -180,9 +180,6 @@ bool DrawField(NodeField& field)
                     items = kLogic;
                 }
 
-                ImGui::TextUnformatted("Op");
-                ImGui::SameLine();
-
                 if (OpPopupCombo("##OpCombo", field.value, items, 100.0f))
                     changed = true;
             }
