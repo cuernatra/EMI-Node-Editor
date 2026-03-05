@@ -8,9 +8,6 @@
 
 namespace ed = ax::NodeEditor;
 
-// HELPERS
-
-// TODO: Miksi static??
 static float ParseFloat(const std::string& s)
 {
     return s.empty() ? 0.0f : std::stof(s);
@@ -21,17 +18,17 @@ static bool ParseBool(const std::string& s)
     return s == "1" || s == "true" || s == "True";
 }
 
-// Track previous frame's focus state for EACH field. Needed to detect when focus changes
-// (gained or lost), not just whether it's focused now. Allows us to disable shortcuts
-// exactly when user starts typing in a field, and re-enable them when done.
 static std::unordered_map<ImGuiID, bool> s_wasActive;
 
-// Handle node editor shortcut toggling when input widgets gain/lose focus
-static void HandleShortcutToggle(const std::string& fieldName)
+static void HandleShortcutToggle(const char* widgetId)
 {
-    ImGuiID id = ImGui::GetID(fieldName.c_str());
+    ImGuiID id = ImGui::GetID(widgetId);
     bool isActive = ImGui::IsItemActive();
-    bool wasActive = s_wasActive[id];
+
+    bool wasActive = false;
+    auto it = s_wasActive.find(id);
+    if (it != s_wasActive.end())
+        wasActive = it->second;
 
     if (isActive && !wasActive)
     {
@@ -45,11 +42,83 @@ static void HandleShortcutToggle(const std::string& fieldName)
     }
 }
 
+static bool OpPopupCombo(const char* id, std::string& value, const char** items, float width = 100.0f)
+{
+    bool changed = false;
+
+    ImGui::PushID(id);
+
+    bool open = false;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 4));
+
+    if (ImGui::Button(value.c_str(), ImVec2(width, 0.0f)))
+        open = true;
+
+    ImVec2 leftMin  = ImGui::GetItemRectMin();
+    ImVec2 rightMax = ImGui::GetItemRectMax();
+
+    ImDrawList* draw = ImGui::GetWindowDrawList();
+    float arrowX = rightMax.x - ImGui::GetFrameHeight() * 0.55f;
+    float arrowY = (leftMin.y + rightMax.y) * 0.5f;
+
+    draw->AddTriangleFilled(
+        ImVec2(arrowX - 4.0f, arrowY - 2.0f),
+        ImVec2(arrowX + 4.0f, arrowY - 2.0f),
+        ImVec2(arrowX,        arrowY + 3.0f),
+        ImGui::GetColorU32(ImGuiCol_Text)
+    );
+
+    ImGui::PopStyleVar();
+
+    if (open)
+        ImGui::OpenPopup("##popup");
+
+    ImVec2 desiredPos(leftMin.x, rightMax.y);
+
+    int itemCount = 0;
+    while (items[itemCount]) ++itemCount;
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    float lineH  = ImGui::GetTextLineHeightWithSpacing();
+    float popupH = itemCount * lineH + style.WindowPadding.y * 2.0f;
+
+    ed::Suspend();
+
+    ImGui::SetNextWindowPos({ImGui::GetMousePos().x, ImGui::GetMousePos().y}, ImGuiCond_Appearing);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(40.0f, 0.0f), ImVec2(10000.0f, 10000.0f));
+    
+    if (ImGui::BeginPopup("##popup",
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_AlwaysAutoResize |
+        ImGuiWindowFlags_NoSavedSettings))
+    {
+        for (int i = 0; items[i]; ++i)
+        {
+            const bool selected = (value == items[i]);
+            if (ImGui::Selectable(items[i], selected))
+            {
+                value = items[i];
+                changed = true;
+                ImGui::CloseCurrentPopup();
+            }
+            if (selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndPopup();
+    }
+
+    ed::Resume();
+
+    ImGui::PopID();
+    return changed;
+}
+
 bool DrawField(NodeField& field)
 {
     bool changed = false;
 
-    // Give each field a stable ImGui ID scope using its name.
     ImGui::PushID(field.name.c_str());
 
     switch (field.valueType)
@@ -59,84 +128,82 @@ bool DrawField(NodeField& field)
             ImGui::Text("%s", field.name.c_str());
             ImGui::SameLine();
             ImGui::PushItemWidth(100.0f);
-            
+
             float v = ParseFloat(field.value);
+
+            ed::Suspend();
             if (ImGui::InputFloat("##value", &v, 0.0f, 0.0f, "%.3f"))
             {
                 field.value = std::to_string(v);
                 changed = true;
             }
-            HandleShortcutToggle(field.name);
-            
+            HandleShortcutToggle("##value");
+            ed::Resume();
+
             ImGui::PopItemWidth();
             break;
         }
+
         case PinType::Boolean:
         {
             bool v = ParseBool(field.value);
+
+            ed::Suspend();
             if (ImGui::Checkbox(field.name.c_str(), &v))
             {
                 field.value = v ? "true" : "false";
                 changed = true;
             }
+            HandleShortcutToggle(field.name.c_str());
+            ed::Resume();
+
             break;
         }
+
         case PinType::String:
         {
-            // Special-case known operator fields to render as combos.
             if (field.name == "Op")
             {
-                // Three dropdown lists, one for each operator category.
-                // The descriptor sets a default, but we detect which category it belongs to
-                // so we show the RIGHT dropdown. (User shouldn't see arithmetic ops in a Logic node.)
                 static const char* kArith[] = { "+", "-", "*", "/", nullptr };
                 static const char* kCmp[]   = { "==", "!=", "<", "<=", ">", ">=", nullptr };
                 static const char* kLogic[] = { "AND", "OR", "NOT", nullptr };
 
-                // Auto-detect which dropdown to show based on current field value.
-                // This handles the case where a node was loaded from disk with a value
-                // we need to categorize, OR where the default was set.
-                const char** items = kArith;  // Default to arithmetic
+                const char** items = kArith;
                 if (field.value == "==" || field.value == "!=" ||
                     field.value == "<"  || field.value == "<=" ||
                     field.value == ">"  || field.value == ">=")
-                    items = kCmp;  // Value is a comparison operator
-                else if (field.value == "AND" || field.value == "OR" ||
-                         field.value == "NOT")
-                    items = kLogic;  // Value is a logic operator
-
-                // Find which index in the current dropdown list matches the current value.
-                // This ensures the combo shows the correct item as selected.
-                int current = 0;
-                for (int i = 0; items[i] != nullptr; ++i)
-                    if (field.value == items[i]) { current = i; break; }
-
-                // Render the ImGui combo dropdown. When user selects, 'current' updates.
-                if (ImGui::Combo(field.name.c_str(), &current, items,
-                                 /* count */ [](const char** arr) {
-                                     int n = 0; while (arr[n]) ++n; return n;
-                                 }(items)))
                 {
-                    field.value = items[current];  // Store user's selection
-                    changed = true;
+                    items = kCmp;
                 }
+                else if (field.value == "AND" || field.value == "OR" || field.value == "NOT")
+                {
+                    items = kLogic;
+                }
+
+                ImGui::TextUnformatted("Op");
+                ImGui::SameLine();
+
+                if (OpPopupCombo("##OpCombo", field.value, items, 100.0f))
+                    changed = true;
             }
             else
             {
-                // Generic text input.
                 ImGui::Text("%s", field.name.c_str());
                 ImGui::SameLine();
                 ImGui::PushItemWidth(100.0f);
-                
+
                 char buf[128] = {};
                 std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
+
+                ed::Suspend();
                 if (ImGui::InputText("##value", buf, sizeof(buf)))
                 {
                     field.value = buf;
                     changed = true;
                 }
-                HandleShortcutToggle(field.name);
-                
+                HandleShortcutToggle("##value");
+                ed::Resume();
+
                 ImGui::PopItemWidth();
             }
             break;
@@ -144,15 +211,12 @@ bool DrawField(NodeField& field)
 
         case PinType::Array:
         {
-            // TODO: Show item count as read-only for now; editing arrays is a
-            // larger problem that deserves its own widget later.
             ImGui::LabelText(field.name.c_str(), "%s", field.value.c_str());
             break;
         }
 
         default:
         {
-            // Fallback: plain text display.
             ImGui::LabelText(field.name.c_str(), "%s", field.value.c_str());
             break;
         }
