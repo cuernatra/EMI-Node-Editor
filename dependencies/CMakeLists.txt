@@ -29,7 +29,7 @@ add_subdirectory(imgui-sfml)
 FetchContent_Declare(
   EMI
   GIT_REPOSITORY https://github.com/Atte2002/EMI-Script.git
-  GIT_TAG fix-nametype-string-conversion-linux
+  GIT_TAG fix-linux-build
 )
 FetchContent_MakeAvailable(EMI)
 
