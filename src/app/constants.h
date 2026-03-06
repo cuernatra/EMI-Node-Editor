@@ -54,6 +54,7 @@ namespace colors
  */
 namespace elementSizes
 {
+    const float fileBarHeight = appConstants::windowheight / 20;   ///< Height of the file bar (36px)
     const float topBarHeight = appConstants::windowheight / 20;    ///< Height of top toolbar (36px)
     const float dropBarHeight = appConstants::windowheight / 10;   ///< Height of drag-drop items (72px)
     const float dropBarWidth = appConstants::windowheight / 10;    ///< Width of drag-drop items (72px)

@@ -5,7 +5,7 @@
  * Coordinates the top toolbar, left node palette panel, main editor canvas,
  * and resizable splitter. Creates a three-panel layout with adjustable sizes.
  * 
- * @author Atte Perkiö
+ * @author Atte Perkiö, Alex Lundström
  */
 
 #ifndef UI_H
@@ -14,6 +14,7 @@
 #include "../editor/mainEditor.h"
 #include "../ui/leftPanel.h"
 #include "../ui/topPanel.h"
+#include "../ui/fileBar.h"
 
 /**
  * @brief Main UI compositor class
@@ -27,7 +28,7 @@
  * - Left: Node palette with draggable node types
  * - Center: Main node editor canvas
  * 
- * @author Atte Perkiö
+ * @author Atte Perkiö, Alex Lundström
  */
 class Ui
 {
@@ -60,6 +61,9 @@ private:
 
     /// Main node graph editor
     MainEditor m_mainEditor;
+
+    ///Filebar on the top with save/load options
+    FileBar m_fileBar;
     
     /// Left sidebar with node palette
     LeftPanel m_leftPanel;

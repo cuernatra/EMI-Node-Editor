@@ -31,6 +31,11 @@ void Ui::draw()
         m_leftPanelWidth = std::clamp(totalWidth * 0.25f, minLeft, totalWidth - minRight - 5.f);
     }
 
+    ImGui::BeginChild("FILE BAR", ImVec2(totalWidth, elementSizes::fileBarHeight), true,
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    m_fileBar.draw();
+    ImGui::EndChild();
+
     ImGui::BeginChild("TOP BAR", ImVec2(totalWidth, elementSizes::topBarHeight), true,
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     m_topPanel.draw();
