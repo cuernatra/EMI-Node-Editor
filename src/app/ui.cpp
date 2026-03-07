@@ -19,7 +19,8 @@ void Ui::draw()
         ImGuiWindowFlags_NoMove | 
         ImGuiWindowFlags_NoResize | 
         ImGuiWindowFlags_NoCollapse | 
-        ImGuiWindowFlags_NoTitleBar
+        ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_MenuBar
     );
 
     const float totalWidth = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
@@ -29,13 +30,14 @@ void Ui::draw()
     if(m_leftPanelWidth <= 0.0f)
     {
         m_leftPanelWidth = std::clamp(totalWidth * 0.25f, minLeft, totalWidth - minRight - 5.f);
-    }
+    } 
 
-    ImGui::BeginChild("FILE BAR", ImVec2(totalWidth, elementSizes::fileBarHeight), true,
-        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    ImGui::BeginChild("FILE BAR", ImVec2(totalWidth, elementSizes::fileBarHeight), false,
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse
+    | ImGuiWindowFlags_MenuBar);
     m_fileBar.draw();
     ImGui::EndChild();
-
+    
     ImGui::BeginChild("TOP BAR", ImVec2(totalWidth, elementSizes::topBarHeight), true,
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     m_topPanel.draw();
