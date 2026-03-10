@@ -26,7 +26,7 @@ void DropBar::draw()
         if (m_hasSpawnButton)
         {
             // Draw the node preview
-            NodePreview::Draw(m_nodeType, m_width * 1.5f, m_height);
+            NodePreview::Draw(m_nodeType);
 
             // The drag source must be activated immediately after drawing the preview
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
@@ -44,7 +44,7 @@ void DropBar::draw()
                 );
 
                 // Show preview while dragging
-                NodePreview::Draw(m_nodeType, m_width * 1.5f, m_height);
+                NodePreview::Draw(m_nodeType);
                 ImGui::EndDragDropSource();
             }
         }
