@@ -60,9 +60,19 @@ void NodePreview::Draw(NodeType nodeType)
 
     const ImVec2 nodeMax(cursorPos.x + width, cursorPos.y + height);
 
+    // hover effect when mouse is over the preview
+    const bool hovered = ImGui::IsMouseHoveringRect(cursorPos, nodeMax);
+    const ImU32 borderColor = hovered ? ImGui::GetColorU32(ImGuiCol_ButtonHovered) : textColor;
+    const float expand = hovered ? 1.0f : 0.0f; // edit this to change border hover effect
+    const float borderThickness = 1.0f + 2 * expand;
+
     // Node body
     drawList->AddRectFilled(cursorPos, nodeMax, bgColor, 2.0f);
-    drawList->AddRect(cursorPos, nodeMax, textColor, 2.0f, 0, 1.0f);
+    drawList->AddRect(
+        ImVec2(cursorPos.x - expand, cursorPos.y - expand),
+        ImVec2(nodeMax.x + expand, nodeMax.y + expand),
+        borderColor, 2.0f, 0, borderThickness
+);
 
     // Header
     drawList->AddRectFilled(
@@ -76,7 +86,7 @@ void NodePreview::Draw(NodeType nodeType)
     // Content layout
     const float contentTop             = cursorPos.y + headerHeight + padding;
     const float contentHeightAvailable = height - headerHeight - 2.0f * padding;
-    const float totalItemsHeight       = totalItems > 0.0f ? (totalItems - 1.0f) * pinSpacing : 0.0f;
+    const float totalItemsHeight = (totalItems - 1.0f) * pinSpacing;
     float       verticalOffset         = (contentHeightAvailable - totalItemsHeight) / 2.0f;
     verticalOffset = std::max(verticalOffset, pinSpacing * 0.5f);
 
@@ -91,7 +101,7 @@ void NodePreview::Draw(NodeType nodeType)
         const float  pinY   = contentTop + verticalOffset + static_cast<float>(idx) * pinSpacing;
         const ImVec2 pinPos(cursorPos.x + padding, pinY);
         drawList->AddCircleFilled(pinPos, pinRadius, pinColor);
-        drawList->AddText(ImVec2(pinPos.x + pinRadius + 4.0f, pinY - 6.0f), textColor, std::format("-> {}", pin->name).c_str());
+        drawList->AddText(ImVec2(pinPos.x + pinRadius + pinGap, pinY - 6.0f), textColor, std::format("-> {}", pin->name).c_str());
         ++idx;
     }
 
@@ -109,7 +119,7 @@ void NodePreview::Draw(NodeType nodeType)
         const float  pinY   = contentTop + verticalOffset + static_cast<float>(idx) * pinSpacing;
         const ImVec2 pinPos(cursorPos.x + padding, pinY);
         drawList->AddCircleFilled(pinPos, pinRadius, pinColor);
-        drawList->AddText(ImVec2(pinPos.x + pinRadius + 4.0f, pinY - 6.0f), textColor, std::format("{} ->", pin->name).c_str());
+        drawList->AddText(ImVec2(pinPos.x + pinRadius + pinGap, pinY - 6.0f), textColor, std::format("{} ->", pin->name).c_str());
         ++idx;
     }
 
