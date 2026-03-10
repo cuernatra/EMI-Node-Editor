@@ -4,16 +4,17 @@
 #include "imgui.h"
 #include <format>
 
-void NodePreview::Draw(NodeType nodeType, float maxWidth, float maxHeight)
+void NodePreview::Draw(NodeType nodeType)
 {
     const NodeRegistry& registry = NodeRegistry::Get();
     const NodeDescriptor* desc = registry.Find(nodeType);
 
     // Layout constants
-    float padding = 8.0f;
-    float pinRadius = 3.5f;
-    float headerHeight = 20.0f;
-    float minPinSpacing = 18.0f;
+    constexpr float padding      = 8.0f;
+    constexpr float pinRadius    = 3.5f;
+    constexpr float headerHeight = 20.0f;
+    constexpr float pinSpacing   = 18.0f;
+    constexpr float pinGap       = 4.0f;
 
     // Separate input and output pins
     std::vector<const PinDescriptor*> inputPins;
@@ -26,110 +27,93 @@ void NodePreview::Draw(NodeType nodeType, float maxWidth, float maxHeight)
             outputPins.push_back(&pd);
     }
 
-    // Compute width by measuring longest pin name or title
+    // Compute layout dimensions — push font once for all CalcTextSize calls
     ImGui::PushFont(nullptr);
+
     float maxNameWidth = 0.0f;
-    for (auto* pin : inputPins)
-        maxNameWidth = std::max(maxNameWidth, ImGui::CalcTextSize(("-> " + std::string(pin->name)).c_str()).x);
-    for (auto* pin : outputPins)
-        maxNameWidth = std::max(maxNameWidth, ImGui::CalcTextSize((std::string(pin->name) + " ->").c_str()).x);
-    ImVec2 titleSize = ImGui::CalcTextSize(desc->label.c_str());
+    for (const PinDescriptor* pin : inputPins)
+        maxNameWidth = std::max(maxNameWidth, ImGui::CalcTextSize(std::format("-> {}", pin->name).c_str()).x);
+    for (const PinDescriptor* pin : outputPins)
+        maxNameWidth = std::max(maxNameWidth, ImGui::CalcTextSize(std::format("{} ->", pin->name).c_str()).x);
+    for (const auto& field : desc->fields)
+        maxNameWidth = std::max(maxNameWidth, ImGui::CalcTextSize(field.name.c_str()).x);
+
+    const float titleWidth = ImGui::CalcTextSize(desc->label.c_str()).x;
+
     ImGui::PopFont();
 
-    float pinGap = 4.0f;
     float width = padding + pinRadius + pinGap + maxNameWidth + padding;
-    width = std::max(width, titleSize.x + 2 * padding);
+    width = std::max(width, titleWidth + 2.0f * padding);
 
-    // calculate height stacking all pins
-    float totalPins = inputPins.size() + outputPins.size();
-    float contentHeight = totalPins > 0 ? totalPins * minPinSpacing + minPinSpacing : minPinSpacing;
-    float height = headerHeight + 2 * padding + contentHeight;
+    const float totalItems    = static_cast<float>(inputPins.size() + outputPins.size() + desc->fields.size());
+    const float contentHeight = totalItems * pinSpacing;
+    const float height        = headerHeight + 2.0f * padding + contentHeight;
 
-    // Get current cursor position for drawing
-    ImVec2 cursorPos = ImGui::GetCursorScreenPos();
-    ImDrawList* drawList = ImGui::GetWindowDrawList();
-    
-    ImU32 bgColor = ImGui::GetColorU32(ImGuiCol_FrameBg);
-    ImU32 textColor = ImGui::GetColorU32(ImGuiCol_Text);
-    ImU32 pinColor = ImGui::GetColorU32(ImGuiCol_TabActive);
-    ImU32 headerColor = ImGui::GetColorU32(ImGuiCol_HeaderHovered);
+    // Positioning
+    const ImVec2 cursorPos = ImGui::GetCursorScreenPos();
+    ImDrawList*  drawList  = ImGui::GetWindowDrawList();
 
-    // Draw node body background
+    const ImU32 bgColor     = ImGui::GetColorU32(ImGuiCol_FrameBg);
+    const ImU32 textColor   = ImGui::GetColorU32(ImGuiCol_Text);
+    const ImU32 pinColor    = ImGui::GetColorU32(ImGuiCol_TabActive);
+    const ImU32 headerColor = ImGui::GetColorU32(ImGuiCol_HeaderHovered);
+
+    const ImVec2 nodeMax(cursorPos.x + width, cursorPos.y + height);
+
+    // Node body
+    drawList->AddRectFilled(cursorPos, nodeMax, bgColor, 2.0f);
+    drawList->AddRect(cursorPos, nodeMax, textColor, 2.0f, 0, 1.0f);
+
+    // Header
     drawList->AddRectFilled(
         cursorPos,
-        ImVec2(cursorPos.x + width, cursorPos.y + height),
-        bgColor,
-        2.0f  // Rounding
-    );
-
-    // Draw node border
-    drawList->AddRect(
-        cursorPos,
-        ImVec2(cursorPos.x + width, cursorPos.y + height),
-        textColor,
-        2.0f,  // Rounding
-        0,
-        1.0f  // Thickness
-    );
-
-    // Draw header background
-    drawList->AddRectFilled(
-        ImVec2(cursorPos.x, cursorPos.y),
         ImVec2(cursorPos.x + width, cursorPos.y + headerHeight),
         headerColor,
         2.0f
     );
+    drawList->AddText(ImVec2(cursorPos.x + padding, cursorPos.y + 3.0f), textColor, desc->label.c_str());
 
-    // Draw title text (centered vertically in header)
-    drawList->AddText(
-        ImVec2(cursorPos.x + padding, cursorPos.y + 3.0f),
-        textColor,
-        desc->label.c_str()
-    );
+    // Content layout
+    const float contentTop             = cursorPos.y + headerHeight + padding;
+    const float contentHeightAvailable = height - headerHeight - 2.0f * padding;
+    const float totalItemsHeight       = totalItems > 0.0f ? (totalItems - 1.0f) * pinSpacing : 0.0f;
+    float       verticalOffset         = (contentHeightAvailable - totalItemsHeight) / 2.0f;
+    verticalOffset = std::max(verticalOffset, pinSpacing * 0.5f);
 
-    float contentTop = cursorPos.y + headerHeight + padding;
-    float contentHeightAvailable = height - headerHeight - 2 * padding;
-    
-    // Calculate pin spacing: ensure minimum space between pins and center them
-    float pinSpacing = minPinSpacing;
-    float totalPinsHeight = totalPins > 0 ? (totalPins - 1) * pinSpacing : 0;
-    float verticalOffset = (contentHeightAvailable - totalPinsHeight) / 2.0f;
-    verticalOffset = std::max(verticalOffset, pinSpacing * 0.5f);  // At least some offset from header
-    // Draw input pins first
-    for (size_t i = 0; i < inputPins.size(); ++i)
+    // All text drawn with a single PushFont/PopFont pair
+    ImGui::PushFont(nullptr);
+
+    size_t idx = 0;
+
+    // Input pins
+    for (const PinDescriptor* pin : inputPins)
     {
-        float pinY = contentTop + verticalOffset + i * pinSpacing;
-        ImVec2 pinPos(cursorPos.x + padding, pinY);
+        const float  pinY   = contentTop + verticalOffset + static_cast<float>(idx) * pinSpacing;
+        const ImVec2 pinPos(cursorPos.x + padding, pinY);
         drawList->AddCircleFilled(pinPos, pinRadius, pinColor);
-        ImGui::PushFont(nullptr);
-        drawList->AddText(
-            ImVec2(pinPos.x + pinRadius + 4.0f, pinY - 6.0f),
-            textColor,
-            std::format("-> {}", inputPins[i]->name).c_str()
-        );
-        ImGui::PopFont();
+        drawList->AddText(ImVec2(pinPos.x + pinRadius + 4.0f, pinY - 6.0f), textColor, std::format("-> {}", pin->name).c_str());
+        ++idx;
     }
 
-    // Draw all pins in sequence: inputs then outputs (single column)
-    size_t idx = inputPins.size(); // after inputs continue
-    for (size_t i = 0; i < outputPins.size(); ++i, ++idx)
+    // Fields
+    for (const auto& field : desc->fields)
     {
-        float pinY = contentTop + verticalOffset + idx * pinSpacing;
-        ImVec2 pinPos(cursorPos.x + padding, pinY);
-        drawList->AddCircleFilled(pinPos, pinRadius, pinColor);
-        ImGui::PushFont(nullptr);
-        drawList->AddText(
-            ImVec2(pinPos.x + pinRadius + 4.0f, pinY - 6.0f),
-            textColor,
-            std::format("{} ->", outputPins[i]->name).c_str()
-        );
-        ImGui::PopFont();
+        const float fieldY = contentTop + verticalOffset + static_cast<float>(idx) * pinSpacing;
+        drawList->AddText(ImVec2(cursorPos.x + padding + 8.0f, fieldY - 6.0f), textColor, field.name.c_str());
+        ++idx;
     }
 
-    // Draw field indicators (small labels if fields exist)
-    // Omitted for now - field indicator was causing visual clutter
-    // Could be added at bottom if needed
+    // Output pins
+    for (const PinDescriptor* pin : outputPins)
+    {
+        const float  pinY   = contentTop + verticalOffset + static_cast<float>(idx) * pinSpacing;
+        const ImVec2 pinPos(cursorPos.x + padding, pinY);
+        drawList->AddCircleFilled(pinPos, pinRadius, pinColor);
+        drawList->AddText(ImVec2(pinPos.x + pinRadius + 4.0f, pinY - 6.0f), textColor, std::format("{} ->", pin->name).c_str());
+        ++idx;
+    }
 
-    // Dummy item for ImGui layout
+    ImGui::PopFont();
+
     ImGui::Dummy(ImVec2(width, height));
 }

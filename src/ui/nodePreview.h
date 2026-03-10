@@ -31,13 +31,11 @@ public:
      * @brief Draw a small preview of a node type
      * 
      * @param nodeType The type of node to preview
-     * @param width Desired width of preview in pixels
-     * @param height Desired height of preview in pixels
      * 
      * Queries the node registry to get pin/field information,
      * then draws a scaled-down version. Safe to call repeatedly.
      */
-    static void Draw(NodeType nodeType, float width, float height);
+    static void Draw(NodeType nodeType);
 };
 
 #endif // NODE_PREVIEW_H
