@@ -5,6 +5,7 @@ add_executable(emi-editor
   ui/leftPanel.cpp
   ui/topPanel.cpp
   ui/dropBar.cpp
+  ui/nodePreview.cpp
   editor/mainEditor.cpp
   editor/graphEditor.cpp
   editor/graphCompilation.cpp
