@@ -2,7 +2,6 @@
 #include "../core/registry/nodeRegistry.h"
 #include "../core/graph/pin.h"
 #include "imgui.h"
-#include <format>
 
 void NodePreview::Draw(NodeType nodeType)
 {
@@ -30,11 +29,20 @@ void NodePreview::Draw(NodeType nodeType)
     // Compute layout dimensions — push font once for all CalcTextSize calls
     ImGui::PushFont(nullptr);
 
+    char buf[128];
     float maxNameWidth = 0.0f;
     for (const PinDescriptor* pin : inputPins)
-        maxNameWidth = std::max(maxNameWidth, ImGui::CalcTextSize(std::format("-> {}", pin->name).c_str()).x);
+    {
+        //maxNameWidth = std::max(maxNameWidth, ImGui::CalcTextSize(std::format("-> {}", pin->name).c_str()).x);
+        snprintf(buf, sizeof(buf), "-> %s", pin->name.c_str());
+        maxNameWidth = std::max(maxNameWidth, ImGui::CalcTextSize(buf).x);
+    }
     for (const PinDescriptor* pin : outputPins)
-        maxNameWidth = std::max(maxNameWidth, ImGui::CalcTextSize(std::format("{} ->", pin->name).c_str()).x);
+    {
+        //maxNameWidth = std::max(maxNameWidth, ImGui::CalcTextSize(std::format("{} ->", pin->name).c_str()).x);
+        snprintf(buf, sizeof(buf), "%s ->", pin->name.c_str());
+        maxNameWidth = std::max(maxNameWidth, ImGui::CalcTextSize(buf).x);
+    }
     for (const auto& field : desc->fields)
         maxNameWidth = std::max(maxNameWidth, ImGui::CalcTextSize(field.name.c_str()).x);
 
@@ -101,7 +109,9 @@ void NodePreview::Draw(NodeType nodeType)
         const float  pinY   = contentTop + verticalOffset + static_cast<float>(idx) * pinSpacing;
         const ImVec2 pinPos(cursorPos.x + padding, pinY);
         drawList->AddCircleFilled(pinPos, pinRadius, pinColor);
-        drawList->AddText(ImVec2(pinPos.x + pinRadius + pinGap, pinY - 6.0f), textColor, std::format("-> {}", pin->name).c_str());
+        //drawList->AddText(ImVec2(pinPos.x + pinRadius + pinGap, pinY - 6.0f), textColor, std::format("-> {}", pin->name).c_str());
+        snprintf(buf, sizeof(buf), "-> %s", pin->name.c_str());
+        drawList->AddText(ImVec2(pinPos.x + pinRadius + 4.0f, pinY - 6.0f), textColor, buf);
         ++idx;
     }
 
@@ -119,7 +129,9 @@ void NodePreview::Draw(NodeType nodeType)
         const float  pinY   = contentTop + verticalOffset + static_cast<float>(idx) * pinSpacing;
         const ImVec2 pinPos(cursorPos.x + padding, pinY);
         drawList->AddCircleFilled(pinPos, pinRadius, pinColor);
-        drawList->AddText(ImVec2(pinPos.x + pinRadius + pinGap, pinY - 6.0f), textColor, std::format("{} ->", pin->name).c_str());
+        //drawList->AddText(ImVec2(pinPos.x + pinRadius + pinGap, pinY - 6.0f), textColor, std::format("{} ->", pin->name).c_str());
+        snprintf(buf, sizeof(buf), "%s ->", pin->name.c_str());
+        drawList->AddText(ImVec2(pinPos.x + pinRadius + 4.0f, pinY - 6.0f), textColor, buf);
         ++idx;
     }
 
