@@ -190,20 +190,13 @@ void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n)
         valueF->valueType = PinType::Array;
         if (!n.outPins.empty()) n.outPins[0].type = PinType::Array;
     }
-    else if (t == "Flow")
-    {
-        valueF->valueType = PinType::Flow;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::Flow;
-    }
-    else if (t == "Function")
-    {
-        valueF->valueType = PinType::Function;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::Function;
-    }
     else
     {
+        // Keep Constant type set constrained to sane data values.
+        // Legacy/invalid values (Flow/Function/Any/unknown) are normalized to String.
+        typeF->value = "String";
         valueF->valueType = PinType::String;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::Any;
+        if (!n.outPins.empty()) n.outPins[0].type = PinType::String;
     }
 }
 

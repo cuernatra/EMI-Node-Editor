@@ -183,7 +183,7 @@ bool DrawField(NodeField& field)
             else if (field.name == "Type")
             {
                 static const char* kTypes[] = {
-                    "Number", "Boolean", "String", "Array", "Function", "Flow", "Any", nullptr
+                    "Number", "Boolean", "String", "Array", nullptr
                 };
 
                 if (OpPopupCombo("##TypeCombo", field.value, kTypes, 100.0f))
@@ -213,7 +213,21 @@ bool DrawField(NodeField& field)
 
         case PinType::Array:
         {
-            ImGui::LabelText(field.name.c_str(), "%s", field.value.c_str());
+            ImGui::Text("%s", field.name.c_str());
+            ImGui::SameLine();
+            ImGui::PushItemWidth(100.0f);
+
+            char buf[128] = {};
+            std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
+
+            if (ImGui::InputText("##value", buf, sizeof(buf)))
+            {
+                field.value = buf;
+                changed = true;
+            }
+            HandleShortcutToggle("##value");
+
+            ImGui::PopItemWidth();
             break;
         }
 
