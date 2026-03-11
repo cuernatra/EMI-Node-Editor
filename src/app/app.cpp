@@ -5,7 +5,7 @@
 
 App::App()
     : m_window(sf::VideoMode(appConstants::windowWidth, appConstants::windowheight), 
-    "ImGui + SFML") 
+    "EMI editor") 
 {
     m_window.setFramerateLimit(60);
     ImGui::SFML::Init(m_window);

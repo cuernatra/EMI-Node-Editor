@@ -2,6 +2,7 @@
 #include "../registry/nodeRegistry.h"
 #include <stdexcept>
 #include <cassert>
+#include <memory>
 
 
 // Helpers
@@ -99,12 +100,12 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
 {
     HasError  = false;
     errorMsg_ = "";
+    activeNodeBuilds_.clear();
 
     resolver_.Build(nodes, links);
 
     // Build a Scope containing one statement per Output/Function sink.
-    // TODO: mitä vittua
-    Node* body = MakeNode(Token::Scope);
+    auto body = std::unique_ptr<Node>(MakeNode(Token::Scope));
 
     for (const VisualNode& n : nodes)
     {
@@ -112,7 +113,7 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
         if (n.nodeType == NodeType::Output || n.nodeType == NodeType::Function)
         {
             Node* stmt = BuildNode(n);
-            if (HasError) { delete body; return nullptr; }
+            if (HasError) { return nullptr; }
             if (stmt) body->children.push_back(stmt);
         }
     }
@@ -120,16 +121,16 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
     // Wrap the body in a function declaration:
     //   def __graph__() { <body> }
     // Token::Definition is emiscript's function definition token.
-    Node* funcDecl = MakeNode(Token::Definition);
-    Node* nameId   = MakeIdNode(kGraphFunctionName);
-    funcDecl->children.push_back(nameId);
-    funcDecl->children.push_back(body);
+    auto funcDecl = std::unique_ptr<Node>(MakeNode(Token::Definition));
+    auto nameId   = std::unique_ptr<Node>(MakeIdNode(kGraphFunctionName));
+    funcDecl->children.push_back(nameId.release());
+    funcDecl->children.push_back(body.release());
 
     // The AST root is a Scope containing the single function declaration.
-    Node* root = MakeNode(Token::Scope);
-    root->children.push_back(funcDecl);
+    auto root = std::unique_ptr<Node>(MakeNode(Token::Scope));
+    root->children.push_back(funcDecl.release());
 
-    return root;
+    return root.release();
 }
 
 Node* GraphCompiler::BuildExpr(const Pin& inputPin)
@@ -162,11 +163,22 @@ Node* GraphCompiler::BuildNode(const VisualNode& n, int /*outPinIdx*/)
     // Future: If a node has multiple independent expressions, this could be used
     // to select which one to return (e.g., return only the True branch's body).
     
+    const uintptr_t nodeKey = static_cast<uintptr_t>(n.id.Get());
+    if (!activeNodeBuilds_.insert(nodeKey).second)
+    {
+        Error("Cycle detected while compiling node: " + n.title);
+        return nullptr;
+    }
+
+    struct ScopedErase {
+        std::unordered_set<uintptr_t>& set;
+        uintptr_t key;
+        ~ScopedErase() { set.erase(key); }
+    } guard{ activeNodeBuilds_, nodeKey };
+
     const NodeDescriptor* descriptor = NodeRegistry::Get().Find(n.nodeType);
     if (descriptor && descriptor->compile)
-    {
         return descriptor->compile(this, n);
-    }
 
     Error("No compile callback registered for NodeType");
     return nullptr;
@@ -289,7 +301,18 @@ Node* GraphCompiler::BuildLoop(const VisualNode& n)
     if (n.inPins.size() < 2) { Error("Loop node needs Flow + Count inputs"); return nullptr; }
 
     const std::string* startStr = GetField(n, "Start");
-    double startVal = startStr ? std::stod(*startStr) : 0.0;
+    double startVal = 0.0;
+    if (startStr)
+    {
+        try
+        {
+            startVal = std::stod(*startStr);
+        }
+        catch (...)
+        {
+            startVal = 0.0;
+        }
+    }
 
     Node* varDecl = MakeNode(Token::VarDeclare);
     Node* iId     = MakeIdNode("__i");

@@ -60,11 +60,18 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
                                      ImVec2 pos)
 {
     const NodeDescriptor* desc = NodeRegistry::Get().Find(type);
-    if (!desc) 
+    if (!desc)
     {
-    std::cerr << "NodeType not registered\n";
-    return {};
+        std::cerr << "CreateNodeFromTypeWithIds: NodeType not registered\n";
+        return {};
     }
+
+    if (pinIds.size() != desc->pins.size())
+    {
+        std::cerr << "CreateNodeFromTypeWithIds: Pin ID count mismatch\n";
+        return {};
+    }
+
     assert(pinIds.size() == desc->pins.size() && "Pin ID count mismatch");
 
     VisualNode n;
