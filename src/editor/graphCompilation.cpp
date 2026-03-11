@@ -55,7 +55,9 @@ void GraphCompilation::CompileGraph(GraphState& state)
 
     // Step 2: Print AST to console for debugging
     std::cout << "\n=== Generated AST ===\n";
+    #ifdef _WIN32
     ast->print("");
+    #endif
     std::cout << "=== End AST ===\n\n";
 
     // Step 3: TODO - Compile AST directly with EMI's internal VM
