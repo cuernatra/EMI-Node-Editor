@@ -21,6 +21,7 @@
 #include "Parser/Lexer.h"
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 /**
  * @brief Compiles visual graphs to EMI-Script AST
@@ -112,4 +113,7 @@ private:
 
     void Error(const std::string& msg);  ///< Records a compilation error message
     std::string errorMsg_;               ///< Stores the last compilation error
+
+    // Tracks nodes currently being built to detect recursive cycles.
+    std::unordered_set<uintptr_t> activeNodeBuilds_;
 };

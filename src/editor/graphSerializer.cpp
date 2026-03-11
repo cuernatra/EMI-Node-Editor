@@ -6,12 +6,57 @@
 #include "imgui_node_editor.h"
 #include <fstream>
 #include <algorithm>
+#include <sstream>
 
 namespace ed = ax::NodeEditor;
 
 // Serialization helpers for pin types
 static const char* PinTypeToString(PinType t);
 static PinType PinTypeFromString(const std::string& s);
+
+static std::string EncodeFieldValue(const std::string& value)
+{
+    static constexpr char kHex[] = "0123456789ABCDEF";
+    std::string out;
+    out.reserve(value.size() * 2);
+
+    for (unsigned char ch : value)
+    {
+        out.push_back(kHex[(ch >> 4) & 0x0F]);
+        out.push_back(kHex[ch & 0x0F]);
+    }
+
+    return out;
+}
+
+static int HexToNibble(char c)
+{
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    return -1;
+}
+
+static std::string DecodeFieldValue(const std::string& encoded)
+{
+    if (encoded.size() % 2 != 0)
+        return encoded;
+
+    std::string out;
+    out.reserve(encoded.size() / 2);
+
+    for (size_t i = 0; i < encoded.size(); i += 2)
+    {
+        int hi = HexToNibble(encoded[i]);
+        int lo = HexToNibble(encoded[i + 1]);
+        if (hi < 0 || lo < 0)
+            return encoded;
+
+        out.push_back(static_cast<char>((hi << 4) | lo));
+    }
+
+    return out;
+}
 
 void GraphSerializer::Save(const GraphState& state, const char* path)
 {
@@ -36,8 +81,7 @@ void GraphSerializer::Save(const GraphState& state, const char* path)
         out << " " << n.fields.size();
         for (const NodeField& f : n.fields)
         {
-            std::string encoded = f.value;
-            for (char& c : encoded) if (c == ' ') c = '\x01';
+            const std::string encoded = EncodeFieldValue(f.value);
             out << " " << f.name << "=" << encoded;
         }
 
@@ -155,8 +199,7 @@ void GraphSerializer::Load(GraphState& state, const char* path)
                 if (eq != std::string::npos)
                 {
                     std::string name = pair.substr(0, eq);
-                    std::string val  = pair.substr(eq + 1);
-                    for (char& c : val) if (c == '\x01') c = ' ';
+                    std::string val  = DecodeFieldValue(pair.substr(eq + 1));
                     fieldValues.push_back({ name, val });
                 }
             }
@@ -208,6 +251,7 @@ void GraphSerializer::Load(GraphState& state, const char* path)
     }
 
     state.GetIdGen().SetNext(maxId + 1);
+    state.ClearDirty();
 }
 
 // ---- Serialization helpers ----
