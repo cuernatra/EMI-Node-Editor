@@ -7,6 +7,44 @@
 #include "imgui.h"
 #include <algorithm>
 #include <string>
+#include <unordered_map>
+
+namespace
+{
+void DisconnectNonAnyLinksForPins(GraphState& state, const std::vector<ed::PinId>& pinIds)
+{
+    if (pinIds.empty())
+        return;
+
+    auto touchesChangedPin = [&](const Link& l)
+    {
+        for (ed::PinId id : pinIds)
+        {
+            if (l.startPinId == id || l.endPinId == id)
+                return true;
+        }
+        return false;
+    };
+
+    auto& links = state.GetLinks();
+    const size_t before = links.size();
+
+    links.erase(
+        std::remove_if(links.begin(), links.end(), [&](const Link& l)
+        {
+            if (!touchesChangedPin(l))
+                return false;
+
+            // Keep white (Any) links, remove typed links when pin type changes.
+            return l.type != PinType::Any;
+        }),
+        links.end()
+    );
+
+    if (links.size() != before)
+        state.MarkDirty();
+}
+}
 
 GraphEditor::GraphEditor(ed::EditorContext* ctx, GraphState& state)
     : m_ctx(ctx), m_state(state)
@@ -65,8 +103,33 @@ void GraphEditor::DrawNodeCanvas()
     bool anyChanged = false;
     for (auto& n : m_state.GetNodes())
     {
-        if (n.alive)
-            anyChanged |= DrawVisualNode(n, &m_state.GetIdGen());
+        if (!n.alive)
+            continue;
+
+        std::unordered_map<uintptr_t, PinType> pinTypesBefore;
+        pinTypesBefore.reserve(n.inPins.size() + n.outPins.size());
+        for (const Pin& p : n.inPins)
+            pinTypesBefore.emplace(p.id.Get(), p.type);
+        for (const Pin& p : n.outPins)
+            pinTypesBefore.emplace(p.id.Get(), p.type);
+
+        anyChanged |= DrawVisualNode(n, &m_state.GetIdGen());
+
+        std::vector<ed::PinId> changedPins;
+        for (const Pin& p : n.inPins)
+        {
+            auto it = pinTypesBefore.find(p.id.Get());
+            if (it != pinTypesBefore.end() && it->second != p.type)
+                changedPins.push_back(p.id);
+        }
+        for (const Pin& p : n.outPins)
+        {
+            auto it = pinTypesBefore.find(p.id.Get());
+            if (it != pinTypesBefore.end() && it->second != p.type)
+                changedPins.push_back(p.id);
+        }
+
+        DisconnectNonAnyLinksForPins(m_state, changedPins);
     }
 
     if (anyChanged) 
