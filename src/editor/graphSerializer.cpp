@@ -6,7 +6,7 @@
 #include "imgui_node_editor.h"
 #include <fstream>
 #include <algorithm>
-#include <sstream>
+#include <cctype>
 
 namespace ed = ax::NodeEditor;
 
@@ -18,12 +18,23 @@ static std::string EncodeFieldValue(const std::string& value)
 {
     static constexpr char kHex[] = "0123456789ABCDEF";
     std::string out;
-    out.reserve(value.size() * 2);
+    out.reserve(value.size() + 8);
 
     for (unsigned char ch : value)
     {
-        out.push_back(kHex[(ch >> 4) & 0x0F]);
-        out.push_back(kHex[ch & 0x0F]);
+        const bool safe =
+            std::isalnum(ch) || ch == '-' || ch == '_' || ch == '.' || ch == '~';
+
+        if (safe)
+        {
+            out.push_back(static_cast<char>(ch));
+        }
+        else
+        {
+            out.push_back('%');
+            out.push_back(kHex[(ch >> 4) & 0x0F]);
+            out.push_back(kHex[ch & 0x0F]);
+        }
     }
 
     return out;
@@ -39,23 +50,65 @@ static int HexToNibble(char c)
 
 static std::string DecodeFieldValue(const std::string& encoded)
 {
-    if (encoded.size() % 2 != 0)
-        return encoded;
+    // Backward compatibility: accept older "esc:" prefix but do not require it.
+    const std::string& body = (encoded.rfind("esc:", 0) == 0) ? encoded.substr(4) : encoded;
+
+    if (body.find('%') == std::string::npos)
+        return body;
 
     std::string out;
-    out.reserve(encoded.size() / 2);
+    out.reserve(body.size());
 
-    for (size_t i = 0; i < encoded.size(); i += 2)
+    for (size_t i = 0; i < body.size(); ++i)
     {
-        int hi = HexToNibble(encoded[i]);
-        int lo = HexToNibble(encoded[i + 1]);
-        if (hi < 0 || lo < 0)
-            return encoded;
+        if (body[i] == '%' && i + 2 < body.size())
+        {
+            int hi = HexToNibble(body[i + 1]);
+            int lo = HexToNibble(body[i + 2]);
+            if (hi >= 0 && lo >= 0)
+            {
+                out.push_back(static_cast<char>((hi << 4) | lo));
+                i += 2;
+                continue;
+            }
+        }
 
-        out.push_back(static_cast<char>((hi << 4) | lo));
+        out.push_back(body[i]);
     }
 
     return out;
+}
+
+static void NormalizeSequencePins(VisualNode& n, IdGen& idGen)
+{
+    if (n.nodeType != NodeType::Sequence)
+        return;
+
+    std::vector<Pin> flowOut;
+    flowOut.reserve(n.outPins.size());
+
+    for (const Pin& p : n.outPins)
+    {
+        if (!p.isInput && p.type == PinType::Flow)
+            flowOut.push_back(p);
+    }
+
+    if (flowOut.empty())
+    {
+        flowOut.push_back(MakePin(
+            static_cast<uint32_t>(idGen.NewPin().Get()),
+            n.id,
+            n.nodeType,
+            "Then 0",
+            PinType::Flow,
+            false
+        ));
+    }
+
+    for (size_t i = 0; i < flowOut.size(); ++i)
+        flowOut[i].name = "Then " + std::to_string(i);
+
+    n.outPins = std::move(flowOut);
 }
 
 void GraphSerializer::Save(const GraphState& state, const char* path)
@@ -225,6 +278,7 @@ void GraphSerializer::Load(GraphState& state, const char* path)
             }
 
             ApplyConstantTypeFromFields(n);
+            NormalizeSequencePins(n, state.GetIdGen());
 
             state.AddNode(n);
         }

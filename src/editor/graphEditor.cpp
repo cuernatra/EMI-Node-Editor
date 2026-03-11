@@ -66,7 +66,7 @@ void GraphEditor::DrawNodeCanvas()
     for (auto& n : m_state.GetNodes())
     {
         if (n.alive)
-            anyChanged |= DrawVisualNode(n);
+            anyChanged |= DrawVisualNode(n, &m_state.GetIdGen());
     }
 
     if (anyChanged) 
@@ -121,14 +121,54 @@ void GraphEditor::CreateNewLink()
     {
         ed::PinId outPinId = !startPin->isInput ? startPinId : endPinId;
         ed::PinId inPinId  = startPin->isInput ? startPinId : endPinId;
+        const Pin* outPin = !startPin->isInput ? startPin : endPin;
+        const Pin* inPin  = startPin->isInput ? startPin : endPin;
 
-        if (WouldCreateCycle(m_state.GetLinks(), outPinId, inPinId))
+        std::vector<Link> filteredLinks;
+        filteredLinks.reserve(m_state.GetLinks().size());
+
+        const bool replaceExistingFromOutput = true;
+        const bool isNonFlowInput = (inPin->type != PinType::Flow);
+        const bool isOutputNodeInput = (inPin->parentNodeType == NodeType::Output);
+        const bool replaceExistingToInput = isOutputNodeInput || isNonFlowInput || !inPin->isMultiInput;
+
+        for (const Link& l : m_state.GetLinks())
+        {
+            if (!l.alive)
+                continue;
+
+            if (replaceExistingFromOutput && l.startPinId == outPinId)
+                continue;
+
+            if (replaceExistingToInput && l.endPinId == inPinId)
+                continue;
+
+            filteredLinks.push_back(l);
+        }
+
+        if (WouldCreateCycle(filteredLinks, outPinId, inPinId))
         {
             ed::RejectNewItem();
             return;
         }
 
-        const Pin* outPin = !startPin->isInput ? startPin : endPin;
+        auto& links = m_state.GetLinks();
+        links.erase(
+            std::remove_if(links.begin(), links.end(), [&](const Link& l)
+            {
+                if (!l.alive)
+                    return true;
+
+                if (replaceExistingFromOutput && l.startPinId == outPinId)
+                    return true;
+
+                if (replaceExistingToInput && l.endPinId == inPinId)
+                    return true;
+
+                return false;
+            }),
+            links.end()
+        );
 
         Link lnk;
         lnk.id         = m_state.GetIdGen().NewLink();
