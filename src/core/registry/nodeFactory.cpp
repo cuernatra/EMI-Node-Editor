@@ -66,13 +66,15 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
         return {};
     }
 
-    if (pinIds.size() != desc->pins.size())
+    const bool isSequence = (type == NodeType::Sequence);
+    if ((!isSequence && pinIds.size() != desc->pins.size()) ||
+        (isSequence && pinIds.size() < desc->pins.size()))
     {
         std::cerr << "CreateNodeFromTypeWithIds: Pin ID count mismatch\n";
         return {};
     }
 
-    assert(pinIds.size() == desc->pins.size() && "Pin ID count mismatch");
+    assert((isSequence || pinIds.size() == desc->pins.size()) && "Pin ID count mismatch");
 
     VisualNode n;
     n.id         = ed::NodeId(nodeId);
@@ -85,6 +87,22 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
     PopulateFromDescriptor(n, *desc, [&]() -> uint32_t {
         return static_cast<uint32_t>(pinIds[pinIndex++]);
     });
+
+    if (isSequence)
+    {
+        for (; pinIndex < static_cast<int>(pinIds.size()); ++pinIndex)
+        {
+            const int thenIndex = static_cast<int>(n.outPins.size());
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(pinIds[pinIndex]),
+                n.id,
+                n.nodeType,
+                "Then " + std::to_string(thenIndex),
+                PinType::Flow,
+                false
+            ));
+        }
+    }
 
     return n;
 }

@@ -76,6 +76,20 @@ descriptors_[NodeType::Constant] = {
     };
 
     // ------------------------------------------------------------------
+    // Sequence  —  Flow in -> Then outputs (expandable)
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::Sequence] = {
+        NodeType::Sequence,
+        "Sequence",
+        {
+            { "In",     PinType::Flow, /*isInput=*/true },
+            { "Then 0", PinType::Flow, /*isInput=*/false }
+        },
+        {},
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildSequence(n); }
+    };
+
+    // ------------------------------------------------------------------
     // Branch  —  Flow in + Bool condition -> True / False flow out
     // ------------------------------------------------------------------
     descriptors_[NodeType::Branch] = {

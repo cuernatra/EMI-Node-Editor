@@ -69,5 +69,6 @@ static void DrawPin(const Pin& pin);
  * Must be called within an ed::Begin() / ed::End() block.
  */
 bool DrawVisualNode(VisualNode& n);
+bool DrawVisualNode(VisualNode& n, IdGen* idGen);
 
 #endif // VISUALNODE_H

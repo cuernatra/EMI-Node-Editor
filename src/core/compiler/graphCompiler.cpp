@@ -273,6 +273,15 @@ Node* GraphCompiler::BuildLogic(const VisualNode& n)
     return root;
 }
 
+Node* GraphCompiler::BuildSequence(const VisualNode& n)
+{
+    // Sequence is a flow-structuring node in the editor.
+    // Current compiler pipeline is expression/sink-driven, so for now
+    // compile this as an empty scope placeholder.
+    (void)n;
+    return MakeNode(Token::Scope);
+}
+
 Node* GraphCompiler::BuildBranch(const VisualNode& n)
 {
     if (n.inPins.size() < 2) { Error("Branch node needs Flow + Condition inputs"); return nullptr; }

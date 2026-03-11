@@ -86,6 +86,7 @@ public:
     Node* BuildOperator  (const VisualNode& n);   ///< Builds AST for Operator nodes
     Node* BuildComparison(const VisualNode& n);   ///< Builds AST for Comparison nodes
     Node* BuildLogic     (const VisualNode& n);   ///< Builds AST for Logic nodes
+    Node* BuildSequence  (const VisualNode& n);   ///< Builds AST for Sequence nodes
     Node* BuildBranch    (const VisualNode& n);   ///< Builds AST for Branch nodes
     Node* BuildLoop      (const VisualNode& n);   ///< Builds AST for Loop nodes
     Node* BuildVariable  (const VisualNode& n);   ///< Builds AST for Variable nodes

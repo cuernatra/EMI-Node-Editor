@@ -22,6 +22,7 @@ enum class NodeType
     Operator,    ///< Arithmetic/string operators (+, -, *, /)
     Comparison,  ///< Comparison operators (==, !=, <, >)
     Logic,       ///< Logical operators (and, or, not)
+    Sequence,    ///< Flow sequence splitter (In -> Then 0..N)
     Branch,      ///< Conditional branching (if/else)
     Loop,        ///< Iteration (for/while loops)
     Variable,    ///< Variable get/set
@@ -38,6 +39,7 @@ inline const char* NodeTypeToString(NodeType t)
         case NodeType::Operator:   return "Operator";
         case NodeType::Comparison: return "Comparison";
         case NodeType::Logic:      return "Logic";
+        case NodeType::Sequence:   return "Sequence";
         case NodeType::Branch:     return "Branch";
         case NodeType::Loop:       return "Loop";
         case NodeType::Variable:   return "Variable";
@@ -53,6 +55,7 @@ inline NodeType NodeTypeFromString(const std::string& s)
     if (s == "Operator")   return NodeType::Operator;
     if (s == "Comparison") return NodeType::Comparison;
     if (s == "Logic")      return NodeType::Logic;
+    if (s == "Sequence")   return NodeType::Sequence;
     if (s == "Branch")     return NodeType::Branch;
     if (s == "Loop")       return NodeType::Loop;
     if (s == "Variable")   return NodeType::Variable;
