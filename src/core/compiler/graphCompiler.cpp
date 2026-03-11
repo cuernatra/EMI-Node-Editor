@@ -191,15 +191,36 @@ Node* GraphCompiler::BuildNode(const VisualNode& n, int /*outPinIdx*/)
 Node* GraphCompiler::BuildConstant(const VisualNode& n)
 {
     const std::string* val = GetField(n, "Value");
-    if (!val) return MakeNumberNode(0.0);
+    const std::string* type = GetField(n, "Type");
 
-    try { return MakeNumberNode(std::stod(*val)); }
+    const std::string value = val ? *val : "";
+    const std::string valueType = type ? *type : "";
+
+    // Prefer explicit Constant type over value auto-detection so
+    // Boolean false never degrades to Number 0 in AST printout/runtime.
+    if (valueType == "Boolean")
+    {
+        const bool b = (value == "true" || value == "True" || value == "1");
+        return MakeBoolNode(b);
+    }
+
+    if (valueType == "Number")
+    {
+        try { return MakeNumberNode(std::stod(value)); }
+        catch (...) { return MakeNumberNode(0.0); }
+    }
+
+    if (valueType == "String" || valueType == "Array")
+        return MakeStringNode(value);
+
+    // Backward compatibility for old/incomplete data without Type field.
+    try { return MakeNumberNode(std::stod(value)); }
     catch (...) {}
 
-    if (*val == "true"  || *val == "1") return MakeBoolNode(true);
-    if (*val == "false" || *val == "0") return MakeBoolNode(false);
+    if (value == "true"  || value == "1") return MakeBoolNode(true);
+    if (value == "false" || value == "0") return MakeBoolNode(false);
 
-    return MakeStringNode(*val);
+    return MakeStringNode(value);
 }
 
 Node* GraphCompiler::BuildOperator(const VisualNode& n)
