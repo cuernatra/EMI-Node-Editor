@@ -56,3 +56,5 @@ jobs:
 
       - name: Test
         run: ctest --test-dir $BUILD_DIR --parallel $(nproc) --output-on-failure
+
+        #test
