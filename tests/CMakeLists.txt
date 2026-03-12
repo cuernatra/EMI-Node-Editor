@@ -1,5 +1,10 @@
 include(FetchContent)
 
+# Disable unnecessary Catch2 build steps
+set(CATCH_INSTALL_DOCS OFF)
+set(CATCH_INSTALL_EXTRAS OFF)
+set(CATCH_BUILD_TESTING OFF)
+
 FetchContent_Declare(
     Catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
