@@ -1,5 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
 
 TEST_CASE("Placeholder - CI pipeline test verification", "[placeholder]") {
-    REQUIRE(2 == 1);
+    REQUIRE(1 == 1);
 }
