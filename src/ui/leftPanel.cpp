@@ -3,21 +3,20 @@
 #include "../core/graph/link.h"
 #include "imgui.h"
 #include <cstring>
+#include "nodePreview.h"
 
 namespace
 {
 void DrawNodeItem(NodeType nodeType)
 {
     const char* label = NodeTypeToString(nodeType);
-
-    ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+    NodePreview::Draw(nodeType);
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
     {
         NodeSpawnPayload payload{};
         std::strncpy(payload.title, label, sizeof(payload.title) - 1);
-
         ImGui::SetDragDropPayload("SPAWN_NODE", &payload, sizeof(NodeSpawnPayload));
-        ImGui::Text("Create: %s", label);
+        NodePreview::Draw(nodeType);
         ImGui::EndDragDropSource();
     }
 }
