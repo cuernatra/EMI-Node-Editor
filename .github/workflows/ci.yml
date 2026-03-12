@@ -26,7 +26,7 @@ jobs:
           key: ${{ runner.os }}-catch2-${{ hashFiles('tests/CMakeLists.txt') }}
 
       - name: Configure
-        run: mkdir -p build && cd build && cmake -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=ON .. && cd .. && cmake -S . -B build CXX=g++-11"
+        run: mkdir -p build && cd build && cmake -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=ON .. && cd .. && cmake -S . -B build CXX=g++-11
 
       - name: Build
         run: cmake --build build -j$(nproc)
