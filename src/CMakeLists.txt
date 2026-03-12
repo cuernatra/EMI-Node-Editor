@@ -52,6 +52,8 @@ target_link_libraries(emi-editor PRIVATE
   EMI
 )
 
+target_compile_definitions(emi-editor PRIVATE INCLUDE_DEBUGGER)
+
 if(MSVC)
   target_compile_options(emi-editor PRIVATE /FS)
 endif()
