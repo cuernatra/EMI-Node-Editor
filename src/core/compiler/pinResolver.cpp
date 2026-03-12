@@ -3,11 +3,21 @@
 void PinResolver::Build(const std::vector<VisualNode>& nodes,
                         const std::vector<Link>&       links)
 {
+    inputToSource_.clear();
+    nodeById_.clear();
+
     // Index all nodes by ID first.
+    std::unordered_map<ed::PinId, PinSource> outputPinToSource;
+
     for (const VisualNode& n : nodes)
     {
         if (!n.alive) continue;
         nodeById_[n.id] = &n;
+
+        for (int i = 0; i < static_cast<int>(n.outPins.size()); ++i)
+        {
+            outputPinToSource[n.outPins[i].id] = { &n, i };
+        }
     }
 
     // For each live link, map endPinId (input) -> source node + pin index.
@@ -15,18 +25,10 @@ void PinResolver::Build(const std::vector<VisualNode>& nodes,
     {
         if (!lnk.alive) continue;
 
-        // Find the node that owns the output pin.
-        for (const VisualNode& n : nodes)
+        auto srcIt = outputPinToSource.find(lnk.startPinId);
+        if (srcIt != outputPinToSource.end())
         {
-            if (!n.alive) continue;
-            for (int i = 0; i < (int)n.outPins.size(); ++i)
-            {
-                if (n.outPins[i].id == lnk.startPinId)
-                {
-                    inputToSource_[lnk.endPinId] = { &n, i };
-                    break;
-                }
-            }
+            inputToSource_[lnk.endPinId] = srcIt->second;
         }
     }
 }

@@ -23,6 +23,11 @@ static void DrawPin(const Pin& pin)
 
 bool DrawVisualNode(VisualNode& n)
 {
+    return DrawVisualNode(n, nullptr);
+}
+
+bool DrawVisualNode(VisualNode& n, IdGen* idGen)
+{
     if (!n.positioned)
     {
         ed::SetNodePosition(n.id, n.initialPos);
@@ -49,7 +54,24 @@ bool DrawVisualNode(VisualNode& n)
     }
 
     if (changed)
-        GraphSerializer::ApplyConstantTypeFromFields(n);
+        GraphSerializer::ApplyConstantTypeFromFields(n, /*resetValueOnTypeChange=*/true);
+
+    if (n.nodeType == NodeType::Sequence && idGen)
+    {
+        if (ImGui::SmallButton("+ Then"))
+        {
+            const int thenIndex = static_cast<int>(n.outPins.size());
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(idGen->NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "Then " + std::to_string(thenIndex),
+                PinType::Flow,
+                false
+            ));
+            changed = true;
+        }
+    }
 
     for (const Pin& pin : n.outPins)
         DrawPin(pin);

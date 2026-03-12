@@ -50,5 +50,5 @@ public:
      */
     static void Load(GraphState& state, const char* path);
 
-    static void ApplyConstantTypeFromFields(VisualNode& n);
+    static void ApplyConstantTypeFromFields(VisualNode& n, bool resetValueOnTypeChange = false);
 };
