@@ -7,6 +7,7 @@
 #include <fstream>
 #include <algorithm>
 #include <cctype>
+#include <cstdlib>
 
 namespace ed = ax::NodeEditor;
 
@@ -160,7 +161,50 @@ static NodeField* FindField(std::vector<NodeField>& fields, const char* name)
     return nullptr;
 }
 
-void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n)
+static bool ParseBoolValue(const std::string& s)
+{
+    if (s == "true" || s == "True" || s == "1")
+        return true;
+    if (s == "false" || s == "False" || s == "0")
+        return false;
+
+    char* end = nullptr;
+    const double v = std::strtod(s.c_str(), &end);
+    if (end && *end == '\0')
+        return v != 0.0;
+
+    return false;
+}
+
+static bool TryParseDoubleValue(const std::string& s, double& out)
+{
+    if (s.empty())
+        return false;
+
+    char* end = nullptr;
+    const double v = std::strtod(s.c_str(), &end);
+    if (end && *end == '\0')
+    {
+        out = v;
+        return true;
+    }
+
+    return false;
+}
+
+static std::string DefaultConstantValueForType(PinType t)
+{
+    switch (t)
+    {
+        case PinType::Boolean: return "false";
+        case PinType::Number:  return "0.0";
+        case PinType::String:  return "";
+        case PinType::Array:   return "[]";
+        default:               return "";
+    }
+}
+
+void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n, bool resetValueOnTypeChange)
 {
     if (n.nodeType != NodeType::Constant) return;
 
@@ -169,34 +213,64 @@ void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n)
     if (!typeF || !valueF) return;
 
     const std::string& t = typeF->value;
+    const PinType oldValueType = valueF->valueType;
+
+    auto setTypeAndNormalize = [&](PinType targetType)
+    {
+        if (resetValueOnTypeChange && oldValueType != targetType)
+        {
+            valueF->value = DefaultConstantValueForType(targetType);
+        }
+        else
+        {
+            // Keep backward compatibility with older/invalid values when not explicitly resetting.
+            if (targetType == PinType::Boolean)
+            {
+                const bool b = ParseBoolValue(valueF->value);
+                valueF->value = b ? "true" : "false";
+            }
+            else if (targetType == PinType::Number)
+            {
+                double v = 0.0;
+                if (TryParseDoubleValue(valueF->value, v))
+                    valueF->value = std::to_string(v);
+                else
+                    valueF->value = "0.0";
+            }
+            else if (targetType == PinType::Array)
+            {
+                if (valueF->value.empty())
+                    valueF->value = "[]";
+            }
+            // String keeps current text as-is.
+        }
+
+        valueF->valueType = targetType;
+        if (!n.outPins.empty()) n.outPins[0].type = targetType;
+    };
 
     if (t == "Boolean")
     {
-        valueF->valueType = PinType::Boolean;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::Boolean;
+        setTypeAndNormalize(PinType::Boolean);
     }
     else if (t == "Number")
     {
-        valueF->valueType = PinType::Number;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::Number;
+        setTypeAndNormalize(PinType::Number);
     }
     else if (t == "String")
     {
-        valueF->valueType = PinType::String;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::String;
+        setTypeAndNormalize(PinType::String);
     }
     else if (t == "Array")
     {
-        valueF->valueType = PinType::Array;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::Array;
+        setTypeAndNormalize(PinType::Array);
     }
     else
     {
         // Keep Constant type set constrained to sane data values.
         // Legacy/invalid values (Flow/Function/Any/unknown) are normalized to String.
         typeF->value = "String";
-        valueF->valueType = PinType::String;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::String;
+        setTypeAndNormalize(PinType::String);
     }
 }
 
