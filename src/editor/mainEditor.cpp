@@ -40,7 +40,7 @@ MainEditor::~MainEditor()
 void MainEditor::draw()
 {
     // Top toolbar
-    if (ImGui::Button("Compile"))
+    if (ImGui::Button("Compile!"))
     {
         m_compiler->CompileGraph(*m_graphState);
     }
