@@ -6,6 +6,7 @@
 #include "imgui.h"
 #include "../core/registry/nodeFactory.h"
 #include "imgui_node_editor.h"
+#include <algorithm>
 
 MainEditor::MainEditor()
 {
@@ -69,8 +70,41 @@ void MainEditor::draw()
     }
 
     ImGui::Separator();
-    // Draw the node editor canvas
-    m_graphEditor->Draw();
+
+    const bool showInspector = m_graphEditor->HasSelectedNode();
+
+    if (showInspector)
+    {
+        const float splitterWidth = 6.0f;
+        const float minInspectorWidth = 240.0f;
+        const float defaultInspectorWidth = 300.0f;
+        const ImVec2 avail = ImGui::GetContentRegionAvail();
+
+        const float inspectorWidth = std::clamp(
+            defaultInspectorWidth,
+            minInspectorWidth,
+            std::max(minInspectorWidth, avail.x - 180.0f));
+
+        const float canvasWidth = std::max(100.0f, avail.x - inspectorWidth - splitterWidth);
+
+        ImGui::BeginChild("GRAPH CANVAS", ImVec2(canvasWidth, 0), true);
+        m_graphEditor->Draw();
+        ImGui::EndChild();
+
+        ImGui::SameLine();
+        ImGui::Dummy(ImVec2(splitterWidth, 0));
+        ImGui::SameLine();
+
+        ImGui::BeginChild("INSPECTOR PANEL", ImVec2(0, 0), true);
+        m_graphEditor->DrawInspector();
+        ImGui::EndChild();
+    }
+    else
+    {
+        ImGui::BeginChild("GRAPH CANVAS", ImVec2(0, 0), true);
+        m_graphEditor->Draw();
+        ImGui::EndChild();
+    }
 
     if (m_graphState->IsDirty())
     {

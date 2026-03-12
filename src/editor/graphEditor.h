@@ -54,6 +54,20 @@ public:
      */
     void Draw();
 
+    /**
+     * @brief Check whether any node is currently selected
+     * @return true if at least one node is selected in the canvas
+     */
+    bool HasSelectedNode() const;
+
+    /**
+     * @brief Draw inspector panel for the currently selected node
+     *
+     * Renders read-only data for the active node selection:
+     * ID, type, title, position, pin counts, and field values.
+     */
+    void DrawInspector();
+
 private:
     /**
      * @brief Draw all nodes and links on the canvas
@@ -90,6 +104,19 @@ private:
      * @param linkId The link to delete
      */
     void DeleteLinks(ed::LinkId linkId);
+
+    /**
+     * @brief Get first selected node in current editor selection
+     * @return Pointer to selected node, or nullptr if no node selected
+     */
+    const VisualNode* GetPrimarySelectedNode() const;
+
+    /**
+     * @brief Count links connected to a node
+     * @param node Node to inspect
+     * @return Number of links where any node pin participates
+     */
+    int CountConnectedLinks(const VisualNode& node) const;
 
     ed::EditorContext* m_ctx;  ///< The imgui-node-editor context
     GraphState& m_state;       ///< Reference to the graph state
