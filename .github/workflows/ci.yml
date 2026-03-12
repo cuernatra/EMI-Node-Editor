@@ -10,6 +10,9 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    env:
+      BUILD_DIR: build
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,7 +20,13 @@ jobs:
           submodules: recursive
 
       - name: Install dependencies
-        run: sudo apt-get install -y libsfml-dev libxrandr-dev libxcursor-dev libudev-dev libfreetype-dev libopenal-dev libflac-dev libvorbis-dev libgl1-mesa-dev libegl1-mesa-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            ninja-build ccache \
+            libsfml-dev libxrandr-dev libxcursor-dev libudev-dev \
+            libfreetype-dev libopenal-dev libflac-dev libvorbis-dev \
+            libgl1-mesa-dev libegl1-mesa-dev
 
       - name: Cache CMake dependencies
         uses: actions/cache@v4
@@ -25,11 +34,25 @@ jobs:
           path: build/_deps
           key: ${{ runner.os }}-catch2-${{ hashFiles('tests/CMakeLists.txt') }}
 
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ${{ runner.os }}-ccache-${{ hashFiles('**/*.cpp','**/*.hpp') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
       - name: Configure
-        run: mkdir -p build && cd build && cmake -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=ON .. && cd .. && cmake -S . -B build CXX=g++-11
+        run: |
+          cmake -S . -B $BUILD_DIR \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_SHARED_LIBS=OFF \
+          -DBUILD_TESTS=ON \
+          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Build
-        run: cmake --build build -j$(nproc)
+        run: cmake --build $BUILD_DIR
 
       - name: Test
-        run: ctest --test-dir build -C Debug --output-on-failure
+        run: ctest --test-dir $BUILD_DIR --parallel $(nproc) --output-on-failure
