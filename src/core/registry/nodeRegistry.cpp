@@ -15,11 +15,11 @@ descriptors_[NodeType::Constant] = {
     NodeType::Constant,
     "Constant",
     {
-        { "Value", PinType::Any, /*isInput=*/false }
+        { "Value", PinType::Number, /*isInput=*/false }
     },
     {
-        { "Value", PinType::String, "0.0" },
-        { "Type",  PinType::String, "String" }
+        { "Value", PinType::Number, "0.0" },
+        { "Type",  PinType::String, "Number" }
     },
     [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildConstant(n); }
 };

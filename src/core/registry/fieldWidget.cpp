@@ -10,7 +10,17 @@ namespace ed = ax::NodeEditor;
 
 static float ParseFloat(const std::string& s)
 {
-    return s.empty() ? 0.0f : std::stof(s);
+    if (s.empty())
+        return 0.0f;
+
+    try
+    {
+        return std::stof(s);
+    }
+    catch (...)
+    {
+        return 0.0f;
+    }
 }
 
 static bool ParseBool(const std::string& s)
