@@ -54,7 +54,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen)
     }
 
     if (changed)
-        GraphSerializer::ApplyConstantTypeFromFields(n);
+        GraphSerializer::ApplyConstantTypeFromFields(n, /*resetValueOnTypeChange=*/true);
 
     if (n.nodeType == NodeType::Sequence && idGen)
     {
