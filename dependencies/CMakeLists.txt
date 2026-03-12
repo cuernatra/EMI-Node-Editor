@@ -26,11 +26,18 @@ FetchContent_Declare(
 add_subdirectory(imgui-sfml)
 
 # Emi script
-FetchContent_Declare(
-  EMI
-  GIT_REPOSITORY https://github.com/IlkkaTakala/EMI-Script.git
-  GIT_TAG master # e97f3bca68d23b1f25ec645edf01eecc31a08306
-)
-FetchContent_MakeAvailable(EMI)
+set(EMI_LOCAL_SOURCE_DIR "${CMAKE_SOURCE_DIR}/EMI-Script")
 
-FetchContent_GetProperties(EMI)
+if(EXISTS "${EMI_LOCAL_SOURCE_DIR}/CMakeLists.txt")
+  message(STATUS "Using local EMI-Script source: ${EMI_LOCAL_SOURCE_DIR}")
+  add_subdirectory("${EMI_LOCAL_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/emi-local")
+  set(EMI_SOURCE_DIR "${EMI_LOCAL_SOURCE_DIR}" CACHE INTERNAL "EMI source directory")
+else()
+  FetchContent_Declare(
+    EMI
+    GIT_REPOSITORY https://github.com/IlkkaTakala/EMI-Script.git
+    GIT_TAG master # e97f3bca68d23b1f25ec645edf01eecc31a08306
+  )
+  FetchContent_MakeAvailable(EMI)
+  FetchContent_GetProperties(EMI)
+endif()
