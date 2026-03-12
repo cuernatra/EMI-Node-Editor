@@ -72,6 +72,7 @@ void MainEditor::draw()
     {
         ImGui::TextUnformatted(" ");
     }
+    
 
     ImGui::Separator();
     // Draw the node editor canvas

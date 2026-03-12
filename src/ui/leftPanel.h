@@ -11,7 +11,7 @@
 #define LEFTPANEL_H
 
 #include "../app/constants.h"
-#include "dropBar.h"
+#include "../core/graph/types.h"
 #include <vector>
 
 /**
@@ -41,8 +41,8 @@ public:
     void draw();
 
 private:
-    /// Collection of collapsible node type categories
-    std::vector<DropBar> m_dropBars;
+    /// Palette node types in deterministic display order
+    std::vector<NodeType> m_nodeTypes;
 };
 
 #endif
