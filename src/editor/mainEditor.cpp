@@ -7,7 +7,7 @@
 #include "../core/registry/nodeFactory.h"
 #include "imgui_node_editor.h"
 
-MainEditor::MainEditor()
+MainEditor::MainEditor(): m_fileBar(this)
 {
     ed::Config config;
     config.SettingsFile = "node_editor.json";
@@ -84,4 +84,11 @@ void MainEditor::draw()
         ed::SetCurrentEditor(nullptr);
         m_graphState->ClearDirty();
     }
+}
+
+//Create a new graph by clearing the current state, and recreating the graph editor
+void MainEditor::NewGraph()
+{
+    m_graphState=std::make_unique<GraphState>();
+    m_graphEditor=std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
 }

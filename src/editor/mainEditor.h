@@ -8,6 +8,7 @@
 #include "graphState.h"
 #include "graphEditor.h"
 #include "graphCompilation.h"
+#include "../ui/fileBar.h"
 #include <memory>
 
 namespace ed = ax::NodeEditor;
@@ -29,10 +30,17 @@ public:
     /// Render editor UI and canvas (called every frame).
     void draw();
 
+    void NewGraph();   ///< Clear current graph and start a new one
+    void OpenGraph();  ///< Load graph from file
+    void SaveGraph();  ///< Save current graph to file
+    void LoadGraph();  ///< Load graph from file
+
 private:
 
     ed::EditorContext* m_editorContext = nullptr;  ///< imgui-node-editor context
     std::unique_ptr<GraphState> m_graphState;      ///< Graph data (must be constructed before GraphEditor)
     std::unique_ptr<GraphEditor> m_graphEditor;    ///< Canvas renderer (holds reference to m_graphState)
     std::unique_ptr<GraphCompilation> m_compiler;  ///< Graph compilation and execution engine
+
+    FileBar m_fileBar;                             ///< Top file menu bar
 };

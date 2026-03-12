@@ -14,7 +14,6 @@
 #include "../editor/mainEditor.h"
 #include "../ui/leftPanel.h"
 #include "../ui/topPanel.h"
-#include "../ui/fileBar.h"
 
 /**
  * @brief Main UI compositor class

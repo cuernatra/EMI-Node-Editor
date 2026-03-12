@@ -2,7 +2,7 @@
 #include <imgui-SFML.h>
 #include <algorithm>
 
-Ui::Ui() 
+Ui::Ui(): m_mainEditor(),m_fileBar(&m_mainEditor)
 {
 }
 

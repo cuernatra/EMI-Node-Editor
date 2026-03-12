@@ -1,7 +1,9 @@
 #include "fileBar.h"
+#include "../editor/mainEditor.h"
+#include "imgui.h"
 #include <string>
 
-FileBar::FileBar() : m_height{elementSizes::fileBarHeight}
+FileBar::FileBar(MainEditor* editor) : m_height{elementSizes::fileBarHeight}, m_editor(editor)
 {
 }
 
@@ -16,6 +18,7 @@ void FileBar::draw()
             if(ImGui::MenuItem("New"))
             {
                 printf("New\n");
+                m_editor->NewGraph();
             }
             if(ImGui::MenuItem("Open"))
             {
