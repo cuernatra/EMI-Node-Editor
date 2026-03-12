@@ -1,12 +1,22 @@
 add_executable(emi-editor
   main.cpp
   app/app.cpp
-  app/leftPanel.cpp
-  app/topPanel.cpp
-  app/mainEditor.cpp
   app/ui.cpp
-  app/dropBar.cpp
-  app/node.cpp
+  ui/leftPanel.cpp
+  ui/topPanel.cpp
+  ui/dropBar.cpp
+  editor/mainEditor.cpp
+  editor/graphEditor.cpp
+  editor/graphCompilation.cpp
+  editor/graphState.cpp
+  editor/graphSerializer.cpp
+  core/graph/visualNode.cpp
+  core/graph/link.cpp
+  core/registry/fieldWidget.cpp
+  core/registry/nodeFactory.cpp
+  core/registry/nodeRegistry.cpp
+  core/compiler/graphCompiler.cpp
+  core/compiler/pinResolver.cpp
 
   ../dependencies/imgui-node-editor/imgui_node_editor.cpp
   ../dependencies/imgui-node-editor/imgui_node_editor_api.cpp
@@ -14,27 +24,47 @@ add_executable(emi-editor
   ../dependencies/imgui-node-editor/crude_json.cpp
 )
 
-target_include_directories(emi-editor PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ../dependencies/imgui-node-editor
-  ${emi_SOURCE_DIR}/include
-  ${emi_SOURCE_DIR}/src
-)
+set(_emi_src_dir "")
+set(_emi_inc_dir "")
 
+if(DEFINED EMI_SOURCE_DIR AND EXISTS "${EMI_SOURCE_DIR}/src/VM.h")
+  set(_emi_src_dir "${EMI_SOURCE_DIR}/src")
+  set(_emi_inc_dir "${EMI_SOURCE_DIR}/include")
+elseif(EXISTS "${CMAKE_BINARY_DIR}/_deps/emi-src/src/VM.h")
+  set(_emi_src_dir "${CMAKE_BINARY_DIR}/_deps/emi-src/src")
+  set(_emi_inc_dir "${CMAKE_BINARY_DIR}/_deps/emi-src/include")
+else()
+  message(FATAL_ERROR
+    "EMI-Script not found. Make sure that FetchContent_MakeAvailable(EMI) is called before add_subdirectory(src).")
+endif()
+
+target_include_directories(emi-editor PRIVATE
+  ${_emi_inc_dir}
+  ${_emi_src_dir}
+
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/core/graph
+  ../dependencies/imgui-node-editor
+)
+target_include_directories(emi-editor PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(emi-editor PRIVATE
   ImGui-SFML::ImGui-SFML
   EMI
 )
 
-# Copy DLLs needed for runtime on Windows
+if(MSVC)
+  target_compile_options(emi-editor PRIVATE /FS)
+endif()
+
 if(WIN32)
-  if (BUILD_SHARED_LIBS)
+  if(BUILD_SHARED_LIBS)
     add_custom_command(TARGET emi-editor POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_if_different
           $<TARGET_FILE:ImGui-SFML::ImGui-SFML>
           $<TARGET_FILE:sfml-graphics>
           $<TARGET_FILE:sfml-window>
           $<TARGET_FILE:sfml-system>
-          $<TARGET_FILE_DIR:emi-editor>)
+          $<TARGET_FILE_DIR:emi-editor>
+    )
   endif()
 endif()

@@ -1,10 +1,11 @@
 #include "app.h"
 #include <imgui-SFML.h>
 #include <SFML/Window/Event.hpp>
+#include <iostream>
 
 App::App()
     : m_window(sf::VideoMode(appConstants::windowWidth, appConstants::windowheight), 
-    "ImGui + SFML") 
+    "EMI editor") 
 {
     m_window.setFramerateLimit(60);
     ImGui::SFML::Init(m_window);
@@ -46,10 +47,6 @@ void App::update()
 void App::render() 
 {
     m_window.clear();
-
-    
-
-
 
     ImGui::SFML::Render(m_window);
     m_window.display();
