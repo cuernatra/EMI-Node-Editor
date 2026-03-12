@@ -112,6 +112,12 @@ private:
     const VisualNode* GetPrimarySelectedNode() const;
 
     /**
+     * @brief Get first selected node for mutation (non-const version)
+     * @return Mutable pointer to selected node, or nullptr if no node selected
+     */
+    VisualNode* GetPrimarySelectedNode();
+
+    /**
      * @brief Count links connected to a node
      * @param node Node to inspect
      * @return Number of links where any node pin participates

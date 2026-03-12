@@ -58,10 +58,10 @@ void GraphEditor::DrawInspector()
 {
     ed::SetCurrentEditor(m_ctx);
 
-    ImGui::TextUnformatted("INSPECTOR");
+    ImGui::TextUnformatted("INSPECTOR PANEL");
     ImGui::Separator();
 
-    const VisualNode* node = GetPrimarySelectedNode();
+    VisualNode* node = GetPrimarySelectedNode();
     if (!node)
     {
         ed::SetCurrentEditor(nullptr);
@@ -83,13 +83,16 @@ void GraphEditor::DrawInspector()
         ImGui::Separator();
         ImGui::TextUnformatted("Field values");
 
-        for (const NodeField& field : node->fields)
+        ImGui::PushID(static_cast<int>(node->id.Get()));
+        bool anyChanged = false;
+        for (NodeField& field : node->fields)
         {
-            ImGui::BulletText("%s (%s): %s",
-                field.name.c_str(),
-                PinTypeToString(field.valueType),
-                field.value.c_str());
+            anyChanged |= DrawField(field);
         }
+        ImGui::PopID();
+
+        if (anyChanged)
+            m_state.MarkDirty();
     }
 
     ed::SetCurrentEditor(nullptr);
@@ -237,6 +240,32 @@ const VisualNode* GraphEditor::GetPrimarySelectedNode() const
 
     auto it = std::find_if(nodes.begin(), nodes.end(),
         [&](const VisualNode& node)
+        {
+            return node.alive && node.id == selectedId;
+        });
+
+    if (it == nodes.end())
+        return nullptr;
+
+    return &(*it);
+}
+
+VisualNode* GraphEditor::GetPrimarySelectedNode()
+{
+    const int selectedCount = ed::GetSelectedObjectCount();
+    if (selectedCount <= 0)
+        return nullptr;
+
+    std::vector<ed::NodeId> selectedNodes(selectedCount);
+    const int nodeCount = ed::GetSelectedNodes(selectedNodes.data(), selectedCount);
+    if (nodeCount <= 0)
+        return nullptr;
+
+    const ed::NodeId selectedId = selectedNodes.front();
+    auto& nodes = m_state.GetNodes();
+
+    auto it = std::find_if(nodes.begin(), nodes.end(),
+        [&](VisualNode& node)
         {
             return node.alive && node.id == selectedId;
         });
