@@ -86,3 +86,18 @@ void MainEditor::draw()
         m_graphState->ClearDirty();
     }
 }
+
+void MainEditor::drawInspectorPanel()
+{
+    ed::SetCurrentEditor(m_editorContext);
+    m_graphEditor->DrawInspectorPanel();
+    ed::SetCurrentEditor(nullptr);
+}
+
+bool MainEditor::hasSelectedNode() const
+{
+    ed::SetCurrentEditor(m_editorContext);
+    const bool selected = m_graphEditor->HasSelectedNode();
+    ed::SetCurrentEditor(nullptr);
+    return selected;
+}
