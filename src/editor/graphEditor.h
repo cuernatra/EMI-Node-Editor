@@ -54,6 +54,18 @@ public:
      */
     void Draw();
 
+    /**
+     * @brief Draw inspector panel contents for selected node
+     *
+     * Intended to be called inside a host ImGui child/window.
+     */
+    void DrawInspectorPanel();
+
+    /**
+     * @brief Check if an existing node is currently selected
+     */
+    bool HasSelectedNode() const;
+
 private:
     /**
      * @brief Draw all nodes and links on the canvas
@@ -70,7 +82,7 @@ private:
      * creating links, and deleting elements.
      */
     void DrawContextMenus();
-    
+
     /**
      * @brief Handle new link creation
      * 
