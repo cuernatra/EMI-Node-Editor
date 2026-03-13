@@ -451,7 +451,6 @@ void GraphEditor::DrawInspectorPanel()
 
     ImGui::Text("Node ID: %llu", static_cast<unsigned long long>(selectedNode->id.Get()));
     ImGui::Text("Type: %s", NodeTypeToString(selectedNode->nodeType));
-    ImGui::Text("Title: %s", selectedNode->title.c_str());
     ImGui::Text("Position: (%.1f, %.1f)", nodePos.x, nodePos.y);
 
     ImGui::Spacing();
@@ -462,7 +461,7 @@ void GraphEditor::DrawInspectorPanel()
     bool fieldsChanged = false;
     if (selectedNode->fields.empty())
     {
-        ImGui::TextUnformatted("No editable values.");
+        ImGui::TextUnformatted("No values.");
     }
     else
     {
