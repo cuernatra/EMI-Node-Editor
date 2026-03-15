@@ -11,6 +11,7 @@ add_executable(emi-editor
   editor/graphCompilation.cpp
   editor/graphState.cpp
   editor/graphSerializer.cpp
+  editor/settings.cpp
   core/graph/visualNode.cpp
   core/graph/link.cpp
   core/registry/fieldWidget.cpp
@@ -51,6 +52,7 @@ target_include_directories(emi-editor PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(emi-editor PRIVATE
   ImGui-SFML::ImGui-SFML
   EMI
+  nlohmann_json::nlohmann_json
 )
 
 if(MSVC)

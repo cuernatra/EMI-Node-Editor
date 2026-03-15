@@ -38,6 +38,9 @@ void Ui::draw()
         m_rightPanelWidth = std::clamp(totalWidth * 0.24f, minRight, maxRight);
     }
 
+    // save new left panel width value to settings
+    Settings::leftPanelWidth = m_leftPanelWidth;
+
     ImGui::BeginChild("TOP BAR", ImVec2(totalWidth, elementSizes::topBarHeight), true,
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     m_topPanel.draw();
