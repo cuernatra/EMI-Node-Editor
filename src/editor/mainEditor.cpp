@@ -92,3 +92,11 @@ void MainEditor::NewGraph()
     m_graphState=std::make_unique<GraphState>();
     m_graphEditor=std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
 }
+
+void MainEditor::OpenGraph()
+{
+    m_graphState=std::make_unique<GraphState>();
+    m_graphEditor=std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
+    m_compiler=std::make_unique<GraphCompilation>();
+    GraphSerializer::Load(*m_graphState, "graph_example.txt");
+}

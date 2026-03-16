@@ -23,6 +23,7 @@ void FileBar::draw()
             if(ImGui::MenuItem("Open"))
             {
                 printf("Open\n");
+                m_editor->OpenGraph();
             }
             if(ImGui::MenuItem("Save"))
             {
