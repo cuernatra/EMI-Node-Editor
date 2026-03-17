@@ -73,3 +73,10 @@ if(WIN32)
     )
   endif()
 endif()
+
+# Copy assets to build directory so fonts and other resources are always found
+add_custom_command(TARGET emi-editor POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/src/assets
+    $<TARGET_FILE_DIR:emi-editor>/assets
+)

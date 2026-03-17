@@ -65,7 +65,7 @@ void App::loadFont()
     config.OversampleV = fontConstants::oversampleV;   // Vertical oversampling 
     config.PixelSnapH  = false;
 
-    ImFont* font = io.Fonts->AddFontFromFileTTF("src/assets/fonts/Roboto-Regular.ttf", fontConstants::fontSize, &config);
+    io.Fonts->AddFontFromFileTTF("assets/fonts/Roboto-Regular.ttf", fontConstants::fontSize, &config);
 
     io.Fonts->Build();
     ImGui::SFML::UpdateFontTexture();
