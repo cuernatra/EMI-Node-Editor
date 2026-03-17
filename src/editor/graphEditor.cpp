@@ -578,6 +578,46 @@ bool RefreshVariableNodeTypes(GraphState& state)
     return changed;
 }
 
+bool RefreshOutputNodeInputTypes(GraphState& state)
+{
+    bool changed = false;
+
+    auto& nodes = state.GetNodes();
+    const auto& links = state.GetLinks();
+
+    for (auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Output)
+            continue;
+
+        Pin* valuePin = FindPinByName(n.inPins, "Value");
+        if (!valuePin)
+            continue;
+
+        PinType resolvedType = PinType::Any;
+        for (const Link& l : links)
+        {
+            if (!l.alive || l.endPinId != valuePin->id)
+                continue;
+
+            const Pin* src = state.FindPin(l.startPinId);
+            if (src && src->type != PinType::Flow)
+            {
+                resolvedType = src->type;
+                break;
+            }
+        }
+
+        if (valuePin->type != resolvedType)
+        {
+            valuePin->type = resolvedType;
+            changed = true;
+        }
+    }
+
+    return changed;
+}
+
 bool SyncLinkTypesAndPruneInvalid(GraphState& state)
 {
     bool changed = false;
@@ -801,8 +841,9 @@ void GraphEditor::DrawNodeCanvas()
     ed::EndCreate();
 
     const bool variableTypesChanged = RefreshVariableNodeTypes(m_state);
+    const bool outputInputTypesChanged = RefreshOutputNodeInputTypes(m_state);
     const bool linksChanged = SyncLinkTypesAndPruneInvalid(m_state);
-    if (variableTypesChanged || linksChanged)
+    if (variableTypesChanged || outputInputTypesChanged || linksChanged)
         m_state.MarkDirty();
 
     ed::End();
@@ -1048,10 +1089,14 @@ void GraphEditor::CreateNewLink()
         std::vector<Link> filteredLinks;
         filteredLinks.reserve(m_state.GetLinks().size());
 
-        const bool replaceExistingFromOutput = true;
-        const bool isNonFlowInput = (inPin->type != PinType::Flow);
-        const bool isOutputNodeInput = (inPin->parentNodeType == NodeType::Output);
-        const bool replaceExistingToInput = isOutputNodeInput || isNonFlowInput || !inPin->isMultiInput;
+        const bool isFlowLink = (outPin->type == PinType::Flow);
+
+        // Connection policy:
+        // - Flow (white): one outgoing per output pin, allow stacking into same input
+        //   (including Debug Print flow input).
+        // - Non-flow (typed): allow fan-out from output pin, but keep each input pin single-source.
+        const bool replaceExistingFromOutput = isFlowLink;
+        const bool replaceExistingToInput = !isFlowLink;
 
         for (const Link& l : m_state.GetLinks())
         {

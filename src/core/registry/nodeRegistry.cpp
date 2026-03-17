@@ -188,7 +188,7 @@ descriptors_[NodeType::Constant] = {
         NodeType::Output,
         "Debug Print",
         {
-            { "In",    PinType::Flow, /*isInput=*/true },
+            { "In",    PinType::Flow, /*isInput=*/true,  /*isMultiInput=*/true },
             { "Value", PinType::Any,  /*isInput=*/true }
         },
         {
