@@ -1,21 +1,26 @@
 #include "visualNode.h"
 #include "../registry/fieldWidget.h"
 #include "editor/graphSerializer.h"
+#include "imgui.h"
 #include "imgui_node_editor.h"
 
 static void DrawPin(const Pin& pin)
 {
-    ed::BeginPin(pin.id,
-                 pin.isInput ? ed::PinKind::Input : ed::PinKind::Output);
 
     ImVec4 col = pin.GetTypeColor();
     ImGui::PushStyleColor(ImGuiCol_Text, col);
 
     if (pin.isInput)
+    {
+        ed::BeginPin(pin.id, ed::PinKind::Input);
         ImGui::Text("-> %s", pin.name.c_str());
+    }
     else
+    {   
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 100);
+        ed::BeginPin(pin.id, ed::PinKind::Output);
         ImGui::Text("%s ->", pin.name.c_str());
-
+    }
     ImGui::PopStyleColor();
 
     ed::EndPin();
