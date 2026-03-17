@@ -208,6 +208,19 @@ void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n, bool resetValue
 {
     if (n.nodeType != NodeType::Constant) return;
 
+    // Keep field order deterministic for UI: Type first, then Value.
+    // This ensures that if user changes Type, Value widget/reset is reflected
+    // immediately in the same render pass.
+    size_t typeIdx = n.fields.size();
+    size_t valueIdx = n.fields.size();
+    for (size_t i = 0; i < n.fields.size(); ++i)
+    {
+        if (n.fields[i].name == "Type")  typeIdx = i;
+        if (n.fields[i].name == "Value") valueIdx = i;
+    }
+    if (typeIdx < n.fields.size() && valueIdx < n.fields.size() && typeIdx > valueIdx)
+        std::swap(n.fields[typeIdx], n.fields[valueIdx]);
+
     NodeField* typeF  = FindField(n.fields, "Type");
     NodeField* valueF = FindField(n.fields, "Value");
     if (!typeF || !valueF) return;

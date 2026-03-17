@@ -83,6 +83,77 @@ PinType VariableTypeFromString(const std::string& typeName)
     return PinType::Number;
 }
 
+bool TryParseDouble(const std::string& s, double& out)
+{
+    if (s.empty())
+        return false;
+
+    char* end = nullptr;
+    const double v = std::strtod(s.c_str(), &end);
+    if (end && *end == '\0')
+    {
+        out = v;
+        return true;
+    }
+
+    return false;
+}
+
+bool ParseBoolLoose(const std::string& s)
+{
+    if (s == "true" || s == "True" || s == "1")
+        return true;
+    if (s == "false" || s == "False" || s == "0")
+        return false;
+
+    double v = 0.0;
+    if (TryParseDouble(s, v))
+        return v != 0.0;
+
+    return false;
+}
+
+std::string DefaultValueForPinType(PinType t)
+{
+    switch (t)
+    {
+        case PinType::Boolean: return "false";
+        case PinType::String:  return "";
+        case PinType::Array:   return "[]";
+        case PinType::Number:
+        default:               return "0.0";
+    }
+}
+
+void NormalizeValueForPinType(PinType t, std::string& value)
+{
+    switch (t)
+    {
+        case PinType::Boolean:
+            value = ParseBoolLoose(value) ? "true" : "false";
+            break;
+
+        case PinType::Number:
+        {
+            double v = 0.0;
+            if (TryParseDouble(value, v))
+                value = std::to_string(v);
+            else
+                value = "0.0";
+            break;
+        }
+
+        case PinType::Array:
+            if (value.empty())
+                value = "[]";
+            break;
+
+        case PinType::String:
+        default:
+            break;
+    }
+}
+
 const char* VariableTypeToString(PinType type)
 {
     switch (type)
@@ -261,6 +332,7 @@ bool RefreshVariableNodeTypes(GraphState& state)
         NodeField* variantField = FindField(n.fields, "Variant");
         NodeField* nameField = FindField(n.fields, "Name");
         NodeField* typeField = FindField(n.fields, "Type");
+        NodeField* defaultField = FindField(n.fields, "Default");
         const std::string variant = variantField ? variantField->value : "Set";
         if (variant != "Set")
             continue;
@@ -369,6 +441,26 @@ bool RefreshVariableNodeTypes(GraphState& state)
         {
             typeField->value = resolvedTypeName;
             changed = true;
+        }
+
+        if (defaultField)
+        {
+            const bool typeChanged = (defaultField->valueType != resolvedType);
+            defaultField->valueType = resolvedType;
+
+            if (typeChanged)
+            {
+                // Match Constant-node behavior: when type changes, reset default value.
+                defaultField->value = DefaultValueForPinType(resolvedType);
+                changed = true;
+            }
+            else
+            {
+                const std::string before = defaultField->value;
+                NormalizeValueForPinType(resolvedType, defaultField->value);
+                if (defaultField->value != before)
+                    changed = true;
+            }
         }
 
         if (setPin && setPin->type != resolvedType)
