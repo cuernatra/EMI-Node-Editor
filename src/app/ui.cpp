@@ -25,11 +25,21 @@ void Ui::draw()
     const float totalWidth = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
     const float minLeft = 50.f;
     const float minRight = 200.f;
+    const float splitterWidth = 5.f;
 
     if(m_leftPanelWidth <= 0.0f)
     {
-        m_leftPanelWidth = std::clamp(totalWidth * 0.25f, minLeft, totalWidth - minRight - 5.f);
+        m_leftPanelWidth = std::clamp(totalWidth * 0.25f, minLeft, totalWidth - minRight - splitterWidth);
     }
+
+    if (m_rightPanelWidth <= 0.0f)
+    {
+        const float maxRight = std::max(minRight, totalWidth - m_leftPanelWidth - splitterWidth - minLeft);
+        m_rightPanelWidth = std::clamp(totalWidth * 0.24f, minRight, maxRight);
+    }
+
+    // save new left panel width value to settings
+    Settings::leftPanelWidth = m_leftPanelWidth;
 
     ImGui::BeginChild("TOP BAR", ImVec2(totalWidth, elementSizes::topBarHeight), true,
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
@@ -42,13 +52,28 @@ void Ui::draw()
 
     ImGui::SameLine();
 
-    DrawSplitter(totalWidth, 5.f, 50.f, 200.f);
+    DrawSplitter(totalWidth, splitterWidth, minLeft, minRight);
 
     ImGui::SameLine();
 
-    ImGui::BeginChild("MAIN EDITOR", ImVec2(0,0), true);
+    const bool showInspector = m_mainEditor.hasSelectedNode();
+    const float inspectorWidth = showInspector ? m_rightPanelWidth : 0.0f;
+
+    float mainWidth = totalWidth - m_leftPanelWidth - splitterWidth - inspectorWidth;
+    if (mainWidth < minLeft)
+        mainWidth = minLeft;
+
+    ImGui::BeginChild("MAIN EDITOR", ImVec2(mainWidth, 0), true);
     m_mainEditor.draw();
     ImGui::EndChild();
+
+    if (showInspector)
+    {
+        ImGui::SameLine();
+        ImGui::BeginChild("INSPECTOR", ImVec2(0, 0), true);
+        m_mainEditor.drawInspectorPanel();
+        ImGui::EndChild();
+    }
 
     ImGui::End();
 }

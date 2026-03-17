@@ -6,6 +6,7 @@
 #include "imgui.h"
 #include "../core/registry/nodeFactory.h"
 #include "imgui_node_editor.h"
+#include "settings.h"
 
 MainEditor::MainEditor()
 {
@@ -18,10 +19,16 @@ MainEditor::MainEditor()
     m_compiler = std::make_unique<GraphCompilation>();
 
     GraphSerializer::Load(*m_graphState, "graph.txt");
+
+    // load settings
+    Settings::Load();
 }
 
 MainEditor::~MainEditor()
 {
+    // save settings
+    Settings::Save();
+
     // Set context as current before saving (needed for ed::GetNodePosition)
     ed::SetCurrentEditor(m_editorContext);
     
@@ -85,4 +92,19 @@ void MainEditor::draw()
         ed::SetCurrentEditor(nullptr);
         m_graphState->ClearDirty();
     }
+}
+
+void MainEditor::drawInspectorPanel()
+{
+    ed::SetCurrentEditor(m_editorContext);
+    m_graphEditor->DrawInspectorPanel();
+    ed::SetCurrentEditor(nullptr);
+}
+
+bool MainEditor::hasSelectedNode() const
+{
+    ed::SetCurrentEditor(m_editorContext);
+    const bool selected = m_graphEditor->HasSelectedNode();
+    ed::SetCurrentEditor(nullptr);
+    return selected;
 }

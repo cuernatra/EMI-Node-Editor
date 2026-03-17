@@ -52,3 +52,6 @@ CMakePresets.json
 
 compile_commands.json
 .clangd
+
+#json files
+*.json

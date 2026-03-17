@@ -6,11 +6,136 @@
 #include "../core/registry/nodeFactory.h"
 #include "imgui.h"
 #include <algorithm>
+#include <cstdlib>
+#include <cstring>
 #include <string>
 #include <unordered_map>
 
 namespace
 {
+float ParseInspectorFloat(const std::string& s)
+{
+    if (s.empty())
+        return 0.0f;
+
+    try
+    {
+        return std::stof(s);
+    }
+    catch (...)
+    {
+        return 0.0f;
+    }
+}
+
+bool ParseInspectorBool(const std::string& s)
+{
+    return s == "1" || s == "true" || s == "True";
+}
+
+bool DrawInspectorField(NodeField& field)
+{
+    bool changed = false;
+    ImGui::PushID(field.name.c_str());
+
+    switch (field.valueType)
+    {
+        case PinType::Number:
+        {
+            float v = ParseInspectorFloat(field.value);
+            if (ImGui::InputFloat(field.name.c_str(), &v, 0.0f, 0.0f, "%.3f"))
+            {
+                field.value = std::to_string(v);
+                changed = true;
+            }
+            break;
+        }
+
+        case PinType::Boolean:
+        {
+            bool v = ParseInspectorBool(field.value);
+            if (ImGui::Checkbox(field.name.c_str(), &v))
+            {
+                field.value = v ? "true" : "false";
+                changed = true;
+            }
+            break;
+        }
+
+        case PinType::String:
+        {
+            if (field.name == "Op")
+            {
+                const char* items[] = { "+", "-", "*", "/", "==", "!=", "<", "<=", ">", ">=", "AND", "OR", "NOT" };
+                if (ImGui::BeginCombo("Op", field.value.c_str()))
+                {
+                    for (const char* item : items)
+                    {
+                        const bool isSelected = (field.value == item);
+                        if (ImGui::Selectable(item, isSelected))
+                        {
+                            field.value = item;
+                            changed = true;
+                        }
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+            }
+            else if (field.name == "Type")
+            {
+                const char* items[] = { "Number", "Boolean", "String", "Array" };
+                if (ImGui::BeginCombo("Type", field.value.c_str()))
+                {
+                    for (const char* item : items)
+                    {
+                        const bool isSelected = (field.value == item);
+                        if (ImGui::Selectable(item, isSelected))
+                        {
+                            field.value = item;
+                            changed = true;
+                        }
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+            }
+            else
+            {
+                char buf[128] = {};
+                std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
+                if (ImGui::InputText(field.name.c_str(), buf, sizeof(buf)))
+                {
+                    field.value = buf;
+                    changed = true;
+                }
+            }
+            break;
+        }
+
+        case PinType::Array:
+        {
+            char buf[128] = {};
+            std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
+            if (ImGui::InputText(field.name.c_str(), buf, sizeof(buf)))
+            {
+                field.value = buf;
+                changed = true;
+            }
+            break;
+        }
+
+        default:
+            ImGui::LabelText(field.name.c_str(), "%s", field.value.c_str());
+            break;
+    }
+
+    ImGui::PopID();
+    return changed;
+}
+
 bool RefreshVariableNodeTypes(GraphState& state)
 {
     bool changedAnyPass = false;
@@ -282,6 +407,102 @@ void GraphEditor::DrawNodeCanvas()
 void GraphEditor::DrawContextMenus()
 {
     // Placeholder for future context menu logic
+}
+
+void GraphEditor::DrawInspectorPanel()
+{
+    ImGui::Text("INSPECTOR PANEL");
+    ImGui::Separator();
+
+    const int selectedCount = ed::GetSelectedObjectCount();
+    if (selectedCount <= 0)
+    {
+        return;
+    }
+
+    std::vector<ed::NodeId> selectedNodes(static_cast<size_t>(selectedCount));
+    const int selectedNodeCount = ed::GetSelectedNodes(selectedNodes.data(), selectedCount);
+    if (selectedNodeCount <= 0)
+    {
+        return;
+    }
+
+    const ed::NodeId selectedNodeId = selectedNodes.front();
+
+    VisualNode* selectedNode = nullptr;
+    for (auto& node : m_state.GetNodes())
+    {
+        if (!node.alive)
+            continue;
+
+        if (node.id == selectedNodeId)
+        {
+            selectedNode = &node;
+            break;
+        }
+    }
+
+    if (!selectedNode)
+    {
+        return;
+    }
+
+    const ImVec2 nodePos = ed::GetNodePosition(selectedNode->id);
+
+    ImGui::Text("Node ID: %llu", static_cast<unsigned long long>(selectedNode->id.Get()));
+    ImGui::Text("Type: %s", NodeTypeToString(selectedNode->nodeType));
+    ImGui::Text("Position: (%.1f, %.1f)", nodePos.x, nodePos.y);
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::TextUnformatted("VALUES");
+    ImGui::Spacing();
+
+    bool fieldsChanged = false;
+    if (selectedNode->fields.empty())
+    {
+        ImGui::TextUnformatted("No values.");
+    }
+    else
+    {
+        ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+        for (NodeField& field : selectedNode->fields)
+            fieldsChanged |= DrawInspectorField(field);
+        ImGui::PopID();
+    }
+
+    if (fieldsChanged)
+    {
+        GraphSerializer::ApplyConstantTypeFromFields(*selectedNode, /*resetValueOnTypeChange=*/true);
+
+        RefreshVariableNodeTypes(m_state);
+        SyncLinkTypesAndPruneInvalid(m_state);
+        m_state.MarkDirty();
+    }
+}
+
+bool GraphEditor::HasSelectedNode() const
+{
+    const int selectedCount = ed::GetSelectedObjectCount();
+    if (selectedCount <= 0)
+        return false;
+
+    std::vector<ed::NodeId> selectedNodes(static_cast<size_t>(selectedCount));
+    const int selectedNodeCount = ed::GetSelectedNodes(selectedNodes.data(), selectedCount);
+    if (selectedNodeCount <= 0)
+        return false;
+
+    for (int i = 0; i < selectedNodeCount; ++i)
+    {
+        const ed::NodeId selectedNodeId = selectedNodes[static_cast<size_t>(i)];
+        for (const auto& node : m_state.GetNodes())
+        {
+            if (node.alive && node.id == selectedNodeId)
+                return true;
+        }
+    }
+
+    return false;
 }
 
 void GraphEditor::CreateNewLink()

@@ -14,6 +14,7 @@
 #include "../editor/mainEditor.h"
 #include "../ui/leftPanel.h"
 #include "../ui/topPanel.h"
+#include "../editor/settings.h"
 
 /**
  * @brief Main UI compositor class
@@ -68,7 +69,7 @@ private:
     TopPanel m_topPanel;
     
     /// Current width of left panel (-1 = uninitialized, auto-sized on first draw)
-    float m_leftPanelWidth = -1.f;
+    float m_leftPanelWidth = Settings::leftPanelWidth;
     
     /// Reserved for future right panel (currently unused)
     float m_rightPanelWidth = -1.f;

@@ -3,21 +3,20 @@
 #include "../core/graph/link.h"
 #include "imgui.h"
 #include <cstring>
+#include "nodePreview.h"
 
 namespace
 {
 void DrawNodeItem(NodeType nodeType)
 {
     const char* label = NodeTypeToString(nodeType);
-
-    ImGui::Button(label, ImVec2(-1.0f, 0.0f));
+    NodePreview::Draw(nodeType);
     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
     {
         NodeSpawnPayload payload{};
         std::strncpy(payload.title, label, sizeof(payload.title) - 1);
-
         ImGui::SetDragDropPayload("SPAWN_NODE", &payload, sizeof(NodeSpawnPayload));
-        ImGui::Text("Create: %s", label);
+        NodePreview::Draw(nodeType);
         ImGui::EndDragDropSource();
     }
 }
@@ -26,8 +25,23 @@ void DrawSection(const char* title, const std::vector<NodeType>& types)
 {
     if (ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_DefaultOpen))
     {
+        const float leftBarWidth = ImGui::GetContentRegionAvail().x;
+        
+        // draw nodes on the same line until we run out of horizontal space, then wrap to next line
+        size_t col = 0;
+        size_t idx = 0;
         for (NodeType t : types)
+        {
             DrawNodeItem(t);
+            col++;
+            idx++;
+            if (idx < types.size()
+                && (nodePreviewConstants::fixedWidth + nodePreviewConstants::padding)
+                * (col + 1) < leftBarWidth)
+                    ImGui::SameLine();
+            else
+                col = 0;
+        }
     }
 }
 }

@@ -5,11 +5,13 @@ add_executable(emi-editor
   ui/leftPanel.cpp
   ui/topPanel.cpp
   ui/dropBar.cpp
+  ui/nodePreview.cpp
   editor/mainEditor.cpp
   editor/graphEditor.cpp
   editor/graphCompilation.cpp
   editor/graphState.cpp
   editor/graphSerializer.cpp
+  editor/settings.cpp
   core/graph/visualNode.cpp
   core/graph/link.cpp
   core/registry/fieldWidget.cpp
@@ -50,6 +52,7 @@ target_include_directories(emi-editor PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(emi-editor PRIVATE
   ImGui-SFML::ImGui-SFML
   EMI
+  nlohmann_json::nlohmann_json
 )
 
 target_compile_definitions(emi-editor PRIVATE INCLUDE_DEBUGGER)
