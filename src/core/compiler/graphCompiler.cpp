@@ -399,7 +399,9 @@ Node* GraphCompiler::BuildVariable(const VisualNode& n)
     const PinType defaultType = VariableTypeFromString(typeStr ? *typeStr : "Number");
     const std::string defaultValue = defaultStr ? *defaultStr : "0.0";
 
-    const Pin* setInput = GetInputPinByName(n, "Set");
+    const Pin* setInput = GetInputPinByName(n, "Default");
+    if (!setInput)
+        setInput = GetInputPinByName(n, "Set"); // backward compatibility
     if (!setInput)
         return MakeIdNode(varName);
 

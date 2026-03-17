@@ -34,8 +34,8 @@ void NodePreview::Draw(NodeType nodeType, const char* titleOverride)
         if (isVariableGetPreview)
             return (!pd.isInput && pd.name == "Value");
 
-        // Set Variable preview: keep execution + value pins only.
-        return (pd.name == "In" || pd.name == "Set" || pd.name == "Out" || pd.name == "Value");
+        // Set Variable preview: keep execution + default/value pins only.
+        return (pd.name == "In" || pd.name == "Default" || pd.name == "Out" || pd.name == "Value");
     };
 
     auto keepField = [&](const FieldDescriptor& fd) -> bool
@@ -44,7 +44,7 @@ void NodePreview::Draw(NodeType nodeType, const char* titleOverride)
             return false; // internal only
 
         if (isVariableGetPreview)
-            return (fd.name == "Name" || fd.name == "Default");
+            return (fd.name == "Name");
 
         if (isVariableSetPreview)
             return (fd.name == "Name" || fd.name == "Default");
