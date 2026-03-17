@@ -231,6 +231,13 @@ bool DrawInspectorField(NodeField& field)
     return changed;
 }
 
+void DrawInspectorReadOnlyField(const NodeField& field)
+{
+    ImGui::TextUnformatted(field.name.c_str());
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s", field.value.c_str());
+}
+
 bool RefreshVariableNodeTypes(GraphState& state)
 {
     bool changed = false;
@@ -242,7 +249,6 @@ bool RefreshVariableNodeTypes(GraphState& state)
     {
         PinType type = PinType::Number;
         std::string typeName = "Number";
-        std::string defaultValue = "0.0";
     };
 
     std::unordered_map<std::string, VariableDef> definitions;
@@ -255,8 +261,6 @@ bool RefreshVariableNodeTypes(GraphState& state)
         NodeField* variantField = FindField(n.fields, "Variant");
         NodeField* nameField = FindField(n.fields, "Name");
         NodeField* typeField = FindField(n.fields, "Type");
-        NodeField* defaultField = FindField(n.fields, "Default");
-
         const std::string variant = variantField ? variantField->value : "Set";
         if (variant != "Set")
             continue;
@@ -293,18 +297,25 @@ bool RefreshVariableNodeTypes(GraphState& state)
             changed = true;
         }
 
-        Pin* setPin = FindPinByName(n.inPins, "Set");
+        Pin* setPin = FindPinByName(n.inPins, "Default");
+        if (!setPin)
+            setPin = FindPinByName(n.inPins, "Set"); // backward compatibility
         if (!setPin)
         {
             n.inPins.push_back(MakePin(
                 static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
                 n.id,
                 n.nodeType,
-                "Set",
+                "Default",
                 PinType::Any,
                 true
             ));
             setPin = &n.inPins.back();
+            changed = true;
+        }
+        else if (setPin->name != "Default")
+        {
+            setPin->name = "Default";
             changed = true;
         }
 
@@ -374,8 +385,7 @@ bool RefreshVariableNodeTypes(GraphState& state)
         const std::string varName = nameField ? nameField->value : "myVar";
         definitions[varName] = VariableDef{
             resolvedType,
-            resolvedTypeName,
-            defaultField ? defaultField->value : "0.0"
+            resolvedTypeName
         };
     }
 
@@ -387,8 +397,6 @@ bool RefreshVariableNodeTypes(GraphState& state)
         NodeField* variantField = FindField(n.fields, "Variant");
         NodeField* nameField = FindField(n.fields, "Name");
         NodeField* typeField = FindField(n.fields, "Type");
-        NodeField* defaultField = FindField(n.fields, "Default");
-
         const std::string variant = variantField ? variantField->value : "Set";
         const std::string varName = nameField ? nameField->value : "myVar";
 
@@ -415,12 +423,6 @@ bool RefreshVariableNodeTypes(GraphState& state)
             if (typeField && typeField->value != getTypeName)
             {
                 typeField->value = getTypeName;
-                changed = true;
-            }
-
-            if (defaultField && it != definitions.end() && defaultField->value != it->second.defaultValue)
-            {
-                defaultField->value = it->second.defaultValue;
                 changed = true;
             }
 
@@ -470,7 +472,7 @@ bool RefreshVariableNodeTypes(GraphState& state)
             }
 
             const size_t inBefore = n.inPins.size();
-            RemovePinsByNameExcept(n.inPins, { "In", "Set" });
+            RemovePinsByNameExcept(n.inPins, { "In", "Default" });
             if (n.inPins.size() != inBefore)
                 changed = true;
 
@@ -664,7 +666,7 @@ void GraphEditor::DrawNodeCanvas()
         for (const Pin& p : n.outPins)
             pinTypesBefore.emplace(p.id.Get(), p.type);
 
-        anyChanged |= DrawVisualNode(n, &m_state.GetIdGen(), &m_state.GetNodes());
+        anyChanged |= DrawVisualNode(n, &m_state.GetIdGen(), &m_state.GetNodes(), &m_state.GetLinks());
 
         std::vector<ed::PinId> changedPins;
         for (const Pin& p : n.inPins)
@@ -786,9 +788,27 @@ void GraphEditor::DrawInspectorPanel()
             NodeField* variantField = FindField(selectedNode->fields, "Variant");
             NodeField* nameField = FindField(selectedNode->fields, "Name");
             NodeField* typeField = FindField(selectedNode->fields, "Type");
-            NodeField* defaultField = FindField(selectedNode->fields, "Default");
 
             const bool isGet = variantField && variantField->value == "Get";
+            bool defaultConnected = false;
+            if (!isGet)
+            {
+                Pin* defaultPin = FindPinByName(selectedNode->inPins, "Default");
+                if (!defaultPin)
+                    defaultPin = FindPinByName(selectedNode->inPins, "Set"); // backward compatibility
+
+                if (defaultPin)
+                {
+                    for (const Link& l : m_state.GetLinks())
+                    {
+                        if (l.alive && l.endPinId == defaultPin->id)
+                        {
+                            defaultConnected = true;
+                            break;
+                        }
+                    }
+                }
+            }
 
             ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
 
@@ -796,7 +816,6 @@ void GraphEditor::DrawInspectorPanel()
             {
                 // Get node inspector:
                 // - Variable drop-down from existing Set variables
-                // - Default remains editable fallback value
                 std::vector<std::string> setVariableNames;
 
                 for (const auto& node : m_state.GetNodes())
@@ -849,8 +868,6 @@ void GraphEditor::DrawInspectorPanel()
                     }
                 }
 
-                if (defaultField)
-                    fieldsChanged |= DrawInspectorField(*defaultField);
             }
             else
             {
@@ -858,6 +875,13 @@ void GraphEditor::DrawInspectorPanel()
                 {
                     if (&field == variantField)
                         continue;
+
+                    if (field.name == "Default" && defaultConnected)
+                    {
+                        DrawInspectorReadOnlyField(field);
+                        continue;
+                    }
+
                     fieldsChanged |= DrawInspectorField(field);
                 }
             }
