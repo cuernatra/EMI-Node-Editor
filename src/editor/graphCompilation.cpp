@@ -47,10 +47,10 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
         return;
     }
 
-    // Pre-validate: check for Output node
+    // Pre-validate: check for Debug Print node
     if (!state.HasOutputNode())
     {
-        state.SetCompileStatus(false, "Error: graph has no Output node.");
+        state.SetCompileStatus(false, "Error: graph has no Debug Print node.");
         return;
     }
 
@@ -75,20 +75,20 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
     // VM takes ownership of ast pointer after this call.
     m_impl->vm->CompileAST(kCompileUnitName, ast);
 
-    // Step 4: Execute and print via EMI-Script itself.
-    // This runs the generated __graph__ function and routes output through
-    // the script logger (terminal) using intrinsic println.
-    constexpr const char* kPrintGraphResultScript = "println(__graph__());";
-    void* printHandle = m_impl->vm->CompileTemporary(kPrintGraphResultScript);
+    // Step 4: Execute compiled graph function.
+    // Debug Print nodes inside the graph are now responsible for
+    // terminal output, so we only invoke __graph__() here.
+    constexpr const char* kRunGraphScript = "__graph__();";
+    void* printHandle = m_impl->vm->CompileTemporary(kRunGraphScript);
     if (!m_impl->vm->WaitForResult(printHandle))
     {
-        state.SetCompileStatus(false, "Runtime error: failed to execute 'println(__graph__())'");
+        state.SetCompileStatus(false, "Runtime error: failed to execute '__graph__()'");
         return;
     }
 
     if (resultOnly)
         state.SetCompileStatus(true, "OK");
     else
-        state.SetCompileStatus(true, "OK — compiled and executed (__graph__ printed via EMI-Script println)");
+        state.SetCompileStatus(true, "OK — compiled and executed (__graph__)");
 }
 

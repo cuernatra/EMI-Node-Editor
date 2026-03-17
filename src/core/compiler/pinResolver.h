@@ -59,6 +59,15 @@ struct PinSource
     int               pinIdx  = 0;        ///< Index into node->outPins
 };
 
+/**
+ * @brief Identifies where a flow output pin continues execution.
+ */
+struct FlowTarget
+{
+    const VisualNode* node   = nullptr;  ///< Downstream node receiving the flow signal
+    int               pinIdx = 0;        ///< Index into node->inPins (the flow input that is connected)
+};
+
 
 /**
  * @brief Fast lookup for input pin → source mappings
@@ -111,6 +120,13 @@ public:
     const PinSource* Resolve(ed::PinId inputPinId) const;
 
     /**
+     * @brief Find downstream target of a flow output pin.
+     * @param flowOutputPinId Output flow pin ID
+     * @return Pointer to FlowTarget, or nullptr if not connected
+     */
+    const FlowTarget* ResolveFlow(ed::PinId flowOutputPinId) const;
+
+    /**
      * @brief Find a node by its ID
      * @param nodeId The node ID to look up
      * @return Pointer to VisualNode, or nullptr if not found
@@ -126,4 +142,7 @@ private:
 
     // nodeId -> VisualNode*
     std::unordered_map<ed::NodeId, const VisualNode*> nodeById_;
+
+    // flow output pin ID -> downstream flow input target
+    std::unordered_map<ed::PinId, FlowTarget> flowOutputToTarget_;
 };

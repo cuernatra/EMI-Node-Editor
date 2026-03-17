@@ -31,8 +31,9 @@ descriptors_[NodeType::Constant] = {
         { "Value", PinType::Number, /*isInput=*/false }
     },
     {
-        { "Value", PinType::Number, "0.0" },
-        { "Type",  PinType::String, "Number" }
+        // Keep Type first so changing type updates Value widget/reset immediately.
+        { "Type",  PinType::String, "Number" },
+        { "Value", PinType::Number, "0.0" }
     },
     [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildConstant(n); }
 };
@@ -180,13 +181,15 @@ descriptors_[NodeType::Constant] = {
     };
 
     // ------------------------------------------------------------------
-    // Output  —  Terminal sink node
+    // Output  —  Flow-triggered debug print sink node
+    // Display name in UI: "Debug Print"
     // ------------------------------------------------------------------
     descriptors_[NodeType::Output] = {
         NodeType::Output,
-        "Output",
+        "Debug Print",
         {
-            { "Value", PinType::Any, /*isInput=*/true }
+            { "In",    PinType::Flow, /*isInput=*/true },
+            { "Value", PinType::Any,  /*isInput=*/true }
         },
         {
             { "Label", PinType::String, "result" }

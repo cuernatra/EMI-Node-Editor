@@ -46,7 +46,7 @@ inline const char* NodeTypeToString(NodeType t)
         case NodeType::Loop:       return "Loop";
         case NodeType::Variable:   return "Variable";
         case NodeType::Function:   return "Function";
-        case NodeType::Output:     return "Output";
+        case NodeType::Output:     return "Debug Print";
         default:                   return "Unknown";
     }
 }
@@ -63,7 +63,8 @@ inline NodeType NodeTypeFromString(const std::string& s)
     if (s == "Loop")       return NodeType::Loop;
     if (s == "Variable")   return NodeType::Variable;
     if (s == "Function")   return NodeType::Function;
-    if (s == "Output")     return NodeType::Output;
+    if (s == "Output")      return NodeType::Output;      // backward compatibility
+    if (s == "Debug Print") return NodeType::Output;
     return NodeType::Unknown;
 }
 
