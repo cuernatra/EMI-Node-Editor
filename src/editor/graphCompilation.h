@@ -57,7 +57,7 @@ public:
      * All compilation and runtime errors are caught and stored
      * in the graph state for display to the user.
      */
-    void CompileGraph(GraphState& state);
+    void CompileGraph(GraphState& state, bool resultOnly = false);
 
 private:
     // Pimpl to hide EMI types from header

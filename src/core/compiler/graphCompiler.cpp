@@ -93,6 +93,14 @@ Token GraphCompiler::LogicToken(const std::string& op)
     return Token::None;
 }
 
+static PinType VariableTypeFromString(const std::string& typeName)
+{
+    if (typeName == "Boolean") return PinType::Boolean;
+    if (typeName == "String")  return PinType::String;
+    if (typeName == "Array")   return PinType::Array;
+    return PinType::Number;
+}
+
 // Compile graph to AST
 
 Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
@@ -120,10 +128,11 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
 
     // Wrap the body in a function declaration:
     //   def __graph__() { <body> }
-    // Token::Definition is emiscript's function definition token.
-    auto funcDecl = std::unique_ptr<Node>(MakeNode(Token::Definition));
-    auto nameId   = std::unique_ptr<Node>(MakeIdNode(kGraphFunctionName));
-    funcDecl->children.push_back(nameId.release());
+    // FunctionDef is consumed by ASTWalker's pre-pass; name goes in data.
+    auto funcDecl = std::unique_ptr<Node>(MakeNode(Token::FunctionDef));
+    funcDecl->data = std::string(kGraphFunctionName);
+    auto params = std::unique_ptr<Node>(MakeNode(Token::CallParams));
+    funcDecl->children.push_back(params.release());
     funcDecl->children.push_back(body.release());
 
     // The AST root is a Scope containing the single function declaration.
@@ -221,6 +230,14 @@ Node* GraphCompiler::BuildConstant(const VisualNode& n)
     if (value == "false" || value == "0") return MakeBoolNode(false);
 
     return MakeStringNode(value);
+}
+
+Node* GraphCompiler::BuildStart(const VisualNode& n)
+{
+    // Start is currently an editor-side flow entry marker.
+    // Compiler is expression/sink-driven, so this compiles to an empty scope.
+    (void)n;
+    return MakeNode(Token::Scope);
 }
 
 Node* GraphCompiler::BuildOperator(const VisualNode& n)
@@ -374,11 +391,23 @@ Node* GraphCompiler::BuildLoop(const VisualNode& n)
 Node* GraphCompiler::BuildVariable(const VisualNode& n)
 {
     const std::string* nameStr = GetField(n, "Name");
+    const std::string* typeStr = GetField(n, "Type");
+    const std::string* defaultStr = GetField(n, "Default");
+
     std::string varName = nameStr ? *nameStr : "__unnamed";
 
-    if (!n.inPins.empty())
+    const PinType defaultType = VariableTypeFromString(typeStr ? *typeStr : "Number");
+    const std::string defaultValue = defaultStr ? *defaultStr : "0.0";
+
+    const Pin* setInput = GetInputPinByName(n, "Default");
+    if (!setInput)
+        setInput = GetInputPinByName(n, "Set"); // backward compatibility
+    if (!setInput)
+        return MakeIdNode(varName);
+
+    if (setInput)
     {
-        const PinSource* src = resolver_.Resolve(n.inPins[0].id);
+        const PinSource* src = resolver_.Resolve(setInput->id);
         if (src)
         {
             Node* assign = MakeNode(Token::Assign);
@@ -391,7 +420,32 @@ Node* GraphCompiler::BuildVariable(const VisualNode& n)
         }
     }
 
-    return MakeIdNode(varName);
+    Node* assign = MakeNode(Token::Assign);
+    Node* lhs    = MakeIdNode(varName);
+    Node* rhs    = nullptr;
+
+    switch (defaultType)
+    {
+        case PinType::Boolean:
+        {
+            const bool b = (defaultValue == "true" || defaultValue == "True" || defaultValue == "1");
+            rhs = MakeBoolNode(b);
+            break;
+        }
+        case PinType::String:
+        case PinType::Array:
+            rhs = MakeStringNode(defaultValue);
+            break;
+        case PinType::Number:
+        default:
+            try { rhs = MakeNumberNode(std::stod(defaultValue)); }
+            catch (...) { rhs = MakeNumberNode(0.0); }
+            break;
+    }
+
+    assign->children.push_back(lhs);
+    assign->children.push_back(rhs);
+    return assign;
 }
 
 Node* GraphCompiler::BuildOutput(const VisualNode& n)

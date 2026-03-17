@@ -294,6 +294,16 @@ void GraphSerializer::Load(GraphState& state, const char* path)
             in >> nid >> nodeTypeStr >> pinCount;
 
             NodeType nodeType = NodeTypeFromString(nodeTypeStr);
+            if (nodeType == NodeType::Unknown)
+            {
+                // Unknown node type in save file: skip gracefully.
+                float pxDummy, pyDummy;
+                for (int i = 0; i < pinCount; ++i) { int skip; in >> skip; }
+                int fieldCountSkip; in >> fieldCountSkip;
+                for (int i = 0; i < fieldCountSkip; ++i) { std::string skipPair; in >> skipPair; }
+                in >> pxDummy >> pyDummy;
+                continue;
+            }
 
             std::vector<int> pinIds;
             pinIds.reserve(pinCount);

@@ -83,6 +83,7 @@ public:
 
     // Implementation methods called by descriptor lambdas in nodeRegistry.cpp
     Node* BuildConstant  (const VisualNode& n);   ///< Builds AST for Constant nodes
+    Node* BuildStart     (const VisualNode& n);   ///< Builds AST for Start event nodes
     Node* BuildOperator  (const VisualNode& n);   ///< Builds AST for Operator nodes
     Node* BuildComparison(const VisualNode& n);   ///< Builds AST for Comparison nodes
     Node* BuildLogic     (const VisualNode& n);   ///< Builds AST for Logic nodes

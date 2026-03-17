@@ -18,6 +18,7 @@ enum class PinType
 
 enum class NodeType
 {
+    Start,       ///< Event start node (flow entry)
     Constant,    ///< Constant value node
     Operator,    ///< Arithmetic/string operators (+, -, *, /)
     Comparison,  ///< Comparison operators (==, !=, <, >)
@@ -35,6 +36,7 @@ inline const char* NodeTypeToString(NodeType t)
 {
     switch (t)
     {
+        case NodeType::Start:      return "Start";
         case NodeType::Constant:   return "Constant";
         case NodeType::Operator:   return "Operator";
         case NodeType::Comparison: return "Comparison";
@@ -51,6 +53,7 @@ inline const char* NodeTypeToString(NodeType t)
 
 inline NodeType NodeTypeFromString(const std::string& s)
 {
+    if (s == "Start")      return NodeType::Start;
     if (s == "Constant")   return NodeType::Constant;
     if (s == "Operator")   return NodeType::Operator;
     if (s == "Comparison") return NodeType::Comparison;

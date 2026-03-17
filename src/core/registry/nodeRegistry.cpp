@@ -9,6 +9,19 @@
 NodeRegistry::NodeRegistry()
 {
     // ------------------------------------------------------------------
+    // Start  —  Event entry output (UE-style white execution flow)
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::Start] = {
+        NodeType::Start,
+        "Start",
+        {
+            { "Exec", PinType::Flow, /*isInput=*/false }
+        },
+        {},
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStart(n); }
+    };
+
+    // ------------------------------------------------------------------
     // Constant  —  single editable Number output
     // ------------------------------------------------------------------
 descriptors_[NodeType::Constant] = {
@@ -128,13 +141,18 @@ descriptors_[NodeType::Constant] = {
     // ------------------------------------------------------------------
     descriptors_[NodeType::Variable] = {
         NodeType::Variable,
-        "Variable",
+        "Set Variable",
         {
-            { "Set",   PinType::Any,  /*isInput=*/true  },
+            { "In",    PinType::Flow, /*isInput=*/true  },
+            { "Default", PinType::Any,  /*isInput=*/true  },
+            { "Out",   PinType::Flow, /*isInput=*/false },
             { "Value", PinType::Any,  /*isInput=*/false }
         },
         {
-            { "Name", PinType::String, "myVar" }
+            { "Variant", PinType::String, "Set" },
+            { "Name",    PinType::String, "myVar" },
+            { "Type",    PinType::String, "Number" },
+            { "Default", PinType::String, "0.0" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildVariable(n); }
     };
