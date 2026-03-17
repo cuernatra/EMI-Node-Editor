@@ -53,6 +53,12 @@ private:
      */
     void render();
 
+    /**
+    * @brief Load font
+    * Loads a custom TTF font for use in ImGui. Adjusts oversampling for better quality.
+    */
+    void loadFont();
+
     /// SFML window for rendering
     sf::RenderWindow m_window;
     

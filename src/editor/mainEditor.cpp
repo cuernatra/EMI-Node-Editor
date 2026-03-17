@@ -49,8 +49,12 @@ void MainEditor::draw()
     // Top toolbar
     if (ImGui::Button("Compile"))
     {
-        m_compiler->CompileGraph(*m_graphState);
+        m_compiler->CompileGraph(*m_graphState, m_resultOnlyCompile);
     }
+
+    ImGui::SameLine();
+
+    ImGui::Checkbox("Result only", &m_resultOnlyCompile);
 
     ImGui::SameLine();
 
@@ -107,4 +111,14 @@ bool MainEditor::hasSelectedNode() const
     const bool selected = m_graphEditor->HasSelectedNode();
     ed::SetCurrentEditor(nullptr);
     return selected;
+}
+
+bool MainEditor::hasStartNode() const
+{
+    return m_graphState->HasNodeType(NodeType::Start);
+}
+
+bool MainEditor::hasVariables() const
+{
+    return m_graphState->HasNodeType(NodeType::Variable);
 }

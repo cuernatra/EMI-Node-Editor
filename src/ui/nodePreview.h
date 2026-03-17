@@ -35,7 +35,7 @@ public:
      * Queries the node registry to get pin/field information,
      * then draws a scaled-down version. Safe to call repeatedly.
      */
-    static void Draw(NodeType nodeType);
+    static void Draw(NodeType nodeType, const char* titleOverride = nullptr);
 };
 
 #endif // NODE_PREVIEW_H
