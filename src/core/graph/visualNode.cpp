@@ -63,6 +63,13 @@ static bool NodePopupComboDynamic(const char* id,
     return changed;
 }
 
+static void DrawReadOnlyField(const NodeField& field)
+{
+    ImGui::TextUnformatted(field.name.c_str());
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s", field.value.c_str());
+}
+
 static void DrawPin(const Pin& pin)
 {
     ed::BeginPin(pin.id,
@@ -83,15 +90,20 @@ static void DrawPin(const Pin& pin)
 
 bool DrawVisualNode(VisualNode& n)
 {
-    return DrawVisualNode(n, nullptr, nullptr);
+    return DrawVisualNode(n, nullptr, nullptr, nullptr);
 }
 
 bool DrawVisualNode(VisualNode& n, IdGen* idGen)
 {
-    return DrawVisualNode(n, idGen, nullptr);
+    return DrawVisualNode(n, idGen, nullptr, nullptr);
 }
 
 bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* allNodes)
+{
+    return DrawVisualNode(n, idGen, allNodes, nullptr);
+}
+
+bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* allNodes, const std::vector<Link>* allLinks)
 {
     if (!n.positioned)
     {
@@ -121,6 +133,33 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         const std::string* variant = findFieldValue("Variant");
         const bool isGetVariable =
             (n.nodeType == NodeType::Variable && variant && *variant == "Get");
+        const bool isSetVariable =
+            (n.nodeType == NodeType::Variable && variant && *variant == "Set");
+
+        auto isInputPinConnected = [&](const char* pinName) -> bool
+        {
+            if (!allLinks)
+                return false;
+
+            const Pin* targetPin = nullptr;
+            for (const Pin& p : n.inPins)
+            {
+                if (p.name == pinName)
+                {
+                    targetPin = &p;
+                    break;
+                }
+            }
+            if (!targetPin)
+                return false;
+
+            for (const Link& l : *allLinks)
+            {
+                if (l.alive && l.endPinId == targetPin->id)
+                    return true;
+            }
+            return false;
+        };
 
         ImGui::Spacing();
         ImGui::PushID((int)n.id.Get());
@@ -131,6 +170,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
             if (isGetVariable && field.name == "Type")
                 continue; // Keep Type hidden for Get node body
+
+            if (isGetVariable && field.name == "Default")
+                continue; // Get node should not expose editable default in node body
 
             if (isGetVariable && field.name == "Name")
             {
@@ -179,6 +221,20 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                     changed |= NodePopupComboDynamic("##GetVariableNodeCombo", field.value, setVariableNames, 110.0f);
                 }
 
+                continue;
+            }
+
+            if (isSetVariable && field.name == "Default")
+            {
+                const bool defaultConnected = isInputPinConnected("Default");
+                if (defaultConnected)
+                {
+                    DrawReadOnlyField(field);
+                }
+                else
+                {
+                    changed |= DrawField(field);
+                }
                 continue;
             }
 

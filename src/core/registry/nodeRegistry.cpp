@@ -144,7 +144,7 @@ descriptors_[NodeType::Constant] = {
         "Set Variable",
         {
             { "In",    PinType::Flow, /*isInput=*/true  },
-            { "Set",   PinType::Any,  /*isInput=*/true  },
+            { "Default", PinType::Any,  /*isInput=*/true  },
             { "Out",   PinType::Flow, /*isInput=*/false },
             { "Value", PinType::Any,  /*isInput=*/false }
         },
