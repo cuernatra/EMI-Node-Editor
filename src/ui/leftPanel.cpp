@@ -7,11 +7,16 @@
 
 namespace
 {
-void DrawNodeItem(NodeType nodeType)
+void DrawNodeItem(NodeType nodeType, bool disabled = false)
 {
     const char* label = NodeTypeToString(nodeType);
+
+    if (disabled)
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
+
     NodePreview::Draw(nodeType);
-    if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+
+    if (!disabled && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
     {
         NodeSpawnPayload payload{};
         std::strncpy(payload.title, label, sizeof(payload.title) - 1);
@@ -19,9 +24,12 @@ void DrawNodeItem(NodeType nodeType)
         NodePreview::Draw(nodeType);
         ImGui::EndDragDropSource();
     }
+
+    if (disabled)
+        ImGui::PopStyleVar();
 }
 
-void DrawSection(const char* title, const std::vector<NodeType>& types)
+void DrawSection(const char* title, const std::vector<NodeType>& types, bool hasStartNode)
 {
     if (ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -32,7 +40,8 @@ void DrawSection(const char* title, const std::vector<NodeType>& types)
         size_t idx = 0;
         for (NodeType t : types)
         {
-            DrawNodeItem(t);
+            const bool disableItem = (t == NodeType::Start && hasStartNode);
+            DrawNodeItem(t, disableItem);
             col++;
             idx++;
             if (idx < types.size()
@@ -71,7 +80,7 @@ LeftPanel::LeftPanel()
             m_nodeTypes.push_back(t);
 }
 
-void LeftPanel::draw()
+void LeftPanel::draw(bool hasStartNode)
 {
     ImGui::Text("NODE PALETTE");
     ImGui::Separator();
@@ -114,8 +123,8 @@ void LeftPanel::draw()
         }
     }
 
-    DrawSection("Events", eventTypes);
-    DrawSection("Data", dataTypes);
-    DrawSection("Logic", logicTypes);
-    DrawSection("Flow", flowTypes);
+    DrawSection("Events", eventTypes, hasStartNode);
+    DrawSection("Data", dataTypes, hasStartNode);
+    DrawSection("Logic", logicTypes, hasStartNode);
+    DrawSection("Flow", flowTypes, hasStartNode);
 }

@@ -47,7 +47,7 @@ void Ui::draw()
     ImGui::EndChild();
 
     ImGui::BeginChild("NODE PALETTE", ImVec2(m_leftPanelWidth, 0), true);
-    m_leftPanel.draw();
+    m_leftPanel.draw(m_mainEditor.hasStartNode());
     ImGui::EndChild();
 
     ImGui::SameLine();

@@ -35,6 +35,9 @@ public:
     /// Check whether any existing node is currently selected.
     bool hasSelectedNode() const;
 
+    /// Check whether graph currently contains a Start node.
+    bool hasStartNode() const;
+
 private:
 
     ed::EditorContext* m_editorContext = nullptr;  ///< imgui-node-editor context
