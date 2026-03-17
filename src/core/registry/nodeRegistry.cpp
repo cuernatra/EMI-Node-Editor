@@ -9,6 +9,19 @@
 NodeRegistry::NodeRegistry()
 {
     // ------------------------------------------------------------------
+    // Start  —  Event entry output (UE-style white execution flow)
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::Start] = {
+        NodeType::Start,
+        "Start",
+        {
+            { "Exec", PinType::Flow, /*isInput=*/false }
+        },
+        {},
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStart(n); }
+    };
+
+    // ------------------------------------------------------------------
     // Constant  —  single editable Number output
     // ------------------------------------------------------------------
 descriptors_[NodeType::Constant] = {

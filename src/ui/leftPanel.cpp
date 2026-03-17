@@ -53,6 +53,7 @@ LeftPanel::LeftPanel()
     const auto& allDescriptors = registry.All();
 
     const NodeType preferredOrder[] = {
+        NodeType::Start,
         NodeType::Constant,
         NodeType::Variable,
         NodeType::Operator,
@@ -75,6 +76,7 @@ void LeftPanel::draw()
     ImGui::Text("NODE PALETTE");
     ImGui::Separator();
 
+    std::vector<NodeType> eventTypes;
     std::vector<NodeType> dataTypes;
     std::vector<NodeType> logicTypes;
     std::vector<NodeType> flowTypes;
@@ -83,6 +85,10 @@ void LeftPanel::draw()
     {
         switch (t)
         {
+            case NodeType::Start:
+                eventTypes.push_back(t);
+                break;
+
             case NodeType::Constant:
             case NodeType::Variable:
                 dataTypes.push_back(t);
@@ -108,6 +114,7 @@ void LeftPanel::draw()
         }
     }
 
+    DrawSection("Events", eventTypes);
     DrawSection("Data", dataTypes);
     DrawSection("Logic", logicTypes);
     DrawSection("Flow", flowTypes);
