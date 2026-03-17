@@ -2,6 +2,7 @@
 #include <imgui-SFML.h>
 #include <SFML/Window/Event.hpp>
 #include <iostream>
+#include "constants.h"
 
 App::App()
     : m_window(sf::VideoMode(appConstants::windowWidth, appConstants::windowheight), 
@@ -9,6 +10,7 @@ App::App()
 {
     m_window.setFramerateLimit(60);
     ImGui::SFML::Init(m_window);
+    loadFont();
 }
 
 void App::run() 
@@ -50,4 +52,21 @@ void App::render()
 
     ImGui::SFML::Render(m_window);
     m_window.display();
+}
+
+void App::loadFont()
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    io.Fonts->Clear();
+
+    ImFontConfig config;
+    config.OversampleH = fontConstants::oversampleH;   // Horizontal oversampling
+    config.OversampleV = fontConstants::oversampleV;   // Vertical oversampling 
+    config.PixelSnapH  = false;
+
+    ImFont* font = io.Fonts->AddFontFromFileTTF("src/assets/fonts/Roboto-Regular.ttf", fontConstants::fontSize, &config);
+
+    io.Fonts->Build();
+    ImGui::SFML::UpdateFontTexture();
 }
