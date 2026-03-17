@@ -84,4 +84,11 @@ namespace nodePreviewConstants
     const float padding = 5.0f;                ///< Padding inside node previews
     const float pinRadius = 3.5f;              ///< Radius of the pin circles in node previews
 }
+
+namespace fontConstants
+{
+    const float fontSize = 15.0f;       ///< Default font size for ImGui elements
+    const float oversampleH = 5.0f;     ///< Horizontal oversampling for font rendering
+    const float oversampleV = 5.0f;     ///< Vertical oversampling for
+}
 #endif
