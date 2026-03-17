@@ -44,8 +44,10 @@ descriptors_[NodeType::Constant] = {
         NodeType::Operator,
         "Operator",
         {
+            { "In",     PinType::Flow,   /*isInput=*/true  },
             { "A",      PinType::Number, /*isInput=*/true  },
             { "B",      PinType::Number, /*isInput=*/true  },
+            { "Out",    PinType::Flow,   /*isInput=*/false },
             { "Result", PinType::Number, /*isInput=*/false }
         },
         {
@@ -61,8 +63,10 @@ descriptors_[NodeType::Constant] = {
         NodeType::Comparison,
         "Compare",
         {
+            { "In",     PinType::Flow,    /*isInput=*/true  },
             { "A",      PinType::Number,  /*isInput=*/true  },
             { "B",      PinType::Number,  /*isInput=*/true  },
+            { "Out",    PinType::Flow,    /*isInput=*/false },
             { "Result", PinType::Boolean, /*isInput=*/false }
         },
         {
@@ -78,8 +82,10 @@ descriptors_[NodeType::Constant] = {
         NodeType::Logic,
         "Logic",
         {
+            { "In",     PinType::Flow,    /*isInput=*/true,  /*isMultiInput=*/false },
             { "A",      PinType::Boolean, /*isInput=*/true,  /*isMultiInput=*/false },
             { "B",      PinType::Boolean, /*isInput=*/true,  /*isMultiInput=*/false },
+            { "Out",    PinType::Flow,    /*isInput=*/false, /*isMultiInput=*/false },
             { "Result", PinType::Boolean, /*isInput=*/false }
         },
         {
