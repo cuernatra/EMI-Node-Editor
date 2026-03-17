@@ -35,8 +35,8 @@ FetchContent_MakeAvailable(json)
 # Emi script
 FetchContent_Declare(
   EMI
-  GIT_REPOSITORY https://github.com/IlkkaTakala/EMI-Script.git
-  GIT_TAG master # e97f3bca68d23b1f25ec645edf01eecc31a08306
+  GIT_REPOSITORY https://github.com/Atte2002/EMI-Script.git
+  GIT_TAG fix-linux-build
 )
 FetchContent_MakeAvailable(EMI)
 
