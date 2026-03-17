@@ -55,6 +55,8 @@ target_link_libraries(emi-editor PRIVATE
   nlohmann_json::nlohmann_json
 )
 
+target_compile_definitions(emi-editor PRIVATE INCLUDE_DEBUGGER)
+
 if(MSVC)
   target_compile_options(emi-editor PRIVATE /FS)
 endif()

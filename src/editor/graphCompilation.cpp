@@ -1,20 +1,21 @@
 #include "graphCompilation.h"
 #include "graphState.h"
 #include "../core/compiler/graphCompiler.h"
-#include "EMI/EMI.h"
+#include "VM.h"
 #include "Parser/Node.h"
 #include <iostream>
+#include <sstream>
 #include <string>
 
 // Pimpl implementation details
 class GraphCompilation::Impl
 {
 public:
-    std::unique_ptr<EMI::VMHandle> vm;
+    std::unique_ptr<VM> vm;
 
     Impl()
     {
-        vm = std::make_unique<EMI::VMHandle>(EMI::CreateEnvironment());
+        vm = std::make_unique<VM>();
     }
 
     ~Impl() = default;
@@ -53,30 +54,68 @@ void GraphCompilation::CompileGraph(GraphState& state)
         return;
     }
 
-    // Step 2: Print AST to console for debugging
+    // Step 2: Print AST to console for debugging (only available in DEBUG builds).
     std::cout << "\n=== Generated AST ===\n";
-    #ifdef _WIN32
+#ifdef DEBUG
     ast->print("");
-    #endif
+#endif
     std::cout << "=== End AST ===\n\n";
 
-    // Step 3: TODO - Compile AST directly with EMI's internal VM
-    // This would use EMI's internal Parser::ParseAST() with CompileOptions::Ptr
-    // pointing to our generated AST, triggering ASTWalker internally
-    // to generate bytecode without text serialization.
-    // Code would look like:
-    //   EMI::CompileOptions options;
-    //   options.Ptr = ast;
-    //   EMI::Parser::ParseAST(m_impl->vm.get(), options);
-    
-    // Step 4: TODO - Execute the compiled function
-    // Once EMI compiles the AST, retrieve the function handle and call it:
-    //   auto fnHandle = m_impl->vm->GetFunctionHandle("__graph__");
-    //   auto result = EMI::CallFunction(m_impl->vm.get(), fnHandle);
-    //   double resultValue = result.get<double>();
-    
-    // For now, mark compilation as successful with AST created
-    delete ast;  // Clean up AST since we're not using it yet
-    state.SetCompileStatus(true, "OK — AST created (EMI internal compilation not yet integrated)");
+    constexpr const char* kCompileUnitName = "__graph_unit__";
+
+    // Remove previous graph unit so repeated compile runs don't accumulate stale symbols.
+    m_impl->vm->RemoveUnit(kCompileUnitName);
+
+    // Step 3: Compile AST directly via EMI's internal AST walker.
+    // CompileAST enqueues parsing and blocks until completed.
+    // VM takes ownership of ast pointer after this call.
+    m_impl->vm->CompileAST(kCompileUnitName, ast);
+
+    // Step 4: Resolve and execute generated entry-point function.
+    void* rawFunction = m_impl->vm->GetFunctionID(GraphCompiler::kGraphFunctionName);
+    if (!rawFunction)
+    {
+        state.SetCompileStatus(false, "Runtime error: compiled function '__graph__' not found in VM");
+        return;
+    }
+
+    FunctionHandle fn(rawFunction, nullptr);
+    const std::span<InternalValue> noArgs;
+    size_t returnSlot = m_impl->vm->CallFunction(fn, noArgs);
+    if (returnSlot == static_cast<size_t>(-1))
+    {
+        state.SetCompileStatus(false, "Runtime error: failed to invoke '__graph__'");
+        return;
+    }
+
+    // Step 5: Read and format return value.
+    InternalValue result = m_impl->vm->GetReturnValue(returnSlot);
+
+    std::ostringstream msg;
+    msg << "OK — compiled and executed (__graph__ returned ";
+    switch (result.getType())
+    {
+        case ValueType::Number:
+            msg << result.as<double>();
+            break;
+        case ValueType::Boolean:
+            msg << (result.as<bool>() ? "true" : "false");
+            break;
+        case ValueType::String:
+        {
+            const char* text = result.as<const char*>();
+            msg << (text ? text : "");
+            break;
+        }
+        case ValueType::External:
+            msg << "<external>";
+            break;
+        case ValueType::Undefined:
+        default:
+            msg << "undefined";
+            break;
+    }
+    msg << ")";
+    state.SetCompileStatus(true, msg.str());
 }
 

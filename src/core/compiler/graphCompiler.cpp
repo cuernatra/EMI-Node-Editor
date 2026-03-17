@@ -120,10 +120,11 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
 
     // Wrap the body in a function declaration:
     //   def __graph__() { <body> }
-    // Token::Definition is emiscript's function definition token.
-    auto funcDecl = std::unique_ptr<Node>(MakeNode(Token::Definition));
-    auto nameId   = std::unique_ptr<Node>(MakeIdNode(kGraphFunctionName));
-    funcDecl->children.push_back(nameId.release());
+    // FunctionDef is consumed by ASTWalker's pre-pass; name goes in data.
+    auto funcDecl = std::unique_ptr<Node>(MakeNode(Token::FunctionDef));
+    funcDecl->data = std::string(kGraphFunctionName);
+    auto params = std::unique_ptr<Node>(MakeNode(Token::CallParams));
+    funcDecl->children.push_back(params.release());
     funcDecl->children.push_back(body.release());
 
     // The AST root is a Scope containing the single function declaration.
