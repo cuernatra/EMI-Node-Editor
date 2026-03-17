@@ -93,6 +93,14 @@ Token GraphCompiler::LogicToken(const std::string& op)
     return Token::None;
 }
 
+static PinType VariableTypeFromString(const std::string& typeName)
+{
+    if (typeName == "Boolean") return PinType::Boolean;
+    if (typeName == "String")  return PinType::String;
+    if (typeName == "Array")   return PinType::Array;
+    return PinType::Number;
+}
+
 // Compile graph to AST
 
 Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
@@ -383,11 +391,21 @@ Node* GraphCompiler::BuildLoop(const VisualNode& n)
 Node* GraphCompiler::BuildVariable(const VisualNode& n)
 {
     const std::string* nameStr = GetField(n, "Name");
+    const std::string* typeStr = GetField(n, "Type");
+    const std::string* defaultStr = GetField(n, "Default");
+
     std::string varName = nameStr ? *nameStr : "__unnamed";
 
-    if (!n.inPins.empty())
+    const PinType defaultType = VariableTypeFromString(typeStr ? *typeStr : "Number");
+    const std::string defaultValue = defaultStr ? *defaultStr : "0.0";
+
+    const Pin* setInput = GetInputPinByName(n, "Set");
+    if (!setInput)
+        return MakeIdNode(varName);
+
+    if (setInput)
     {
-        const PinSource* src = resolver_.Resolve(n.inPins[0].id);
+        const PinSource* src = resolver_.Resolve(setInput->id);
         if (src)
         {
             Node* assign = MakeNode(Token::Assign);
@@ -400,7 +418,32 @@ Node* GraphCompiler::BuildVariable(const VisualNode& n)
         }
     }
 
-    return MakeIdNode(varName);
+    Node* assign = MakeNode(Token::Assign);
+    Node* lhs    = MakeIdNode(varName);
+    Node* rhs    = nullptr;
+
+    switch (defaultType)
+    {
+        case PinType::Boolean:
+        {
+            const bool b = (defaultValue == "true" || defaultValue == "True" || defaultValue == "1");
+            rhs = MakeBoolNode(b);
+            break;
+        }
+        case PinType::String:
+        case PinType::Array:
+            rhs = MakeStringNode(defaultValue);
+            break;
+        case PinType::Number:
+        default:
+            try { rhs = MakeNumberNode(std::stod(defaultValue)); }
+            catch (...) { rhs = MakeNumberNode(0.0); }
+            break;
+    }
+
+    assign->children.push_back(lhs);
+    assign->children.push_back(rhs);
+    return assign;
 }
 
 Node* GraphCompiler::BuildOutput(const VisualNode& n)

@@ -117,3 +117,8 @@ bool MainEditor::hasStartNode() const
 {
     return m_graphState->HasNodeType(NodeType::Start);
 }
+
+bool MainEditor::hasVariables() const
+{
+    return m_graphState->HasNodeType(NodeType::Variable);
+}
