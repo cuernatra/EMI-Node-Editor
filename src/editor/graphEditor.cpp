@@ -338,6 +338,29 @@ void GraphEditor::DrawNodeCanvas()
 
     ed::Resume();
 
+    bool hasAliveNodes = false;
+    for (const auto& node : m_state.GetNodes())
+    {
+        if (node.alive)
+        {
+            hasAliveNodes = true;
+            break;
+        }
+    }
+
+    if (!hasAliveNodes)
+    {
+        const ImVec2 windowPos = ImGui::GetWindowPos();
+        const ImVec2 windowSize = ImGui::GetWindowSize();
+        const ImVec2 targetScreenPos(
+            windowPos.x + windowSize.x * 0.38f,
+            windowPos.y + windowSize.y * 0.50f
+        );
+
+        const ImVec2 targetCanvasPos = ed::ScreenToCanvas(targetScreenPos);
+        m_state.AddNode(CreateNodeFromType(NodeType::Start, m_state.GetIdGen(), targetCanvasPos));
+    }
+
     // Draw all nodes
     bool anyChanged = false;
     for (auto& n : m_state.GetNodes())

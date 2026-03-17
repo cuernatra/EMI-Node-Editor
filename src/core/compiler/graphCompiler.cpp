@@ -223,6 +223,14 @@ Node* GraphCompiler::BuildConstant(const VisualNode& n)
     return MakeStringNode(value);
 }
 
+Node* GraphCompiler::BuildStart(const VisualNode& n)
+{
+    // Start is currently an editor-side flow entry marker.
+    // Compiler is expression/sink-driven, so this compiles to an empty scope.
+    (void)n;
+    return MakeNode(Token::Scope);
+}
+
 Node* GraphCompiler::BuildOperator(const VisualNode& n)
 {
     const Pin* pinA = GetInputPinByName(n, "A");
