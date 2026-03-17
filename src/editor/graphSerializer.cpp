@@ -15,6 +15,15 @@ namespace ed = ax::NodeEditor;
 static const char* PinTypeToString(PinType t);
 static PinType PinTypeFromString(const std::string& s);
 
+static const char* NodeTypeToSaveToken(NodeType t)
+{
+    // Keep graph file format stable and single-token for parser safety.
+    // UI label for NodeType::Output is "Debug Print", but save token remains "Output".
+    if (t == NodeType::Output)
+        return "Output";
+    return NodeTypeToString(t);
+}
+
 static std::string EncodeFieldValue(const std::string& value)
 {
     static constexpr char kHex[] = "0123456789ABCDEF";
@@ -127,7 +136,7 @@ void GraphSerializer::Save(const GraphState& state, const char* path)
 
         out << "node "
             << n.id.Get() << " "
-            << NodeTypeToString(n.nodeType) << " "
+            << NodeTypeToSaveToken(n.nodeType) << " "
             << pinIds.size();
 
         for (uint32_t pid : pinIds) out << " " << pid;
@@ -304,7 +313,21 @@ void GraphSerializer::Load(GraphState& state, const char* path)
             int         nid;
             std::string nodeTypeStr;
             int         pinCount;
-            in >> nid >> nodeTypeStr >> pinCount;
+            in >> nid >> nodeTypeStr;
+
+            // Backward compatibility for accidental two-token save format:
+            //   node <id> Debug Print <pinCount> ...
+            if (nodeTypeStr == "Debug")
+            {
+                std::string maybePrint;
+                in >> maybePrint;
+                if (maybePrint == "Print")
+                    nodeTypeStr = "Debug Print";
+                else
+                    nodeTypeStr = maybePrint;
+            }
+
+            in >> pinCount;
 
             NodeType nodeType = NodeTypeFromString(nodeTypeStr);
             if (nodeType == NodeType::Unknown)
