@@ -141,13 +141,18 @@ descriptors_[NodeType::Constant] = {
     // ------------------------------------------------------------------
     descriptors_[NodeType::Variable] = {
         NodeType::Variable,
-        "Variable",
+        "Set Variable",
         {
+            { "In",    PinType::Flow, /*isInput=*/true  },
             { "Set",   PinType::Any,  /*isInput=*/true  },
+            { "Out",   PinType::Flow, /*isInput=*/false },
             { "Value", PinType::Any,  /*isInput=*/false }
         },
         {
-            { "Name", PinType::String, "myVar" }
+            { "Variant", PinType::String, "Set" },
+            { "Name",    PinType::String, "myVar" },
+            { "Type",    PinType::String, "Number" },
+            { "Default", PinType::String, "0.0" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildVariable(n); }
     };

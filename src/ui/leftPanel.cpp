@@ -3,33 +3,51 @@
 #include "../core/graph/link.h"
 #include "imgui.h"
 #include <cstring>
+#include <cstdio>
+#include <string>
+#include <vector>
 #include "nodePreview.h"
 
 namespace
 {
-void DrawNodeItem(NodeType nodeType, bool disabled = false)
+struct PaletteItem
 {
-    const char* label = NodeTypeToString(nodeType);
+    NodeType type = NodeType::Unknown;
+    std::string displayLabel;
+    std::string payloadTitle;
+    bool disabled = false;
+};
 
-    if (disabled)
+void DrawNodeItem(const PaletteItem& item)
+{
+    const char* payloadTitle = item.payloadTitle.empty()
+        ? NodeTypeToString(item.type)
+        : item.payloadTitle.c_str();
+
+    ImGui::PushID(payloadTitle);
+
+    if (item.disabled)
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.45f);
 
-    NodePreview::Draw(nodeType);
+    const char* previewTitle = item.displayLabel.empty() ? nullptr : item.displayLabel.c_str();
+    NodePreview::Draw(item.type, previewTitle);
 
-    if (!disabled && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+    if (!item.disabled && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
     {
         NodeSpawnPayload payload{};
-        std::strncpy(payload.title, label, sizeof(payload.title) - 1);
+        std::strncpy(payload.title, payloadTitle, sizeof(payload.title) - 1);
         ImGui::SetDragDropPayload("SPAWN_NODE", &payload, sizeof(NodeSpawnPayload));
-        NodePreview::Draw(nodeType);
+        NodePreview::Draw(item.type, previewTitle);
         ImGui::EndDragDropSource();
     }
 
-    if (disabled)
+    if (item.disabled)
         ImGui::PopStyleVar();
+
+    ImGui::PopID();
 }
 
-void DrawSection(const char* title, const std::vector<NodeType>& types, bool hasStartNode)
+void DrawSection(const char* title, const std::vector<PaletteItem>& items)
 {
     if (ImGui::CollapsingHeader(title, ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -38,13 +56,12 @@ void DrawSection(const char* title, const std::vector<NodeType>& types, bool has
         // draw nodes on the same line until we run out of horizontal space, then wrap to next line
         size_t col = 0;
         size_t idx = 0;
-        for (NodeType t : types)
+        for (const PaletteItem& item : items)
         {
-            const bool disableItem = (t == NodeType::Start && hasStartNode);
-            DrawNodeItem(t, disableItem);
+            DrawNodeItem(item);
             col++;
             idx++;
-            if (idx < types.size()
+            if (idx < items.size()
                 && (nodePreviewConstants::fixedWidth + nodePreviewConstants::padding)
                 * (col + 1) < leftBarWidth)
                     ImGui::SameLine();
@@ -85,46 +102,71 @@ void LeftPanel::draw(bool hasStartNode)
     ImGui::Text("NODE PALETTE");
     ImGui::Separator();
 
-    std::vector<NodeType> eventTypes;
-    std::vector<NodeType> dataTypes;
-    std::vector<NodeType> logicTypes;
-    std::vector<NodeType> flowTypes;
+    std::vector<PaletteItem> eventTypes;
+    std::vector<PaletteItem> dataTypes;
+    std::vector<PaletteItem> logicTypes;
+    std::vector<PaletteItem> flowTypes;
+
+    auto makeDefaultItem = [&](NodeType t) -> PaletteItem
+    {
+        PaletteItem item;
+        item.type = t;
+        item.payloadTitle = NodeTypeToString(t);
+        item.disabled = (t == NodeType::Start && hasStartNode);
+        return item;
+    };
 
     for (NodeType t : m_nodeTypes)
     {
         switch (t)
         {
             case NodeType::Start:
-                eventTypes.push_back(t);
+                eventTypes.push_back(makeDefaultItem(t));
                 break;
 
             case NodeType::Constant:
-            case NodeType::Variable:
-                dataTypes.push_back(t);
+                dataTypes.push_back(makeDefaultItem(t));
                 break;
+
+            case NodeType::Variable:
+            {
+                PaletteItem setItem;
+                setItem.type = NodeType::Variable;
+                setItem.displayLabel = "Set Variable";
+                setItem.payloadTitle = "Variable:Set";
+
+                PaletteItem getItem;
+                getItem.type = NodeType::Variable;
+                getItem.displayLabel = "Get Variable";
+                getItem.payloadTitle = "Variable:Get";
+
+                dataTypes.push_back(setItem);
+                dataTypes.push_back(getItem);
+                break;
+            }
 
             case NodeType::Operator:
             case NodeType::Comparison:
             case NodeType::Logic:
             case NodeType::Function:
-                logicTypes.push_back(t);
+                logicTypes.push_back(makeDefaultItem(t));
                 break;
 
             case NodeType::Sequence:
             case NodeType::Branch:
             case NodeType::Loop:
             case NodeType::Output:
-                flowTypes.push_back(t);
+                flowTypes.push_back(makeDefaultItem(t));
                 break;
 
             default:
-                logicTypes.push_back(t);
+                logicTypes.push_back(makeDefaultItem(t));
                 break;
         }
     }
 
-    DrawSection("Events", eventTypes, hasStartNode);
-    DrawSection("Data", dataTypes, hasStartNode);
-    DrawSection("Logic", logicTypes, hasStartNode);
-    DrawSection("Flow", flowTypes, hasStartNode);
+    DrawSection("Events", eventTypes);
+    DrawSection("Data", dataTypes);
+    DrawSection("Logic", logicTypes);
+    DrawSection("Flow", flowTypes);
 }
