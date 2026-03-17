@@ -112,6 +112,79 @@ static void NormalizeSequencePins(VisualNode& n, IdGen& idGen)
     n.outPins = std::move(flowOut);
 }
 
+static void NormalizeFunctionCallPins(VisualNode& n, IdGen& idGen)
+{
+    if (n.nodeType != NodeType::FunctionCall)
+        return;
+
+    // Read ArgCount from fields.
+    int argCount = 0;
+    for (const NodeField& f : n.fields)
+    {
+        if (f.name == "ArgCount")
+        {
+            try { argCount = static_cast<int>(std::stod(f.value)); } catch (...) {}
+            break;
+        }
+    }
+    if (argCount < 0) argCount = 0;
+
+    // Rebuild inPins: keep In (Flow), then Arg0..Arg{argCount-1}.
+    Pin flowIn;
+    bool hasFlowIn = false;
+    for (const Pin& p : n.inPins)
+    {
+        if (p.type == PinType::Flow && p.name == "In") { flowIn = p; hasFlowIn = true; }
+    }
+    if (!hasFlowIn)
+    {
+        flowIn = MakePin(
+            static_cast<uint32_t>(idGen.NewPin().Get()),
+            n.id, n.nodeType, "In", PinType::Flow, true);
+    }
+
+    std::vector<Pin> argPins;
+    int existingArgCount = 0;
+    for (const Pin& p : n.inPins)
+        if (p.name.rfind("Arg", 0) == 0) { argPins.push_back(p); ++existingArgCount; }
+
+    // Add missing Arg pins.
+    while (static_cast<int>(argPins.size()) < argCount)
+    {
+        const int idx = static_cast<int>(argPins.size());
+        argPins.push_back(MakePin(
+            static_cast<uint32_t>(idGen.NewPin().Get()),
+            n.id, n.nodeType,
+            "Arg" + std::to_string(idx),
+            PinType::Any, true));
+    }
+    // Remove excess Arg pins.
+    if (static_cast<int>(argPins.size()) > argCount)
+        argPins.resize(static_cast<size_t>(argCount));
+
+    n.inPins.clear();
+    n.inPins.push_back(flowIn);
+    for (const Pin& p : argPins)
+        n.inPins.push_back(p);
+
+    // Rebuild outPins: keep Out (Flow) and Result (Any).
+    Pin flowOut, resultPin;
+    bool hasOut = false, hasResult = false;
+    for (const Pin& p : n.outPins)
+    {
+        if (!hasOut    && p.type == PinType::Flow && p.name == "Out")   { flowOut   = p; hasOut    = true; }
+        if (!hasResult && p.type == PinType::Any  && p.name == "Result"){ resultPin = p; hasResult = true; }
+    }
+    if (!hasOut)
+        flowOut = MakePin(static_cast<uint32_t>(idGen.NewPin().Get()), n.id, n.nodeType, "Out",    PinType::Flow, false);
+    if (!hasResult)
+        resultPin = MakePin(static_cast<uint32_t>(idGen.NewPin().Get()), n.id, n.nodeType, "Result", PinType::Any,  false);
+
+    n.outPins.clear();
+    n.outPins.push_back(flowOut);
+    n.outPins.push_back(resultPin);
+}
+
 void GraphSerializer::Save(const GraphState& state, const char* path)
 {
     std::ofstream out(path, std::ios::trunc);
@@ -346,6 +419,7 @@ void GraphSerializer::Load(GraphState& state, const char* path)
 
             ApplyConstantTypeFromFields(n);
             NormalizeSequencePins(n, state.GetIdGen());
+            NormalizeFunctionCallPins(n, state.GetIdGen());
 
             state.AddNode(n);
         }

@@ -27,6 +27,7 @@ enum class NodeType
     Loop,        ///< Iteration (for/while loops)
     Variable,    ///< Variable get/set
     Function,    ///< Function definition/call
+    FunctionCall,///< Function call node (variadic args)
     Output,      ///< Graph output/return value
     Unknown      ///< Uninitialized or invalid type
 };
@@ -44,6 +45,7 @@ inline const char* NodeTypeToString(NodeType t)
         case NodeType::Loop:       return "Loop";
         case NodeType::Variable:   return "Variable";
         case NodeType::Function:   return "Function";
+        case NodeType::FunctionCall:return "FunctionCall";
         case NodeType::Output:     return "Output";
         default:                   return "Unknown";
     }
@@ -60,6 +62,7 @@ inline NodeType NodeTypeFromString(const std::string& s)
     if (s == "Loop")       return NodeType::Loop;
     if (s == "Variable")   return NodeType::Variable;
     if (s == "Function")   return NodeType::Function;
+    if (s == "FunctionCall") return NodeType::FunctionCall;
     if (s == "Output")     return NodeType::Output;
     return NodeType::Unknown;
 }

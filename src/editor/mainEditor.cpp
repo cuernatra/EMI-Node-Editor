@@ -7,6 +7,8 @@
 #include "../core/registry/nodeFactory.h"
 #include "imgui_node_editor.h"
 #include "settings.h"
+#include "../demo/AStarFinder/extra/astarDemoGraph.h"
+#include <fstream>
 
 MainEditor::MainEditor()
 {
@@ -57,6 +59,29 @@ void MainEditor::draw()
     if (ImGui::Button("Clear"))
     {
         m_graphState->Clear();
+        m_graphState->MarkDirty();
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Load A* Demo"))
+    {
+        // Write the pre-built demo graph to disk then reload it.
+        const std::string demoText = AStarDemo::Generate();
+        {
+            std::ofstream f("graph.txt", std::ios::trunc);
+            f << demoText;
+        }
+
+        ed::SetCurrentEditor(m_editorContext);
+        GraphSerializer::Load(*m_graphState, "graph.txt");
+
+        // Force all freshly loaded demo nodes to apply their stored positions
+        // (initialPos) on the next draw iteration.
+        for (auto& n : m_graphState->GetNodes())
+            n.positioned = false;
+
+        ed::SetCurrentEditor(nullptr);
         m_graphState->MarkDirty();
     }
 

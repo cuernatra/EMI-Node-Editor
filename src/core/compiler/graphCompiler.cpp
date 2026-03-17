@@ -1,5 +1,6 @@
 #include "graphCompiler.h"
 #include "../registry/nodeRegistry.h"
+#include <algorithm>
 #include <stdexcept>
 #include <cassert>
 #include <memory>
@@ -93,6 +94,109 @@ Token GraphCompiler::LogicToken(const std::string& op)
     return Token::None;
 }
 
+<<<<<<< Updated upstream
+=======
+static PinType VariableTypeFromString(const std::string& typeName)
+{
+    if (typeName == "Boolean") return PinType::Boolean;
+    if (typeName == "String")  return PinType::String;
+    if (typeName == "Array")   return PinType::Array;
+    return PinType::Number;
+}
+
+const Pin* GraphCompiler::GetOutputPinByName(const VisualNode& n, const char* name) const
+{
+    for (const Pin& p : n.outPins)
+        if (p.name == name)
+            return &p;
+    return nullptr;
+}
+
+const VisualNode* GraphCompiler::FindFlowTargetNode(const Pin& outFlowPin) const
+{
+    if (!links_)
+        return nullptr;
+
+    for (const Link& link : *links_)
+    {
+        if (!link.alive || link.startPinId != outFlowPin.id)
+            continue;
+
+        auto it = pinsById_.find(link.endPinId);
+        if (it == pinsById_.end() || !it->second)
+            continue;
+
+        const Pin* endPin = it->second;
+        if (!endPin->isInput || endPin->type != PinType::Flow)
+            continue;
+
+        return resolver_.FindNode(endPin->parentNodeId);
+    }
+
+    return nullptr;
+}
+
+Node* GraphCompiler::BuildFlowChainFromPin(const Pin& outFlowPin)
+{
+    if (outFlowPin.type != PinType::Flow || outFlowPin.isInput)
+        return nullptr;
+
+    const VisualNode* target = FindFlowTargetNode(outFlowPin);
+    if (!target)
+        return nullptr;
+
+    return BuildFlowChainFromNode(*target);
+}
+
+Node* GraphCompiler::BuildFlowChainFromNode(const VisualNode& node)
+{
+    Node* current = BuildNode(node);
+    if (HasError || !current)
+        return current;
+
+    const bool autoContinue =
+        node.nodeType == NodeType::FunctionCall ||
+        node.nodeType == NodeType::Function ||
+        node.nodeType == NodeType::Variable;
+
+    if (!autoContinue)
+        return current;
+
+    const Pin* out = GetOutputPinByName(node, "Out");
+    if (!out || out->type != PinType::Flow)
+        return current;
+
+    Node* next = BuildFlowChainFromPin(*out);
+    if (HasError || !next)
+        return current;
+
+    Node* scope = MakeNode(Token::Scope);
+    scope->children.push_back(current);
+    scope->children.push_back(next);
+    return scope;
+}
+
+bool GraphCompiler::HasIncomingFlow(const VisualNode& n) const
+{
+    if (!links_)
+        return false;
+
+    for (const Pin& p : n.inPins)
+    {
+        if (p.type != PinType::Flow)
+            continue;
+
+        for (const Link& link : *links_)
+        {
+            if (link.alive && link.endPinId == p.id)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+>>>>>>> Stashed changes
 // Compile graph to AST
 
 Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
@@ -103,18 +207,89 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
     activeNodeBuilds_.clear();
 
     resolver_.Build(nodes, links);
-
-    // Build a Scope containing one statement per Output/Function sink.
-    auto body = std::unique_ptr<Node>(MakeNode(Token::Scope));
-
+    links_ = &links;
+    pinsById_.clear();
     for (const VisualNode& n : nodes)
     {
         if (!n.alive) continue;
-        if (n.nodeType == NodeType::Output || n.nodeType == NodeType::Function)
+        for (const Pin& p : n.inPins)  pinsById_[p.id] = &p;
+        for (const Pin& p : n.outPins) pinsById_[p.id] = &p;
+    }
+
+    // Build a Scope containing statements from explicit entry points.
+    auto body = std::unique_ptr<Node>(MakeNode(Token::Scope));
+
+    auto isFunctionCallResultConsumed = [&](const VisualNode& node) -> bool
+    {
+        if (node.nodeType != NodeType::FunctionCall)
+            return false;
+
+        ed::PinId resultPin;
+        bool hasResultPin = false;
+        for (const Pin& outPin : node.outPins)
+        {
+            if (outPin.name == "Result")
+            {
+                resultPin = outPin.id;
+                hasResultPin = true;
+                break;
+            }
+        }
+
+        if (!hasResultPin)
+            return false;
+
+        for (const Link& link : links)
+        {
+            if (link.alive && link.startPinId == resultPin)
+                return true;
+        }
+
+        return false;
+    };
+
+    // Track visited nodes during execution traversal to avoid duplicates.
+    std::unordered_set<uintptr_t> visitedNodes;
+
+    // Phase 1: Emit statements from explicit flow entry points (Start nodes without incoming flow).
+    for (const VisualNode& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Start)
+            continue;
+
+        if (HasIncomingFlow(n))
+            continue;  // Skip Start nodes with incoming flow; they are not entry points.
+
+        Node* stmt = BuildFlowChainFromNode(n);
+        if (HasError) { return nullptr; }
+        if (stmt) body->children.push_back(stmt);
+
+        visitedNodes.insert(static_cast<uintptr_t>(n.id.Get()));
+    }
+
+    // Phase 2: Handle isolated sinks (Output, Function, unconsumed FunctionCall) with no incoming flow.
+    // These are fallback entry points for graphs with no Start node.
+    for (const VisualNode& n : nodes)
+    {
+        if (!n.alive) continue;
+
+        // Skip if already visited via flow traversal.
+        if (visitedNodes.count(static_cast<uintptr_t>(n.id.Get())))
+            continue;
+
+        const bool isIsolatedSink =
+            !HasIncomingFlow(n) &&
+            (n.nodeType == NodeType::Output ||
+             n.nodeType == NodeType::Function ||
+             (n.nodeType == NodeType::FunctionCall && !isFunctionCallResultConsumed(n)));
+
+        if (isIsolatedSink)
         {
             Node* stmt = BuildNode(n);
             if (HasError) { return nullptr; }
             if (stmt) body->children.push_back(stmt);
+
+            visitedNodes.insert(static_cast<uintptr_t>(n.id.Get()));
         }
     }
 
@@ -224,6 +399,24 @@ Node* GraphCompiler::BuildConstant(const VisualNode& n)
     return MakeStringNode(value);
 }
 
+<<<<<<< Updated upstream
+=======
+Node* GraphCompiler::BuildStart(const VisualNode& n)
+{
+    const Pin* execOut = GetOutputPinByName(n, "Exec");
+    if (!execOut)
+        return MakeNode(Token::Scope);
+
+    Node* chain = BuildFlowChainFromPin(*execOut);
+    if (HasError)
+        return nullptr;
+    if (!chain)
+        return MakeNode(Token::Scope);
+
+    return chain;
+}
+
+>>>>>>> Stashed changes
 Node* GraphCompiler::BuildOperator(const VisualNode& n)
 {
     const Pin* pinA = GetInputPinByName(n, "A");
@@ -297,11 +490,36 @@ Node* GraphCompiler::BuildLogic(const VisualNode& n)
 
 Node* GraphCompiler::BuildSequence(const VisualNode& n)
 {
-    // Sequence is a flow-structuring node in the editor.
-    // Current compiler pipeline is expression/sink-driven, so for now
-    // compile this as an empty scope placeholder.
-    (void)n;
-    return MakeNode(Token::Scope);
+    Node* scope = MakeNode(Token::Scope);
+
+    // Emit Then outputs in numeric order: Then 0, Then 1, ...
+    std::vector<const Pin*> thenPins;
+    thenPins.reserve(n.outPins.size());
+    for (const Pin& p : n.outPins)
+    {
+        if (p.type == PinType::Flow && !p.isInput && p.name.rfind("Then ", 0) == 0)
+            thenPins.push_back(&p);
+    }
+
+    std::sort(thenPins.begin(), thenPins.end(), [](const Pin* a, const Pin* b)
+    {
+        auto parseIndex = [](const std::string& s) -> int
+        {
+            if (s.size() <= 5) return 0;
+            try { return std::stoi(s.substr(5)); }
+            catch (...) { return 0; }
+        };
+        return parseIndex(a->name) < parseIndex(b->name);
+    });
+
+    for (const Pin* thenPin : thenPins)
+    {
+        Node* stmt = BuildFlowChainFromPin(*thenPin);
+        if (HasError) { delete scope; return nullptr; }
+        if (stmt) scope->children.push_back(stmt);
+    }
+
+    return scope;
 }
 
 Node* GraphCompiler::BuildBranch(const VisualNode& n)
@@ -316,9 +534,24 @@ Node* GraphCompiler::BuildBranch(const VisualNode& n)
     Node* trueScope = MakeNode(Token::Scope);
     ifNode->children.push_back(trueScope);
 
+    if (const Pin* trueOut = GetOutputPinByName(n, "True"))
+    {
+        Node* trueStmt = BuildFlowChainFromPin(*trueOut);
+        if (HasError) { delete ifNode; return nullptr; }
+        if (trueStmt)
+            trueScope->children.push_back(trueStmt);
+    }
+
     if (n.outPins.size() > 1)
     {
         Node* elseScope = MakeNode(Token::Scope);
+        if (const Pin* falseOut = GetOutputPinByName(n, "False"))
+        {
+            Node* falseStmt = BuildFlowChainFromPin(*falseOut);
+            if (HasError) { delete ifNode; return nullptr; }
+            if (falseStmt)
+                elseScope->children.push_back(falseStmt);
+        }
         Node* elseNode  = MakeNode(Token::Else);
         elseNode->children.push_back(elseScope);
         ifNode->children.push_back(elseNode);
@@ -369,7 +602,28 @@ Node* GraphCompiler::BuildLoop(const VisualNode& n)
     forNode->children.push_back(incr);
     forNode->children.push_back(body);
 
-    return forNode;
+    if (const Pin* bodyOut = GetOutputPinByName(n, "Body"))
+    {
+        Node* bodyStmt = BuildFlowChainFromPin(*bodyOut);
+        if (HasError) { delete forNode; return nullptr; }
+        if (bodyStmt)
+            body->children.push_back(bodyStmt);
+    }
+
+    Node* completedStmt = nullptr;
+    if (const Pin* completedOut = GetOutputPinByName(n, "Completed"))
+    {
+        completedStmt = BuildFlowChainFromPin(*completedOut);
+        if (HasError) { delete forNode; return nullptr; }
+    }
+
+    if (!completedStmt)
+        return forNode;
+
+    Node* scope = MakeNode(Token::Scope);
+    scope->children.push_back(forNode);
+    scope->children.push_back(completedStmt);
+    return scope;
 }
 
 Node* GraphCompiler::BuildVariable(const VisualNode& n)
@@ -418,14 +672,39 @@ Node* GraphCompiler::BuildFunction(const VisualNode& n)
 
     Node* call   = MakeNode(Token::FunctionCall);
     Node* nameId = MakeIdNode(funcName);
+    Node* params = MakeNode(Token::CallParams);
     call->children.push_back(nameId);
+    call->children.push_back(params);
 
     for (const Pin& pin : n.inPins)
     {
         if (pin.type == PinType::Flow) continue;
         Node* arg = BuildExpr(pin);
         if (HasError) { delete call; return nullptr; }
-        call->children.push_back(arg);
+        params->children.push_back(arg);
+    }
+
+    return call;
+}
+
+Node* GraphCompiler::BuildFunctionCall(const VisualNode& n)
+{
+    const std::string* nameStr = GetField(n, "Name");
+    std::string funcName = nameStr ? *nameStr : "__fn";
+
+    Node* call   = MakeNode(Token::FunctionCall);
+    Node* nameId = MakeIdNode(funcName);
+    Node* params = MakeNode(Token::CallParams);
+    call->children.push_back(nameId);
+    call->children.push_back(params);
+
+    // All non-Flow input pins (Arg0, Arg1, ...) become positional arguments.
+    for (const Pin& pin : n.inPins)
+    {
+        if (pin.type == PinType::Flow) continue;
+        Node* arg = BuildExpr(pin);
+        if (HasError) { delete call; return nullptr; }
+        params->children.push_back(arg);
     }
 
     return call;

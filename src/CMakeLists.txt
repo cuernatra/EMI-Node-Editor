@@ -19,6 +19,8 @@ add_executable(emi-editor
   core/registry/nodeRegistry.cpp
   core/compiler/graphCompiler.cpp
   core/compiler/pinResolver.cpp
+  demo/AStarFinder/original/GameFunctions.cpp
+  demo/AStarFinder/extra/astarGameFunctions.cpp
 
   ../dependencies/imgui-node-editor/imgui_node_editor.cpp
   ../dependencies/imgui-node-editor/imgui_node_editor_api.cpp

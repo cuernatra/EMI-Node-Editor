@@ -66,15 +66,27 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
         return {};
     }
 
+<<<<<<< Updated upstream
     const bool isSequence = (type == NodeType::Sequence);
     if ((!isSequence && pinIds.size() != desc->pins.size()) ||
         (isSequence && pinIds.size() < desc->pins.size()))
+=======
+    const bool isSequence    = (type == NodeType::Sequence);
+    const bool isVariable    = (type == NodeType::Variable);
+    const bool isFunctionCall = (type == NodeType::FunctionCall);
+    if ((!isSequence && !isFunctionCall && pinIds.size() != desc->pins.size()) ||
+        ((isSequence || isFunctionCall) && pinIds.size() < desc->pins.size()))
+>>>>>>> Stashed changes
     {
         std::cerr << "CreateNodeFromTypeWithIds: Pin ID count mismatch\n";
         return {};
     }
 
+<<<<<<< Updated upstream
     assert((isSequence || pinIds.size() == desc->pins.size()) && "Pin ID count mismatch");
+=======
+    assert((isSequence || isVariable || isFunctionCall || pinIds.size() == desc->pins.size()) && "Pin ID count mismatch");
+>>>>>>> Stashed changes
 
     VisualNode n;
     n.id         = ed::NodeId(nodeId);
@@ -102,6 +114,57 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
                 false
             ));
         }
+    }
+
+    // FunctionCall: layout is [In, Arg0..ArgN, Out, Result]
+    // The descriptor only defines In/Out/Result (3 pins).
+    // Extra saved pins beyond the 3 base are Arg0..ArgN inserted before Out.
+    if (type == NodeType::FunctionCall && pinIds.size() > 3)
+    {
+        // Rebuild: pop Out and Result from outPins, insert Arg pins, then re-add Out/Result.
+        // The base PopulateFromDescriptor already created In(in), Out(out), Result(out).
+        // Find the Out and Result pins.
+        Pin outPin    = n.outPins[0];  // "Out"   (Flow)
+        Pin resultPin = n.outPins[1];  // "Result" (Any)
+
+        // Replace their IDs with the saved ones (pinIndex is at 3 after base populate).
+        // Base populate consumed pinIds[0] (In), pinIds[1] (Out), pinIds[2] (Result).
+        // Extra pinIds are for Arg0, Arg1, ...
+        // Re-assign Out and Result IDs from the END of pinIds.
+        const int totalPins    = static_cast<int>(pinIds.size());
+        const int argCount     = totalPins - 3;                   // pins beyond In/Out/Result
+        const int outPinIdx    = 1 + argCount;                    // Out is after In + all args
+        const int resultPinIdx = 2 + argCount;                    // Result follows Out
+
+        // Fix IDs that were wrongly assigned during base populate.
+        // Base assigned: n.inPins[0].id = pinIds[0], n.outPins[0].id = pinIds[1], n.outPins[1].id = pinIds[2].
+        // Correct layout: In=pinIds[0], Arg0=pinIds[1]..Arg{N-1}=pinIds[N], Out=pinIds[N+1], Result=pinIds[N+2].
+
+        // Reset outPins so we can repopulate in the right order.
+        n.outPins.clear();
+
+        // Fix Out pin id.
+        outPin.id = ed::PinId(static_cast<uint32_t>(pinIds[outPinIdx]));
+        // Fix Result pin id.
+        resultPin.id = ed::PinId(static_cast<uint32_t>(pinIds[resultPinIdx]));
+
+        // Fix the In pin id (already correct – pinIds[0]).
+
+        // Insert Arg pins into inPins (after In at index 0).
+        for (int a = 0; a < argCount; ++a)
+        {
+            n.inPins.push_back(MakePin(
+                static_cast<uint32_t>(pinIds[1 + a]),
+                n.id,
+                n.nodeType,
+                "Arg" + std::to_string(a),
+                PinType::Any,
+                true
+            ));
+        }
+
+        n.outPins.push_back(outPin);
+        n.outPins.push_back(resultPin);
     }
 
     return n;

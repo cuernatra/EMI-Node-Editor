@@ -4,7 +4,10 @@
 #include "VM.h"
 #include "Parser/Node.h"
 #include <iostream>
+<<<<<<< Updated upstream
 #include <sstream>
+=======
+>>>>>>> Stashed changes
 #include <string>
 
 // Pimpl implementation details
@@ -36,14 +39,18 @@ void GraphCompilation::CompileGraph(GraphState& state)
         return;
     }
 
-    // Pre-validate: check for Output node
-    if (!state.HasOutputNode())
+    // Pre-validate: graph should have at least a Start node or Output/Function sink.
+    // Both are now optional: Start nodes drive flow execution, Output captures return value.
+    const bool hasStartNode = state.HasNodeType(NodeType::Start);
+    const bool hasOutputNode = state.HasOutputNode();
+    if (!hasStartNode && !hasOutputNode)
     {
-        state.SetCompileStatus(false, "Error: graph has no Output node.");
+        state.SetCompileStatus(false, "Error: graph must have either a Start node or Output node.");
         return;
     }
 
-    // Step 1: Compile visual graph to AST
+    // Step 1: Compile visual graph to AST using entrypoint-driven statement pass
+    // (respects Start nodes as explicit entry points and builds flow chains from there).
     GraphCompiler gc;
     Node* ast = gc.Compile(state.GetNodes(), state.GetLinks());
 
@@ -65,6 +72,8 @@ void GraphCompilation::CompileGraph(GraphState& state)
 
     // Remove previous graph unit so repeated compile runs don't accumulate stale symbols.
     m_impl->vm->RemoveUnit(kCompileUnitName);
+
+    ast->print("");
 
     // Step 3: Compile AST directly via EMI's internal AST walker.
     // CompileAST enqueues parsing and blocks until completed.

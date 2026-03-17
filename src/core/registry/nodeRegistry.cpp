@@ -169,6 +169,34 @@ descriptors_[NodeType::Constant] = {
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildOutput(n); }
     };
+
+    // ------------------------------------------------------------------
+    // FunctionCall  —  Call a named function with up to N arguments
+    //
+    // Fixed pins (always present):
+    //   In      (Flow, input)
+    //   Out     (Flow, output)
+    //   Result  (Any,  output)
+    //
+    // Dynamic argument pins are added by the user in the inspector (+/-).
+    // ArgCount field tracks how many Arg0..ArgN input pins exist.
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::FunctionCall] = {
+        NodeType::FunctionCall,
+        "Function Call",
+        {
+            { "In",     PinType::Flow, /*isInput=*/true  },
+            { "Out",    PinType::Flow, /*isInput=*/false },
+            { "Result", PinType::Any,  /*isInput=*/false }
+        },
+        {
+            { "Name",       PinType::String, ""       },
+            { "ArgCount",   PinType::Number, "0"      },
+            { "ReturnType", PinType::String, "Number" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildFunctionCall(n); }
+    };
+
 }
 
 // ---------------------------------------------------------------------------

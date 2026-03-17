@@ -465,10 +465,171 @@ void GraphEditor::DrawInspectorPanel()
     }
     else
     {
+<<<<<<< Updated upstream
         ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
         for (NodeField& field : selectedNode->fields)
             fieldsChanged |= DrawInspectorField(field);
         ImGui::PopID();
+=======
+        // Special inspector behavior for Get Variable:
+        // - allow selecting only an existing Set variable by name
+        // - keep type/default read-only
+        // - no other editable fields
+        if (selectedNode->nodeType == NodeType::Variable)
+        {
+            NodeField* variantField = FindField(selectedNode->fields, "Variant");
+            NodeField* nameField = FindField(selectedNode->fields, "Name");
+            NodeField* typeField = FindField(selectedNode->fields, "Type");
+            NodeField* defaultField = FindField(selectedNode->fields, "Default");
+
+            const bool isGet = variantField && variantField->value == "Get";
+
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+
+            if (isGet)
+            {
+                // Get node inspector:
+                // - Variable drop-down from existing Set variables
+                // - Default remains editable fallback value
+                std::vector<std::string> setVariableNames;
+
+                for (const auto& node : m_state.GetNodes())
+                {
+                    if (!node.alive || node.nodeType != NodeType::Variable)
+                        continue;
+
+                    const NodeField* nVariant = FindField(node.fields, "Variant");
+                    if (!nVariant || nVariant->value != "Set")
+                        continue;
+
+                    const NodeField* nName = FindField(node.fields, "Name");
+                    const std::string varName = nName ? nName->value : "myVar";
+
+                    if (std::find(setVariableNames.begin(), setVariableNames.end(), varName) == setVariableNames.end())
+                        setVariableNames.push_back(varName);
+                }
+
+                if (nameField)
+                {
+                    if (setVariableNames.empty())
+                    {
+                        ImGui::TextUnformatted("Variable");
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("(no Set variables)");
+                    }
+                    else
+                    {
+                        if (std::find(setVariableNames.begin(), setVariableNames.end(), nameField->value) == setVariableNames.end())
+                        {
+                            nameField->value = setVariableNames.front();
+                            fieldsChanged = true;
+                        }
+
+                        if (ImGui::BeginCombo("Variable", nameField->value.c_str()))
+                        {
+                            for (const auto& varName : setVariableNames)
+                            {
+                                const bool selected = (nameField->value == varName);
+                                if (ImGui::Selectable(varName.c_str(), selected))
+                                {
+                                    nameField->value = varName;
+                                    fieldsChanged = true;
+                                }
+                                if (selected)
+                                    ImGui::SetItemDefaultFocus();
+                            }
+                            ImGui::EndCombo();
+                        }
+                    }
+                }
+
+                if (defaultField)
+                    fieldsChanged |= DrawInspectorField(*defaultField);
+            }
+            else
+            {
+                for (NodeField& field : selectedNode->fields)
+                {
+                    if (&field == variantField)
+                        continue;
+                    fieldsChanged |= DrawInspectorField(field);
+                }
+            }
+
+            ImGui::PopID();
+        }
+        else if (selectedNode->nodeType == NodeType::FunctionCall)
+        {
+            // FunctionCall inspector: editable fields + +/- buttons for argument pins.
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+
+            for (NodeField& field : selectedNode->fields)
+            {
+                if (field.name == "ArgCount") continue;   // managed by buttons below
+                fieldsChanged |= DrawInspectorField(field);
+            }
+
+            // Compute current arg count from Arg pins.
+            int currentArgCount = 0;
+            for (const Pin& p : selectedNode->inPins)
+                if (p.name.rfind("Arg", 0) == 0) ++currentArgCount;
+
+            ImGui::Spacing();
+            ImGui::Text("Arguments: %d", currentArgCount);
+            ImGui::SameLine();
+
+            if (ImGui::Button("+"))
+            {
+                const int newIdx = currentArgCount;
+                selectedNode->inPins.push_back(MakePin(
+                    static_cast<uint32_t>(m_state.GetIdGen().NewPin().Get()),
+                    selectedNode->id, selectedNode->nodeType,
+                    "Arg" + std::to_string(newIdx),
+                    PinType::Any, true));
+
+                // Update ArgCount field.
+                for (NodeField& f : selectedNode->fields)
+                    if (f.name == "ArgCount") { f.value = std::to_string(newIdx + 1); break; }
+
+                fieldsChanged = true;
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("-") && currentArgCount > 0)
+            {
+                // Remove the last Arg pin and its connected link.
+                for (int i = static_cast<int>(selectedNode->inPins.size()) - 1; i >= 0; --i)
+                {
+                    if (selectedNode->inPins[static_cast<size_t>(i)].name.rfind("Arg", 0) == 0)
+                    {
+                        const ed::PinId removedId = selectedNode->inPins[static_cast<size_t>(i)].id;
+                        selectedNode->inPins.erase(selectedNode->inPins.begin() + i);
+
+                        auto& links = m_state.GetLinks();
+                        links.erase(std::remove_if(links.begin(), links.end(),
+                            [removedId](const Link& l) {
+                                return l.startPinId == removedId || l.endPinId == removedId;
+                            }), links.end());
+                        break;
+                    }
+                }
+
+                // Update ArgCount field.
+                for (NodeField& f : selectedNode->fields)
+                    if (f.name == "ArgCount") { f.value = std::to_string(currentArgCount - 1); break; }
+
+                fieldsChanged = true;
+            }
+
+            ImGui::PopID();
+        }
+        else
+        {
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+            for (NodeField& field : selectedNode->fields)
+                fieldsChanged |= DrawInspectorField(field);
+            ImGui::PopID();
+        }
+>>>>>>> Stashed changes
     }
 
     if (fieldsChanged)

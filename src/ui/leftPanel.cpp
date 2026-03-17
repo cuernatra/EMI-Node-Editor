@@ -59,6 +59,7 @@ LeftPanel::LeftPanel()
         NodeType::Comparison,
         NodeType::Logic,
         NodeType::Function,
+        NodeType::FunctionCall,
         NodeType::Sequence,
         NodeType::Branch,
         NodeType::Loop,
@@ -92,7 +93,12 @@ void LeftPanel::draw()
             case NodeType::Comparison:
             case NodeType::Logic:
             case NodeType::Function:
+<<<<<<< Updated upstream
                 logicTypes.push_back(t);
+=======
+            case NodeType::FunctionCall:
+                logicTypes.push_back(makeDefaultItem(t));
+>>>>>>> Stashed changes
                 break;
 
             case NodeType::Sequence:

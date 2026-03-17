@@ -21,6 +21,7 @@
 #include "Parser/Lexer.h"
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <unordered_set>
 
 /**
@@ -91,6 +92,12 @@ public:
     Node* BuildLoop      (const VisualNode& n);   ///< Builds AST for Loop nodes
     Node* BuildVariable  (const VisualNode& n);   ///< Builds AST for Variable nodes
     Node* BuildOutput    (const VisualNode& n);   ///< Builds AST for Output nodes
+    Node* BuildFunctionCall(const VisualNode& n);   ///< Builds AST for FunctionCall nodes (named call with N args + result)
+    Node* BuildPrint     (const VisualNode& n);   ///< Builds AST for Print nodes (println)
+    Node* BuildDelay     (const VisualNode& n);   ///< Builds AST for Delay nodes (delay ms)
+    Node* BuildRandomRange(const VisualNode& n);  ///< Builds AST for RandomRange nodes (random min max)
+    Node* BuildDoOnce    (const VisualNode& n);   ///< Builds AST for DoOnce flow nodes
+    Node* BuildGate      (const VisualNode& n);   ///< Builds AST for Gate flow nodes
     Node* BuildFunction  (const VisualNode& n);   ///< Builds AST for Function nodes
 
 private:
@@ -98,6 +105,12 @@ private:
 
     Node* BuildExpr(const Pin& inputPin);        ///< Recursively builds AST expression from a pin's connected output
     Node* BuildNode(const VisualNode& n, int outPinIdx = 0);  ///< Builds AST node by looking up and invoking descriptor's compile callback
+    Node* BuildFlowChainFromNode(const VisualNode& node);      ///< Builds a statement node and follows default flow continuation
+    Node* BuildFlowChainFromPin(const Pin& outFlowPin);        ///< Builds statement chain connected to a flow output pin
+
+    const Pin* GetOutputPinByName(const VisualNode& n, const char* name) const;  ///< Finds an output pin by name
+    const VisualNode* FindFlowTargetNode(const Pin& outFlowPin) const;            ///< Resolves the node connected to a flow output pin
+    bool HasIncomingFlow(const VisualNode& n) const;                               ///< True if any flow input pin is linked
 
     Node* MakeNode(Token t)                    const;  ///< Creates a bare AST node with the given token type
     Node* MakeNumberNode(double v)             const;  ///< Creates an AST numeric literal node
@@ -117,4 +130,8 @@ private:
 
     // Tracks nodes currently being built to detect recursive cycles.
     std::unordered_set<uintptr_t> activeNodeBuilds_;
+
+    // Per-compilation caches for flow traversal.
+    const std::vector<Link>* links_ = nullptr;
+    std::unordered_map<ed::PinId, const Pin*> pinsById_;
 };
