@@ -3,8 +3,6 @@
 #include "../core/compiler/graphCompiler.h"
 #include "VM.h"
 #include "Parser/Node.h"
-#include <iostream>
-#include <sstream>
 #include <string>
 
 // Pimpl implementation details
@@ -28,8 +26,21 @@ GraphCompilation::GraphCompilation()
 
 GraphCompilation::~GraphCompilation() = default;
 
-void GraphCompilation::CompileGraph(GraphState& state)
+void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 {
+    if (resultOnly)
+    {
+        EMI::SetCompileLogLevel(EMI::LogLevel::Warning);
+        EMI::SetRuntimeLogLevel(EMI::LogLevel::Warning);
+        EMI::SetScriptLogLevel(EMI::LogLevel::Info);
+    }
+    else
+    {
+        EMI::SetCompileLogLevel(EMI::LogLevel::Debug);
+        EMI::SetRuntimeLogLevel(EMI::LogLevel::Debug);
+        EMI::SetScriptLogLevel(EMI::LogLevel::Debug);
+    }
+
     if (!m_impl || !m_impl->vm)
     {
         state.SetCompileStatus(false, "Error: EMI environment not initialized");
@@ -54,13 +65,6 @@ void GraphCompilation::CompileGraph(GraphState& state)
         return;
     }
 
-    // Step 2: Print AST to console for debugging (only available in DEBUG builds).
-    std::cout << "\n=== Generated AST ===\n";
-#ifdef DEBUG
-    ast->print("");
-#endif
-    std::cout << "=== End AST ===\n\n";
-
     constexpr const char* kCompileUnitName = "__graph_unit__";
 
     // Remove previous graph unit so repeated compile runs don't accumulate stale symbols.
@@ -71,51 +75,20 @@ void GraphCompilation::CompileGraph(GraphState& state)
     // VM takes ownership of ast pointer after this call.
     m_impl->vm->CompileAST(kCompileUnitName, ast);
 
-    // Step 4: Resolve and execute generated entry-point function.
-    void* rawFunction = m_impl->vm->GetFunctionID(GraphCompiler::kGraphFunctionName);
-    if (!rawFunction)
+    // Step 4: Execute and print via EMI-Script itself.
+    // This runs the generated __graph__ function and routes output through
+    // the script logger (terminal) using intrinsic println.
+    constexpr const char* kPrintGraphResultScript = "println(__graph__());";
+    void* printHandle = m_impl->vm->CompileTemporary(kPrintGraphResultScript);
+    if (!m_impl->vm->WaitForResult(printHandle))
     {
-        state.SetCompileStatus(false, "Runtime error: compiled function '__graph__' not found in VM");
+        state.SetCompileStatus(false, "Runtime error: failed to execute 'println(__graph__())'");
         return;
     }
 
-    FunctionHandle fn(rawFunction, nullptr);
-    const std::span<InternalValue> noArgs;
-    size_t returnSlot = m_impl->vm->CallFunction(fn, noArgs);
-    if (returnSlot == static_cast<size_t>(-1))
-    {
-        state.SetCompileStatus(false, "Runtime error: failed to invoke '__graph__'");
-        return;
-    }
-
-    // Step 5: Read and format return value.
-    InternalValue result = m_impl->vm->GetReturnValue(returnSlot);
-
-    std::ostringstream msg;
-    msg << "OK — compiled and executed (__graph__ returned ";
-    switch (result.getType())
-    {
-        case ValueType::Number:
-            msg << result.as<double>();
-            break;
-        case ValueType::Boolean:
-            msg << (result.as<bool>() ? "true" : "false");
-            break;
-        case ValueType::String:
-        {
-            const char* text = result.as<const char*>();
-            msg << (text ? text : "");
-            break;
-        }
-        case ValueType::External:
-            msg << "<external>";
-            break;
-        case ValueType::Undefined:
-        default:
-            msg << "undefined";
-            break;
-    }
-    msg << ")";
-    state.SetCompileStatus(true, msg.str());
+    if (resultOnly)
+        state.SetCompileStatus(true, "OK");
+    else
+        state.SetCompileStatus(true, "OK — compiled and executed (__graph__ printed via EMI-Script println)");
 }
 
