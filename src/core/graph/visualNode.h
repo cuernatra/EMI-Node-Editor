@@ -70,5 +70,6 @@ static void DrawPin(const Pin& pin);
  */
 bool DrawVisualNode(VisualNode& n);
 bool DrawVisualNode(VisualNode& n, IdGen* idGen);
+bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* allNodes);
 
 #endif // VISUALNODE_H

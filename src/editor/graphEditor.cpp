@@ -10,6 +10,7 @@
 #include <cstring>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace
 {
@@ -31,6 +32,100 @@ float ParseInspectorFloat(const std::string& s)
 bool ParseInspectorBool(const std::string& s)
 {
     return s == "1" || s == "true" || s == "True";
+}
+
+void ParseSpawnPayloadTitle(const char* payloadTitle, NodeType& outType, std::string& outVariableVariant)
+{
+    outType = NodeTypeFromString(payloadTitle ? payloadTitle : "");
+    outVariableVariant.clear();
+
+    if (!payloadTitle)
+        return;
+
+    const std::string raw(payloadTitle);
+    const size_t sep = raw.find(':');
+    if (sep == std::string::npos)
+        return;
+
+    const std::string base = raw.substr(0, sep);
+    const std::string suffix = raw.substr(sep + 1);
+
+    const NodeType parsedBase = NodeTypeFromString(base);
+    if (parsedBase == NodeType::Unknown)
+        return;
+
+    outType = parsedBase;
+    if (parsedBase == NodeType::Variable)
+        outVariableVariant = suffix;
+}
+
+NodeField* FindField(std::vector<NodeField>& fields, const char* name)
+{
+    for (NodeField& f : fields)
+        if (f.name == name)
+            return &f;
+    return nullptr;
+}
+
+const NodeField* FindField(const std::vector<NodeField>& fields, const char* name)
+{
+    for (const NodeField& f : fields)
+        if (f.name == name)
+            return &f;
+    return nullptr;
+}
+
+PinType VariableTypeFromString(const std::string& typeName)
+{
+    if (typeName == "Boolean") return PinType::Boolean;
+    if (typeName == "String")  return PinType::String;
+    if (typeName == "Array")   return PinType::Array;
+    return PinType::Number;
+}
+
+const char* VariableTypeToString(PinType type)
+{
+    switch (type)
+    {
+        case PinType::Boolean: return "Boolean";
+        case PinType::String:  return "String";
+        case PinType::Array:   return "Array";
+        case PinType::Number:
+        default:               return "Number";
+    }
+}
+
+Pin* FindPinByName(std::vector<Pin>& pins, const char* name)
+{
+    for (Pin& p : pins)
+        if (p.name == name)
+            return &p;
+    return nullptr;
+}
+
+void RemovePinsByNameExcept(std::vector<Pin>& pins, const std::vector<std::string>& keepNames)
+{
+    pins.erase(
+        std::remove_if(pins.begin(), pins.end(), [&](const Pin& p)
+        {
+            for (const std::string& keep : keepNames)
+                if (p.name == keep)
+                    return false;
+            return true;
+        }),
+        pins.end()
+    );
+}
+
+const Pin* FindIncomingPinSource(const GraphState& state, const std::vector<Link>& links, const Pin& inputPin)
+{
+    for (const Link& l : links)
+    {
+        if (!l.alive || l.endPinId != inputPin.id)
+            continue;
+        return state.FindPin(l.startPinId);
+    }
+    return nullptr;
 }
 
 bool DrawInspectorField(NodeField& field)
@@ -138,70 +233,255 @@ bool DrawInspectorField(NodeField& field)
 
 bool RefreshVariableNodeTypes(GraphState& state)
 {
-    bool changedAnyPass = false;
+    bool changed = false;
 
     auto& nodes = state.GetNodes();
     const auto& links = state.GetLinks();
 
-    const size_t maxPasses = nodes.size() + 1;
-    for (size_t pass = 0; pass < maxPasses; ++pass)
+    struct VariableDef
     {
-        bool changedThisPass = false;
+        PinType type = PinType::Number;
+        std::string typeName = "Number";
+        std::string defaultValue = "0.0";
+    };
 
-        for (auto& n : nodes)
+    std::unordered_map<std::string, VariableDef> definitions;
+
+    for (auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Variable)
+            continue;
+
+        NodeField* variantField = FindField(n.fields, "Variant");
+        NodeField* nameField = FindField(n.fields, "Name");
+        NodeField* typeField = FindField(n.fields, "Type");
+        NodeField* defaultField = FindField(n.fields, "Default");
+
+        const std::string variant = variantField ? variantField->value : "Set";
+        if (variant != "Set")
+            continue;
+
+        if (variantField && variantField->value != "Set")
         {
-            if (!n.alive || n.nodeType != NodeType::Variable)
-                continue;
+            variantField->value = "Set";
+            changed = true;
+        }
 
-            Pin* setPin = nullptr;
-            Pin* valuePin = nullptr;
+        if (n.title != "Set Variable")
+        {
+            n.title = "Set Variable";
+            changed = true;
+        }
 
-            for (Pin& p : n.inPins)
-                if (p.name == "Set") { setPin = &p; break; }
+        Pin* flowInPin = FindPinByName(n.inPins, "In");
+        if (!flowInPin)
+        {
+            n.inPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "In",
+                PinType::Flow,
+                true
+            ));
+            flowInPin = &n.inPins.back();
+            changed = true;
+        }
+        else if (flowInPin->type != PinType::Flow)
+        {
+            flowInPin->type = PinType::Flow;
+            changed = true;
+        }
 
-            for (Pin& p : n.outPins)
-                if (p.name == "Value") { valuePin = &p; break; }
+        Pin* setPin = FindPinByName(n.inPins, "Set");
+        if (!setPin)
+        {
+            n.inPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "Set",
+                PinType::Any,
+                true
+            ));
+            setPin = &n.inPins.back();
+            changed = true;
+        }
 
-            if (!setPin || !valuePin)
-                continue;
+        Pin* flowOutPin = FindPinByName(n.outPins, "Out");
+        if (!flowOutPin)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "Out",
+                PinType::Flow,
+                false
+            ));
+            flowOutPin = &n.outPins.back();
+            changed = true;
+        }
+        else if (flowOutPin->type != PinType::Flow)
+        {
+            flowOutPin->type = PinType::Flow;
+            changed = true;
+        }
 
-            // Variable type is driven ONLY by what is connected into Set.
-            // If Set is disconnected (or connected from Any), Variable is Any.
-            PinType resolved = PinType::Any;
+        Pin* valuePin = FindPinByName(n.outPins, "Value");
+        if (!valuePin)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "Value",
+                PinType::Any,
+                false
+            ));
+            valuePin = &n.outPins.back();
+            changed = true;
+        }
 
-            for (const Link& l : links)
+        PinType resolvedType = VariableTypeFromString(typeField ? typeField->value : "Number");
+        if (setPin)
+        {
+            if (const Pin* source = FindIncomingPinSource(state, links, *setPin))
             {
-                if (!l.alive || l.endPinId != setPin->id)
-                    continue;
-
-                const Pin* source = state.FindPin(l.startPinId);
-                if (source)
-                    resolved = source->type;
-                else
-                    resolved = l.type;
-
-                break;
-            }
-
-            if (setPin->type != resolved)
-            {
-                setPin->type = resolved;
-                changedThisPass = true;
-            }
-
-            if (valuePin->type != resolved)
-            {
-                valuePin->type = resolved;
-                changedThisPass = true;
+                if (source->type != PinType::Any && source->type != PinType::Flow)
+                    resolvedType = source->type;
             }
         }
 
-        changedAnyPass = changedAnyPass || changedThisPass;
-        if (!changedThisPass)
-            break;
+        const char* resolvedTypeName = VariableTypeToString(resolvedType);
+        if (typeField && typeField->value != resolvedTypeName)
+        {
+            typeField->value = resolvedTypeName;
+            changed = true;
+        }
+
+        if (setPin && setPin->type != resolvedType)
+        {
+            setPin->type = resolvedType;
+            changed = true;
+        }
+        if (valuePin && valuePin->type != resolvedType)
+        {
+            valuePin->type = resolvedType;
+            changed = true;
+        }
+
+        const std::string varName = nameField ? nameField->value : "myVar";
+        definitions[varName] = VariableDef{
+            resolvedType,
+            resolvedTypeName,
+            defaultField ? defaultField->value : "0.0"
+        };
     }
 
-    return changedAnyPass;
+    for (auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Variable)
+            continue;
+
+        NodeField* variantField = FindField(n.fields, "Variant");
+        NodeField* nameField = FindField(n.fields, "Name");
+        NodeField* typeField = FindField(n.fields, "Type");
+        NodeField* defaultField = FindField(n.fields, "Default");
+
+        const std::string variant = variantField ? variantField->value : "Set";
+        const std::string varName = nameField ? nameField->value : "myVar";
+
+        if (variant == "Get")
+        {
+            if (variantField && variantField->value != "Get")
+            {
+                variantField->value = "Get";
+                changed = true;
+            }
+
+            if (n.title != "Get Variable")
+            {
+                n.title = "Get Variable";
+                changed = true;
+            }
+
+            const auto it = definitions.find(varName);
+            const PinType getType = (it != definitions.end())
+                ? it->second.type
+                : VariableTypeFromString(typeField ? typeField->value : "Number");
+
+            const char* getTypeName = VariableTypeToString(getType);
+            if (typeField && typeField->value != getTypeName)
+            {
+                typeField->value = getTypeName;
+                changed = true;
+            }
+
+            if (defaultField && it != definitions.end() && defaultField->value != it->second.defaultValue)
+            {
+                defaultField->value = it->second.defaultValue;
+                changed = true;
+            }
+
+            if (!n.inPins.empty())
+            {
+                n.inPins.clear();
+                changed = true;
+            }
+
+            const size_t outBefore = n.outPins.size();
+            RemovePinsByNameExcept(n.outPins, { "Value" });
+            if (n.outPins.size() != outBefore)
+                changed = true;
+
+            Pin* valuePin = FindPinByName(n.outPins, "Value");
+            if (!valuePin)
+            {
+                n.outPins.push_back(MakePin(
+                    static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                    n.id,
+                    n.nodeType,
+                    "Value",
+                    getType,
+                    false
+                ));
+                valuePin = &n.outPins.back();
+                changed = true;
+            }
+            if (valuePin && valuePin->type != getType)
+            {
+                valuePin->type = getType;
+                changed = true;
+            }
+        }
+        else
+        {
+            if (variantField && variantField->value != "Set")
+            {
+                variantField->value = "Set";
+                changed = true;
+            }
+
+            if (n.title != "Set Variable")
+            {
+                n.title = "Set Variable";
+                changed = true;
+            }
+
+            const size_t inBefore = n.inPins.size();
+            RemovePinsByNameExcept(n.inPins, { "In", "Set" });
+            if (n.inPins.size() != inBefore)
+                changed = true;
+
+            const size_t outBefore = n.outPins.size();
+            RemovePinsByNameExcept(n.outPins, { "Out", "Value" });
+            if (n.outPins.size() != outBefore)
+                changed = true;
+        }
+    }
+
+    return changed;
 }
 
 bool SyncLinkTypesAndPruneInvalid(GraphState& state)
@@ -329,8 +609,22 @@ void GraphEditor::DrawNodeCanvas()
 
                 ImVec2 canvasPos = ed::ScreenToCanvas(ImGui::GetMousePos());
 
-                NodeType type = NodeTypeFromString(spawnData->title);
-                m_state.AddNode(CreateNodeFromType(type, m_state.GetIdGen(), canvasPos));
+                NodeType type = NodeType::Unknown;
+                std::string variableVariant;
+                ParseSpawnPayloadTitle(spawnData->title, type, variableVariant);
+
+                if (type != NodeType::Unknown)
+                {
+                    VisualNode newNode = CreateNodeFromType(type, m_state.GetIdGen(), canvasPos);
+
+                    if (type == NodeType::Variable && !variableVariant.empty())
+                    {
+                        if (NodeField* variant = FindField(newNode.fields, "Variant"))
+                            variant->value = (variableVariant == "Get") ? "Get" : "Set";
+                    }
+
+                    m_state.AddNode(newNode);
+                }
             }
             ImGui::EndDragDropTarget();
         }
@@ -370,7 +664,7 @@ void GraphEditor::DrawNodeCanvas()
         for (const Pin& p : n.outPins)
             pinTypesBefore.emplace(p.id.Get(), p.type);
 
-        anyChanged |= DrawVisualNode(n, &m_state.GetIdGen());
+        anyChanged |= DrawVisualNode(n, &m_state.GetIdGen(), &m_state.GetNodes());
 
         std::vector<ed::PinId> changedPins;
         for (const Pin& p : n.inPins)
@@ -483,10 +777,100 @@ void GraphEditor::DrawInspectorPanel()
     }
     else
     {
-        ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
-        for (NodeField& field : selectedNode->fields)
-            fieldsChanged |= DrawInspectorField(field);
-        ImGui::PopID();
+        // Special inspector behavior for Get Variable:
+        // - allow selecting only an existing Set variable by name
+        // - keep type/default read-only
+        // - no other editable fields
+        if (selectedNode->nodeType == NodeType::Variable)
+        {
+            NodeField* variantField = FindField(selectedNode->fields, "Variant");
+            NodeField* nameField = FindField(selectedNode->fields, "Name");
+            NodeField* typeField = FindField(selectedNode->fields, "Type");
+            NodeField* defaultField = FindField(selectedNode->fields, "Default");
+
+            const bool isGet = variantField && variantField->value == "Get";
+
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+
+            if (isGet)
+            {
+                // Get node inspector:
+                // - Variable drop-down from existing Set variables
+                // - Default remains editable fallback value
+                std::vector<std::string> setVariableNames;
+
+                for (const auto& node : m_state.GetNodes())
+                {
+                    if (!node.alive || node.nodeType != NodeType::Variable)
+                        continue;
+
+                    const NodeField* nVariant = FindField(node.fields, "Variant");
+                    if (!nVariant || nVariant->value != "Set")
+                        continue;
+
+                    const NodeField* nName = FindField(node.fields, "Name");
+                    const std::string varName = nName ? nName->value : "myVar";
+
+                    if (std::find(setVariableNames.begin(), setVariableNames.end(), varName) == setVariableNames.end())
+                        setVariableNames.push_back(varName);
+                }
+
+                if (nameField)
+                {
+                    if (setVariableNames.empty())
+                    {
+                        ImGui::TextUnformatted("Variable");
+                        ImGui::SameLine();
+                        ImGui::TextDisabled("(no Set variables)");
+                    }
+                    else
+                    {
+                        if (std::find(setVariableNames.begin(), setVariableNames.end(), nameField->value) == setVariableNames.end())
+                        {
+                            nameField->value = setVariableNames.front();
+                            fieldsChanged = true;
+                        }
+
+                        if (ImGui::BeginCombo("Variable", nameField->value.c_str()))
+                        {
+                            for (const auto& varName : setVariableNames)
+                            {
+                                const bool selected = (nameField->value == varName);
+                                if (ImGui::Selectable(varName.c_str(), selected))
+                                {
+                                    nameField->value = varName;
+                                    fieldsChanged = true;
+                                }
+                                if (selected)
+                                    ImGui::SetItemDefaultFocus();
+                            }
+                            ImGui::EndCombo();
+                        }
+                    }
+                }
+
+                if (defaultField)
+                    fieldsChanged |= DrawInspectorField(*defaultField);
+            }
+            else
+            {
+                for (NodeField& field : selectedNode->fields)
+                {
+                    if (&field == variantField)
+                        continue;
+                    fieldsChanged |= DrawInspectorField(field);
+                }
+            }
+
+            ImGui::PopID();
+        }
+        else
+        {
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+            for (NodeField& field : selectedNode->fields)
+                fieldsChanged |= DrawInspectorField(field);
+            ImGui::PopID();
+        }
     }
 
     if (fieldsChanged)

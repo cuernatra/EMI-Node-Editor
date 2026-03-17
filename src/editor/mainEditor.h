@@ -38,6 +38,9 @@ public:
     /// Check whether graph currently contains a Start node.
     bool hasStartNode() const;
 
+    /// Check whether graph contains at least one Variable node.
+    bool hasVariables() const;
+
 private:
 
     ed::EditorContext* m_editorContext = nullptr;  ///< imgui-node-editor context
