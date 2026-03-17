@@ -65,16 +65,20 @@ void App::loadFont()
     config.OversampleH = fontConstants::oversampleH;   // Horizontal oversampling
     config.OversampleV = fontConstants::oversampleV;   // Vertical oversampling 
     config.PixelSnapH  = false;
-
+    #ifdef _WIN32
     std::filesystem::path fontPath = std::filesystem::path(_pgmptr).parent_path() / "assets/fonts/Roboto-Regular.ttf";
     if (std::filesystem::exists(fontPath))
     {
         io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontConstants::fontSize, &config);
     }
-    else {
+    else 
+    {
         std::cerr << "[ERROR] Font file not found at " << fontPath.string() << std::endl;
         io.Fonts->AddFontDefault(&config);
     }
+    #else    
+    io.Fonts->AddFontFromFileTTF("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", fontConstants::fontSize, &config);
+    #endif
 
     io.Fonts->Build();
     ImGui::SFML::UpdateFontTexture();
