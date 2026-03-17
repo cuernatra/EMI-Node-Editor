@@ -112,3 +112,8 @@ bool MainEditor::hasSelectedNode() const
     ed::SetCurrentEditor(nullptr);
     return selected;
 }
+
+bool MainEditor::hasStartNode() const
+{
+    return m_graphState->HasNodeType(NodeType::Start);
+}

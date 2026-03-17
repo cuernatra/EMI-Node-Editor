@@ -38,7 +38,7 @@ public:
      * Draws all DropBar entries in the palette. Must be called within
      * an ImGui child window context.
      */
-    void draw();
+    void draw(bool hasStartNode);
 
 private:
     /// Palette node types in deterministic display order
