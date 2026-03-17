@@ -41,4 +41,5 @@ private:
     std::unique_ptr<GraphState> m_graphState;      ///< Graph data (must be constructed before GraphEditor)
     std::unique_ptr<GraphEditor> m_graphEditor;    ///< Canvas renderer (holds reference to m_graphState)
     std::unique_ptr<GraphCompilation> m_compiler;  ///< Graph compilation and execution engine
+    bool m_resultOnlyCompile = true;               ///< If true, compile status stays minimal while terminal prints result
 };
