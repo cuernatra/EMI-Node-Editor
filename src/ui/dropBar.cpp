@@ -1,4 +1,5 @@
 #include "dropBar.h"
+#include "nodePreview.h"
 #include "imgui.h"
 #include <cstring>
 
@@ -24,11 +25,10 @@ void DropBar::draw()
     {
         if (m_hasSpawnButton)
         {
-            // The drag source must be activated while the button is the
-            // last active item, so BeginDragDropSource goes immediately
-            // after the button — before any other widget.
-            ImGui::Button("Drag to create", ImVec2(m_width * 1.5f, 0));
+            // Draw the node preview
+            NodePreview::Draw(m_nodeType);
 
+            // The drag source must be activated immediately after drawing the preview
             if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
             {
                 NodeSpawnPayload payload{};
@@ -43,7 +43,8 @@ void DropBar::draw()
                     sizeof(NodeSpawnPayload)
                 );
 
-                ImGui::Text("Create: %s", m_label.c_str());
+                // Show preview while dragging
+                NodePreview::Draw(m_nodeType);
                 ImGui::EndDragDropSource();
             }
         }

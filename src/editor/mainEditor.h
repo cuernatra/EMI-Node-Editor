@@ -29,6 +29,12 @@ public:
     /// Render editor UI and canvas (called every frame).
     void draw();
 
+    /// Render inspector contents for selected node.
+    void drawInspectorPanel();
+
+    /// Check whether any existing node is currently selected.
+    bool hasSelectedNode() const;
+
 private:
 
     ed::EditorContext* m_editorContext = nullptr;  ///< imgui-node-editor context

@@ -25,6 +25,13 @@ FetchContent_Declare(
 )
 add_subdirectory(imgui-sfml)
 
+#json
+FetchContent_Declare(
+  json
+  URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
+)
+FetchContent_MakeAvailable(json)
+
 # Emi script
 set(EMI_LOCAL_SOURCE_DIR "${CMAKE_SOURCE_DIR}/EMI-Script")
 
