@@ -2,7 +2,6 @@
 #include "../registry/nodeRegistry.h"
 #include <stdexcept>
 #include <cassert>
-#include <memory>
 
 
 // Helpers
@@ -113,15 +112,65 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
     resolver_.Build(nodes, links);
 
     // Build a Scope containing one statement per Output/Function sink.
-    auto body = std::unique_ptr<Node>(MakeNode(Token::Scope));
+    Node* body = MakeNode(Token::Scope);
 
+    // 0) Declare variables used by Set Variable nodes once per name.
+    std::unordered_set<std::string> declaredVariables;
+    for (const VisualNode& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Variable)
+            continue;
+
+        const std::string* variant = GetField(n, "Variant");
+        const bool isGet = (variant && *variant == "Get");
+        if (isGet)
+            continue;
+
+        const std::string* nameStr = GetField(n, "Name");
+        const std::string varName = (nameStr && !nameStr->empty()) ? *nameStr : "__unnamed";
+        if (!declaredVariables.insert(varName).second)
+            continue;
+
+        const std::string* typeStr = GetField(n, "Type");
+        const std::string typeName = typeStr ? *typeStr : "Number";
+
+        Token typeToken = Token::TypeNumber;
+        if (typeName == "Boolean") typeToken = Token::TypeBoolean;
+        else if (typeName == "String") typeToken = Token::TypeString;
+        else if (typeName == "Array") typeToken = Token::TypeArray;
+        else if (typeName == "Any") typeToken = Token::AnyType;
+
+        Node* decl = MakeNode(Token::VarDeclare);
+        decl->data = varName;
+        decl->children.push_back(MakeNode(typeToken));
+        body->children.push_back(decl);
+    }
+
+    // 1) Emit Set Variable nodes as executable assignments so values exist
+    //    before expression sinks (Output/Function/Get usage) are built.
+    for (const VisualNode& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Variable)
+            continue;
+
+        const std::string* variant = GetField(n, "Variant");
+        const bool isGet = (variant && *variant == "Get");
+        if (isGet)
+            continue;
+
+        Node* stmt = BuildNode(n);
+        if (HasError) { delete body; return nullptr; }
+        if (stmt) body->children.push_back(stmt);
+    }
+
+    // 2) Emit sink statements (return/output/function calls).
     for (const VisualNode& n : nodes)
     {
         if (!n.alive) continue;
         if (n.nodeType == NodeType::Output || n.nodeType == NodeType::Function)
         {
             Node* stmt = BuildNode(n);
-            if (HasError) { return nullptr; }
+            if (HasError) { delete body; return nullptr; }
             if (stmt) body->children.push_back(stmt);
         }
     }
@@ -129,17 +178,17 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
     // Wrap the body in a function declaration:
     //   def __graph__() { <body> }
     // FunctionDef is consumed by ASTWalker's pre-pass; name goes in data.
-    auto funcDecl = std::unique_ptr<Node>(MakeNode(Token::FunctionDef));
+    Node* funcDecl = MakeNode(Token::FunctionDef);
     funcDecl->data = std::string(kGraphFunctionName);
-    auto params = std::unique_ptr<Node>(MakeNode(Token::CallParams));
-    funcDecl->children.push_back(params.release());
-    funcDecl->children.push_back(body.release());
+    Node* params = MakeNode(Token::CallParams);
+    funcDecl->children.push_back(params);
+    funcDecl->children.push_back(body);
 
     // The AST root is a Scope containing the single function declaration.
-    auto root = std::unique_ptr<Node>(MakeNode(Token::Scope));
-    root->children.push_back(funcDecl.release());
+    Node* root = MakeNode(Token::Scope);
+    root->children.push_back(funcDecl);
 
-    return root.release();
+    return root;
 }
 
 Node* GraphCompiler::BuildExpr(const Pin& inputPin)
