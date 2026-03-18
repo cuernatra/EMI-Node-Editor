@@ -3,6 +3,7 @@
 
 #include "../app/constants.h"
 #include <vector>
+#include "imgui.h"
 
 /**
  * @brief Represents the file bar,

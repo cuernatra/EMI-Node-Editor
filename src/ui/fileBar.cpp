@@ -1,6 +1,5 @@
 #include "fileBar.h"
 #include "../editor/mainEditor.h"
-#include "imgui.h"
 #include <string>
 
 FileBar::FileBar(MainEditor* editor) : m_height{elementSizes::fileBarHeight}, m_editor(editor)

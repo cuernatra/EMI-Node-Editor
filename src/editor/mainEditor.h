@@ -10,6 +10,7 @@
 #include "graphCompilation.h"
 #include "../ui/fileBar.h"
 #include <memory>
+#include "../dependencies/imgui-filebrowser/imfilebrowser.h"
 
 namespace ed = ax::NodeEditor;
 
@@ -43,4 +44,5 @@ private:
     std::unique_ptr<GraphCompilation> m_compiler;  ///< Graph compilation and execution engine
 
     FileBar m_fileBar;                             ///< Top file menu bar
+    ImGui::FileBrowser fileDialog;              ///< File dialog for open action
 };

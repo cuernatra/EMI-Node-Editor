@@ -7,7 +7,8 @@
 #include "../core/registry/nodeFactory.h"
 #include "imgui_node_editor.h"
 
-MainEditor::MainEditor(): m_fileBar(this)
+MainEditor::MainEditor(): m_fileBar(this),
+    fileDialog(/*ImGuiFileBrowserFlags_SelectDirectory*/)
 {
     ed::Config config;
     config.SettingsFile = "node_editor.json";
@@ -84,6 +85,21 @@ void MainEditor::draw()
         ed::SetCurrentEditor(nullptr);
         m_graphState->ClearDirty();
     }
+
+    //For displaying file browser
+    fileDialog.Display();
+
+    //For selecting file to open
+    if(fileDialog.HasSelected())
+    {
+        std::filesystem::path selectedPath = fileDialog.GetSelected();
+        m_graphState=std::make_unique<GraphState>();
+        m_graphEditor=std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
+        m_compiler=std::make_unique<GraphCompilation>();
+        GraphSerializer::Load(*m_graphState, selectedPath.string().c_str());
+        m_graphState->MarkDirty();
+        fileDialog.ClearSelected();
+    }
 }
 
 //Create a new graph by clearing the current state, and recreating the graph editor
@@ -95,8 +111,5 @@ void MainEditor::NewGraph()
 
 void MainEditor::OpenGraph()
 {
-    m_graphState=std::make_unique<GraphState>();
-    m_graphEditor=std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
-    m_compiler=std::make_unique<GraphCompilation>();
-    GraphSerializer::Load(*m_graphState, "graph_example.txt");
+    fileDialog.Open();
 }
