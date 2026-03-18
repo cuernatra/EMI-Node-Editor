@@ -840,6 +840,27 @@ void GraphEditor::DrawNodeCanvas()
         CreateNewLink();
     ed::EndCreate();
 
+    // UX rule:
+    // If user clicks the same already-selected single node again,
+    // deselect it (so inspector closes instead of becoming dim/stacked).
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+    {
+        const ed::NodeId hoveredNode = ed::GetHoveredNode();
+        if (hoveredNode.Get() != 0 && ed::IsNodeSelected(hoveredNode))
+        {
+            const int selectedCount = ed::GetSelectedObjectCount();
+            if (selectedCount > 0)
+            {
+                std::vector<ed::NodeId> selectedNodes(static_cast<size_t>(selectedCount));
+                const int selectedNodeCount = ed::GetSelectedNodes(selectedNodes.data(), selectedCount);
+                if (selectedNodeCount == 1 && selectedNodes.front() == hoveredNode)
+                {
+                    ed::DeselectNode(hoveredNode);
+                }
+            }
+        }
+    }
+
     const bool variableTypesChanged = RefreshVariableNodeTypes(m_state);
     const bool outputInputTypesChanged = RefreshOutputNodeInputTypes(m_state);
     const bool linksChanged = SyncLinkTypesAndPruneInvalid(m_state);
@@ -1042,22 +1063,31 @@ void GraphEditor::DrawInspectorPanel()
 
 bool GraphEditor::HasSelectedNode() const
 {
+    uintptr_t selectedNodeId = 0;
+    return TryGetSingleSelectedNodeId(selectedNodeId);
+}
+
+bool GraphEditor::TryGetSingleSelectedNodeId(uintptr_t& outId) const
+{
+    outId = 0;
+
     const int selectedCount = ed::GetSelectedObjectCount();
     if (selectedCount <= 0)
         return false;
 
     std::vector<ed::NodeId> selectedNodes(static_cast<size_t>(selectedCount));
     const int selectedNodeCount = ed::GetSelectedNodes(selectedNodes.data(), selectedCount);
-    if (selectedNodeCount <= 0)
+    // Inspector is shown only when exactly one node is selected.
+    if (selectedNodeCount != 1)
         return false;
 
-    for (int i = 0; i < selectedNodeCount; ++i)
+    const ed::NodeId selectedNodeId = selectedNodes.front();
+    for (const auto& node : m_state.GetNodes())
     {
-        const ed::NodeId selectedNodeId = selectedNodes[static_cast<size_t>(i)];
-        for (const auto& node : m_state.GetNodes())
+        if (node.alive && node.id == selectedNodeId)
         {
-            if (node.alive && node.id == selectedNodeId)
-                return true;
+            outId = static_cast<uintptr_t>(selectedNodeId.Get());
+            return true;
         }
     }
 

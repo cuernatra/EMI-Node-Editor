@@ -12,6 +12,7 @@
 
 #include "../core/graph/visualNode.h"
 #include "imgui_node_editor.h"
+#include <cstdint>
 
 class GraphState;
 
@@ -65,6 +66,13 @@ public:
      * @brief Check if an existing node is currently selected
      */
     bool HasSelectedNode() const;
+
+    /**
+     * @brief Get selected node id when exactly one alive node is selected
+     * @param outId Receives selected node id (raw uintptr value)
+     * @return true when exactly one alive node is selected, otherwise false
+     */
+    bool TryGetSingleSelectedNodeId(uintptr_t& outId) const;
 
 private:
     /**

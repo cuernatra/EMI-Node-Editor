@@ -9,6 +9,7 @@
 #include "graphEditor.h"
 #include "graphCompilation.h"
 #include <memory>
+#include <cstdint>
 
 namespace ed = ax::NodeEditor;
 
@@ -34,6 +35,9 @@ public:
 
     /// Check whether any existing node is currently selected.
     bool hasSelectedNode() const;
+
+    /// Try to get currently selected node id (only when exactly one alive node is selected).
+    bool tryGetSingleSelectedNodeId(uintptr_t& outId) const;
 
     /// Check whether graph currently contains a Start node.
     bool hasStartNode() const;
