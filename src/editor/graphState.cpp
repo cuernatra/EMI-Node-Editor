@@ -97,3 +97,11 @@ bool GraphState::HasOutputNode() const
             return true;
     return false;
 }
+
+bool GraphState::HasNodeType(NodeType type) const
+{
+    for (const auto& n : m_nodes)
+        if (n.alive && n.nodeType == type)
+            return true;
+    return false;
+}

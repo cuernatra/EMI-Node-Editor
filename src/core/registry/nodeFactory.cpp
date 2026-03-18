@@ -66,27 +66,17 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
         return {};
     }
 
-<<<<<<< Updated upstream
-    const bool isSequence = (type == NodeType::Sequence);
-    if ((!isSequence && pinIds.size() != desc->pins.size()) ||
-        (isSequence && pinIds.size() < desc->pins.size()))
-=======
     const bool isSequence    = (type == NodeType::Sequence);
     const bool isVariable    = (type == NodeType::Variable);
     const bool isFunctionCall = (type == NodeType::FunctionCall);
     if ((!isSequence && !isFunctionCall && pinIds.size() != desc->pins.size()) ||
         ((isSequence || isFunctionCall) && pinIds.size() < desc->pins.size()))
->>>>>>> Stashed changes
     {
         std::cerr << "CreateNodeFromTypeWithIds: Pin ID count mismatch\n";
         return {};
     }
 
-<<<<<<< Updated upstream
-    assert((isSequence || pinIds.size() == desc->pins.size()) && "Pin ID count mismatch");
-=======
     assert((isSequence || isVariable || isFunctionCall || pinIds.size() == desc->pins.size()) && "Pin ID count mismatch");
->>>>>>> Stashed changes
 
     VisualNode n;
     n.id         = ed::NodeId(nodeId);

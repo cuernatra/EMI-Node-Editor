@@ -159,6 +159,13 @@ public:
      */
     bool HasOutputNode() const;
 
+    /**
+     * @brief Check if the graph contains at least one node of a specific type
+     * @param type Node type to search for
+     * @return true if an alive node of this type exists
+     */
+    bool HasNodeType(NodeType type) const;
+
 private:
     std::vector<VisualNode> m_nodes;           ///< All nodes in the graph
     std::vector<Link> m_links;                 ///< All links in the graph

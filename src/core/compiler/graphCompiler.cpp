@@ -94,8 +94,6 @@ Token GraphCompiler::LogicToken(const std::string& op)
     return Token::None;
 }
 
-<<<<<<< Updated upstream
-=======
 static PinType VariableTypeFromString(const std::string& typeName)
 {
     if (typeName == "Boolean") return PinType::Boolean;
@@ -196,7 +194,6 @@ bool GraphCompiler::HasIncomingFlow(const VisualNode& n) const
     return false;
 }
 
->>>>>>> Stashed changes
 // Compile graph to AST
 
 Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
@@ -399,8 +396,6 @@ Node* GraphCompiler::BuildConstant(const VisualNode& n)
     return MakeStringNode(value);
 }
 
-<<<<<<< Updated upstream
-=======
 Node* GraphCompiler::BuildStart(const VisualNode& n)
 {
     const Pin* execOut = GetOutputPinByName(n, "Exec");
@@ -416,7 +411,6 @@ Node* GraphCompiler::BuildStart(const VisualNode& n)
     return chain;
 }
 
->>>>>>> Stashed changes
 Node* GraphCompiler::BuildOperator(const VisualNode& n)
 {
     const Pin* pinA = GetInputPinByName(n, "A");

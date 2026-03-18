@@ -124,6 +124,19 @@ descriptors_[NodeType::Constant] = {
     };
 
     // ------------------------------------------------------------------
+    // Start  —  Explicit flow entry point
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::Start] = {
+        NodeType::Start,
+        "Start",
+        {
+            { "Exec", PinType::Flow, /*isInput=*/false }
+        },
+        {},
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStart(n); }
+    };
+
+    // ------------------------------------------------------------------
     // Variable  —  Named variable with get/set flow
     // ------------------------------------------------------------------
     descriptors_[NodeType::Variable] = {

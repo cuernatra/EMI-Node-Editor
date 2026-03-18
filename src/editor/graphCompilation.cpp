@@ -4,10 +4,7 @@
 #include "VM.h"
 #include "Parser/Node.h"
 #include <iostream>
-<<<<<<< Updated upstream
 #include <sstream>
-=======
->>>>>>> Stashed changes
 #include <string>
 
 // Pimpl implementation details

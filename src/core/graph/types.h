@@ -25,6 +25,7 @@ enum class NodeType
     Sequence,    ///< Flow sequence splitter (In -> Then 0..N)
     Branch,      ///< Conditional branching (if/else)
     Loop,        ///< Iteration (for/while loops)
+    Start,       ///< Flow entry point (explicit graph start)
     Variable,    ///< Variable get/set
     Function,    ///< Function definition/call
     FunctionCall,///< Function call node (variadic args)
@@ -43,6 +44,7 @@ inline const char* NodeTypeToString(NodeType t)
         case NodeType::Sequence:   return "Sequence";
         case NodeType::Branch:     return "Branch";
         case NodeType::Loop:       return "Loop";
+        case NodeType::Start:      return "Start";
         case NodeType::Variable:   return "Variable";
         case NodeType::Function:   return "Function";
         case NodeType::FunctionCall:return "FunctionCall";
@@ -60,6 +62,7 @@ inline NodeType NodeTypeFromString(const std::string& s)
     if (s == "Sequence")   return NodeType::Sequence;
     if (s == "Branch")     return NodeType::Branch;
     if (s == "Loop")       return NodeType::Loop;
+    if (s == "Start")      return NodeType::Start;
     if (s == "Variable")   return NodeType::Variable;
     if (s == "Function")   return NodeType::Function;
     if (s == "FunctionCall") return NodeType::FunctionCall;

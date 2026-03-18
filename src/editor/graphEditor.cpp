@@ -33,6 +33,22 @@ bool ParseInspectorBool(const std::string& s)
     return s == "1" || s == "true" || s == "True";
 }
 
+NodeField* FindField(std::vector<NodeField>& fields, const char* name)
+{
+    for (auto& f : fields)
+        if (f.name == name)
+            return &f;
+    return nullptr;
+}
+
+const NodeField* FindField(const std::vector<NodeField>& fields, const char* name)
+{
+    for (const auto& f : fields)
+        if (f.name == name)
+            return &f;
+    return nullptr;
+}
+
 bool DrawInspectorField(NodeField& field)
 {
     bool changed = false;
@@ -465,12 +481,6 @@ void GraphEditor::DrawInspectorPanel()
     }
     else
     {
-<<<<<<< Updated upstream
-        ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
-        for (NodeField& field : selectedNode->fields)
-            fieldsChanged |= DrawInspectorField(field);
-        ImGui::PopID();
-=======
         // Special inspector behavior for Get Variable:
         // - allow selecting only an existing Set variable by name
         // - keep type/default read-only
@@ -629,7 +639,6 @@ void GraphEditor::DrawInspectorPanel()
                 fieldsChanged |= DrawInspectorField(field);
             ImGui::PopID();
         }
->>>>>>> Stashed changes
     }
 
     if (fieldsChanged)
