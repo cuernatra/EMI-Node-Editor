@@ -15,6 +15,7 @@
 #include "../ui/leftPanel.h"
 #include "../ui/topPanel.h"
 #include "../editor/settings.h"
+#include <cstdint>
 
 /**
  * @brief Main UI compositor class
@@ -73,6 +74,12 @@ private:
     
     /// Reserved for future right panel (currently unused)
     float m_rightPanelWidth = -1.f;
+
+    /// Monotonic counter for unique overlay ids (forces fresh topmost window on selection change)
+    uint32_t m_inspectorWindowGeneration = 0;
+
+    /// Last single-selected node id used to detect selection transitions
+    uintptr_t m_lastInspectorNodeId = 0;
 };
 
 #endif

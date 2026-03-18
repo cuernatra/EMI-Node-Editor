@@ -113,6 +113,14 @@ bool MainEditor::hasSelectedNode() const
     return selected;
 }
 
+bool MainEditor::tryGetSingleSelectedNodeId(uintptr_t& outId) const
+{
+    ed::SetCurrentEditor(m_editorContext);
+    const bool hasOne = m_graphEditor->TryGetSingleSelectedNodeId(outId);
+    ed::SetCurrentEditor(nullptr);
+    return hasOne;
+}
+
 bool MainEditor::hasStartNode() const
 {
     return m_graphState->HasNodeType(NodeType::Start);
