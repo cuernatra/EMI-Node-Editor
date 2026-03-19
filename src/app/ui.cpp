@@ -10,7 +10,6 @@ Ui::Ui()
 void Ui::draw()
 {   
     bool drawInspectorOverlay = false;
-    bool forceInspectorFocus = false;
     ImVec2 inspectorPos(0.0f, 0.0f);
     ImVec2 inspectorSize(0.0f, 0.0f);
 
@@ -70,12 +69,6 @@ void Ui::draw()
         {
             m_lastInspectorNodeId = selectedNodeId;
             ++m_inspectorWindowGeneration;
-            forceInspectorFocus = true;
-        }
-        else
-        {
-            // Same node clicked again -> keep current inspector state, do nothing.
-            forceInspectorFocus = false;
         }
     }
 
@@ -125,8 +118,6 @@ void Ui::draw()
         ImGui::SetNextWindowPos(inspectorPos, ImGuiCond_Always);
         ImGui::SetNextWindowSize(inspectorSize, ImGuiCond_Always);
         ImGui::SetNextWindowBgAlpha(0.70f);
-        if (forceInspectorFocus)
-            ImGui::SetNextWindowFocus();
 
         // Separate topmost inspector window (kept fixed in place).
         // Slight transparency only.
@@ -162,6 +153,11 @@ void Ui::draw()
 
         style.Alpha = prevAlpha;
     }
+
+    // Allow overlay windows (like Inspector) to reuse graph canvas shortcuts.
+    // This keeps legacy actions (e.g. Delete selected node/link) working even
+    // when the overlay currently has keyboard focus.
+    m_mainEditor.handleSharedShortcuts();
 }
 
 void Ui::DrawSplitter(float totalWidth, float thickness, float minLeft, float minRight)

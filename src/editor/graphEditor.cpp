@@ -1067,6 +1067,49 @@ bool GraphEditor::HasSelectedNode() const
     return TryGetSingleSelectedNodeId(selectedNodeId);
 }
 
+void GraphEditor::HandleDeleteShortcutFallback()
+{
+    const int deleteKeyIndex = ImGui::GetKeyIndex(ImGuiKey_Delete);
+    const int backspaceKeyIndex = ImGui::GetKeyIndex(ImGuiKey_Backspace);
+
+    const bool deletePressed =
+        (deleteKeyIndex >= 0 && ImGui::IsKeyPressed(deleteKeyIndex, false)) ||
+        (backspaceKeyIndex >= 0 && ImGui::IsKeyPressed(backspaceKeyIndex, false));
+
+    // Block only when user is actively editing text.
+    if (!deletePressed || ImGui::GetIO().WantTextInput)
+        return;
+
+    bool anyDeleted = false;
+
+    const int selectedCount = ed::GetSelectedObjectCount();
+    if (selectedCount > 0)
+    {
+        std::vector<ed::LinkId> selectedLinks(static_cast<size_t>(selectedCount));
+        const int selectedLinkCount = ed::GetSelectedLinks(selectedLinks.data(), selectedCount);
+        for (int i = 0; i < selectedLinkCount; ++i)
+        {
+            m_state.DeleteLink(selectedLinks[static_cast<size_t>(i)]);
+            anyDeleted = true;
+        }
+
+        std::vector<ed::NodeId> selectedNodes(static_cast<size_t>(selectedCount));
+        const int selectedNodeCount = ed::GetSelectedNodes(selectedNodes.data(), selectedCount);
+        for (int i = 0; i < selectedNodeCount; ++i)
+        {
+            m_state.DeleteNode(selectedNodes[static_cast<size_t>(i)]);
+            anyDeleted = true;
+        }
+    }
+
+    if (anyDeleted)
+    {
+        RefreshVariableNodeTypes(m_state);
+        SyncLinkTypesAndPruneInvalid(m_state);
+        m_state.MarkDirty();
+    }
+}
+
 bool GraphEditor::TryGetSingleSelectedNodeId(uintptr_t& outId) const
 {
     outId = 0;

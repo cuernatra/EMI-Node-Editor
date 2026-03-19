@@ -33,6 +33,9 @@ public:
     /// Render inspector contents for selected node.
     void drawInspectorPanel();
 
+    /// Handle shared shortcuts (e.g. Delete) even when overlay windows are focused.
+    void handleSharedShortcuts();
+
     /// Check whether any existing node is currently selected.
     bool hasSelectedNode() const;
 

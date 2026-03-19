@@ -68,6 +68,14 @@ public:
     bool HasSelectedNode() const;
 
     /**
+     * @brief Handle shared delete shortcuts (Delete/Backspace) for current selection
+     *
+     * Intended to be called from a higher-level UI pass so overlay windows can
+     * reuse canvas shortcuts even when they have focus.
+     */
+    void HandleDeleteShortcutFallback();
+
+    /**
      * @brief Get selected node id when exactly one alive node is selected
      * @param outId Receives selected node id (raw uintptr value)
      * @return true when exactly one alive node is selected, otherwise false

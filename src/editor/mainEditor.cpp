@@ -119,6 +119,13 @@ void MainEditor::drawInspectorPanel()
     ed::SetCurrentEditor(nullptr);
 }
 
+void MainEditor::handleSharedShortcuts()
+{
+    ed::SetCurrentEditor(m_editorContext);
+    m_graphEditor->HandleDeleteShortcutFallback();
+    ed::SetCurrentEditor(nullptr);
+}
+
 bool MainEditor::hasSelectedNode() const
 {
     ed::SetCurrentEditor(m_editorContext);
