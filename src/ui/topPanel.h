@@ -21,10 +21,15 @@ public:
     
     /// Render the top panel (called every frame).
     void draw();
+
+    /// Returns true once when the settings button was pressed.
+    bool consumeOpenSettingsRequested();
     
 private:
     /// Height of the toolbar in pixels
     float m_height;
+
+    bool m_openSettingsRequested = false;
 };
 
 #endif

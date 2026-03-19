@@ -23,7 +23,7 @@ void TopPanel::draw()
 
     if (ImGui::Button("test2", ImVec2(80, m_height - 14)))
     {
-        printf("test2\n");
+        m_openSettingsRequested = true;
     }
 
     ImGui::SameLine(0, 10);
@@ -42,4 +42,11 @@ void TopPanel::draw()
 
     ImGui::PopStyleColor(3);
     ImGui::PopStyleVar(2);
+}
+
+bool TopPanel::consumeOpenSettingsRequested()
+{
+    const bool requested = m_openSettingsRequested;
+    m_openSettingsRequested = false;
+    return requested;
 }

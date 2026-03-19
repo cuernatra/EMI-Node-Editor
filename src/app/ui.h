@@ -80,6 +80,12 @@ private:
 
     /// Last single-selected node id used to detect selection transitions
     uintptr_t m_lastInspectorNodeId = 0;
+
+    /// Toggles a floating settings overlay window.
+    bool m_showSettingsOverlay = false;
+
+    /// Monotonic counter used to give settings windows unique ids when reopened.
+    uint32_t m_settingsWindowGeneration = 0;
 };
 
 #endif
