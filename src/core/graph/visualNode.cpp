@@ -267,6 +267,15 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             ));
             changed = true;
         }
+
+        if (ImGui::SmallButton("- Then"))
+        {
+            if (n.outPins.size() > 1)
+            {
+                n.outPins.pop_back();
+                changed = true;
+            }
+        }
     }
 
     for (const Pin& pin : n.outPins)
