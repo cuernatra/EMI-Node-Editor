@@ -27,7 +27,7 @@ MainEditor::~MainEditor()
     ed::SetCurrentEditor(m_editorContext);
     
     // Save graph state to disk
-    GraphSerializer::Save(*m_graphState, "graph.txt");
+    GraphSerializer::Save(*m_graphState, m_currentFilePath.c_str());
     
     // Clear current context
     ed::SetCurrentEditor(nullptr);
@@ -81,7 +81,7 @@ void MainEditor::draw()
     if (m_graphState->IsDirty())
     {
         ed::SetCurrentEditor(m_editorContext);
-        GraphSerializer::Save(*m_graphState, "graph.txt");
+        GraphSerializer::Save(*m_graphState, m_currentFilePath.c_str());
         ed::SetCurrentEditor(nullptr);
         m_graphState->ClearDirty();
     }
@@ -97,7 +97,8 @@ void MainEditor::draw()
         m_graphEditor=std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
         m_compiler=std::make_unique<GraphCompilation>();
         GraphSerializer::Load(*m_graphState, selectedPath.string().c_str());
-        m_graphState->MarkDirty();
+        //Storing the opened file path for saving
+        m_currentFilePath = selectedPath.string();
         fileDialog.ClearSelected();
     }
 }
@@ -107,6 +108,8 @@ void MainEditor::NewGraph()
 {
     m_graphState=std::make_unique<GraphState>();
     m_graphEditor=std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
+    //Just the default file path
+    m_currentFilePath = "graph.txt";
 }
 
 void MainEditor::OpenGraph()
