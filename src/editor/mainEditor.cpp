@@ -46,18 +46,17 @@ MainEditor::~MainEditor()
 
 void MainEditor::draw()
 {
-    // Top toolbar
+    // Top toolbar on a single row:
+    // [Compile] [Result only] [Clear] [compile status message..........] [+]
     if (ImGui::Button("Compile"))
     {
         m_compiler->CompileGraph(*m_graphState, m_resultOnlyCompile);
     }
 
     ImGui::SameLine();
-
     ImGui::Checkbox("Result only", &m_resultOnlyCompile);
 
     ImGui::SameLine();
-
     if (ImGui::Button("Clear"))
     {
         m_graphState->Clear();
@@ -66,8 +65,14 @@ void MainEditor::draw()
 
     ImGui::SameLine();
 
+    const float plusButtonWidth = ImGui::CalcTextSize("Focus for nodes").x + ImGui::GetStyle().FramePadding.x * 2.0f + 5.0f;
+    const float statusSpacing = ImGui::GetStyle().ItemSpacing.x;
+    float statusWidth = ImGui::GetContentRegionAvail().x - plusButtonWidth - statusSpacing;
+    if (statusWidth < 80.0f)
+        statusWidth = 80.0f;
 
-    // Display compile status
+    ImGui::BeginChild("##CompileStatusArea", ImVec2(statusWidth, ImGui::GetFrameHeight()), false,
+                      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     const std::string& compileMsg = m_graphState->GetCompileMessage();
     if (!compileMsg.empty())
     {
@@ -78,10 +83,19 @@ void MainEditor::draw()
         ImGui::TextUnformatted(compileMsg.c_str());
         ImGui::PopStyleColor();
     }
-
     else
     {
         ImGui::TextUnformatted(" ");
+    }
+    ImGui::EndChild();
+
+    ImGui::SameLine();
+    if (ImGui::Button("Focus for nodes"))
+    {
+        ed::SetCurrentEditor(m_editorContext);
+        if (m_graphState->HasAliveNodes())
+            ed::NavigateToContent();
+        ed::SetCurrentEditor(nullptr);
     }
     
 
