@@ -13,6 +13,7 @@ void Ui::draw()
     bool forceInspectorFocus = false;
     ImVec2 inspectorPos(0.0f, 0.0f);
     ImVec2 inspectorSize(0.0f, 0.0f);
+    bool forceSettingsFocus = false;
 
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
 
@@ -50,6 +51,15 @@ void Ui::draw()
     ImGui::BeginChild("TOP BAR", ImVec2(totalWidth, elementSizes::topBarHeight), true,
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     m_topPanel.draw();
+    if (m_topPanel.consumeOpenSettingsRequested())
+    {
+        m_showSettingsOverlay = !m_showSettingsOverlay;
+        if (m_showSettingsOverlay)
+        {
+            ++m_settingsWindowGeneration;
+            forceSettingsFocus = true;
+        }
+    }
     ImGui::EndChild();
 
     ImGui::BeginChild("NODE PALETTE", ImVec2(m_leftPanelWidth, 0), true);
@@ -160,6 +170,64 @@ void Ui::draw()
         ImGui::PopStyleVar(2);
         ImGui::PopStyleColor(2);
 
+        style.Alpha = prevAlpha;
+    }
+
+    if (m_showSettingsOverlay)
+    {
+        ImGuiStyle& style = ImGui::GetStyle();
+        const float prevAlpha = style.Alpha;
+        style.Alpha = 1.0f;
+
+        const ImVec2 display = ImGui::GetIO().DisplaySize;
+        const float windowPadding = 20.0f;
+        const float minTopY = elementSizes::topBarHeight + 8.0f;
+        const float maxSettingsWidth = std::max(120.0f, display.x - windowPadding * 2.0f);
+        const float maxSettingsHeight = std::max(120.0f, display.y - minTopY - windowPadding);
+        const ImVec2 settingsSize(
+            std::clamp(display.x * 0.90f, 200.0f, maxSettingsWidth),
+            std::clamp(display.y * 0.90f, 200.0f, maxSettingsHeight)
+        );
+        const ImVec2 settingsPos(
+            std::max(windowPadding, display.x - settingsSize.x - windowPadding),
+            std::max(minTopY, display.y - settingsSize.y - windowPadding)
+        );
+
+        ImGui::SetNextWindowPos(settingsPos, ImGuiCond_Appearing);
+        ImGui::SetNextWindowSize(settingsSize, ImGuiCond_Appearing);
+        ImGui::SetNextWindowBgAlpha(0.70f);
+        if (forceSettingsFocus)
+            ImGui::SetNextWindowFocus();
+
+        const ImVec4 overlayBg(0.04f, 0.04f, 0.06f, 0.70f);
+        const ImVec4 overlayBorder(0.35f, 0.35f, 0.35f, 0.95f);
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, overlayBg);
+        ImGui::PushStyleColor(ImGuiCol_Border, overlayBorder);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+
+        char settingsWindowName[96];
+        std::snprintf(
+            settingsWindowName,
+            sizeof(settingsWindowName),
+            "Settings##SETTINGS_OVERLAY_WINDOW_%u",
+            static_cast<unsigned>(m_settingsWindowGeneration)
+        );
+
+        if (!ImGui::Begin(settingsWindowName, &m_showSettingsOverlay, ImGuiWindowFlags_NoSavedSettings))
+        {
+            ImGui::End();
+        }
+        else
+        {
+            ImGui::TextUnformatted("Settings panel placeholder");
+            ImGui::Separator();
+            ImGui::TextDisabled("Opened from the top-bar test2 button.");
+            ImGui::End();
+        }
+
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(2);
         style.Alpha = prevAlpha;
     }
 }
