@@ -88,7 +88,6 @@ void MainEditor::draw()
     }
 
     //For displaying file browser
-    fileNew.Display();
     fileOpen.Display();
 
     //For selecting file to open
@@ -99,7 +98,7 @@ void MainEditor::draw()
         m_graphEditor=std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
         m_compiler=std::make_unique<GraphCompilation>();
         GraphSerializer::Load(*m_graphState, selectedPath.string().c_str());
-        
+
         //Storing the opened file path for saving
         m_currentFilePath = selectedPath.string();
         fileOpen.ClearSelected();
