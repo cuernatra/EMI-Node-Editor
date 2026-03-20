@@ -24,9 +24,10 @@ void FileBar::draw()
                 printf("Open\n");
                 m_editor->OpenGraph();
             }
-            if(ImGui::MenuItem("Save"))
+            if(ImGui::MenuItem("Save As"))
             {
-                printf("Save\n");
+                printf("Save As\n");
+                m_editor->SaveGraph();
             }
             if(ImGui::MenuItem("Exit"))
             {

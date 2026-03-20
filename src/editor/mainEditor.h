@@ -34,7 +34,6 @@ public:
     void NewGraph();   ///< Clear current graph and start a new one
     void OpenGraph();  ///< Load graph from file
     void SaveGraph();  ///< Save current graph to file
-    void LoadGraph();  ///< Load graph from file
 
 private:
 
@@ -45,6 +44,6 @@ private:
 
     FileBar m_fileBar;                             ///< Top file menu bar
     ImGui::FileBrowser fileOpen;                   ///< File dialog for open action
-    ImGui::FileBrowser fileNew;                    ///< File dialog for new action
+    ImGui::FileBrowser fileSaveAs;                 ///< File dialog for save as action
     std::string m_currentFilePath = "graph.txt";   ///< Path to the currently open file
 };
