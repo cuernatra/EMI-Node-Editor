@@ -44,6 +44,7 @@ private:
     std::unique_ptr<GraphCompilation> m_compiler;  ///< Graph compilation and execution engine
 
     FileBar m_fileBar;                             ///< Top file menu bar
-    ImGui::FileBrowser fileDialog;                 ///< File dialog for open action
+    ImGui::FileBrowser fileOpen;                   ///< File dialog for open action
+    ImGui::FileBrowser fileNew;                    ///< File dialog for new action
     std::string m_currentFilePath = "graph.txt";   ///< Path to the currently open file
 };

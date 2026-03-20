@@ -8,7 +8,8 @@
 #include "imgui_node_editor.h"
 
 MainEditor::MainEditor(): m_fileBar(this),
-    fileDialog(/*ImGuiFileBrowserFlags_SelectDirectory*/)
+    fileOpen(),
+    fileNew(ImGuiFileBrowserFlags_EnterNewFilename)
 {
     ed::Config config;
     config.SettingsFile = "node_editor.json";
@@ -87,32 +88,72 @@ void MainEditor::draw()
     }
 
     //For displaying file browser
-    fileDialog.Display();
+    fileNew.Display();
+    fileOpen.Display();
 
     //For selecting file to open
-    if(fileDialog.HasSelected())
+    if(fileOpen.HasSelected())
     {
-        std::filesystem::path selectedPath = fileDialog.GetSelected();
+        std::filesystem::path selectedPath = fileOpen.GetSelected();
         m_graphState=std::make_unique<GraphState>();
         m_graphEditor=std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
         m_compiler=std::make_unique<GraphCompilation>();
         GraphSerializer::Load(*m_graphState, selectedPath.string().c_str());
+        
         //Storing the opened file path for saving
         m_currentFilePath = selectedPath.string();
-        fileDialog.ClearSelected();
+        fileOpen.ClearSelected();
+    }
+    if(fileNew.HasSelected())
+    {
+        std::filesystem::path selectedPath = fileNew.GetSelected();
+        
+        //Save current graph before creating new one
+        ed::SetCurrentEditor(m_editorContext);
+        GraphSerializer::Save(*m_graphState, m_currentFilePath.c_str());
+        ed::SetCurrentEditor(nullptr);
+        
+        //Create fresh editor and load selected file
+        m_graphEditor.reset();
+        ed::DestroyEditor(m_editorContext);
+        
+        ed::Config config;
+        config.SettingsFile = "node_editor.json";
+        m_editorContext = ed::CreateEditor(&config);
+        
+        m_graphState = std::make_unique<GraphState>();
+        m_graphEditor = std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
+        
+        GraphSerializer::Load(*m_graphState, selectedPath.string().c_str());
+        m_currentFilePath = selectedPath.string();
+        fileNew.ClearSelected();
     }
 }
 
-//Create a new graph by clearing the current state, and recreating the graph editor
+//Create a new blank graph with fresh editor context
 void MainEditor::NewGraph()
 {
-    m_graphState=std::make_unique<GraphState>();
-    m_graphEditor=std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
-    //Just the default file path
-    m_currentFilePath = "graph.txt";
+    //Save current graph before creating new one
+    ed::SetCurrentEditor(m_editorContext);
+    GraphSerializer::Save(*m_graphState, m_currentFilePath.c_str());
+    ed::SetCurrentEditor(nullptr);
+    
+    //Destroy old editor context
+    m_graphEditor.reset();
+    ed::DestroyEditor(m_editorContext);
+    
+    //Create fresh editor context
+    ed::Config config;
+    config.SettingsFile = "node_editor.json";
+    m_editorContext = ed::CreateEditor(&config);
+
+    m_graphState = std::make_unique<GraphState>();
+    m_graphEditor = std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
+    
+    m_currentFilePath = "";
 }
 
 void MainEditor::OpenGraph()
 {
-    fileDialog.Open();
+    fileOpen.Open();
 }
