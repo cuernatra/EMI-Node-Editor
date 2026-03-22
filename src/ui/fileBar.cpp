@@ -32,6 +32,7 @@ void FileBar::draw()
             if(ImGui::MenuItem("Exit"))
             {
                 printf("Exit\n");
+                m_editor->Exit();
             }
             ImGui::EndMenu();
         }

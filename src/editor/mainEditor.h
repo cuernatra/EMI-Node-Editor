@@ -34,6 +34,7 @@ public:
     void NewGraph();   ///< Clear current graph and start a new one
     void OpenGraph();  ///< Load graph from file
     void SaveGraph();  ///< Save current graph to file
+    void Exit();       ///< Save, clear, and exit the editor
 
 private:
 

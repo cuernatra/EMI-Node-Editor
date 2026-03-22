@@ -175,3 +175,18 @@ void MainEditor::SaveGraph()
         m_graphState->ClearDirty();
     }
 }
+
+void MainEditor::Exit()
+{
+    //Save current graph before exiting
+    ed::SetCurrentEditor(m_editorContext);
+    GraphSerializer::Save(*m_graphState, m_currentFilePath.c_str());
+    ed::SetCurrentEditor(nullptr);
+    
+    //Clean up
+    m_graphEditor.reset();
+    ed::DestroyEditor(m_editorContext);
+    m_editorContext = nullptr;
+
+    exit(0);
+}
