@@ -135,7 +135,8 @@ descriptors_[NodeType::Constant] = {
             { "In",        PinType::Flow,   /*isInput=*/true  },
             { "Count",     PinType::Number, /*isInput=*/true  },
             { "Body",      PinType::Flow,   /*isInput=*/false },
-            { "Completed", PinType::Flow,   /*isInput=*/false }
+            { "Completed", PinType::Flow,   /*isInput=*/false },
+            { "Index",     PinType::Number, /*isInput=*/false }
         },
         {
             { "Start", PinType::Number, "0" }
