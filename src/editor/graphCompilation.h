@@ -46,7 +46,7 @@ public:
      * @param state The graph state to compile and execute; updated with results
      * 
      * Performs the following steps:
-     * 1. Pre-validate graph (check for Output node)
+     * 1. Pre-validate graph (check for Debug Print node)
      * 2. Compile visual graph to EMI-Script AST via GraphCompiler
      * 3. TODO: Compile AST with EMI's internal Parser::ParseAST (ASTWalker)
      * 4. TODO: Extract and execute the __graph__ function
@@ -57,7 +57,7 @@ public:
      * All compilation and runtime errors are caught and stored
      * in the graph state for display to the user.
      */
-    void CompileGraph(GraphState& state);
+    void CompileGraph(GraphState& state, bool resultOnly = false);
 
 private:
     // Pimpl to hide EMI types from header

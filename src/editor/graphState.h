@@ -152,12 +152,22 @@ public:
     IdGen& GetIdGen() { return m_idGen; }
 
     /**
-     * @brief Check if the graph contains an Output node
-     * @return true if at least one Output node exists
+     * @brief Check if the graph contains a Debug Print node (NodeType::Output)
+     * @return true if at least one Debug Print node exists
      * 
-     * Required for compilation - the Output node defines the graph's result.
+     * Required for compilation - at least one Debug Print sink must be present.
      */
     bool HasOutputNode() const;
+
+    /**
+     * @brief Check if the graph contains at least one alive node of given type
+     */
+    bool HasNodeType(NodeType type) const;
+
+    /**
+     * @brief Check if graph has any alive nodes
+     */
+    bool HasAliveNodes() const;
 
 private:
     std::vector<VisualNode> m_nodes;           ///< All nodes in the graph

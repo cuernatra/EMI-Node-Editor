@@ -2,13 +2,16 @@
 #include <imgui-SFML.h>
 #include <SFML/Window/Event.hpp>
 #include <iostream>
+#include "constants.h"
+#include <filesystem>
 
 App::App()
     : m_window(sf::VideoMode(appConstants::windowWidth, appConstants::windowheight), 
-    "ImGui + SFML") 
+    "EMI editor") 
 {
     m_window.setFramerateLimit(60);
     ImGui::SFML::Init(m_window);
+    loadFont();
 }
 
 void App::run() 
@@ -50,4 +53,33 @@ void App::render()
 
     ImGui::SFML::Render(m_window);
     m_window.display();
+}
+
+void App::loadFont()
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    io.Fonts->Clear();
+
+    ImFontConfig config;
+    config.OversampleH = fontConstants::oversampleH;   // Horizontal oversampling
+    config.OversampleV = fontConstants::oversampleV;   // Vertical oversampling 
+    config.PixelSnapH  = false;
+    #ifdef _WIN32
+    std::filesystem::path fontPath = std::filesystem::path(_pgmptr).parent_path() / "assets/fonts/Roboto-Regular.ttf";
+    if (std::filesystem::exists(fontPath))
+    {
+        io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontConstants::fontSize, &config);
+    }
+    else 
+    {
+        std::cerr << "[ERROR] Font file not found at " << fontPath.string() << std::endl;
+        io.Fonts->AddFontDefault(&config);
+    }
+    #else    
+    io.Fonts->AddFontFromFileTTF("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", fontConstants::fontSize, &config);
+    #endif
+
+    io.Fonts->Build();
+    ImGui::SFML::UpdateFontTexture();
 }

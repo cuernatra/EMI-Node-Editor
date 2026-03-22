@@ -71,4 +71,25 @@ namespace elementLocations
     const Position dropBarLocation_A = {10.0f, 50.0f};  ///< Position of first drop bar item
 }
 
+/**
+ * @namespace nodePreviewConstants
+ * @brief Constants specific to node preview rendering in the left panel.
+ * 
+ * Defines fixed sizes and layout parameters for the miniature node previews in the left panel.
+ */
+namespace nodePreviewConstants
+{
+    const float headerHeight = 20.0f;          ///< Height of the node preview header
+    const float fixedWidth = 120.0f;           ///< Fixed width for all node previews
+    const float fixedHeight = 100.0f;          ///< Fixed height for all node previews
+    const float padding = 7.0f;                ///< Padding inside node previews
+    const float pinRadius = 3.5f;              ///< Radius of the pin circles in node previews
+}
+
+namespace fontConstants
+{
+    const float fontSize = 15.0f;       ///< Default font size for ImGui elements
+    const float oversampleH = 5.0f;     ///< Horizontal oversampling for font rendering
+    const float oversampleV = 5.0f;     ///< Vertical oversampling for
+}
 #endif

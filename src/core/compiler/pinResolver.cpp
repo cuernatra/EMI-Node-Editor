@@ -3,11 +3,30 @@
 void PinResolver::Build(const std::vector<VisualNode>& nodes,
                         const std::vector<Link>&       links)
 {
+    inputToSource_.clear();
+    nodeById_.clear();
+    flowOutputToTarget_.clear();
+
     // Index all nodes by ID first.
+    std::unordered_map<ed::PinId, PinSource> outputPinToSource;
+    std::unordered_map<ed::PinId, FlowTarget> flowInputPinToTarget;
+
     for (const VisualNode& n : nodes)
     {
         if (!n.alive) continue;
         nodeById_[n.id] = &n;
+
+        for (int i = 0; i < static_cast<int>(n.outPins.size()); ++i)
+        {
+            outputPinToSource[n.outPins[i].id] = { &n, i };
+        }
+
+        for (int i = 0; i < static_cast<int>(n.inPins.size()); ++i)
+        {
+            const Pin& inPin = n.inPins[i];
+            if (inPin.type == PinType::Flow)
+                flowInputPinToTarget[inPin.id] = { &n, i };
+        }
     }
 
     // For each live link, map endPinId (input) -> source node + pin index.
@@ -15,16 +34,23 @@ void PinResolver::Build(const std::vector<VisualNode>& nodes,
     {
         if (!lnk.alive) continue;
 
-        // Find the node that owns the output pin.
-        for (const VisualNode& n : nodes)
+        auto srcIt = outputPinToSource.find(lnk.startPinId);
+        if (srcIt != outputPinToSource.end())
         {
-            if (!n.alive) continue;
-            for (int i = 0; i < (int)n.outPins.size(); ++i)
+            inputToSource_[lnk.endPinId] = srcIt->second;
+
+            // Track execution flow wiring (output flow pin -> downstream flow input).
+            const PinSource& source = srcIt->second;
+            if (source.node
+                && source.pinIdx >= 0
+                && source.pinIdx < static_cast<int>(source.node->outPins.size()))
             {
-                if (n.outPins[i].id == lnk.startPinId)
+                const Pin& sourceOutPin = source.node->outPins[source.pinIdx];
+                if (sourceOutPin.type == PinType::Flow)
                 {
-                    inputToSource_[lnk.endPinId] = { &n, i };
-                    break;
+                    auto targetIt = flowInputPinToTarget.find(lnk.endPinId);
+                    if (targetIt != flowInputPinToTarget.end())
+                        flowOutputToTarget_[lnk.startPinId] = targetIt->second;
                 }
             }
         }
@@ -35,6 +61,12 @@ const PinSource* PinResolver::Resolve(ed::PinId inputPinId) const
 {
     auto it = inputToSource_.find(inputPinId);
     return it != inputToSource_.end() ? &it->second : nullptr;
+}
+
+const FlowTarget* PinResolver::ResolveFlow(ed::PinId flowOutputPinId) const
+{
+    auto it = flowOutputToTarget_.find(flowOutputPinId);
+    return it != flowOutputToTarget_.end() ? &it->second : nullptr;
 }
 
 const VisualNode* PinResolver::FindNode(ed::NodeId nodeId) const

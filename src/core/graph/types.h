@@ -18,10 +18,12 @@ enum class PinType
 
 enum class NodeType
 {
+    Start,       ///< Event start node (flow entry)
     Constant,    ///< Constant value node
     Operator,    ///< Arithmetic/string operators (+, -, *, /)
     Comparison,  ///< Comparison operators (==, !=, <, >)
     Logic,       ///< Logical operators (and, or, not)
+    Sequence,    ///< Flow sequence splitter (In -> Then 0..N)
     Branch,      ///< Conditional branching (if/else)
     Loop,        ///< Iteration (for/while loops)
     Variable,    ///< Variable get/set
@@ -34,30 +36,35 @@ inline const char* NodeTypeToString(NodeType t)
 {
     switch (t)
     {
+        case NodeType::Start:      return "Start";
         case NodeType::Constant:   return "Constant";
         case NodeType::Operator:   return "Operator";
         case NodeType::Comparison: return "Comparison";
         case NodeType::Logic:      return "Logic";
+        case NodeType::Sequence:   return "Sequence";
         case NodeType::Branch:     return "Branch";
         case NodeType::Loop:       return "Loop";
         case NodeType::Variable:   return "Variable";
         case NodeType::Function:   return "Function";
-        case NodeType::Output:     return "Output";
+        case NodeType::Output:     return "Debug Print";
         default:                   return "Unknown";
     }
 }
 
 inline NodeType NodeTypeFromString(const std::string& s)
 {
+    if (s == "Start")      return NodeType::Start;
     if (s == "Constant")   return NodeType::Constant;
     if (s == "Operator")   return NodeType::Operator;
     if (s == "Comparison") return NodeType::Comparison;
     if (s == "Logic")      return NodeType::Logic;
+    if (s == "Sequence")   return NodeType::Sequence;
     if (s == "Branch")     return NodeType::Branch;
     if (s == "Loop")       return NodeType::Loop;
     if (s == "Variable")   return NodeType::Variable;
     if (s == "Function")   return NodeType::Function;
-    if (s == "Output")     return NodeType::Output;
+    if (s == "Output")      return NodeType::Output;      // backward compatibility
+    if (s == "Debug Print") return NodeType::Output;
     return NodeType::Unknown;
 }
 

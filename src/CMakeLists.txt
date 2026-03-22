@@ -6,11 +6,13 @@ add_executable(emi-editor
   ui/leftPanel.cpp
   ui/topPanel.cpp
   ui/dropBar.cpp
+  ui/nodePreview.cpp
   editor/mainEditor.cpp
   editor/graphEditor.cpp
   editor/graphCompilation.cpp
   editor/graphState.cpp
   editor/graphSerializer.cpp
+  editor/settings.cpp
   core/graph/visualNode.cpp
   core/graph/link.cpp
   core/registry/fieldWidget.cpp
@@ -51,7 +53,10 @@ target_include_directories(emi-editor PRIVATE ${CMAKE_SOURCE_DIR}/src dependenci
 target_link_libraries(emi-editor PRIVATE
   ImGui-SFML::ImGui-SFML
   EMI
+  nlohmann_json::nlohmann_json
 )
+
+target_compile_definitions(emi-editor PRIVATE INCLUDE_DEBUGGER)
 
 if(MSVC)
   target_compile_options(emi-editor PRIVATE /FS)
@@ -69,3 +74,10 @@ if(WIN32)
     )
   endif()
 endif()
+
+# Copy assets to build directory so fonts and other resources are always found
+add_custom_command(TARGET emi-editor POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/src/assets
+    $<TARGET_FILE_DIR:emi-editor>/assets
+)

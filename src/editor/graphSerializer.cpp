@@ -6,12 +6,120 @@
 #include "imgui_node_editor.h"
 #include <fstream>
 #include <algorithm>
+#include <cctype>
+#include <cstdlib>
 
 namespace ed = ax::NodeEditor;
 
 // Serialization helpers for pin types
 static const char* PinTypeToString(PinType t);
 static PinType PinTypeFromString(const std::string& s);
+
+static const char* NodeTypeToSaveToken(NodeType t)
+{
+    // Keep graph file format stable and single-token for parser safety.
+    // UI label for NodeType::Output is "Debug Print", but save token remains "Output".
+    if (t == NodeType::Output)
+        return "Output";
+    return NodeTypeToString(t);
+}
+
+static std::string EncodeFieldValue(const std::string& value)
+{
+    static constexpr char kHex[] = "0123456789ABCDEF";
+    std::string out;
+    out.reserve(value.size() + 8);
+
+    for (unsigned char ch : value)
+    {
+        const bool safe =
+            std::isalnum(ch) || ch == '-' || ch == '_' || ch == '.' || ch == '~';
+
+        if (safe)
+        {
+            out.push_back(static_cast<char>(ch));
+        }
+        else
+        {
+            out.push_back('%');
+            out.push_back(kHex[(ch >> 4) & 0x0F]);
+            out.push_back(kHex[ch & 0x0F]);
+        }
+    }
+
+    return out;
+}
+
+static int HexToNibble(char c)
+{
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    return -1;
+}
+
+static std::string DecodeFieldValue(const std::string& encoded)
+{
+    // Backward compatibility: accept older "esc:" prefix but do not require it.
+    const std::string& body = (encoded.rfind("esc:", 0) == 0) ? encoded.substr(4) : encoded;
+
+    if (body.find('%') == std::string::npos)
+        return body;
+
+    std::string out;
+    out.reserve(body.size());
+
+    for (size_t i = 0; i < body.size(); ++i)
+    {
+        if (body[i] == '%' && i + 2 < body.size())
+        {
+            int hi = HexToNibble(body[i + 1]);
+            int lo = HexToNibble(body[i + 2]);
+            if (hi >= 0 && lo >= 0)
+            {
+                out.push_back(static_cast<char>((hi << 4) | lo));
+                i += 2;
+                continue;
+            }
+        }
+
+        out.push_back(body[i]);
+    }
+
+    return out;
+}
+
+static void NormalizeSequencePins(VisualNode& n, IdGen& idGen)
+{
+    if (n.nodeType != NodeType::Sequence)
+        return;
+
+    std::vector<Pin> flowOut;
+    flowOut.reserve(n.outPins.size());
+
+    for (const Pin& p : n.outPins)
+    {
+        if (!p.isInput && p.type == PinType::Flow)
+            flowOut.push_back(p);
+    }
+
+    if (flowOut.empty())
+    {
+        flowOut.push_back(MakePin(
+            static_cast<uint32_t>(idGen.NewPin().Get()),
+            n.id,
+            n.nodeType,
+            "Then 0",
+            PinType::Flow,
+            false
+        ));
+    }
+
+    for (size_t i = 0; i < flowOut.size(); ++i)
+        flowOut[i].name = "Then " + std::to_string(i);
+
+    n.outPins = std::move(flowOut);
+}
 
 void GraphSerializer::Save(const GraphState& state, const char* path)
 {
@@ -28,7 +136,7 @@ void GraphSerializer::Save(const GraphState& state, const char* path)
 
         out << "node "
             << n.id.Get() << " "
-            << NodeTypeToString(n.nodeType) << " "
+            << NodeTypeToSaveToken(n.nodeType) << " "
             << pinIds.size();
 
         for (uint32_t pid : pinIds) out << " " << pid;
@@ -36,8 +144,7 @@ void GraphSerializer::Save(const GraphState& state, const char* path)
         out << " " << n.fields.size();
         for (const NodeField& f : n.fields)
         {
-            std::string encoded = f.value;
-            for (char& c : encoded) if (c == ' ') c = '\x01';
+            const std::string encoded = EncodeFieldValue(f.value);
             out << " " << f.name << "=" << encoded;
         }
 
@@ -63,50 +170,129 @@ static NodeField* FindField(std::vector<NodeField>& fields, const char* name)
     return nullptr;
 }
 
-void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n)
+static bool ParseBoolValue(const std::string& s)
+{
+    if (s == "true" || s == "True" || s == "1")
+        return true;
+    if (s == "false" || s == "False" || s == "0")
+        return false;
+
+    char* end = nullptr;
+    const double v = std::strtod(s.c_str(), &end);
+    if (end && *end == '\0')
+        return v != 0.0;
+
+    return false;
+}
+
+static bool TryParseDoubleValue(const std::string& s, double& out)
+{
+    if (s.empty())
+        return false;
+
+    char* end = nullptr;
+    const double v = std::strtod(s.c_str(), &end);
+    if (end && *end == '\0')
+    {
+        out = v;
+        return true;
+    }
+
+    return false;
+}
+
+static std::string DefaultConstantValueForType(PinType t)
+{
+    switch (t)
+    {
+        case PinType::Boolean: return "false";
+        case PinType::Number:  return "0.0";
+        case PinType::String:  return "";
+        case PinType::Array:   return "[]";
+        default:               return "";
+    }
+}
+
+void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n, bool resetValueOnTypeChange)
 {
     if (n.nodeType != NodeType::Constant) return;
+
+    // Keep field order deterministic for UI: Type first, then Value.
+    // This ensures that if user changes Type, Value widget/reset is reflected
+    // immediately in the same render pass.
+    size_t typeIdx = n.fields.size();
+    size_t valueIdx = n.fields.size();
+    for (size_t i = 0; i < n.fields.size(); ++i)
+    {
+        if (n.fields[i].name == "Type")  typeIdx = i;
+        if (n.fields[i].name == "Value") valueIdx = i;
+    }
+    if (typeIdx < n.fields.size() && valueIdx < n.fields.size() && typeIdx > valueIdx)
+        std::swap(n.fields[typeIdx], n.fields[valueIdx]);
 
     NodeField* typeF  = FindField(n.fields, "Type");
     NodeField* valueF = FindField(n.fields, "Value");
     if (!typeF || !valueF) return;
 
     const std::string& t = typeF->value;
+    const PinType oldValueType = valueF->valueType;
+
+    auto setTypeAndNormalize = [&](PinType targetType)
+    {
+        if (resetValueOnTypeChange && oldValueType != targetType)
+        {
+            valueF->value = DefaultConstantValueForType(targetType);
+        }
+        else
+        {
+            // Keep backward compatibility with older/invalid values when not explicitly resetting.
+            if (targetType == PinType::Boolean)
+            {
+                const bool b = ParseBoolValue(valueF->value);
+                valueF->value = b ? "true" : "false";
+            }
+            else if (targetType == PinType::Number)
+            {
+                double v = 0.0;
+                if (TryParseDoubleValue(valueF->value, v))
+                    valueF->value = std::to_string(v);
+                else
+                    valueF->value = "0.0";
+            }
+            else if (targetType == PinType::Array)
+            {
+                if (valueF->value.empty())
+                    valueF->value = "[]";
+            }
+            // String keeps current text as-is.
+        }
+
+        valueF->valueType = targetType;
+        if (!n.outPins.empty()) n.outPins[0].type = targetType;
+    };
 
     if (t == "Boolean")
     {
-        valueF->valueType = PinType::Boolean;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::Boolean;
+        setTypeAndNormalize(PinType::Boolean);
     }
     else if (t == "Number")
     {
-        valueF->valueType = PinType::Number;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::Number;
+        setTypeAndNormalize(PinType::Number);
     }
     else if (t == "String")
     {
-        valueF->valueType = PinType::String;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::String;
+        setTypeAndNormalize(PinType::String);
     }
     else if (t == "Array")
     {
-        valueF->valueType = PinType::Array;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::Array;
-    }
-    else if (t == "Flow")
-    {
-        valueF->valueType = PinType::Flow;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::Flow;
-    }
-    else if (t == "Function")
-    {
-        valueF->valueType = PinType::Function;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::Function;
+        setTypeAndNormalize(PinType::Array);
     }
     else
     {
-        valueF->valueType = PinType::String;
-        if (!n.outPins.empty()) n.outPins[0].type = PinType::Any;
+        // Keep Constant type set constrained to sane data values.
+        // Legacy/invalid values (Flow/Function/Any/unknown) are normalized to String.
+        typeF->value = "String";
+        setTypeAndNormalize(PinType::String);
     }
 }
 
@@ -127,9 +313,33 @@ void GraphSerializer::Load(GraphState& state, const char* path)
             int         nid;
             std::string nodeTypeStr;
             int         pinCount;
-            in >> nid >> nodeTypeStr >> pinCount;
+            in >> nid >> nodeTypeStr;
+
+            // Backward compatibility for accidental two-token save format:
+            //   node <id> Debug Print <pinCount> ...
+            if (nodeTypeStr == "Debug")
+            {
+                std::string maybePrint;
+                in >> maybePrint;
+                if (maybePrint == "Print")
+                    nodeTypeStr = "Debug Print";
+                else
+                    nodeTypeStr = maybePrint;
+            }
+
+            in >> pinCount;
 
             NodeType nodeType = NodeTypeFromString(nodeTypeStr);
+            if (nodeType == NodeType::Unknown)
+            {
+                // Unknown node type in save file: skip gracefully.
+                float pxDummy, pyDummy;
+                for (int i = 0; i < pinCount; ++i) { int skip; in >> skip; }
+                int fieldCountSkip; in >> fieldCountSkip;
+                for (int i = 0; i < fieldCountSkip; ++i) { std::string skipPair; in >> skipPair; }
+                in >> pxDummy >> pyDummy;
+                continue;
+            }
 
             std::vector<int> pinIds;
             pinIds.reserve(pinCount);
@@ -155,8 +365,7 @@ void GraphSerializer::Load(GraphState& state, const char* path)
                 if (eq != std::string::npos)
                 {
                     std::string name = pair.substr(0, eq);
-                    std::string val  = pair.substr(eq + 1);
-                    for (char& c : val) if (c == '\x01') c = ' ';
+                    std::string val  = DecodeFieldValue(pair.substr(eq + 1));
                     fieldValues.push_back({ name, val });
                 }
             }
@@ -182,6 +391,7 @@ void GraphSerializer::Load(GraphState& state, const char* path)
             }
 
             ApplyConstantTypeFromFields(n);
+            NormalizeSequencePins(n, state.GetIdGen());
 
             state.AddNode(n);
         }
@@ -208,6 +418,7 @@ void GraphSerializer::Load(GraphState& state, const char* path)
     }
 
     state.GetIdGen().SetNext(maxId + 1);
+    state.ClearDirty();
 }
 
 // ---- Serialization helpers ----

@@ -11,6 +11,7 @@
 #include "../ui/fileBar.h"
 #include <memory>
 #include "../dependencies/imgui-filebrowser/imfilebrowser.h"
+#include <cstdint>
 
 namespace ed = ax::NodeEditor;
 
@@ -35,6 +36,23 @@ public:
     void OpenGraph();  ///< Load graph from file
     void SaveGraph();  ///< Save current graph to file
     void Exit();       ///< Save, clear, and exit the editor
+    /// Render inspector contents for selected node.
+    void drawInspectorPanel();
+
+    /// Handle shared shortcuts (e.g. Delete) even when overlay windows are focused.
+    void handleSharedShortcuts();
+
+    /// Check whether any existing node is currently selected.
+    bool hasSelectedNode() const;
+
+    /// Try to get currently selected node id (only when exactly one alive node is selected).
+    bool tryGetSingleSelectedNodeId(uintptr_t& outId) const;
+
+    /// Check whether graph currently contains a Start node.
+    bool hasStartNode() const;
+
+    /// Check whether graph contains at least one Variable node.
+    bool hasVariables() const;
 
 private:
 
@@ -47,4 +65,5 @@ private:
     ImGui::FileBrowser fileOpen;                   ///< File dialog for open action
     ImGui::FileBrowser fileSaveAs;                 ///< File dialog for save as action
     std::string m_currentFilePath = "";   ///< Path to the currently open file
+    bool m_resultOnlyCompile = true;               ///< If true, compile status stays minimal while terminal prints result
 };

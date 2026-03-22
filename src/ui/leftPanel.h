@@ -11,7 +11,7 @@
 #define LEFTPANEL_H
 
 #include "../app/constants.h"
-#include "dropBar.h"
+#include "../core/graph/types.h"
 #include <vector>
 
 /**
@@ -38,11 +38,11 @@ public:
      * Draws all DropBar entries in the palette. Must be called within
      * an ImGui child window context.
      */
-    void draw();
+    void draw(bool hasStartNode);
 
 private:
-    /// Collection of collapsible node type categories
-    std::vector<DropBar> m_dropBars;
+    /// Palette node types in deterministic display order
+    std::vector<NodeType> m_nodeTypes;
 };
 
 #endif

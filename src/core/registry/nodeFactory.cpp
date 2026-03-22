@@ -60,12 +60,27 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
                                      ImVec2 pos)
 {
     const NodeDescriptor* desc = NodeRegistry::Get().Find(type);
-    if (!desc) 
+    if (!desc)
     {
-    std::cerr << "NodeType not registered\n";
-    return {};
+        std::cerr << "CreateNodeFromTypeWithIds: NodeType not registered\n";
+        return {};
     }
-    assert(pinIds.size() == desc->pins.size() && "Pin ID count mismatch");
+
+    const bool isSequence = (type == NodeType::Sequence);
+    const bool isVariable = (type == NodeType::Variable);
+    if ((!isSequence && pinIds.size() != desc->pins.size()) ||
+        (isSequence && pinIds.size() < desc->pins.size()))
+    {
+        // Backward compatibility for older Variable node saves
+        // (legacy Set/Get layouts used different pin counts).
+        if (!isVariable)
+        {
+            std::cerr << "CreateNodeFromTypeWithIds: Pin ID count mismatch\n";
+            return {};
+        }
+    }
+
+    assert((isSequence || isVariable || pinIds.size() == desc->pins.size()) && "Pin ID count mismatch");
 
     VisualNode n;
     n.id         = ed::NodeId(nodeId);
@@ -75,9 +90,81 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
     n.positioned = true;
 
     int pinIndex = 0;
-    PopulateFromDescriptor(n, *desc, [&]() -> uint32_t {
-        return static_cast<uint32_t>(pinIds[pinIndex++]);
-    });
+
+    if (isVariable && pinIds.size() != desc->pins.size())
+    {
+        // Legacy Variable layouts:
+        // 1 pin  -> Get (Value out)
+        // 2 pins -> Set (Set in, Value out)
+        // 3 pins -> transitional (In, Set, Value)
+        if (!pinIds.empty())
+        {
+            if (pinIds.size() == 1)
+            {
+                n.outPins.push_back(MakePin(
+                    static_cast<uint32_t>(pinIds[0]), n.id, n.nodeType,
+                    "Value", PinType::Any, false));
+            }
+            else if (pinIds.size() == 2)
+            {
+                n.inPins.push_back(MakePin(
+                    static_cast<uint32_t>(pinIds[0]), n.id, n.nodeType,
+                    "Set", PinType::Any, true));
+                n.outPins.push_back(MakePin(
+                    static_cast<uint32_t>(pinIds[1]), n.id, n.nodeType,
+                    "Value", PinType::Any, false));
+            }
+            else
+            {
+                n.inPins.push_back(MakePin(
+                    static_cast<uint32_t>(pinIds[0]), n.id, n.nodeType,
+                    "In", PinType::Flow, true));
+                n.inPins.push_back(MakePin(
+                    static_cast<uint32_t>(pinIds[1]), n.id, n.nodeType,
+                    "Set", PinType::Any, true));
+                n.outPins.push_back(MakePin(
+                    static_cast<uint32_t>(pinIds[2]), n.id, n.nodeType,
+                    "Value", PinType::Any, false));
+            }
+        }
+
+        // Legacy path still needs descriptor fields.
+        for (const FieldDescriptor& fd : desc->fields)
+            n.fields.push_back(MakeNodeField(fd));
+
+        // Infer Variant from legacy pin layout.
+        // 1 pin => old Get (Value output only), otherwise Set.
+        for (NodeField& f : n.fields)
+        {
+            if (f.name == "Variant")
+            {
+                f.value = (pinIds.size() == 1) ? "Get" : "Set";
+                break;
+            }
+        }
+    }
+    else
+    {
+        PopulateFromDescriptor(n, *desc, [&]() -> uint32_t {
+            return static_cast<uint32_t>(pinIds[pinIndex++]);
+        });
+    }
+
+    if (isSequence)
+    {
+        for (; pinIndex < static_cast<int>(pinIds.size()); ++pinIndex)
+        {
+            const int thenIndex = static_cast<int>(n.outPins.size());
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(pinIds[pinIndex]),
+                n.id,
+                n.nodeType,
+                "Then " + std::to_string(thenIndex),
+                PinType::Flow,
+                false
+            ));
+        }
+    }
 
     return n;
 }

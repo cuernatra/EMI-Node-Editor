@@ -13,6 +13,7 @@
 
 #include "idGen.h"
 #include "pin.h"
+#include "link.h"
 #include "../registry/fieldWidget.h"
 #include <vector>
 #include <string>
@@ -69,5 +70,8 @@ static void DrawPin(const Pin& pin);
  * Must be called within an ed::Begin() / ed::End() block.
  */
 bool DrawVisualNode(VisualNode& n);
+bool DrawVisualNode(VisualNode& n, IdGen* idGen);
+bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* allNodes);
+bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* allNodes, const std::vector<Link>* allLinks);
 
 #endif // VISUALNODE_H

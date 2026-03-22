@@ -9,17 +9,31 @@
 NodeRegistry::NodeRegistry()
 {
     // ------------------------------------------------------------------
+    // Start  —  Event entry output (UE-style white execution flow)
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::Start] = {
+        NodeType::Start,
+        "Start",
+        {
+            { "Exec", PinType::Flow, /*isInput=*/false }
+        },
+        {},
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStart(n); }
+    };
+
+    // ------------------------------------------------------------------
     // Constant  —  single editable Number output
     // ------------------------------------------------------------------
 descriptors_[NodeType::Constant] = {
     NodeType::Constant,
     "Constant",
     {
-        { "Value", PinType::Any, /*isInput=*/false }
+        { "Value", PinType::Number, /*isInput=*/false }
     },
     {
-        { "Value", PinType::String, "0.0" },
-        { "Type",  PinType::String, "String" }
+        // Keep Type first so changing type updates Value widget/reset immediately.
+        { "Type",  PinType::String, "Number" },
+        { "Value", PinType::Number, "0.0" }
     },
     [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildConstant(n); }
 };
@@ -31,8 +45,10 @@ descriptors_[NodeType::Constant] = {
         NodeType::Operator,
         "Operator",
         {
+            { "In",     PinType::Flow,   /*isInput=*/true  },
             { "A",      PinType::Number, /*isInput=*/true  },
             { "B",      PinType::Number, /*isInput=*/true  },
+            { "Out",    PinType::Flow,   /*isInput=*/false },
             { "Result", PinType::Number, /*isInput=*/false }
         },
         {
@@ -48,8 +64,10 @@ descriptors_[NodeType::Constant] = {
         NodeType::Comparison,
         "Compare",
         {
+            { "In",     PinType::Flow,    /*isInput=*/true  },
             { "A",      PinType::Number,  /*isInput=*/true  },
             { "B",      PinType::Number,  /*isInput=*/true  },
+            { "Out",    PinType::Flow,    /*isInput=*/false },
             { "Result", PinType::Boolean, /*isInput=*/false }
         },
         {
@@ -65,14 +83,30 @@ descriptors_[NodeType::Constant] = {
         NodeType::Logic,
         "Logic",
         {
+            { "In",     PinType::Flow,    /*isInput=*/true,  /*isMultiInput=*/false },
             { "A",      PinType::Boolean, /*isInput=*/true,  /*isMultiInput=*/false },
             { "B",      PinType::Boolean, /*isInput=*/true,  /*isMultiInput=*/false },
+            { "Out",    PinType::Flow,    /*isInput=*/false, /*isMultiInput=*/false },
             { "Result", PinType::Boolean, /*isInput=*/false }
         },
         {
             { "Op", PinType::String, "AND" }  // Rendered as combo: AND OR NOT XOR
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildLogic(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // Sequence  —  Flow in -> Then outputs (expandable)
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::Sequence] = {
+        NodeType::Sequence,
+        "Sequence",
+        {
+            { "In",     PinType::Flow, /*isInput=*/true },
+            { "Then 0", PinType::Flow, /*isInput=*/false }
+        },
+        {},
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildSequence(n); }
     };
 
     // ------------------------------------------------------------------
@@ -114,13 +148,18 @@ descriptors_[NodeType::Constant] = {
     // ------------------------------------------------------------------
     descriptors_[NodeType::Variable] = {
         NodeType::Variable,
-        "Variable",
+        "Set Variable",
         {
-            { "Set",   PinType::Any,  /*isInput=*/true  },
+            { "In",    PinType::Flow, /*isInput=*/true  },
+            { "Default", PinType::Any,  /*isInput=*/true  },
+            { "Out",   PinType::Flow, /*isInput=*/false },
             { "Value", PinType::Any,  /*isInput=*/false }
         },
         {
-            { "Name", PinType::String, "myVar" }
+            { "Variant", PinType::String, "Set" },
+            { "Name",    PinType::String, "myVar" },
+            { "Type",    PinType::String, "Number" },
+            { "Default", PinType::String, "0.0" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildVariable(n); }
     };
@@ -142,13 +181,15 @@ descriptors_[NodeType::Constant] = {
     };
 
     // ------------------------------------------------------------------
-    // Output  —  Terminal sink node
+    // Output  —  Flow-triggered debug print sink node
+    // Display name in UI: "Debug Print"
     // ------------------------------------------------------------------
     descriptors_[NodeType::Output] = {
         NodeType::Output,
-        "Output",
+        "Debug Print",
         {
-            { "Value", PinType::Any, /*isInput=*/true }
+            { "In",    PinType::Flow, /*isInput=*/true,  /*isMultiInput=*/true },
+            { "Value", PinType::Any,  /*isInput=*/true }
         },
         {
             { "Label", PinType::String, "result" }

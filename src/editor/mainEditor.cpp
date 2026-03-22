@@ -6,6 +6,7 @@
 #include "imgui.h"
 #include "../core/registry/nodeFactory.h"
 #include "imgui_node_editor.h"
+#include "settings.h"
 
 MainEditor::MainEditor(): m_fileBar(this),
     fileOpen(),
@@ -20,10 +21,16 @@ MainEditor::MainEditor(): m_fileBar(this),
     m_compiler = std::make_unique<GraphCompilation>();
 
     GraphSerializer::Load(*m_graphState, "graph.txt");
+
+    // load settings
+    Settings::Load();
 }
 
 MainEditor::~MainEditor()
 {
+    // save settings
+    Settings::Save();
+
     // Set context as current before saving (needed for ed::GetNodePosition)
     ed::SetCurrentEditor(m_editorContext);
     
@@ -41,14 +48,17 @@ MainEditor::~MainEditor()
 
 void MainEditor::draw()
 {
-    // Top toolbar
+    // Top toolbar on a single row:
+    // [Compile] [Result only] [Clear] [compile status message..........] [+]
     if (ImGui::Button("Compile"))
     {
-        m_compiler->CompileGraph(*m_graphState);
+        m_compiler->CompileGraph(*m_graphState, m_resultOnlyCompile);
     }
 
     ImGui::SameLine();
+    ImGui::Checkbox("Result only", &m_resultOnlyCompile);
 
+    ImGui::SameLine();
     if (ImGui::Button("Clear"))
     {
         m_graphState->Clear();
@@ -57,8 +67,14 @@ void MainEditor::draw()
 
     ImGui::SameLine();
 
+    const float plusButtonWidth = ImGui::CalcTextSize("Focus for nodes").x + ImGui::GetStyle().FramePadding.x * 2.0f + 5.0f;
+    const float statusSpacing = ImGui::GetStyle().ItemSpacing.x;
+    float statusWidth = ImGui::GetContentRegionAvail().x - plusButtonWidth - statusSpacing;
+    if (statusWidth < 80.0f)
+        statusWidth = 80.0f;
 
-    // Display compile status
+    ImGui::BeginChild("##CompileStatusArea", ImVec2(statusWidth, ImGui::GetFrameHeight()), false,
+                      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     const std::string& compileMsg = m_graphState->GetCompileMessage();
     if (!compileMsg.empty())
     {
@@ -69,7 +85,6 @@ void MainEditor::draw()
         ImGui::TextUnformatted(compileMsg.c_str());
         ImGui::PopStyleColor();
     }
-
     else
     {
         ImGui::TextUnformatted(" ");
@@ -81,6 +96,17 @@ void MainEditor::draw()
     std::string fileName = p.filename().string();
     std::string displayPath = fileName;
     ImGui::Text("| File: %s", displayPath.c_str());
+    ImGui::EndChild();
+
+    ImGui::SameLine();
+    if (ImGui::Button("Focus for nodes"))
+    {
+        ed::SetCurrentEditor(m_editorContext);
+        if (m_graphState->HasAliveNodes())
+            ed::NavigateToContent();
+        ed::SetCurrentEditor(nullptr);
+    }
+    
 
     ImGui::Separator();
     // Draw the node editor canvas
@@ -189,4 +215,43 @@ void MainEditor::Exit()
     m_editorContext = nullptr;
 
     exit(0);
+}
+void MainEditor::drawInspectorPanel()
+{
+    ed::SetCurrentEditor(m_editorContext);
+    m_graphEditor->DrawInspectorPanel();
+    ed::SetCurrentEditor(nullptr);
+}
+
+void MainEditor::handleSharedShortcuts()
+{
+    ed::SetCurrentEditor(m_editorContext);
+    m_graphEditor->HandleDeleteShortcutFallback();
+    ed::SetCurrentEditor(nullptr);
+}
+
+bool MainEditor::hasSelectedNode() const
+{
+    ed::SetCurrentEditor(m_editorContext);
+    const bool selected = m_graphEditor->HasSelectedNode();
+    ed::SetCurrentEditor(nullptr);
+    return selected;
+}
+
+bool MainEditor::tryGetSingleSelectedNodeId(uintptr_t& outId) const
+{
+    ed::SetCurrentEditor(m_editorContext);
+    const bool hasOne = m_graphEditor->TryGetSingleSelectedNodeId(outId);
+    ed::SetCurrentEditor(nullptr);
+    return hasOne;
+}
+
+bool MainEditor::hasStartNode() const
+{
+    return m_graphState->HasNodeType(NodeType::Start);
+}
+
+bool MainEditor::hasVariables() const
+{
+    return m_graphState->HasNodeType(NodeType::Variable);
 }

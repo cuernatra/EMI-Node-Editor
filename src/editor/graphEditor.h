@@ -12,6 +12,7 @@
 
 #include "../core/graph/visualNode.h"
 #include "imgui_node_editor.h"
+#include <cstdint>
 
 class GraphState;
 
@@ -54,6 +55,33 @@ public:
      */
     void Draw();
 
+    /**
+     * @brief Draw inspector panel contents for selected node
+     *
+     * Intended to be called inside a host ImGui child/window.
+     */
+    void DrawInspectorPanel();
+
+    /**
+     * @brief Check if an existing node is currently selected
+     */
+    bool HasSelectedNode() const;
+
+    /**
+     * @brief Handle shared delete shortcuts (Delete/Backspace) for current selection
+     *
+     * Intended to be called from a higher-level UI pass so overlay windows can
+     * reuse canvas shortcuts even when they have focus.
+     */
+    void HandleDeleteShortcutFallback();
+
+    /**
+     * @brief Get selected node id when exactly one alive node is selected
+     * @param outId Receives selected node id (raw uintptr value)
+     * @return true when exactly one alive node is selected, otherwise false
+     */
+    bool TryGetSingleSelectedNodeId(uintptr_t& outId) const;
+
 private:
     /**
      * @brief Draw all nodes and links on the canvas
@@ -70,7 +98,7 @@ private:
      * creating links, and deleting elements.
      */
     void DrawContextMenus();
-    
+
     /**
      * @brief Handle new link creation
      * 
@@ -93,4 +121,5 @@ private:
 
     ed::EditorContext* m_ctx;  ///< The imgui-node-editor context
     GraphState& m_state;       ///< Reference to the graph state
+    bool m_initialAutoStartHandled = false; ///< Ensures empty-graph Start auto-spawn runs only once at startup
 };
