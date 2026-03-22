@@ -68,7 +68,8 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
 
     const bool isSequence = (type == NodeType::Sequence);
     const bool isVariable = (type == NodeType::Variable);
-    if ((!isSequence && pinIds.size() != desc->pins.size()) ||
+    const bool isLoop = (type == NodeType::Loop);
+    if ((!isSequence && !isLoop && pinIds.size() != desc->pins.size()) ||
         (isSequence && pinIds.size() < desc->pins.size()))
     {
         // Backward compatibility for older Variable node saves
@@ -80,7 +81,7 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
         }
     }
 
-    assert((isSequence || isVariable || pinIds.size() == desc->pins.size()) && "Pin ID count mismatch");
+    assert((isSequence || isVariable || isLoop || pinIds.size() == desc->pins.size()) && "Pin ID count mismatch");
 
     VisualNode n;
     n.id         = ed::NodeId(nodeId);
@@ -142,6 +143,32 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
                 break;
             }
         }
+    }
+    else if (isLoop && pinIds.size() == desc->pins.size() - 1)
+    {
+        // Backward compatibility for older Loop nodes saved before
+        // the numeric "Index" output pin was introduced.
+        for (size_t i = 0; i < desc->pins.size(); ++i)
+        {
+            const PinDescriptor& pd = desc->pins[i];
+
+            // Old files do not contain the new trailing output pin.
+            // Skip it so legacy graphs can still load safely.
+            if (pd.name == "Index")
+                continue;
+
+            uint32_t pid = static_cast<uint32_t>(pinIds[pinIndex++]);
+            Pin p = MakePin(pid, n.id, desc->type,
+                            pd.name, pd.type, pd.isInput, pd.isMultiInput);
+
+            if (pd.isInput)
+                n.inPins.push_back(p);
+            else
+                n.outPins.push_back(p);
+        }
+
+        for (const FieldDescriptor& fd : desc->fields)
+            n.fields.push_back(MakeNodeField(fd));
     }
     else
     {

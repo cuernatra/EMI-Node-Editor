@@ -108,6 +108,8 @@ private:
     bool NodeRequiresFlow(const VisualNode& n) const;
     const VisualNode* FindFirstNode(NodeType type) const;
     const Pin* GetOutputPinByName(const VisualNode& n, const char* name) const;
+    std::string LoopIndexVarName(const VisualNode& n) const;
+    std::string LoopLastIndexVarName(const VisualNode& n) const;
 
     Node* MakeNode(Token t)                    const;  ///< Creates a bare AST node with the given token type
     Node* MakeNumberNode(double v)             const;  ///< Creates an AST numeric literal node
@@ -127,6 +129,7 @@ private:
 
     // Tracks nodes currently being built to detect recursive cycles.
     std::unordered_set<uintptr_t> activeNodeBuilds_;
+    std::unordered_set<uintptr_t> activeLoopBodyNodeIds_;
     std::unordered_set<uintptr_t> flowReachableNodes_;
     std::unordered_set<uintptr_t> activeFlowOutputs_;
     std::unordered_set<uintptr_t> visitedFlowOutputs_;
