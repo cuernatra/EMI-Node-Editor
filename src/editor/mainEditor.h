@@ -46,5 +46,5 @@ private:
     FileBar m_fileBar;                             ///< Top file menu bar
     ImGui::FileBrowser fileOpen;                   ///< File dialog for open action
     ImGui::FileBrowser fileSaveAs;                 ///< File dialog for save as action
-    std::string m_currentFilePath = "graph.txt";   ///< Path to the currently open file
+    std::string m_currentFilePath = "";   ///< Path to the currently open file
 };
