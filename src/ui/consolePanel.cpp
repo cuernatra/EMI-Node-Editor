@@ -30,7 +30,6 @@ float ConsolePanel::getHeight() const
 
 void ConsolePanel::draw()
 {
-    ImGui::SameLine();
     ImGui::BeginChild("CONSOLE", ImVec2(0, m_height), true);
     if (ImGui::Button("Clear"))
     {
