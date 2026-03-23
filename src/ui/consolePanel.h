@@ -31,6 +31,9 @@ public:
 
     /// Get the height of the console panel
     float getHeight() const;
+
+    /// Set the height of the console panel
+    void setHeight(float height);
     
 private:
     /// Height of the console panel in pixels
