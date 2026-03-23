@@ -14,6 +14,7 @@
 #include "../editor/mainEditor.h"
 #include "../ui/leftPanel.h"
 #include "../ui/topPanel.h"
+#include "../ui/consolePanel.h"
 #include "../editor/settings.h"
 #include <cstdint>
 
@@ -68,6 +69,9 @@ private:
     
     /// Top toolbar with editor actions
     TopPanel m_topPanel;
+
+    //bottom console panel
+    ConsolePanel m_consolePanel;
     
     /// Current width of left panel (-1 = uninitialized, auto-sized on first draw)
     float m_leftPanelWidth = Settings::leftPanelWidth;
