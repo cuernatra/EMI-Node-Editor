@@ -5,6 +5,10 @@
 
 Ui::Ui()
 {
+    for (int i = 0; i < 100; ++i)
+    {
+        m_consolePanel.addLog("Console initialized. Welcome to EMI Visual Programming Tool!");
+    }
 }
 
 void Ui::draw()
@@ -87,14 +91,19 @@ void Ui::draw()
     const float consoleSplitterThickness = 5.0f;
     const float minMainHeight = 80.0f;
     const float minConsoleHeight = 60.0f;
+    const bool consoleMinimized = m_consolePanel.isMinimized();
 
-    const float maxConsoleHeight = std::max(
-        minConsoleHeight,
-        rightColumnHeight - minMainHeight - consoleSplitterThickness
-    );
-    m_consolePanel.setHeight(std::clamp(m_consolePanel.getHeight(), minConsoleHeight, maxConsoleHeight));
+    if (!consoleMinimized)
+    {
+        const float maxConsoleHeight = std::max(
+            minConsoleHeight,
+            rightColumnHeight - minMainHeight - consoleSplitterThickness
+        );
+        m_consolePanel.setHeight(std::clamp(m_consolePanel.getHeight(), minConsoleHeight, maxConsoleHeight));
+    }
 
-    const float mainHeight = rightColumnHeight - m_consolePanel.getHeight() - consoleSplitterThickness;
+    const float activeConsoleSplitterThickness = consoleMinimized ? 0.0f : consoleSplitterThickness;
+    const float mainHeight = rightColumnHeight - m_consolePanel.getHeight() - activeConsoleSplitterThickness;
 
     const ImVec2 mainEditorPos = ImGui::GetCursorScreenPos();
 
@@ -102,13 +111,16 @@ void Ui::draw()
     m_mainEditor.draw();
     ImGui::EndChild();
 
-    DrawConsoleSplitter(
-        mainWidth,
-        consoleSplitterThickness,
-        minMainHeight,
-        minConsoleHeight,
-        rightColumnHeight
-    );
+    if (!consoleMinimized)
+    {
+        DrawConsoleSplitter(
+            mainWidth,
+            consoleSplitterThickness,
+            minMainHeight,
+            minConsoleHeight,
+            rightColumnHeight
+        );
+    }
 
     m_consolePanel.draw();
 
