@@ -63,13 +63,6 @@ void Ui::draw()
 
     ImGui::SameLine(0.0f, 0.0f);
 
-    ImGui::BeginChild(
-        "RIGHT COLUMN",
-        ImVec2(0, 0),
-        false,
-        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse
-    );
-
     ImGui::BeginGroup();
 
     uintptr_t selectedNodeId = 0;
@@ -89,7 +82,7 @@ void Ui::draw()
     );
     const float inspectorWidth = std::clamp(m_rightPanelWidth, minRight, maxRightWidth);
 
-    const float mainWidth = ImGui::GetContentRegionAvail().x;
+    const float mainWidth = totalWidth - m_leftPanelWidth - splitterWidth;
     const float rightColumnHeight = ImGui::GetContentRegionAvail().y;
     const float consoleSplitterThickness = 5.0f;
     const float minMainHeight = 80.0f;
@@ -137,8 +130,6 @@ void Ui::draw()
 
         drawInspectorOverlay = true;
     }
-
-    ImGui::EndChild();
 
     ImGui::End();
 
