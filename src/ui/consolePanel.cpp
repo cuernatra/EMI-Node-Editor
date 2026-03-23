@@ -28,6 +28,11 @@ float ConsolePanel::getHeight() const
     return m_height;
 }
 
+void ConsolePanel::setHeight(float height)
+{
+    m_height = height;
+}
+
 void ConsolePanel::draw()
 {
     ImGui::BeginChild("CONSOLE", ImVec2(0, m_height), true);

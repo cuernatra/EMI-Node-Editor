@@ -80,14 +80,33 @@ void Ui::draw()
     );
     const float inspectorWidth = std::clamp(m_rightPanelWidth, minRight, maxRightWidth);
 
-    const float mainWidth = totalWidth - m_leftPanelWidth - splitterWidth;
-    const float mainHeight = ImGui::GetContentRegionAvail().y - m_consolePanel.getHeight() - 10.0f;
+    const float mainWidth = totalWidth - m_leftPanelWidth - splitterWidth - 1.0f; // extra padding to prevent horizontal scrollbar
+    const float rightColumnHeight = ImGui::GetContentRegionAvail().y;
+    const float consoleSplitterThickness = 5.0f;
+    const float minMainHeight = 80.0f;
+    const float minConsoleHeight = 60.0f;
+
+    const float maxConsoleHeight = std::max(
+        minConsoleHeight,
+        rightColumnHeight - minMainHeight - consoleSplitterThickness
+    );
+    m_consolePanel.setHeight(std::clamp(m_consolePanel.getHeight(), minConsoleHeight, maxConsoleHeight));
+
+    const float mainHeight = rightColumnHeight - m_consolePanel.getHeight() - consoleSplitterThickness - 10.0f; // fix scrollbar appe
 
     const ImVec2 mainEditorPos = ImGui::GetCursorScreenPos();
 
     ImGui::BeginChild("MAIN EDITOR", ImVec2(mainWidth, mainHeight), true);
     m_mainEditor.draw();
     ImGui::EndChild();
+
+    DrawConsoleSplitter(
+        mainWidth,
+        consoleSplitterThickness,
+        minMainHeight,
+        minConsoleHeight,
+        rightColumnHeight
+    );
 
     m_consolePanel.draw();
 
@@ -188,5 +207,23 @@ void Ui::DrawSplitter(float totalWidth, float thickness, float minLeft, float mi
     if(ImGui::IsItemHovered() || ImGui::IsItemActive())
     {
         ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+    }
+}
+
+void Ui::DrawConsoleSplitter(float width, float thickness, float minMain, float minConsole, float availableHeight)
+{
+    ImGui::InvisibleButton("console_splitter", ImVec2(width, thickness));
+
+    if (ImGui::IsItemActive())
+    {
+        const float delta = ImGui::GetIO().MouseDelta.y;
+        const float maxConsole = std::max(minConsole, availableHeight - minMain - thickness);
+        const float newConsoleHeight = std::clamp(m_consolePanel.getHeight() - delta, minConsole, maxConsole);
+        m_consolePanel.setHeight(newConsoleHeight);
+    }
+
+    if (ImGui::IsItemHovered() || ImGui::IsItemActive())
+    {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
     }
 }
