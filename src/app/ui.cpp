@@ -81,7 +81,7 @@ void Ui::draw()
     const float inspectorWidth = std::clamp(m_rightPanelWidth, minRight, maxRightWidth);
 
     const float mainWidth = totalWidth - m_leftPanelWidth - splitterWidth;
-    const float mainHeight = ImGui::GetContentRegionAvail().y - m_consolePanel.getHeight();
+    const float mainHeight = ImGui::GetContentRegionAvail().y - m_consolePanel.getHeight() - 10.0f;
 
     const ImVec2 mainEditorPos = ImGui::GetCursorScreenPos();
 
