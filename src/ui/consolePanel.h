@@ -34,10 +34,20 @@ public:
 
     /// Set the height of the console panel
     void setHeight(float height);
+
+    /// Toggle between minimized and expanded states
+    void toggleMinimized();
+
+    /// Returns true if the console is currently minimized
+    bool isMinimized() const;
     
 private:
     /// Height of the console panel in pixels
     float m_height;
+    /// Last expanded height used when restoring after minimize
+    float m_lastExpandedHeight;
+    /// Tracks whether the console is minimized
+    bool m_minimized;
     std::vector<std::string> m_logs;
 };
 
