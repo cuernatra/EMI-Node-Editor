@@ -4,6 +4,7 @@ add_executable(emi-editor
   app/ui.cpp
   ui/leftPanel.cpp
   ui/topPanel.cpp
+  ui/consolePanel.cpp
   ui/dropBar.cpp
   ui/nodePreview.cpp
   editor/mainEditor.cpp

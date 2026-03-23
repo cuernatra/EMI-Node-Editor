@@ -105,6 +105,11 @@ void Ui::draw()
         drawInspectorOverlay = true;
     }
 
+    // console panel
+    ImGui::BeginChild("CONSOLE PANEL", ImVec2(mainWidth, 0), true);
+    m_consolePanel.draw();
+    ImGui::EndChild();
+
     ImGui::End();
 
     if (drawInspectorOverlay)
