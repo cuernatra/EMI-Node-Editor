@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cstdio>
 
-Ui::Ui() 
+Ui::Ui()
 {
 }
 
@@ -61,6 +61,8 @@ void Ui::draw()
 
     ImGui::SameLine();
 
+    ImGui::BeginGroup();
+
     uintptr_t selectedNodeId = 0;
     const bool showInspector = m_mainEditor.tryGetSingleSelectedNodeId(selectedNodeId);
     if (showInspector)
@@ -78,15 +80,18 @@ void Ui::draw()
     );
     const float inspectorWidth = std::clamp(m_rightPanelWidth, minRight, maxRightWidth);
 
-    float mainWidth = totalWidth - m_leftPanelWidth - splitterWidth;
-    if (mainWidth < minLeft)
-        mainWidth = minLeft;
+    const float mainWidth = totalWidth - m_leftPanelWidth - splitterWidth;
+    const float mainHeight = ImGui::GetContentRegionAvail().y - m_consolePanel.getHeight();
 
     const ImVec2 mainEditorPos = ImGui::GetCursorScreenPos();
 
-    ImGui::BeginChild("MAIN EDITOR", ImVec2(mainWidth, 0), true);
+    ImGui::BeginChild("MAIN EDITOR", ImVec2(mainWidth, mainHeight), true);
     m_mainEditor.draw();
     ImGui::EndChild();
+
+    m_consolePanel.draw();
+
+    ImGui::EndGroup();
 
     if (showInspector)
     {
@@ -104,11 +109,6 @@ void Ui::draw()
 
         drawInspectorOverlay = true;
     }
-
-    // console panel
-    ImGui::BeginChild("CONSOLE PANEL", ImVec2(mainWidth, 0), true);
-    m_consolePanel.draw();
-    ImGui::EndChild();
 
     ImGui::End();
 

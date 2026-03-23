@@ -1,47 +1,54 @@
 #include "consolePanel.h"
-#include <string>
-#include <iostream>
+#include <imgui.h>
+#include <cstdarg>
 
 ConsolePanel::ConsolePanel() : m_height{300} // default height for console panel
 {
 }
 
+void ConsolePanel::addLog(const char* fmt, ...)
+{
+    char buf[1024];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buf, IM_ARRAYSIZE(buf), fmt, args);
+    buf[IM_ARRAYSIZE(buf)-1] = 0;
+    va_end(args);
+
+    m_logs.push_back(buf);
+}
+
+void ConsolePanel::clear()
+{
+    m_logs.clear();
+}
+
+float ConsolePanel::getHeight() const
+{
+    return m_height;
+}
+
 void ConsolePanel::draw()
-{   
-    std::cout << "Drawing console panel..." << std::endl;
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 2));
-
-    ImGui::PushStyleColor(ImGuiCol_Button, colors::gray);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::lightGray);
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::gray);
-
-    if (ImGui::Button("test1", ImVec2(80, m_height - 14)))
+{
+    ImGui::SameLine();
+    ImGui::BeginChild("CONSOLE", ImVec2(0, m_height), true);
+    if (ImGui::Button("Clear"))
     {
-        printf("miau\n");
+        clear();
+    }
+    ImGui::Separator();
+    ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+    
+    for (const auto& log : m_logs)
+    {
+        ImGui::TextUnformatted(log.c_str());
     }
 
-    ImGui::SameLine(0, 55);
-
-    if (ImGui::Button("test2", ImVec2(80, m_height - 14)))
+    if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
     {
-        printf("test2\n");
+        ImGui::SetScrollHereY(1.0f);
     }
 
-    ImGui::SameLine(0, 10);
-
-    if (ImGui::Button("test3", ImVec2(80, m_height - 14)))
-    {
-        printf("test3\n");
-    }
-
-    ImGui::SameLine(0, 10);
-
-    if (ImGui::Button("test4", ImVec2(80, m_height - 14)))
-    {
-        printf("test4\n");
-    }
-
-    ImGui::PopStyleColor(3);
-    ImGui::PopStyleVar(2);
+    ImGui::EndChild();
+    ImGui::EndChild();
 }
