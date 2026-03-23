@@ -41,7 +41,7 @@ void ConsolePanel::draw()
         clear();
     }
     ImGui::Separator();
-    ImGui::BeginChild("scrolling", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar);
+    ImGui::BeginChild("scrolling", ImVec2(0, 0), false);
     
     for (const auto& log : m_logs)
     {

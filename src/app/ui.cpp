@@ -24,7 +24,9 @@ void Ui::draw()
         ImGuiWindowFlags_NoMove | 
         ImGuiWindowFlags_NoResize | 
         ImGuiWindowFlags_NoCollapse | 
-        ImGuiWindowFlags_NoTitleBar
+        ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoScrollbar |
+        ImGuiWindowFlags_NoScrollWithMouse
     );
 
     const float totalWidth = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
@@ -55,11 +57,18 @@ void Ui::draw()
     m_leftPanel.draw(m_mainEditor.hasStartNode());
     ImGui::EndChild();
 
-    ImGui::SameLine();
+    ImGui::SameLine(0.0f, 0.0f);
 
     DrawSplitter(totalWidth, splitterWidth, minLeft, minRight);
 
-    ImGui::SameLine();
+    ImGui::SameLine(0.0f, 0.0f);
+
+    ImGui::BeginChild(
+        "RIGHT COLUMN",
+        ImVec2(0, 0),
+        false,
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse
+    );
 
     ImGui::BeginGroup();
 
@@ -80,7 +89,7 @@ void Ui::draw()
     );
     const float inspectorWidth = std::clamp(m_rightPanelWidth, minRight, maxRightWidth);
 
-    const float mainWidth = totalWidth - m_leftPanelWidth - splitterWidth - 1.0f; // extra padding to prevent horizontal scrollbar
+    const float mainWidth = ImGui::GetContentRegionAvail().x;
     const float rightColumnHeight = ImGui::GetContentRegionAvail().y;
     const float consoleSplitterThickness = 5.0f;
     const float minMainHeight = 80.0f;
@@ -92,7 +101,7 @@ void Ui::draw()
     );
     m_consolePanel.setHeight(std::clamp(m_consolePanel.getHeight(), minConsoleHeight, maxConsoleHeight));
 
-    const float mainHeight = rightColumnHeight - m_consolePanel.getHeight() - consoleSplitterThickness - 10.0f; // fix scrollbar appe
+    const float mainHeight = rightColumnHeight - m_consolePanel.getHeight() - consoleSplitterThickness;
 
     const ImVec2 mainEditorPos = ImGui::GetCursorScreenPos();
 
@@ -128,6 +137,8 @@ void Ui::draw()
 
         drawInspectorOverlay = true;
     }
+
+    ImGui::EndChild();
 
     ImGui::End();
 
