@@ -64,21 +64,36 @@ void ConsolePanel::draw()
         : ImGuiWindowFlags_None;
     ImGui::BeginChild("CONSOLE", ImVec2(0, getHeight()), true, consoleFlags);
 
-    if (ImGui::Button(m_minimized ? "Maximize" : "Minimize"))
-    {
-        toggleMinimized();
-    }
+    const char* toggleLabel = m_minimized ? "Maximize" : "Minimize";
+    const float framePadX = ImGui::GetStyle().FramePadding.x;
+    const float itemSpacing = ImGui::GetStyle().ItemSpacing.x;
+    const float toggleWidth = ImGui::CalcTextSize(toggleLabel).x + framePadX * 2.0f;
+    const float clearWidth = ImGui::CalcTextSize("Clear").x + framePadX * 2.0f;
+    const float buttonsWidth = m_minimized ? toggleWidth : (clearWidth + itemSpacing + toggleWidth);
+
+    const float currentX = ImGui::GetCursorPosX();
+    const float rightAlignedX = currentX + ImGui::GetContentRegionAvail().x - buttonsWidth;
+    ImGui::SetCursorPosX(std::max(currentX, rightAlignedX));
 
     if (m_minimized)
     {
+        if (ImGui::Button(toggleLabel))
+        {
+            toggleMinimized();
+        }
         ImGui::EndChild();
         return;
     }
 
-    ImGui::SameLine();
     if (ImGui::Button("Clear"))
     {
         clear();
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button(toggleLabel))
+    {
+        toggleMinimized();
     }
 
     ImGui::Separator();
