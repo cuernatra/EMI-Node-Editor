@@ -677,17 +677,17 @@ Node* GraphCompiler::BuildLoop(const VisualNode& n)
     varDecl->children.push_back(initType);
     varDecl->children.push_back(initVal);
 
-    Node* cond    = MakeNode(Token::LessEqual);
+    Node* cond    = MakeNode(Token::Less);
     Node* iRef    = MakeIdNode(indexVarName);
     Node* countEx = BuildExpr(n.inPins[1]);
     if (HasError) { delete varDecl; delete cond; return nullptr; }
 
-    Node* roundedCountExpr = MakeNode(Token::Add);
-    roundedCountExpr->children.push_back(countEx);
-    roundedCountExpr->children.push_back(MakeNumberNode(0.5));
+    Node* inclusiveUpperBoundExpr = MakeNode(Token::Add);
+    inclusiveUpperBoundExpr->children.push_back(countEx);
+    inclusiveUpperBoundExpr->children.push_back(MakeNumberNode(1.0));
 
     cond->children.push_back(iRef);
-    cond->children.push_back(roundedCountExpr);
+    cond->children.push_back(inclusiveUpperBoundExpr);
 
     Node* incr  = MakeNode(Token::Increment);
     Node* iRef2 = MakeIdNode(indexVarName);
