@@ -53,7 +53,7 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 {
     if (m_logSink)
     {
-        m_logSink("Compiling graph...");
+        m_logSink("Compiling graph...\n");
     }
 
     if (resultOnly)
@@ -71,7 +71,7 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 
     if (!m_impl || !m_impl->vm)
     {
-        const std::string status = "[ERROR] Error: EMI environment not initialized";
+        const std::string status = "[ERROR] Error: EMI environment not initialized\n";
         state.SetCompileStatus(false, status);
         if (m_logSink)
         {
@@ -83,7 +83,7 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
     // Validate graph has a Debug Print node for output
     if (!state.HasOutputNode())
     {
-        const std::string status = "[ERROR] Error: Graph requires a Debug Print node for output";
+        const std::string status = "[ERROR] Error: Graph requires a Debug Print node for output\n";
         state.SetCompileStatus(false, status);
         if (m_logSink)
         {
@@ -98,7 +98,7 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 
     if (gc.HasError || !ast)
     {
-        const std::string status = "[ERROR] Compile error: " + gc.GetError();
+        const std::string status = "[ERROR] Compile error: " + gc.GetError() + "\n";
         state.SetCompileStatus(false, status);
         if (m_logSink)
         {
@@ -129,7 +129,7 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
     void* printHandle = m_impl->vm->CompileTemporary(kRunGraphScript);
     if (!m_impl->vm->WaitForResult(printHandle))
     {
-        const std::string status = "[ERROR] Runtime error: Failed to execute compiled graph";
+        const std::string status = "[ERROR] Runtime error: Failed to execute compiled graph\n";
         state.SetCompileStatus(false, status);
         if (m_logSink)
         {
