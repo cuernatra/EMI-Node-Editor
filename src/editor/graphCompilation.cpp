@@ -3,6 +3,8 @@
 #include "../core/compiler/graphCompiler.h"
 #include "VM.h"
 #include "Parser/Node.h"
+#include <iostream>
+#include <sstream>
 #include <string>
 
 // Pimpl implementation details
@@ -11,6 +13,11 @@ class GraphCompilation::Impl
 public:
     std::unique_ptr<VM> vm;
 
+    /**
+     * @brief Initializes the Pimpl implementation with a VM instance.
+     *
+     * @author Jenny
+     */
     Impl()
     {
         vm = std::make_unique<VM>();
@@ -19,13 +26,31 @@ public:
     ~Impl() = default;
 };
 
+/**
+ * @brief Constructs a GraphCompilation instance and initializes the implementation.
+ *
+ * @author Jenny
+ */
 GraphCompilation::GraphCompilation()
     : m_impl(std::make_unique<Impl>())
 {
 }
 
+/**
+ * @brief Destroys the GraphCompilation instance.
+ *
+ * @author Jenny
+ */
 GraphCompilation::~GraphCompilation() = default;
 
+/**
+ * @brief Compiles and executes a visual graph.
+ *
+ * @param state The graph state containing nodes and links to compile.
+ * @param resultOnly If true, suppress debug output; if false, enable debug logging.
+ *
+ * @author Jenny
+ */
 void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 {
     if (resultOnly)
@@ -43,52 +68,56 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 
     if (!m_impl || !m_impl->vm)
     {
-        state.SetCompileStatus(false, "Error: EMI environment not initialized");
+        state.SetCompileStatus(false, "✗ Error: EMI environment not initialized");
         return;
     }
 
-    // Pre-validate: check for Debug Print node
+    // Validate graph has a Debug Print node for output
     if (!state.HasOutputNode())
     {
-        state.SetCompileStatus(false, "Error: graph has no Debug Print node.");
+        state.SetCompileStatus(false, "✗ Error: Graph requires a Debug Print node for output");
         return;
     }
 
-    // Step 1: Compile visual graph to AST
+    // Compile visual graph to AST
     GraphCompiler gc;
     Node* ast = gc.Compile(state.GetNodes(), state.GetLinks());
 
     if (gc.HasError || !ast)
     {
-        state.SetCompileStatus(false, "Compile error: " + gc.GetError());
+        state.SetCompileStatus(false, "✗ Compile error: " + gc.GetError());
         if (ast) delete ast;
         return;
     }
 
+    if (!resultOnly)
+    {
+#ifdef DEBUG
+        ast->print("");
+#endif
+        std::cout << "\n";
+    }
+
     constexpr const char* kCompileUnitName = "__graph_unit__";
 
-    // Remove previous graph unit so repeated compile runs don't accumulate stale symbols.
+    // Clear previous graph unit from VM
     m_impl->vm->RemoveUnit(kCompileUnitName);
 
-    // Step 3: Compile AST directly via EMI's internal AST walker.
-    // CompileAST enqueues parsing and blocks until completed.
-    // VM takes ownership of ast pointer after this call.
+    // Compile AST to VM bytecode
     m_impl->vm->CompileAST(kCompileUnitName, ast);
 
-    // Step 4: Execute compiled graph function.
-    // Debug Print nodes inside the graph are now responsible for
-    // terminal output, so we only invoke __graph__() here.
+    // Execute the compiled graph function
     constexpr const char* kRunGraphScript = "__graph__();";
     void* printHandle = m_impl->vm->CompileTemporary(kRunGraphScript);
     if (!m_impl->vm->WaitForResult(printHandle))
     {
-        state.SetCompileStatus(false, "Runtime error: failed to execute '__graph__()'");
+        state.SetCompileStatus(false, "✗ Runtime error: Failed to execute compiled graph");
         return;
     }
 
     if (resultOnly)
-        state.SetCompileStatus(true, "OK");
+        state.SetCompileStatus(true, "✓ Compilation successful");
     else
-        state.SetCompileStatus(true, "OK — compiled and executed (__graph__)");
+        state.SetCompileStatus(true, "✓ Compiled and executed successfully");
 }
 
