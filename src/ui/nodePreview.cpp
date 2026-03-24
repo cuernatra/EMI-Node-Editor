@@ -146,13 +146,15 @@ void NodePreview::Draw(NodeType nodeType, const char* titleOverride)
     }
 
     // Output pins
+    // Output pins — text right-aligned, circle on the right edge
     for (const PinDescriptor* pin : outputPins)
     {
         const float  pinY   = contentTop + verticalOffset + static_cast<float>(idx) * pinSpacing;
-        const ImVec2 pinPos(cursorPos.x + padding, pinY);
+        const ImVec2 pinPos(nodeMax.x - padding, pinY); // circle on right edge
         drawList->AddCircleFilled(pinPos, pinRadius, pinColor);
         snprintf(buf, sizeof(buf), "%s ->", pin->name.c_str());
-        drawList->AddText(ImVec2(pinPos.x + pinRadius + 4.0f, pinY - 6.0f), textColor, buf);
+        const float textWidth = ImGui::CalcTextSize(buf).x;
+        drawList->AddText(ImVec2(pinPos.x - pinRadius - 4.0f - textWidth, pinY - 6.0f), textColor, buf);
         ++idx;
     }
 

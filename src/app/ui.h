@@ -14,6 +14,7 @@
 #include "../editor/mainEditor.h"
 #include "../ui/leftPanel.h"
 #include "../ui/topPanel.h"
+#include "../ui/consolePanel.h"
 #include "../editor/settings.h"
 #include <cstdint>
 
@@ -60,6 +61,16 @@ private:
      */
     void DrawSplitter(float totalWidth, float thickness, float minLeft, float minRight);
 
+    /**
+     * @brief Draw horizontal splitter between main editor and console
+     * @param width Width of the right-side column
+     * @param thickness Height of splitter in pixels
+     * @param minMain Minimum height for main editor
+     * @param minConsole Minimum height for console panel
+     * @param availableHeight Total available height in right-side column
+     */
+    void DrawConsoleSplitter(float width, float thickness, float minMain, float minConsole, float availableHeight);
+
     /// Main node graph editor
     MainEditor m_mainEditor;
     
@@ -68,6 +79,9 @@ private:
     
     /// Top toolbar with editor actions
     TopPanel m_topPanel;
+
+    //bottom console panel
+    ConsolePanel m_consolePanel;
     
     /// Current width of left panel (-1 = uninitialized, auto-sized on first draw)
     float m_leftPanelWidth = Settings::leftPanelWidth;

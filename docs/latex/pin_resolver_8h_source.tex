@@ -1,0 +1,75 @@
+\doxysection{pin\+Resolver.\+h}
+\hypertarget{pin_resolver_8h_source}{}\label{pin_resolver_8h_source}\index{src/core/compiler/pinResolver.h@{src/core/compiler/pinResolver.h}}
+\doxymbox{\hyperlink{pin_resolver_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{visual_node_8h}{../graph/visualNode.h}}"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{link_8h}{../graph/link.h}}"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}imgui\_node\_editor.h"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <unordered\_map>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{namespace\ }ed\ =\ ax::NodeEditor;}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{comment}{//\ Hash\ specialization\ for\ ed::PinId\ to\ use\ as\ unordered\_map\ key}}
+\DoxyCodeLine{00022\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespacestd}{std}}\ \{}
+\DoxyCodeLine{00023\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00024\ \textcolor{keyword}{struct\ }hash<ed::PinId>}
+\DoxyCodeLine{00025\ \{}
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \doxymbox{\hyperlink{structstd_1_1hash_3_01ed_1_1_pin_id_01_4_a476d7a741f31822e13a486fe8578fa97}{operator()}}(\textcolor{keyword}{const}\ ed::PinId\&\ \textcolor{keywordtype}{id})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}}
+\DoxyCodeLine{00027\ \ \ \ \ \{}
+\DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ hash<uintptr\_t>()(\textcolor{keywordtype}{id}.Get());}
+\DoxyCodeLine{00029\ \ \ \ \ \}}
+\DoxyCodeLine{00030\ \};}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{keyword}{template}<>}
+\DoxyCodeLine{00033\ \textcolor{keyword}{struct\ }hash<ed::NodeId>}
+\DoxyCodeLine{00034\ \{}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keywordtype}{size\_t}\ \doxymbox{\hyperlink{structstd_1_1hash_3_01ed_1_1_node_id_01_4_ad1630bb3f37c722a4e8167ff44aa182e}{operator()}}(\textcolor{keyword}{const}\ ed::NodeId\&\ \textcolor{keywordtype}{id})\ \textcolor{keyword}{const}\ \textcolor{keyword}{noexcept}}
+\DoxyCodeLine{00036\ \ \ \ \ \{}
+\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ hash<uintptr\_t>()(\textcolor{keywordtype}{id}.Get());}
+\DoxyCodeLine{00038\ \ \ \ \ \}}
+\DoxyCodeLine{00039\ \};}
+\DoxyCodeLine{00040\ \}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{keyword}{namespace\ }ed\ =\ ax::NodeEditor;}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00056\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_pin_source}{PinSource}}}
+\DoxyCodeLine{00057\ \{}
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}*\ \doxymbox{\hyperlink{struct_pin_source_acf555808ecb7167be2507d52a4c4d934}{node}}\ \ \ \ =\ \textcolor{keyword}{nullptr};\ \ }
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{struct_pin_source_a04359342efa836cd440f0b9c57fdde68}{pinIdx}}\ \ =\ 0;\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00060\ \};}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00065\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_flow_target}{FlowTarget}}}
+\DoxyCodeLine{00066\ \{}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}*\ \doxymbox{\hyperlink{struct_flow_target_ad88164939c7cbf1c58e01cae71a7aa6c}{node}}\ \ \ =\ \textcolor{keyword}{nullptr};\ \ }
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{struct_flow_target_a7e97dbdf64a761858788027add7b464e}{pinIdx}}\ =\ 0;\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00069\ \};}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00095\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_pin_resolver}{PinResolver}}}
+\DoxyCodeLine{00096\ \{}
+\DoxyCodeLine{00097\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_pin_resolver_a696fd1cd6dc0bbee2ce1df14fe731e70}{Build}}(\textcolor{keyword}{const}\ std::vector<VisualNode>\&\ nodes,}
+\DoxyCodeLine{00110\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::vector<Link>\&\ \ \ \ \ \ \ links);}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_pin_source}{PinSource}}*\ \doxymbox{\hyperlink{class_pin_resolver_acad91c351bd282d82d963204f3f4f2c5}{Resolve}}(ed::PinId\ inputPinId)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00121\ }
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_flow_target}{FlowTarget}}*\ \doxymbox{\hyperlink{class_pin_resolver_a2cafa6aa7e0f9ce9c0d8e76de717fc38}{ResolveFlow}}(ed::PinId\ flowOutputPinId)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00128\ }
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}*\ \doxymbox{\hyperlink{class_pin_resolver_a980ce6b2c4d87143b0722aff031caaf4}{FindNode}}(ed::NodeId\ nodeId)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00138\ }
+\DoxyCodeLine{00139\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00140\ \ \ \ \ \textcolor{comment}{//\ inputPinId\ -\/>\ PinSource}}
+\DoxyCodeLine{00141\ \ \ \ \ std::unordered\_map<ed::PinId,\ PinSource>\ inputToSource\_;}
+\DoxyCodeLine{00142\ }
+\DoxyCodeLine{00143\ \ \ \ \ \textcolor{comment}{//\ nodeId\ -\/>\ VisualNode*}}
+\DoxyCodeLine{00144\ \ \ \ \ std::unordered\_map<ed::NodeId,\ const\ VisualNode*>\ nodeById\_;}
+\DoxyCodeLine{00145\ }
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{comment}{//\ flow\ output\ pin\ ID\ -\/>\ downstream\ flow\ input\ target}}
+\DoxyCodeLine{00147\ \ \ \ \ std::unordered\_map<ed::PinId,\ FlowTarget>\ flowOutputToTarget\_;}
+\DoxyCodeLine{00148\ \};}
+
+\end{DoxyCode}

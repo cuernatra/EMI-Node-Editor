@@ -1,0 +1,27 @@
+\doxysection{id\+Gen.\+h}
+\hypertarget{id_gen_8h_source}{}\label{id_gen_8h_source}\index{src/core/graph/idGen.h@{src/core/graph/idGen.h}}
+\doxymbox{\hyperlink{id_gen_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ IDGEN\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ IDGEN\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}imgui\_node\_editor.h"{}}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{keyword}{namespace\ }ed\ =\ ax::NodeEditor;}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_id_gen}{IdGen}}}
+\DoxyCodeLine{00018\ \{}
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{struct_id_gen_a3c9846166fad3b3c4e1dfc126103f8aa}{next}}\ =\ 1;}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{struct_id_gen_a7f4bf3bafa8ef911eceb011bbda59d5c}{SetNext}}(\textcolor{keywordtype}{int}\ v)\ \{\ \doxymbox{\hyperlink{struct_id_gen_a3c9846166fad3b3c4e1dfc126103f8aa}{next}}\ =\ v;\ \}}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00035\ \ \ \ \ ed::NodeId\ \doxymbox{\hyperlink{struct_id_gen_afadf54d9b82dbdfa6ebf230433b53ccf}{NewNode}}()\ \{\ \textcolor{keywordflow}{return}\ ed::NodeId(\doxymbox{\hyperlink{struct_id_gen_a3c9846166fad3b3c4e1dfc126103f8aa}{next}}++);\ \}}
+\DoxyCodeLine{00036\ \ \ \ \ }
+\DoxyCodeLine{00041\ \ \ \ \ ed::PinId\ \ \doxymbox{\hyperlink{struct_id_gen_a3165de93143301e8a879ce2d17e5838c}{NewPin}}()\ \ \{\ \textcolor{keywordflow}{return}\ ed::PinId(\doxymbox{\hyperlink{struct_id_gen_a3c9846166fad3b3c4e1dfc126103f8aa}{next}}++);\ \}}
+\DoxyCodeLine{00042\ \ \ \ \ }
+\DoxyCodeLine{00047\ \ \ \ \ ed::LinkId\ \doxymbox{\hyperlink{struct_id_gen_aed5422bb981f1940a407f872c4380d24}{NewLink}}()\ \{\ \textcolor{keywordflow}{return}\ ed::LinkId(\doxymbox{\hyperlink{struct_id_gen_a3c9846166fad3b3c4e1dfc126103f8aa}{next}}++);\ \}}
+\DoxyCodeLine{00048\ \};}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00050\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ IDGEN\_H}}
+
+\end{DoxyCode}

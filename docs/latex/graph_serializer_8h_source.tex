@@ -1,0 +1,24 @@
+\doxysection{graph\+Serializer.\+h}
+\hypertarget{graph_serializer_8h_source}{}\label{graph_serializer_8h_source}\index{src/editor/graphSerializer.h@{src/editor/graphSerializer.h}}
+\doxymbox{\hyperlink{graph_serializer_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_state}{GraphState}};}
+\DoxyCodeLine{00016\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_visual_node}{VisualNode}};}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00030\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_serializer}{GraphSerializer}}}
+\DoxyCodeLine{00031\ \{}
+\DoxyCodeLine{00032\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_serializer_a3fa96704a18fad6758e903f86c0eb5dc}{Save}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{class_graph_state}{GraphState}}\&\ state,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ path);}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_serializer_a164fd72161957230f7048280f4fa4eee}{Load}}(\doxymbox{\hyperlink{class_graph_state}{GraphState}}\&\ state,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ path);}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_serializer_a029b975ad02c950762d12071f7ec1107}{ApplyConstantTypeFromFields}}(\doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n,\ \textcolor{keywordtype}{bool}\ resetValueOnTypeChange\ =\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00054\ \};}
+
+\end{DoxyCode}

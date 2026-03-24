@@ -1,0 +1,37 @@
+\doxysection{src/\+editor/\+settings.h File Reference}
+\hypertarget{settings_8h}{}\label{settings_8h}\index{src/editor/settings.h@{src/editor/settings.h}}
+
+
+Persistent application settings.  
+
+
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespace_settings}{Settings}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{namespace_settings_aca28e31f4a12cc9f0c2e522818784a5d}{Settings::\+\+Load}} ()
+\item 
+void \doxymbox{\hyperlink{namespace_settings_a86e6fc9057d40adb5ce297b28f797a68}{Settings::\+\+Save}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+float \doxymbox{\hyperlink{namespace_settings_a1e214421675dfe6fe7ec0cb6dfa043c7}{Settings::\+left\+Panel\+Width}} = -\/1.\+0f
+\begin{DoxyCompactList}\small\item\em Width of the left panel in pixels. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Persistent application settings. 
+
+Loads and saves settings to settings.\+json in the working directory. Call \doxylink{namespace_settings_aca28e31f4a12cc9f0c2e522818784a5d}{Settings::\+\+Load()} on startup and \doxylink{namespace_settings_a86e6fc9057d40adb5ce297b28f797a68}{Settings::\+\+Save()} on shutdown.
+
+Adding a new setting:\+
+\begin{DoxyEnumerate}
+\item Add an inline variable with a sensible default value
+\item Add a line in Load() using s.\+value("{}key"{}, default\+Value)
+\item Add a line in Save() using s\+["{}key"{}]\+ = member 
+\end{DoxyEnumerate}

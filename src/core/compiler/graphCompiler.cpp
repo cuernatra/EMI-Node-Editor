@@ -2,6 +2,7 @@
 #include "../registry/nodeRegistry.h"
 #include <stdexcept>
 #include <cassert>
+#include <cmath>
 
 
 // Helpers
@@ -130,6 +131,16 @@ const Pin* GraphCompiler::GetOutputPinByName(const VisualNode& n, const char* na
     return nullptr;
 }
 
+std::string GraphCompiler::LoopIndexVarName(const VisualNode& n) const
+{
+    return "__loop_i_" + std::to_string(static_cast<unsigned long long>(static_cast<uintptr_t>(n.id.Get())));
+}
+
+std::string GraphCompiler::LoopLastIndexVarName(const VisualNode& n) const
+{
+    return "__loop_last_i_" + std::to_string(static_cast<unsigned long long>(static_cast<uintptr_t>(n.id.Get())));
+}
+
 void GraphCompiler::CollectFlowReachableFromOutput(ed::PinId flowOutputPinId)
 {
     const uintptr_t outKey = static_cast<uintptr_t>(flowOutputPinId.Get());
@@ -230,17 +241,28 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
             if (HasError || !forNode) { delete forNode; return; }
 
             Node* bodyScope = (forNode->children.size() > 3) ? forNode->children[3] : nullptr;
-            Node* completedScope = (forNode->children.size() > 4) ? forNode->children[4] : nullptr;
 
             if (const Pin* bodyOut = GetOutputPinByName(n, "Body"))
-                AppendFlowChainFromOutput(bodyOut->id, bodyScope);
-            if (HasError) { delete forNode; return; }
+            {
+                const uintptr_t loopKey = static_cast<uintptr_t>(n.id.Get());
+                activeLoopBodyNodeIds_.insert(loopKey);
+                struct ScopedErase {
+                    std::unordered_set<uintptr_t>& set;
+                    uintptr_t key;
+                    ~ScopedErase() { set.erase(key); }
+                } loopBodyGuard{ activeLoopBodyNodeIds_, loopKey };
 
-            if (const Pin* completedOut = GetOutputPinByName(n, "Completed"))
-                AppendFlowChainFromOutput(completedOut->id, completedScope);
+                AppendFlowChainFromOutput(bodyOut->id, bodyScope);
+            }
             if (HasError) { delete forNode; return; }
 
             targetScope->children.push_back(forNode);
+
+            // Execute Completed chain strictly after the loop statement has finished.
+            if (const Pin* completedOut = GetOutputPinByName(n, "Completed"))
+                AppendFlowChainFromOutput(completedOut->id, targetScope);
+            if (HasError) return;
+
             return;
         }
 
@@ -278,6 +300,7 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
     errorMsg_ = "";
     nodes_ = &nodes;
     activeNodeBuilds_.clear();
+    activeLoopBodyNodeIds_.clear();
     flowReachableNodes_.clear();
     activeFlowOutputs_.clear();
     visitedFlowOutputs_.clear();
@@ -346,6 +369,39 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
         body->children.push_back(decl);
     }
 
+    // 0.1) Declare per-loop "last index" variables once. These retain
+    // the previous iteration value after loop completion until loop runs again.
+    for (const VisualNode& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Loop)
+            continue;
+
+        double startVal = 0.0;
+        const Pin* startPin = GetInputPinByName(n, "Start");
+        const bool startConnected = (startPin && resolver_.Resolve(startPin->id));
+        if (!startConnected)
+        {
+            const std::string* startStr = GetField(n, "Start");
+            if (startStr)
+            {
+                try
+                {
+                    startVal = std::stod(*startStr);
+                }
+                catch (...)
+                {
+                    startVal = 0.0;
+                }
+            }
+        }
+
+        Node* loopLastDecl = MakeNode(Token::VarDeclare);
+        loopLastDecl->data = LoopLastIndexVarName(n);
+        loopLastDecl->children.push_back(MakeNode(Token::TypeNumber));
+        loopLastDecl->children.push_back(MakeNumberNode(std::round(startVal)));
+        body->children.push_back(loopLastDecl);
+    }
+
     visitedFlowOutputs_.clear();
     activeFlowOutputs_.clear();
     AppendFlowChainFromOutput(startOut->id, body);
@@ -396,7 +452,7 @@ Node* GraphCompiler::BuildExpr(const Pin& inputPin)
 
 // BuildNode
 
-Node* GraphCompiler::BuildNode(const VisualNode& n, int /*outPinIdx*/)
+Node* GraphCompiler::BuildNode(const VisualNode& n, int outPinIdx)
 {
     // TODO: outPinIdx is not currently used. This parameter was intended to support
     // nodes with multiple output pins (e.g., Branch has True/False paths). Currently,
@@ -420,6 +476,24 @@ Node* GraphCompiler::BuildNode(const VisualNode& n, int /*outPinIdx*/)
         uintptr_t key;
         ~ScopedErase() { set.erase(key); }
     } guard{ activeNodeBuilds_, nodeKey };
+
+    // Loop has a numeric data output (Index): expose current iteration value
+    // when another node reads that output pin as an expression.
+    if (n.nodeType == NodeType::Loop
+        && outPinIdx >= 0
+        && outPinIdx < static_cast<int>(n.outPins.size()))
+    {
+        const Pin& requestedOutPin = n.outPins[outPinIdx];
+        if (requestedOutPin.type != PinType::Flow && requestedOutPin.name == "Index")
+        {
+            const uintptr_t loopKey = static_cast<uintptr_t>(n.id.Get());
+            const bool readingInsideThisLoopBody =
+                (activeLoopBodyNodeIds_.find(loopKey) != activeLoopBodyNodeIds_.end());
+            return MakeIdNode(readingInsideThisLoopBody
+                ? LoopIndexVarName(n)
+                : LoopLastIndexVarName(n));
+        }
+    }
 
     const NodeDescriptor* descriptor = NodeRegistry::Get().Find(n.nodeType);
     if (descriptor && descriptor->compile)
@@ -581,40 +655,101 @@ Node* GraphCompiler::BuildBranch(const VisualNode& n)
 
 Node* GraphCompiler::BuildLoop(const VisualNode& n)
 {
-    if (n.inPins.size() < 2) { Error("Loop node needs Flow + Count inputs"); return nullptr; }
+    const Pin* startPin = GetInputPinByName(n, "Start");
+    const Pin* countPin = GetInputPinByName(n, "Count");
+    if (!countPin) { Error("Loop node needs Count input"); return nullptr; }
 
-    const std::string* startStr = GetField(n, "Start");
-    double startVal = 0.0;
-    if (startStr)
+    Node* startExpr = nullptr;
+    if (startPin)
     {
-        try
-        {
-            startVal = std::stod(*startStr);
-        }
-        catch (...)
-        {
-            startVal = 0.0;
-        }
+        const PinSource* startSrc = resolver_.Resolve(startPin->id);
+        if (startSrc)
+            startExpr = BuildNode(*startSrc->node, startSrc->pinIdx);
     }
 
+    if (!startExpr)
+    {
+        const std::string* startStr = GetField(n, "Start");
+        double startVal = 0.0;
+        if (startStr)
+        {
+            try
+            {
+                startVal = std::stod(*startStr);
+            }
+            catch (...)
+            {
+                startVal = 0.0;
+            }
+        }
+        startExpr = MakeNumberNode(std::round(startVal));
+    }
+    else if (startExpr->type == Token::Number)
+    {
+        if (double* v = std::get_if<double>(&startExpr->data))
+            *v = std::round(*v);
+    }
+
+    Node* countEx = nullptr;
+    const PinSource* countSrc = resolver_.Resolve(countPin->id);
+    if (countSrc)
+    {
+        countEx = BuildNode(*countSrc->node, countSrc->pinIdx);
+        if (countEx && countEx->type == Token::Number)
+        {
+            if (double* v = std::get_if<double>(&countEx->data))
+                *v = std::round(*v);
+        }
+    }
+    else
+    {
+        const std::string* countStr = GetField(n, "Count");
+        double countVal = 0.0;
+        if (countStr)
+        {
+            try
+            {
+                countVal = std::stod(*countStr);
+            }
+            catch (...)
+            {
+                countVal = 0.0;
+            }
+        }
+        countEx = MakeNumberNode(std::round(countVal));
+    }
+
+    if (HasError) { delete startExpr; delete countEx; return nullptr; }
+
+    const std::string indexVarName = LoopIndexVarName(n);
+    const std::string lastIndexVarName = LoopLastIndexVarName(n);
+
     Node* varDecl = MakeNode(Token::VarDeclare);
-    Node* iId     = MakeIdNode("__i");
-    Node* initVal = MakeNumberNode(startVal);
-    varDecl->children.push_back(iId);
-    varDecl->children.push_back(initVal);
+    varDecl->data = indexVarName;
+    Node* initType = MakeNode(Token::TypeNumber);
+    varDecl->children.push_back(initType);
+    varDecl->children.push_back(startExpr);
 
     Node* cond    = MakeNode(Token::Less);
-    Node* iRef    = MakeIdNode("__i");
-    Node* countEx = BuildExpr(n.inPins[1]);
-    if (HasError) { delete varDecl; delete cond; return nullptr; }
+    Node* iRef    = MakeIdNode(indexVarName);
+
+    Node* inclusiveUpperBoundExpr = MakeNode(Token::Add);
+    inclusiveUpperBoundExpr->children.push_back(countEx);
+    inclusiveUpperBoundExpr->children.push_back(MakeNumberNode(1.0));
+
     cond->children.push_back(iRef);
-    cond->children.push_back(countEx);
+    cond->children.push_back(inclusiveUpperBoundExpr);
 
     Node* incr  = MakeNode(Token::Increment);
-    Node* iRef2 = MakeIdNode("__i");
+    Node* iRef2 = MakeIdNode(indexVarName);
     incr->children.push_back(iRef2);
 
-    Node* body    = MakeNode(Token::Scope);
+    Node* body = MakeNode(Token::Scope);
+    Node* cacheLastIndexAssign = MakeNode(Token::Assign);
+    cacheLastIndexAssign->children.push_back(MakeIdNode(lastIndexVarName));
+    cacheLastIndexAssign->children.push_back(MakeIdNode(indexVarName));
+    body->children.push_back(cacheLastIndexAssign);
+
     Node* completed = MakeNode(Token::Scope);
     Node* forNode = MakeNode(Token::For);
     forNode->children.push_back(varDecl);
