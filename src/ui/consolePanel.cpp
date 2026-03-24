@@ -3,7 +3,7 @@
 #include <cstdarg>
 #include <ctime>
 
-std::string ConsolePanel::withTimestamp(const std::string& message) const
+std::string ConsolePanel::makeTimestampPrefix() const
 {
     char timeBuf[16] = {0};
     std::time_t now = std::time(nullptr);
@@ -15,9 +15,23 @@ std::string ConsolePanel::withTimestamp(const std::string& message) const
 
     if (timeBuf[0] != 0)
     {
-        return std::string(timeBuf) + message;
+        return std::string(timeBuf);
     }
-    return message;
+    return std::string();
+}
+
+std::string ConsolePanel::withTimestamp(const std::string& message) const
+{
+    return makeTimestampPrefix() + message;
+}
+
+void ConsolePanel::pushCappedLine(const std::string& line)
+{
+    m_logs.push_back(line);
+    while (m_logs.size() > kMaxLogLines)
+    {
+        m_logs.pop_front();
+    }
 }
 
 ConsolePanel::ConsolePanel()
@@ -34,16 +48,43 @@ void ConsolePanel::addLog(const char* fmt, ...)
     buf[IM_ARRAYSIZE(buf)-1] = 0;
     va_end(args);
 
-    addLogText(buf);
+    addLogText(std::string(buf) + "\n");
 }
 
 void ConsolePanel::addLogText(const std::string& message)
 {
     std::lock_guard<std::mutex> lock(m_logsMutex);
-    m_logs.push_back(withTimestamp(message));
-    while (m_logs.size() > kMaxLogLines)
+
+    for (char ch : message)
     {
-        m_logs.pop_front();
+        if (ch == '\r')
+        {
+            if (m_activeLinePrefix.empty())
+            {
+                m_activeLinePrefix = makeTimestampPrefix();
+            }
+            m_activeLine.clear();
+            continue;
+        }
+
+        if (ch == '\n')
+        {
+            if (m_activeLinePrefix.empty())
+            {
+                m_activeLinePrefix = makeTimestampPrefix();
+            }
+
+            pushCappedLine(m_activeLinePrefix + m_activeLine);
+            m_activeLinePrefix.clear();
+            m_activeLine.clear();
+            continue;
+        }
+
+        if (m_activeLinePrefix.empty())
+        {
+            m_activeLinePrefix = makeTimestampPrefix();
+        }
+        m_activeLine.push_back(ch);
     }
 }
 
@@ -51,6 +92,8 @@ void ConsolePanel::clear()
 {
     std::lock_guard<std::mutex> lock(m_logsMutex);
     m_logs.clear();
+    m_activeLinePrefix.clear();
+    m_activeLine.clear();
 }
 
 float ConsolePanel::getHeight() const
@@ -129,14 +172,24 @@ void ConsolePanel::draw()
     ImGui::BeginChild("scrolling", ImVec2(0, 0), false);
 
     std::deque<std::string> logsSnapshot;
+    std::string activeLineSnapshot;
     {
         std::lock_guard<std::mutex> lock(m_logsMutex);
         logsSnapshot = m_logs;
+        if (!m_activeLinePrefix.empty() || !m_activeLine.empty())
+        {
+            activeLineSnapshot = m_activeLinePrefix + m_activeLine;
+        }
     }
 
     for (const auto& log : logsSnapshot)
     {
         ImGui::TextUnformatted(log.c_str());
+    }
+
+    if (!activeLineSnapshot.empty())
+    {
+        ImGui::TextUnformatted(activeLineSnapshot.c_str());
     }
 
     if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
