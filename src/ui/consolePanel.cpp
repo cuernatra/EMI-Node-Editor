@@ -9,7 +9,15 @@ std::string ConsolePanel::makeTimestampPrefix() const
     char timeBuf[16] = {0};
     std::time_t now = std::time(nullptr);
     std::tm localTime{};
-    if (localtime_s(&localTime, &now) == 0)
+
+    bool hasLocalTime = false;
+#ifdef _WIN32
+    hasLocalTime = (localtime_s(&localTime, &now) == 0);
+#else
+    hasLocalTime = (localtime_r(&now, &localTime) != nullptr);
+#endif
+
+    if (hasLocalTime)
     {
         std::strftime(timeBuf, IM_ARRAYSIZE(timeBuf), "[%H:%M:%S] ", &localTime);
     }
