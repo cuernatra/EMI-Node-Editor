@@ -6,6 +6,7 @@
 #include "../core/registry/nodeFactory.h"
 #include "imgui.h"
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -32,6 +33,17 @@ float ParseInspectorFloat(const std::string& s)
 bool ParseInspectorBool(const std::string& s)
 {
     return s == "1" || s == "true" || s == "True";
+}
+
+ImVec2 SnapToNodeGrid(const ImVec2& pos)
+{
+    // Keep spawn positions on the same grid that node dragging uses.
+    // This avoids nodes spawning "between" allowed drag positions.
+    constexpr float kGridStep = 32.0f;
+    return ImVec2(
+        std::round(pos.x / kGridStep) * kGridStep,
+        std::round(pos.y / kGridStep) * kGridStep
+    );
 }
 
 void ParseSpawnPayloadTitle(const char* payloadTitle, NodeType& outType, std::string& outVariableVariant)
@@ -741,7 +753,7 @@ void GraphEditor::DrawNodeCanvas()
                 const NodeSpawnPayload* spawnData =
                     static_cast<const NodeSpawnPayload*>(payload->Data);
 
-                ImVec2 canvasPos = ed::ScreenToCanvas(ImGui::GetMousePos());
+                ImVec2 canvasPos = SnapToNodeGrid(ed::ScreenToCanvas(ImGui::GetMousePos()));
 
                 NodeType type = NodeType::Unknown;
                 std::string variableVariant;
@@ -777,7 +789,7 @@ void GraphEditor::DrawNodeCanvas()
                 windowPos.y + windowSize.y * 0.50f
             );
 
-            const ImVec2 targetCanvasPos = ed::ScreenToCanvas(targetScreenPos);
+            const ImVec2 targetCanvasPos = SnapToNodeGrid(ed::ScreenToCanvas(targetScreenPos));
             m_state.AddNode(CreateNodeFromType(NodeType::Start, m_state.GetIdGen(), targetCanvasPos));
         }
 
