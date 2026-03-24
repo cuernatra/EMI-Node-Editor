@@ -90,6 +90,9 @@ private:
     
     /// Current width of left panel (-1 = uninitialized, auto-sized on first draw)
     float m_leftPanelWidth = Settings::leftPanelWidth;
+
+    // console panel height (initialized from settings, can be adjusted by user)
+    float m_consolePanelHeight = Settings::consolePanelHeight;
     
     /// Reserved for future right panel (currently unused)
     float m_rightPanelWidth = -1.f;

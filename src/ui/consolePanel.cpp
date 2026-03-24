@@ -2,6 +2,7 @@
 #include <imgui.h>
 #include <cstdarg>
 #include <ctime>
+#include "../editor/settings.h"
 
 std::string ConsolePanel::makeTimestampPrefix() const
 {
@@ -35,7 +36,7 @@ void ConsolePanel::pushCappedLine(const std::string& line)
 }
 
 ConsolePanel::ConsolePanel()
-    : m_height{300}, m_lastExpandedHeight{300}, m_minimized{false}
+    : m_height{Settings::consolePanelHeight}, m_lastExpandedHeight{Settings::consolePanelHeight}, m_minimized{Settings::consolePanelIsMinimized}
 {
 }
 
@@ -115,12 +116,14 @@ void ConsolePanel::toggleMinimized()
     if (m_minimized)
     {
         m_minimized = false;
+        Settings::consolePanelIsMinimized = false;
         m_height = m_lastExpandedHeight;
     }
     else
     {
         m_lastExpandedHeight = m_height;
         m_minimized = true;
+        Settings::consolePanelIsMinimized = true;
     }
 }
 

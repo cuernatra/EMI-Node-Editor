@@ -61,8 +61,16 @@ void Ui::draw()
         m_rightPanelWidth = std::clamp(totalWidth * 0.24f, minRight, maxRight);
     }
 
-    // save new left panel width value to settings
+    if (m_consolePanelHeight <= 0.0f)
+    {
+        m_consolePanelHeight = 300.0f; // Default height if not set
+    }
+
+    // set new left panel width value to settings
     Settings::leftPanelWidth = m_leftPanelWidth;
+    // set new console panel height to settings
+    Settings::consolePanelHeight = m_consolePanelHeight;
+    
 
     ImGui::BeginChild("TOP BAR", ImVec2(totalWidth, elementSizes::topBarHeight), true,
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
@@ -245,6 +253,7 @@ void Ui::DrawConsoleSplitter(float width, float thickness, float minMain, float 
         const float delta = ImGui::GetIO().MouseDelta.y;
         const float maxConsole = std::max(minConsole, availableHeight - minMain - thickness);
         const float newConsoleHeight = std::clamp(m_consolePanel.getHeight() - delta, minConsole, maxConsole);
+        m_consolePanelHeight = newConsoleHeight; // Update member variable to persist height
         m_consolePanel.setHeight(newConsoleHeight);
     }
 
