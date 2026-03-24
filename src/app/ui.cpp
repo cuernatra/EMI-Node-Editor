@@ -3,8 +3,12 @@
 #include <algorithm>
 #include <cstdio>
 
-Ui::Ui() 
+Ui::Ui()
 {
+    for (int i = 0; i < 100; ++i)
+    {
+        m_consolePanel.addLog("Console initialized. Welcome to EMI Visual Programming Tool!");
+    }
 }
 
 void Ui::draw()
@@ -24,7 +28,9 @@ void Ui::draw()
         ImGuiWindowFlags_NoMove | 
         ImGuiWindowFlags_NoResize | 
         ImGuiWindowFlags_NoCollapse | 
-        ImGuiWindowFlags_NoTitleBar
+        ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoScrollbar |
+        ImGuiWindowFlags_NoScrollWithMouse
     );
 
     const float totalWidth = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
@@ -55,11 +61,13 @@ void Ui::draw()
     m_leftPanel.draw(m_mainEditor.hasStartNode());
     ImGui::EndChild();
 
-    ImGui::SameLine();
+    ImGui::SameLine(0.0f, 0.0f);
 
     DrawSplitter(totalWidth, splitterWidth, minLeft, minRight);
 
-    ImGui::SameLine();
+    ImGui::SameLine(0.0f, 0.0f);
+
+    ImGui::BeginGroup();
 
     uintptr_t selectedNodeId = 0;
     const bool showInspector = m_mainEditor.tryGetSingleSelectedNodeId(selectedNodeId);
@@ -78,15 +86,45 @@ void Ui::draw()
     );
     const float inspectorWidth = std::clamp(m_rightPanelWidth, minRight, maxRightWidth);
 
-    float mainWidth = totalWidth - m_leftPanelWidth - splitterWidth;
-    if (mainWidth < minLeft)
-        mainWidth = minLeft;
+    const float mainWidth = totalWidth - m_leftPanelWidth - splitterWidth;
+    const float rightColumnHeight = ImGui::GetContentRegionAvail().y;
+    const float consoleSplitterThickness = 5.0f;
+    const float minMainHeight = 80.0f;
+    const float minConsoleHeight = 60.0f;
+    const bool consoleMinimized = m_consolePanel.isMinimized();
+
+    if (!consoleMinimized)
+    {
+        const float maxConsoleHeight = std::max(
+            minConsoleHeight,
+            rightColumnHeight - minMainHeight - consoleSplitterThickness
+        );
+        m_consolePanel.setHeight(std::clamp(m_consolePanel.getHeight(), minConsoleHeight, maxConsoleHeight));
+    }
+
+    const float activeConsoleSplitterThickness = consoleMinimized ? 0.0f : consoleSplitterThickness;
+    const float mainHeight = rightColumnHeight - m_consolePanel.getHeight() - activeConsoleSplitterThickness;
 
     const ImVec2 mainEditorPos = ImGui::GetCursorScreenPos();
 
-    ImGui::BeginChild("MAIN EDITOR", ImVec2(mainWidth, 0), true);
+    ImGui::BeginChild("MAIN EDITOR", ImVec2(mainWidth, mainHeight), true);
     m_mainEditor.draw();
     ImGui::EndChild();
+
+    if (!consoleMinimized)
+    {
+        DrawConsoleSplitter(
+            mainWidth,
+            consoleSplitterThickness,
+            minMainHeight,
+            minConsoleHeight,
+            rightColumnHeight
+        );
+    }
+
+    m_consolePanel.draw();
+
+    ImGui::EndGroup();
 
     if (showInspector)
     {
@@ -183,5 +221,23 @@ void Ui::DrawSplitter(float totalWidth, float thickness, float minLeft, float mi
     if(ImGui::IsItemHovered() || ImGui::IsItemActive())
     {
         ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+    }
+}
+
+void Ui::DrawConsoleSplitter(float width, float thickness, float minMain, float minConsole, float availableHeight)
+{
+    ImGui::InvisibleButton("console_splitter", ImVec2(width, thickness));
+
+    if (ImGui::IsItemActive())
+    {
+        const float delta = ImGui::GetIO().MouseDelta.y;
+        const float maxConsole = std::max(minConsole, availableHeight - minMain - thickness);
+        const float newConsoleHeight = std::clamp(m_consolePanel.getHeight() - delta, minConsole, maxConsole);
+        m_consolePanel.setHeight(newConsoleHeight);
+    }
+
+    if (ImGui::IsItemHovered() || ImGui::IsItemActive())
+    {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeNS);
     }
 }
