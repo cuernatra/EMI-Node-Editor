@@ -6,6 +6,7 @@
 #define CONSOLEPANEL_H
 
 #include "../app/constants.h"
+#include <cstddef>
 #include <deque>
 #include <string>
 #include <mutex>
@@ -55,8 +56,12 @@ private:
     bool m_minimized;
     std::mutex m_logsMutex;
     std::deque<std::string> m_logs;
+    std::string m_activeLinePrefix;
+    std::string m_activeLine;
 
+    std::string makeTimestampPrefix() const;
     std::string withTimestamp(const std::string& message) const;
+    void pushCappedLine(const std::string& line);
 };
 
 #endif
