@@ -93,6 +93,10 @@ private:
 
     // console panel height (initialized from settings, can be adjusted by user)
     float m_consolePanelHeight = Settings::consolePanelHeight;
+
+    // Console panel height as a fraction of the right column height.
+    // This keeps console sizing responsive when the window is resized.
+    float m_consolePanelRatio = -1.0f;
     
     /// Reserved for future right panel (currently unused)
     float m_rightPanelWidth = -1.f;

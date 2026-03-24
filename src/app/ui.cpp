@@ -61,15 +61,8 @@ void Ui::draw()
         m_rightPanelWidth = std::clamp(totalWidth * 0.24f, minRight, maxRight);
     }
 
-    if (m_consolePanelHeight <= 0.0f)
-    {
-        m_consolePanelHeight = 300.0f; // Default height if not set
-    }
-
     // set new left panel width value to settings
     Settings::leftPanelWidth = m_leftPanelWidth;
-    // set new console panel height to settings
-    Settings::consolePanelHeight = m_consolePanelHeight;
     
 
     ImGui::BeginChild("TOP BAR", ImVec2(totalWidth, elementSizes::topBarHeight), true,
@@ -119,8 +112,34 @@ void Ui::draw()
             minConsoleHeight,
             rightColumnHeight - minMainHeight - consoleSplitterThickness
         );
-        m_consolePanel.setHeight(std::clamp(m_consolePanel.getHeight(), minConsoleHeight, maxConsoleHeight));
+
+        // Initialize ratio from persisted pixel height once, then keep sizing
+        // responsive by deriving height from ratio on every frame.
+        if (m_consolePanelHeight <= 0.0f)
+        {
+            m_consolePanelHeight = 300.0f;
+        }
+
+        const float safeHeight = std::max(1.0f, rightColumnHeight);
+        const float minRatio = minConsoleHeight / safeHeight;
+        const float maxRatio = maxConsoleHeight / safeHeight;
+
+        if (m_consolePanelRatio <= 0.0f)
+        {
+            const float clampedInitialHeight = std::clamp(m_consolePanelHeight, minConsoleHeight, maxConsoleHeight);
+            m_consolePanelRatio = std::clamp(clampedInitialHeight / safeHeight, minRatio, maxRatio);
+        }
+        else
+        {
+            m_consolePanelRatio = std::clamp(m_consolePanelRatio, minRatio, maxRatio);
+        }
+
+        m_consolePanelHeight = std::clamp(safeHeight * m_consolePanelRatio, minConsoleHeight, maxConsoleHeight);
+        m_consolePanel.setHeight(m_consolePanelHeight);
     }
+
+    // Persist finalized console panel height every frame.
+    Settings::consolePanelHeight = m_consolePanelHeight;
 
     const float activeConsoleSplitterThickness = consoleMinimized ? 0.0f : consoleSplitterThickness;
     const float mainHeight = rightColumnHeight - m_consolePanel.getHeight() - activeConsoleSplitterThickness;
@@ -254,6 +273,10 @@ void Ui::DrawConsoleSplitter(float width, float thickness, float minMain, float 
         const float maxConsole = std::max(minConsole, availableHeight - minMain - thickness);
         const float newConsoleHeight = std::clamp(m_consolePanel.getHeight() - delta, minConsole, maxConsole);
         m_consolePanelHeight = newConsoleHeight; // Update member variable to persist height
+        if (availableHeight > 0.0f)
+        {
+            m_consolePanelRatio = newConsoleHeight / availableHeight;
+        }
         m_consolePanel.setHeight(newConsoleHeight);
     }
 
