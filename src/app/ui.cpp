@@ -21,9 +21,6 @@ Ui::Ui()
 
 Ui::~Ui()
 {
-    EMI::SetCompileLog(nullptr);
-    EMI::SetRuntimeLog(nullptr);
-    EMI::SetScriptLog(nullptr);
 }
 
 void Ui::draw()
