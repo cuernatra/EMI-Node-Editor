@@ -144,27 +144,41 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
             }
         }
     }
-    else if (isLoop && pinIds.size() == desc->pins.size() - 1)
+    else if (isLoop && pinIds.size() != desc->pins.size())
     {
-        // Backward compatibility for older Loop nodes saved before
-        // the numeric "Index" output pin was introduced.
-        for (size_t i = 0; i < desc->pins.size(); ++i)
+        // Legacy Loop layouts:
+        // 4 pins -> In, Count, Body, Completed
+        // 5 pins -> In, Count, Body, Completed, Index
+        // Current  -> In, Start, Count, Body, Completed, Index
+        if (pinIds.size() >= 1)
         {
-            const PinDescriptor& pd = desc->pins[i];
-
-            // Old files do not contain the new trailing output pin.
-            // Skip it so legacy graphs can still load safely.
-            if (pd.name == "Index")
-                continue;
-
-            uint32_t pid = static_cast<uint32_t>(pinIds[pinIndex++]);
-            Pin p = MakePin(pid, n.id, desc->type,
-                            pd.name, pd.type, pd.isInput, pd.isMultiInput);
-
-            if (pd.isInput)
-                n.inPins.push_back(p);
-            else
-                n.outPins.push_back(p);
+            n.inPins.push_back(MakePin(
+                static_cast<uint32_t>(pinIds[0]), n.id, n.nodeType,
+                "In", PinType::Flow, true));
+        }
+        if (pinIds.size() >= 2)
+        {
+            n.inPins.push_back(MakePin(
+                static_cast<uint32_t>(pinIds[1]), n.id, n.nodeType,
+                "Count", PinType::Number, true));
+        }
+        if (pinIds.size() >= 3)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(pinIds[2]), n.id, n.nodeType,
+                "Body", PinType::Flow, false));
+        }
+        if (pinIds.size() >= 4)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(pinIds[3]), n.id, n.nodeType,
+                "Completed", PinType::Flow, false));
+        }
+        if (pinIds.size() >= 5)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(pinIds[4]), n.id, n.nodeType,
+                "Index", PinType::Number, false));
         }
 
         for (const FieldDescriptor& fd : desc->fields)

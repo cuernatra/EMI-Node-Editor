@@ -133,13 +133,15 @@ descriptors_[NodeType::Constant] = {
         "Loop",
         {
             { "In",        PinType::Flow,   /*isInput=*/true  },
+            { "Start",     PinType::Number, /*isInput=*/true  },
             { "Count",     PinType::Number, /*isInput=*/true  },
             { "Body",      PinType::Flow,   /*isInput=*/false },
             { "Completed", PinType::Flow,   /*isInput=*/false },
             { "Index",     PinType::Number, /*isInput=*/false }
         },
         {
-            { "Start", PinType::Number, "0" }
+            { "Start", PinType::Number, "0" },
+            { "Count", PinType::Number, "0" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildLoop(n); }
     };

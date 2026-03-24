@@ -376,17 +376,22 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
         if (!n.alive || n.nodeType != NodeType::Loop)
             continue;
 
-        const std::string* startStr = GetField(n, "Start");
         double startVal = 0.0;
-        if (startStr)
+        const Pin* startPin = GetInputPinByName(n, "Start");
+        const bool startConnected = (startPin && resolver_.Resolve(startPin->id));
+        if (!startConnected)
         {
-            try
+            const std::string* startStr = GetField(n, "Start");
+            if (startStr)
             {
-                startVal = std::stod(*startStr);
-            }
-            catch (...)
-            {
-                startVal = 0.0;
+                try
+                {
+                    startVal = std::stod(*startStr);
+                }
+                catch (...)
+                {
+                    startVal = 0.0;
+                }
             }
         }
 
@@ -650,37 +655,83 @@ Node* GraphCompiler::BuildBranch(const VisualNode& n)
 
 Node* GraphCompiler::BuildLoop(const VisualNode& n)
 {
-    if (n.inPins.size() < 2) { Error("Loop node needs Flow + Count inputs"); return nullptr; }
+    const Pin* startPin = GetInputPinByName(n, "Start");
+    const Pin* countPin = GetInputPinByName(n, "Count");
+    if (!countPin) { Error("Loop node needs Count input"); return nullptr; }
 
-    const std::string* startStr = GetField(n, "Start");
-    double startVal = 0.0;
-    if (startStr)
+    Node* startExpr = nullptr;
+    if (startPin)
     {
-        try
-        {
-            startVal = std::stod(*startStr);
-        }
-        catch (...)
-        {
-            startVal = 0.0;
-        }
+        const PinSource* startSrc = resolver_.Resolve(startPin->id);
+        if (startSrc)
+            startExpr = BuildNode(*startSrc->node, startSrc->pinIdx);
     }
 
-    const double startRounded = std::round(startVal);
+    if (!startExpr)
+    {
+        const std::string* startStr = GetField(n, "Start");
+        double startVal = 0.0;
+        if (startStr)
+        {
+            try
+            {
+                startVal = std::stod(*startStr);
+            }
+            catch (...)
+            {
+                startVal = 0.0;
+            }
+        }
+        startExpr = MakeNumberNode(std::round(startVal));
+    }
+    else if (startExpr->type == Token::Number)
+    {
+        if (double* v = std::get_if<double>(&startExpr->data))
+            *v = std::round(*v);
+    }
+
+    Node* countEx = nullptr;
+    const PinSource* countSrc = resolver_.Resolve(countPin->id);
+    if (countSrc)
+    {
+        countEx = BuildNode(*countSrc->node, countSrc->pinIdx);
+        if (countEx && countEx->type == Token::Number)
+        {
+            if (double* v = std::get_if<double>(&countEx->data))
+                *v = std::round(*v);
+        }
+    }
+    else
+    {
+        const std::string* countStr = GetField(n, "Count");
+        double countVal = 0.0;
+        if (countStr)
+        {
+            try
+            {
+                countVal = std::stod(*countStr);
+            }
+            catch (...)
+            {
+                countVal = 0.0;
+            }
+        }
+        countEx = MakeNumberNode(std::round(countVal));
+    }
+
+    if (HasError) { delete startExpr; delete countEx; return nullptr; }
+
     const std::string indexVarName = LoopIndexVarName(n);
     const std::string lastIndexVarName = LoopLastIndexVarName(n);
 
     Node* varDecl = MakeNode(Token::VarDeclare);
     varDecl->data = indexVarName;
     Node* initType = MakeNode(Token::TypeNumber);
-    Node* initVal  = MakeNumberNode(startRounded);
     varDecl->children.push_back(initType);
-    varDecl->children.push_back(initVal);
+    varDecl->children.push_back(startExpr);
 
     Node* cond    = MakeNode(Token::Less);
     Node* iRef    = MakeIdNode(indexVarName);
-    Node* countEx = BuildExpr(n.inPins[1]);
-    if (HasError) { delete varDecl; delete cond; return nullptr; }
 
     Node* inclusiveUpperBoundExpr = MakeNode(Token::Add);
     inclusiveUpperBoundExpr->children.push_back(countEx);

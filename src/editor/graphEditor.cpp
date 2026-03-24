@@ -630,6 +630,197 @@ bool RefreshOutputNodeInputTypes(GraphState& state)
     return changed;
 }
 
+bool RefreshLoopNodeLayout(GraphState& state)
+{
+    bool changed = false;
+
+    auto& nodes = state.GetNodes();
+
+    for (auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Loop)
+            continue;
+
+        if (n.title != "Loop")
+        {
+            n.title = "Loop";
+            changed = true;
+        }
+
+        const size_t inBefore = n.inPins.size();
+        RemovePinsByNameExcept(n.inPins, { "In", "Start", "Count" });
+        if (n.inPins.size() != inBefore)
+            changed = true;
+
+        const size_t outBefore = n.outPins.size();
+        RemovePinsByNameExcept(n.outPins, { "Body", "Completed", "Index" });
+        if (n.outPins.size() != outBefore)
+            changed = true;
+
+        Pin* inPin = FindPinByName(n.inPins, "In");
+        if (!inPin)
+        {
+            n.inPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "In",
+                PinType::Flow,
+                true
+            ));
+            inPin = &n.inPins.back();
+            changed = true;
+        }
+        else if (inPin->type != PinType::Flow)
+        {
+            inPin->type = PinType::Flow;
+            changed = true;
+        }
+
+        Pin* startPin = FindPinByName(n.inPins, "Start");
+        if (!startPin)
+        {
+            n.inPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "Start",
+                PinType::Number,
+                true
+            ));
+            startPin = &n.inPins.back();
+            changed = true;
+        }
+        else if (startPin->type != PinType::Number)
+        {
+            startPin->type = PinType::Number;
+            changed = true;
+        }
+
+        Pin* countPin = FindPinByName(n.inPins, "Count");
+        if (!countPin)
+        {
+            n.inPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "Count",
+                PinType::Number,
+                true
+            ));
+            countPin = &n.inPins.back();
+            changed = true;
+        }
+        else if (countPin->type != PinType::Number)
+        {
+            countPin->type = PinType::Number;
+            changed = true;
+        }
+
+        Pin* bodyPin = FindPinByName(n.outPins, "Body");
+        if (!bodyPin)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "Body",
+                PinType::Flow,
+                false
+            ));
+            bodyPin = &n.outPins.back();
+            changed = true;
+        }
+        else if (bodyPin->type != PinType::Flow)
+        {
+            bodyPin->type = PinType::Flow;
+            changed = true;
+        }
+
+        Pin* completedPin = FindPinByName(n.outPins, "Completed");
+        if (!completedPin)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "Completed",
+                PinType::Flow,
+                false
+            ));
+            completedPin = &n.outPins.back();
+            changed = true;
+        }
+        else if (completedPin->type != PinType::Flow)
+        {
+            completedPin->type = PinType::Flow;
+            changed = true;
+        }
+
+        Pin* indexPin = FindPinByName(n.outPins, "Index");
+        if (!indexPin)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "Index",
+                PinType::Number,
+                false
+            ));
+            indexPin = &n.outPins.back();
+            changed = true;
+        }
+        else if (indexPin->type != PinType::Number)
+        {
+            indexPin->type = PinType::Number;
+            changed = true;
+        }
+
+        NodeField* startField = FindField(n.fields, "Start");
+        if (!startField)
+        {
+            n.fields.push_back(NodeField{ "Start", PinType::Number, "0" });
+            startField = &n.fields.back();
+            changed = true;
+        }
+        else
+        {
+            const bool typeChanged = (startField->valueType != PinType::Number);
+            startField->valueType = PinType::Number;
+            if (typeChanged)
+                changed = true;
+
+            const std::string before = startField->value;
+            NormalizeValueForPinType(PinType::Number, startField->value);
+            if (startField->value != before)
+                changed = true;
+        }
+
+        NodeField* countField = FindField(n.fields, "Count");
+        if (!countField)
+        {
+            n.fields.push_back(NodeField{ "Count", PinType::Number, "0" });
+            countField = &n.fields.back();
+            changed = true;
+        }
+        else
+        {
+            const bool typeChanged = (countField->valueType != PinType::Number);
+            countField->valueType = PinType::Number;
+            if (typeChanged)
+                changed = true;
+
+            const std::string before = countField->value;
+            NormalizeValueForPinType(PinType::Number, countField->value);
+            if (countField->value != before)
+                changed = true;
+        }
+    }
+
+    return changed;
+}
+
 bool SyncLinkTypesAndPruneInvalid(GraphState& state)
 {
     bool changed = false;
@@ -874,9 +1065,10 @@ void GraphEditor::DrawNodeCanvas()
     }
 
     const bool variableTypesChanged = RefreshVariableNodeTypes(m_state);
+    const bool loopLayoutChanged = RefreshLoopNodeLayout(m_state);
     const bool outputInputTypesChanged = RefreshOutputNodeInputTypes(m_state);
     const bool linksChanged = SyncLinkTypesAndPruneInvalid(m_state);
-    if (variableTypesChanged || outputInputTypesChanged || linksChanged)
+    if (variableTypesChanged || loopLayoutChanged || outputInputTypesChanged || linksChanged)
         m_state.MarkDirty();
 
     ed::End();
@@ -1054,6 +1246,36 @@ void GraphEditor::DrawInspectorPanel()
 
             ImGui::PopID();
         }
+        else if (selectedNode->nodeType == NodeType::Loop)
+        {
+            auto isInputPinConnected = [&](const char* pinName) -> bool
+            {
+                Pin* targetPin = FindPinByName(selectedNode->inPins, pinName);
+                if (!targetPin)
+                    return false;
+
+                for (const Link& l : m_state.GetLinks())
+                {
+                    if (l.alive && l.endPinId == targetPin->id)
+                        return true;
+                }
+                return false;
+            };
+
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+            for (NodeField& field : selectedNode->fields)
+            {
+                if ((field.name == "Start" || field.name == "Count")
+                    && isInputPinConnected(field.name.c_str()))
+                {
+                    DrawInspectorReadOnlyField(field);
+                    continue;
+                }
+
+                fieldsChanged |= DrawInspectorField(field);
+            }
+            ImGui::PopID();
+        }
         else
         {
             ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
@@ -1068,6 +1290,7 @@ void GraphEditor::DrawInspectorPanel()
         GraphSerializer::ApplyConstantTypeFromFields(*selectedNode, /*resetValueOnTypeChange=*/true);
 
         RefreshVariableNodeTypes(m_state);
+        RefreshLoopNodeLayout(m_state);
         SyncLinkTypesAndPruneInvalid(m_state);
         m_state.MarkDirty();
     }

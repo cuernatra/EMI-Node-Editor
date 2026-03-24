@@ -121,26 +121,58 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     ImGui::TextUnformatted(n.title.c_str());
     ImGui::Spacing();
 
-    for (const Pin& pin : n.inPins)
-        DrawPin(pin);
-
     bool changed = false;
+    auto findFieldValue = [&](const char* name) -> const std::string*
+    {
+        for (const NodeField& f : n.fields)
+            if (f.name == name)
+                return &f.value;
+        return nullptr;
+    };
+
+    const std::string* variant = findFieldValue("Variant");
+    const bool isGetVariable =
+        (n.nodeType == NodeType::Variable && variant && *variant == "Get");
+    const bool isSetVariable =
+        (n.nodeType == NodeType::Variable && variant && *variant == "Set");
+    const bool isLoopNode = (n.nodeType == NodeType::Loop);
+
+    bool drewDeferredDefaultPin = false;
+    bool drewDeferredStartPin = false;
+    bool drewDeferredCountPin = false;
+
+    auto drawDeferredPinByName = [&](const char* pinName)
+    {
+        for (const Pin& pin : n.inPins)
+        {
+            if (pin.name == pinName)
+            {
+                DrawPin(pin);
+                return;
+            }
+        }
+    };
+
+    auto shouldDeferInputPin = [&](const Pin& pin) -> bool
+    {
+        if (isSetVariable && pin.name == "Default")
+            return true;
+
+        if (isLoopNode && (pin.name == "Start" || pin.name == "Count"))
+            return true;
+
+        return false;
+    };
+
+    for (const Pin& pin : n.inPins)
+    {
+        if (shouldDeferInputPin(pin))
+            continue;
+        DrawPin(pin);
+    }
+
     if (!n.fields.empty())
     {
-        auto findFieldValue = [&](const char* name) -> const std::string*
-        {
-            for (const NodeField& f : n.fields)
-                if (f.name == name)
-                    return &f.value;
-            return nullptr;
-        };
-
-        const std::string* variant = findFieldValue("Variant");
-        const bool isGetVariable =
-            (n.nodeType == NodeType::Variable && variant && *variant == "Get");
-        const bool isSetVariable =
-            (n.nodeType == NodeType::Variable && variant && *variant == "Set");
-
         auto isInputPinConnected = [&](const char* pinName) -> bool
         {
             if (!allLinks)
@@ -231,8 +263,36 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
             if (isSetVariable && field.name == "Default")
             {
+                drawDeferredPinByName("Default");
+                drewDeferredDefaultPin = true;
+
                 const bool defaultConnected = isInputPinConnected("Default");
                 if (defaultConnected)
+                {
+                    DrawReadOnlyField(field);
+                }
+                else
+                {
+                    changed |= DrawField(field);
+                }
+                continue;
+            }
+
+            if (isLoopNode && (field.name == "Start" || field.name == "Count"))
+            {
+                if (field.name == "Start")
+                {
+                    drawDeferredPinByName("Start");
+                    drewDeferredStartPin = true;
+                }
+                else
+                {
+                    drawDeferredPinByName("Count");
+                    drewDeferredCountPin = true;
+                }
+
+                const bool pinConnected = isInputPinConnected(field.name.c_str());
+                if (pinConnected)
                 {
                     DrawReadOnlyField(field);
                 }
@@ -247,6 +307,17 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         }
         ImGui::PopID();
         ImGui::Spacing();
+    }
+
+    if (isSetVariable && !drewDeferredDefaultPin)
+        drawDeferredPinByName("Default");
+
+    if (isLoopNode)
+    {
+        if (!drewDeferredStartPin)
+            drawDeferredPinByName("Start");
+        if (!drewDeferredCountPin)
+            drawDeferredPinByName("Count");
     }
 
     if (changed)
