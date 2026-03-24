@@ -20,6 +20,8 @@ void Load()
 
         // Layout
         leftPanelWidth = s.value("leftPanelWidth", leftPanelWidth);
+        consolePanelHeight = s.value("consolePanelHeight", consolePanelHeight);
+        consolePanelIsMinimized = s.value("consolePanelIsMinimized", consolePanelIsMinimized);
 
         // Add new settings here:
         // myNewSetting = s.value("myNewSetting", myNewSetting);
@@ -36,6 +38,8 @@ void Save()
 
     // Layout
     s["leftPanelWidth"] = leftPanelWidth;
+    s["consolePanelHeight"] = consolePanelHeight;
+    s["consolePanelIsMinimized"] = consolePanelIsMinimized;
 
     // Add new settings here:
     // s["myNewSetting"] = myNewSetting;
