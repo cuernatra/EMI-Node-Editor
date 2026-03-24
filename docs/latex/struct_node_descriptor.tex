@@ -1,0 +1,87 @@
+\doxysection{Node\+Descriptor Struct Reference}
+\hypertarget{struct_node_descriptor}{}\label{struct_node_descriptor}\index{NodeDescriptor@{NodeDescriptor}}
+
+
+Complete static definition of a node type One immutable descriptor per \doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}; all instances share it and differ only in runtime state.  
+
+
+
+
+{\ttfamily \+\#include $<$node\+Descriptor.\+h$>$}
+
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} \doxymbox{\hyperlink{struct_node_descriptor_a5589e68cb415fa5bbec461b739feecd8}{type}}
+\begin{DoxyCompactList}\small\item\em The node type this describes. \end{DoxyCompactList}\item 
+std::\+string \doxymbox{\hyperlink{struct_node_descriptor_abcd14df5f846918221465972fe02e4e1}{label}}
+\begin{DoxyCompactList}\small\item\em Display title shown in node header. \end{DoxyCompactList}\item 
+std::\+vector$<$ \doxymbox{\hyperlink{struct_pin_descriptor}{Pin\+Descriptor}} $>$ \doxymbox{\hyperlink{struct_node_descriptor_a0e586f11bda60d60c8f16799ca679250}{pins}}
+\begin{DoxyCompactList}\small\item\em All pins in draw order (inputs then outputs). \end{DoxyCompactList}\item 
+std::\+vector$<$ \doxymbox{\hyperlink{struct_field_descriptor}{Field\+Descriptor}} $>$ \doxymbox{\hyperlink{struct_node_descriptor_aa55eb11eb75537e050cfe8367a911a03}{fields}}
+\begin{DoxyCompactList}\small\item\em Editable fields (empty for nodes without constants). \end{DoxyCompactList}\item 
+\doxymbox{\hyperlink{node_descriptor_8h_a662d339ad836df157eb0f4992cd54345}{Compile\+Callback}} \doxymbox{\hyperlink{struct_node_descriptor_ad7afdde1cefb67479899b9d23b592957}{compile}}
+\begin{DoxyCompactList}\small\item\em Optional:\+ Compiles this node to AST (nullptr = not compilable). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Complete static definition of a node type One immutable descriptor per \doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}; all instances share it and differ only in runtime state. 
+
+\label{doc-variable-members}
+\Hypertarget{struct_node_descriptor_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{struct_node_descriptor_ad7afdde1cefb67479899b9d23b592957}\index{NodeDescriptor@{NodeDescriptor}!compile@{compile}}
+\index{compile@{compile}!NodeDescriptor@{NodeDescriptor}}
+\doxysubsubsection{\texorpdfstring{compile}{compile}}
+{\footnotesize\ttfamily \label{struct_node_descriptor_ad7afdde1cefb67479899b9d23b592957} 
+\doxymbox{\hyperlink{node_descriptor_8h_a662d339ad836df157eb0f4992cd54345}{Compile\+Callback}} Node\+Descriptor::\+compile}
+
+
+
+Optional:\+ Compiles this node to AST (nullptr = not compilable). 
+
+\Hypertarget{struct_node_descriptor_aa55eb11eb75537e050cfe8367a911a03}\index{NodeDescriptor@{NodeDescriptor}!fields@{fields}}
+\index{fields@{fields}!NodeDescriptor@{NodeDescriptor}}
+\doxysubsubsection{\texorpdfstring{fields}{fields}}
+{\footnotesize\ttfamily \label{struct_node_descriptor_aa55eb11eb75537e050cfe8367a911a03} 
+std::\+vector$<$\doxymbox{\hyperlink{struct_field_descriptor}{Field\+Descriptor}}$>$ Node\+Descriptor::\+fields}
+
+
+
+Editable fields (empty for nodes without constants). 
+
+\Hypertarget{struct_node_descriptor_abcd14df5f846918221465972fe02e4e1}\index{NodeDescriptor@{NodeDescriptor}!label@{label}}
+\index{label@{label}!NodeDescriptor@{NodeDescriptor}}
+\doxysubsubsection{\texorpdfstring{label}{label}}
+{\footnotesize\ttfamily \label{struct_node_descriptor_abcd14df5f846918221465972fe02e4e1} 
+std::\+string Node\+Descriptor::\+label}
+
+
+
+Display title shown in node header. 
+
+\Hypertarget{struct_node_descriptor_a0e586f11bda60d60c8f16799ca679250}\index{NodeDescriptor@{NodeDescriptor}!pins@{pins}}
+\index{pins@{pins}!NodeDescriptor@{NodeDescriptor}}
+\doxysubsubsection{\texorpdfstring{pins}{pins}}
+{\footnotesize\ttfamily \label{struct_node_descriptor_a0e586f11bda60d60c8f16799ca679250} 
+std::\+vector$<$\doxymbox{\hyperlink{struct_pin_descriptor}{Pin\+Descriptor}}$>$ Node\+Descriptor::\+pins}
+
+
+
+All pins in draw order (inputs then outputs). 
+
+\Hypertarget{struct_node_descriptor_a5589e68cb415fa5bbec461b739feecd8}\index{NodeDescriptor@{NodeDescriptor}!type@{type}}
+\index{type@{type}!NodeDescriptor@{NodeDescriptor}}
+\doxysubsubsection{\texorpdfstring{type}{type}}
+{\footnotesize\ttfamily \label{struct_node_descriptor_a5589e68cb415fa5bbec461b739feecd8} 
+\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} Node\+Descriptor::\+type}
+
+
+
+The node type this describes. 
+
+
+
+The documentation for this struct was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+registry/\+\doxymbox{\hyperlink{node_descriptor_8h}{node\+Descriptor.\+h}}\end{DoxyCompactItemize}

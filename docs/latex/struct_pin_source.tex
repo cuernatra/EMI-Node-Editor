@@ -1,0 +1,64 @@
+\doxysection{Pin\+Source Struct Reference}
+\hypertarget{struct_pin_source}{}\label{struct_pin_source}\index{PinSource@{PinSource}}
+
+
+Identifies the source of a connected input pin.  
+
+
+
+
+{\ttfamily \+\#include $<$pin\+Resolver.\+h$>$}
+
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{struct_pin_source_acf555808ecb7167be2507d52a4c4d934}{node}} = nullptr
+\begin{DoxyCompactList}\small\item\em Source node (nullptr if unconnected). \end{DoxyCompactList}\item 
+int \doxymbox{\hyperlink{struct_pin_source_a04359342efa836cd440f0b9c57fdde68}{pin\+Idx}} = 0
+\begin{DoxyCompactList}\small\item\em Index into node-\/\texorpdfstring{$>$}{>}out\+Pins. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Identifies the source of a connected input pin. 
+
+Represents where an input pin\textquotesingle{}s value comes from:\+
+\begin{DoxyItemize}
+\item node:\+ The upstream \doxylink{struct_visual_node}{Visual\+Node} with the output pin
+\item pin\+Idx:\+ Index into node-\/\texorpdfstring{$>$}{>}out\+Pins (which output pin on that node)
+\end{DoxyItemize}
+
+Used during recursive AST building to traverse from outputs back through inputs, accumulating the expression tree.
+
+\begin{DoxyAuthor}{Author}
+Jenny 
+\end{DoxyAuthor}
+
+
+\label{doc-variable-members}
+\Hypertarget{struct_pin_source_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{struct_pin_source_acf555808ecb7167be2507d52a4c4d934}\index{PinSource@{PinSource}!node@{node}}
+\index{node@{node}!PinSource@{PinSource}}
+\doxysubsubsection{\texorpdfstring{node}{node}}
+{\footnotesize\ttfamily \label{struct_pin_source_acf555808ecb7167be2507d52a4c4d934} 
+const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}}\texorpdfstring{$\ast$}{*} Pin\+Source::\+node = nullptr}
+
+
+
+Source node (nullptr if unconnected). 
+
+\Hypertarget{struct_pin_source_a04359342efa836cd440f0b9c57fdde68}\index{PinSource@{PinSource}!pinIdx@{pinIdx}}
+\index{pinIdx@{pinIdx}!PinSource@{PinSource}}
+\doxysubsubsection{\texorpdfstring{pinIdx}{pinIdx}}
+{\footnotesize\ttfamily \label{struct_pin_source_a04359342efa836cd440f0b9c57fdde68} 
+int Pin\+Source::\+pin\+Idx = 0}
+
+
+
+Index into node-\/\texorpdfstring{$>$}{>}out\+Pins. 
+
+
+
+The documentation for this struct was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+compiler/\+\doxymbox{\hyperlink{pin_resolver_8h}{pin\+Resolver.\+h}}\end{DoxyCompactItemize}

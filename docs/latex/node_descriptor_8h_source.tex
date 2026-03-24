@@ -1,0 +1,50 @@
+\doxysection{node\+Descriptor.\+h}
+\hypertarget{node_descriptor_8h_source}{}\label{node_descriptor_8h_source}\index{src/core/registry/nodeDescriptor.h@{src/core/registry/nodeDescriptor.h}}
+\doxymbox{\hyperlink{node_descriptor_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#ifndef\ NODE\_DESCRIPTOR\_H}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#define\ NODE\_DESCRIPTOR\_H}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{types_8h}{../graph/types.h}}"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{comment}{//\ Forward\ declarations\ for\ compile\ callback}}
+\DoxyCodeLine{00023\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_compiler}{GraphCompiler}};}
+\DoxyCodeLine{00024\ \textcolor{keyword}{class\ }Node;}
+\DoxyCodeLine{00025\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_visual_node}{VisualNode}};}
+\DoxyCodeLine{00026\ }
+\DoxyCodeLine{00027\ \textcolor{comment}{//\ TODO:\ tarviiks\ tätä}}
+\DoxyCodeLine{00028\ }
+\DoxyCodeLine{00033\ \textcolor{keyword}{using\ }\doxymbox{\hyperlink{node_descriptor_8h_a662d339ad836df157eb0f4992cd54345}{CompileCallback}}\ =\ std::function<Node*(\doxymbox{\hyperlink{class_graph_compiler}{GraphCompiler}}*,\ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&)>;}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00039\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_pin_descriptor}{PinDescriptor}}}
+\DoxyCodeLine{00040\ \{}
+\DoxyCodeLine{00041\ \ \ \ \ std::string\ \doxymbox{\hyperlink{struct_pin_descriptor_a62591a87021e224b26bc6e311269d458}{name}};\ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00042\ \ \ \ \ \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{PinType}}\ \ \ \ \ \doxymbox{\hyperlink{struct_pin_descriptor_a7106e9db7059f7297aa903f58253c7de}{type}};\ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ \doxymbox{\hyperlink{struct_pin_descriptor_a177c84f9a9217d02516585529a5e193e}{isInput}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ \doxymbox{\hyperlink{struct_pin_descriptor_abba6e294d6aebfac36c415441719edd5}{isMultiInput}}\ =\ \textcolor{keyword}{false};\ \ }
+\DoxyCodeLine{00045\ \};}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00051\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_field_descriptor}{FieldDescriptor}}}
+\DoxyCodeLine{00052\ \{}
+\DoxyCodeLine{00053\ \ \ \ \ std::string\ \doxymbox{\hyperlink{struct_field_descriptor_a2a32cf13a4446a86419934ea3a405133}{name}};\ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00054\ \ \ \ \ \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{PinType}}\ \ \ \ \ \doxymbox{\hyperlink{struct_field_descriptor_a5414fc7b58484b416844af6833f2f420}{valueType}};\ \ \ \ \ }
+\DoxyCodeLine{00055\ \ \ \ \ std::string\ \doxymbox{\hyperlink{struct_field_descriptor_a61bc05716ab0f118d757abb6e3cfe191}{defaultValue}};\ \ }
+\DoxyCodeLine{00056\ \};}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00062\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_node_descriptor}{NodeDescriptor}}}
+\DoxyCodeLine{00063\ \{}
+\DoxyCodeLine{00064\ \ \ \ \ \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{NodeType}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{struct_node_descriptor_a5589e68cb415fa5bbec461b739feecd8}{type}};\ \ \ \ \ }
+\DoxyCodeLine{00065\ \ \ \ \ std::string\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{struct_node_descriptor_abcd14df5f846918221465972fe02e4e1}{label}};\ \ \ \ }
+\DoxyCodeLine{00066\ \ \ \ \ std::vector<PinDescriptor>\ \ \ \doxymbox{\hyperlink{struct_node_descriptor_a0e586f11bda60d60c8f16799ca679250}{pins}};\ \ \ \ \ }
+\DoxyCodeLine{00067\ \ \ \ \ std::vector<FieldDescriptor>\ \doxymbox{\hyperlink{struct_node_descriptor_aa55eb11eb75537e050cfe8367a911a03}{fields}};\ \ \ }
+\DoxyCodeLine{00068\ \ \ \ \ \doxymbox{\hyperlink{node_descriptor_8h_a662d339ad836df157eb0f4992cd54345}{CompileCallback}}\ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{struct_node_descriptor_ad7afdde1cefb67479899b9d23b592957}{compile}};\ \ }
+\DoxyCodeLine{00069\ \};}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ NODE\_DESCRIPTOR\_H}}
+
+\end{DoxyCode}

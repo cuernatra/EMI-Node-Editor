@@ -1,0 +1,30 @@
+\doxysection{graph\+Compilation.\+h}
+\hypertarget{graph_compilation_8h_source}{}\label{graph_compilation_8h_source}\index{src/editor/graphCompilation.h@{src/editor/graphCompilation.h}}
+\doxymbox{\hyperlink{graph_compilation_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_state}{GraphState}};}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00028\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_compilation_ad67417a841a4d11e37ede3e794f4bae9}{GraphCompilation}}}
+\DoxyCodeLine{00029\ \{}
+\DoxyCodeLine{00030\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00037\ \ \ \ \ \doxymbox{\hyperlink{class_graph_compilation_ad67417a841a4d11e37ede3e794f4bae9}{GraphCompilation}}();}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00042\ \ \ \ \ \doxymbox{\hyperlink{class_graph_compilation_ab6f68b1953f32f0c014ca31154766212}{\string~GraphCompilation}}();}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_compilation_aa7763cac7b10802fc7799ac16a4d8d85}{CompileGraph}}(\doxymbox{\hyperlink{class_graph_state}{GraphState}}\&\ state,\ \textcolor{keywordtype}{bool}\ resultOnly\ =\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{comment}{//\ Pimpl\ to\ hide\ EMI\ types\ from\ header}}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_compilation_1_1_impl}{Impl}};}
+\DoxyCodeLine{00065\ \ \ \ \ std::unique\_ptr<Impl>\ m\_impl;}
+\DoxyCodeLine{00066\ \};}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ }
+
+\end{DoxyCode}

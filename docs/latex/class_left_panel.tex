@@ -1,0 +1,61 @@
+\doxysection{Left\+Panel Class Reference}
+\hypertarget{class_left_panel}{}\label{class_left_panel}\index{LeftPanel@{LeftPanel}}
+
+
+Left sidebar containing the draggable node palette.  
+
+
+
+
+{\ttfamily \+\#include $<$left\+Panel.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{class_left_panel_af1cf27dc91955c809b1335a8f590f144}{Left\+Panel}} ()
+\begin{DoxyCompactList}\small\item\em Initialize the left panel and populate node categories. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_left_panel_a931d3b9a88009f6551a7688a0ba14aa7}{draw}} (bool has\+Start\+Node)
+\begin{DoxyCompactList}\small\item\em Render the left panel contents. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Left sidebar containing the draggable node palette. 
+
+Displays a vertical list of \doxylink{class_drop_bar}{Drop\+Bar} entries, each representing a node type that can be instantiated in the editor. Users drag entries from this panel onto the canvas to create new nodes.
+
+The panel width is resizable via the main UI splitter. 
+
+\label{doc-constructors}
+\Hypertarget{class_left_panel_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_left_panel_af1cf27dc91955c809b1335a8f590f144}\index{LeftPanel@{LeftPanel}!LeftPanel@{LeftPanel}}
+\index{LeftPanel@{LeftPanel}!LeftPanel@{LeftPanel}}
+\doxysubsubsection{\texorpdfstring{LeftPanel()}{LeftPanel()}}
+{\footnotesize\ttfamily \label{class_left_panel_af1cf27dc91955c809b1335a8f590f144} 
+Left\+Panel::\+\+Left\+Panel (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Initialize the left panel and populate node categories. 
+
+
+
+\label{doc-func-members}
+\Hypertarget{class_left_panel_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_left_panel_a931d3b9a88009f6551a7688a0ba14aa7}\index{LeftPanel@{LeftPanel}!draw@{draw}}
+\index{draw@{draw}!LeftPanel@{LeftPanel}}
+\doxysubsubsection{\texorpdfstring{draw()}{draw()}}
+{\footnotesize\ttfamily \label{class_left_panel_a931d3b9a88009f6551a7688a0ba14aa7} 
+void Left\+Panel::\+draw (\begin{DoxyParamCaption}\item[{bool}]{has\+Start\+Node}{}\end{DoxyParamCaption})}
+
+
+
+Render the left panel contents. 
+
+Draws all \doxylink{class_drop_bar}{Drop\+Bar} entries in the palette. Must be called within an Im\+Gui child window context. 
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+ui/\+\doxymbox{\hyperlink{left_panel_8h}{left\+Panel.\+h}}\item 
+src/\+ui/\+\doxymbox{\hyperlink{left_panel_8cpp}{left\+Panel.\+cpp}}\end{DoxyCompactItemize}

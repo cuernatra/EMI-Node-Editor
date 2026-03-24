@@ -1,0 +1,118 @@
+\doxysection{Graph\+Compilation Class Reference}
+\hypertarget{class_graph_compilation}{}\label{class_graph_compilation}\index{GraphCompilation@{GraphCompilation}}
+
+
+High-\/level graph compilation and execution interface.  
+
+
+
+
+{\ttfamily \+\#include $<$graph\+Compilation.\+h$>$}
+
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{class_graph_compilation_1_1_impl}{Impl}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{class_graph_compilation_ad67417a841a4d11e37ede3e794f4bae9}{Graph\+Compilation}} ()
+\begin{DoxyCompactList}\small\item\em Initialize the EMI environment for compilation. \end{DoxyCompactList}\item 
+\doxymbox{\hyperlink{class_graph_compilation_ab6f68b1953f32f0c014ca31154766212}{\texorpdfstring{$\sim$}{\string~}\+Graph\+Compilation}} ()
+\begin{DoxyCompactList}\small\item\em Clean up the EMI environment. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_compilation_aa7763cac7b10802fc7799ac16a4d8d85}{Compile\+Graph}} (\doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&state, bool result\+Only=false)
+\begin{DoxyCompactList}\small\item\em Compile and execute the graph. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+High-\/level graph compilation and execution interface. 
+
+Manages the EMI-\/\+Script VM environment and provides a simple compilation interface for the editor. Validates the graph, compiles to AST, and prepares for EMI\textquotesingle{}s internal ASTWalker compilation.
+
+Currently creates and prints the AST. Future integration will use EMI\textquotesingle{}s Parser::\+\+Parse\+AST() and internal execution APIs. 
+
+\label{doc-constructors}
+\Hypertarget{class_graph_compilation_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_graph_compilation_ad67417a841a4d11e37ede3e794f4bae9}\index{GraphCompilation@{GraphCompilation}!GraphCompilation@{GraphCompilation}}
+\index{GraphCompilation@{GraphCompilation}!GraphCompilation@{GraphCompilation}}
+\doxysubsubsection{\texorpdfstring{GraphCompilation()}{GraphCompilation()}}
+{\footnotesize\ttfamily \label{class_graph_compilation_ad67417a841a4d11e37ede3e794f4bae9} 
+Graph\+Compilation::\+\+Graph\+Compilation (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Initialize the EMI environment for compilation. 
+
+Constructs a \doxylink{class_graph_compilation}{Graph\+Compilation} instance and initializes the implementation.
+
+Creates an EMI::\+\+VMHandle for script compilation and execution. Must be called before \doxylink{class_graph_compilation_aa7763cac7b10802fc7799ac16a4d8d85}{Compile\+Graph()}.
+
+\begin{DoxyAuthor}{Author}
+Jenny 
+\end{DoxyAuthor}
+\Hypertarget{class_graph_compilation_ab6f68b1953f32f0c014ca31154766212}\index{GraphCompilation@{GraphCompilation}!````~GraphCompilation@{\texorpdfstring{$\sim$}{\string~}GraphCompilation}}
+\index{````~GraphCompilation@{\texorpdfstring{$\sim$}{\string~}GraphCompilation}!GraphCompilation@{GraphCompilation}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}GraphCompilation()}{\string~GraphCompilation()}}
+{\footnotesize\ttfamily \label{class_graph_compilation_ab6f68b1953f32f0c014ca31154766212} 
+Graph\+Compilation::\+\texorpdfstring{$\sim$}{\string~}\+Graph\+Compilation (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [default]}}
+
+
+
+Clean up the EMI environment. 
+
+Destroys the \doxylink{class_graph_compilation}{Graph\+Compilation} instance.
+
+\begin{DoxyAuthor}{Author}
+Jenny 
+\end{DoxyAuthor}
+
+
+\label{doc-func-members}
+\Hypertarget{class_graph_compilation_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_graph_compilation_aa7763cac7b10802fc7799ac16a4d8d85}\index{GraphCompilation@{GraphCompilation}!CompileGraph@{CompileGraph}}
+\index{CompileGraph@{CompileGraph}!GraphCompilation@{GraphCompilation}}
+\doxysubsubsection{\texorpdfstring{CompileGraph()}{CompileGraph()}}
+{\footnotesize\ttfamily \label{class_graph_compilation_aa7763cac7b10802fc7799ac16a4d8d85} 
+void Graph\+Compilation::\+\+Compile\+Graph (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&}]{state}{, }\item[{bool}]{result\+Only}{ = {\ttfamily false}}\end{DoxyParamCaption})}
+
+
+
+Compile and execute the graph. 
+
+Compiles and executes a visual graph.
+
+
+\begin{DoxyParams}{Parameters}
+{\em state} & The graph state to compile and execute; updated with results\\
+\hline
+\end{DoxyParams}
+Performs the following steps:\+
+\begin{DoxyEnumerate}
+\item Pre-\/validate graph (check for Debug Print node)
+\item Compile visual graph to EMI-\/\+Script AST via \doxylink{class_graph_compiler}{Graph\+Compiler}
+\item TODO:\+ Compile AST with EMI\textquotesingle{}s internal Parser::\+\+Parse\+AST (ASTWalker)
+\item TODO:\+ Extract and execute the {\bfseries{graph}} function
+\item TODO:\+ Retrieve return value and update state
+\end{DoxyEnumerate}
+
+Currently creates and prints AST for debugging. Future integration will use EMI\textquotesingle{}s internal compilation and execution APIs. All compilation and runtime errors are caught and stored in the graph state for display to the user.
+
+
+\begin{DoxyParams}{Parameters}
+{\em state} & The graph state containing nodes and links to compile. \\
+\hline
+{\em result\+Only} & If true, suppress debug output; if false, enable debug logging.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyAuthor}{Author}
+Jenny 
+\end{DoxyAuthor}
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+editor/\+\doxymbox{\hyperlink{graph_compilation_8h}{graph\+Compilation.\+h}}\item 
+src/\+editor/\+\doxymbox{\hyperlink{graph_compilation_8cpp}{graph\+Compilation.\+cpp}}\end{DoxyCompactItemize}

@@ -1,0 +1,55 @@
+\doxysection{src/\+core/\+registry/\+field\+Widget.h File Reference}
+\hypertarget{field_widget_8h}{}\label{field_widget_8h}\index{src/core/registry/fieldWidget.h@{src/core/registry/fieldWidget.h}}
+
+
+Editable field widgets and runtime state management.  
+
+
+{\ttfamily \+\#include "{}node\+Descriptor.\+h"{}}\newline
+{\ttfamily \+\#include $<$string$>$}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{struct_node_field}{Node\+Field}}
+\begin{DoxyCompactList}\small\item\em Editable field shown in node body (constant/\+parameter). \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{field_widget_8h_a3e62724daf1288eb6428c25008cfbbb3}{Draw\+Field}} (\doxymbox{\hyperlink{struct_node_field}{Node\+Field}} \&field)
+\begin{DoxyCompactList}\small\item\em Render Im\+Gui widget for field editing (modifies field in-\/place). \end{DoxyCompactList}\item 
+\doxymbox{\hyperlink{struct_node_field}{Node\+Field}} \doxymbox{\hyperlink{field_widget_8h_aa8adc8b294fe082db2647c00d90bc41a}{Make\+Node\+Field}} (const \doxymbox{\hyperlink{struct_field_descriptor}{Field\+Descriptor}} \&desc)
+\begin{DoxyCompactList}\small\item\em Create runtime field from template descriptor (per-\/node instance from shared template). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Editable field widgets and runtime state management. 
+
+
+
+\label{doc-func-members}
+\Hypertarget{field_widget_8h_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{field_widget_8h_a3e62724daf1288eb6428c25008cfbbb3}\index{fieldWidget.h@{fieldWidget.h}!DrawField@{DrawField}}
+\index{DrawField@{DrawField}!fieldWidget.h@{fieldWidget.h}}
+\doxysubsubsection{\texorpdfstring{DrawField()}{DrawField()}}
+{\footnotesize\ttfamily \label{field_widget_8h_a3e62724daf1288eb6428c25008cfbbb3} 
+bool Draw\+Field (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{struct_node_field}{Node\+Field}} \&}]{field}{}\end{DoxyParamCaption})}
+
+
+
+Render Im\+Gui widget for field editing (modifies field in-\/place). 
+
+\begin{DoxyReturn}{Returns}
+true if value changed this frame 
+\end{DoxyReturn}
+\Hypertarget{field_widget_8h_aa8adc8b294fe082db2647c00d90bc41a}\index{fieldWidget.h@{fieldWidget.h}!MakeNodeField@{MakeNodeField}}
+\index{MakeNodeField@{MakeNodeField}!fieldWidget.h@{fieldWidget.h}}
+\doxysubsubsection{\texorpdfstring{MakeNodeField()}{MakeNodeField()}}
+{\footnotesize\ttfamily \label{field_widget_8h_aa8adc8b294fe082db2647c00d90bc41a} 
+\doxymbox{\hyperlink{struct_node_field}{Node\+Field}} Make\+Node\+Field (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_field_descriptor}{Field\+Descriptor}} \&}]{desc}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Create runtime field from template descriptor (per-\/node instance from shared template). 
+
+Needed because descriptor is shared by all nodes of same type; each spawned node must get its own field instance so edits don\textquotesingle{}t affect other nodes of same type. 

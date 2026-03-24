@@ -1,0 +1,85 @@
+\doxysection{graph\+Compiler.\+h}
+\hypertarget{graph_compiler_8h_source}{}\label{graph_compiler_8h_source}\index{src/core/compiler/graphCompiler.h@{src/core/compiler/graphCompiler.h}}
+\doxymbox{\hyperlink{graph_compiler_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{visual_node_8h}{../graph/visualNode.h}}"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{link_8h}{../graph/link.h}}"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{pin_resolver_8h}{pinResolver.h}}"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}Parser/Node.h"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ "{}Parser/Lexer.h"{}}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <unordered\_set>}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00039\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_compiler}{GraphCompiler}}}
+\DoxyCodeLine{00040\ \{}
+\DoxyCodeLine{00041\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_graph_compiler_a50566672ded91ab862129259724a659b}{HasError}}\ =\ \textcolor{keyword}{false};\ \ }
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ \doxymbox{\hyperlink{class_graph_compiler_a69ba3634f83a3df08374d72558541c33}{kGraphFunctionName}}\ =\ \textcolor{stringliteral}{"{}\_\_graph\_\_"{}};}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00075\ \ \ \ \ Node*\ \doxymbox{\hyperlink{class_graph_compiler_affec03f550bdd81315f99b76ad822757}{Compile}}(\textcolor{keyword}{const}\ std::vector<VisualNode>\&\ nodes,}
+\DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::vector<Link>\&\ \ \ \ \ \ \ links);}
+\DoxyCodeLine{00077\ }
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ \doxymbox{\hyperlink{class_graph_compiler_a3d23933915659d972f2c44f3495b33ea}{GetError}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ errorMsg\_;\ \}}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{comment}{//\ Implementation\ methods\ called\ by\ descriptor\ lambdas\ in\ nodeRegistry.cpp}}
+\DoxyCodeLine{00085\ \ \ \ \ Node*\ \doxymbox{\hyperlink{class_graph_compiler_a7b78ebaa13705e452ef7b99dd1b13f3a}{BuildConstant}}\ \ (\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n);\ \ \ }
+\DoxyCodeLine{00086\ \ \ \ \ Node*\ \doxymbox{\hyperlink{class_graph_compiler_ac7c2fc3853a5b18527fcbc72c84f95a5}{BuildStart}}\ \ \ \ \ (\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n);\ \ \ }
+\DoxyCodeLine{00087\ \ \ \ \ Node*\ \doxymbox{\hyperlink{class_graph_compiler_ac6d07478a8bf1e15418d70261741be13}{BuildOperator}}\ \ (\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n);\ \ \ }
+\DoxyCodeLine{00088\ \ \ \ \ Node*\ \doxymbox{\hyperlink{class_graph_compiler_af287d2081952036c345ced174fd30ffb}{BuildComparison}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n);\ \ \ }
+\DoxyCodeLine{00089\ \ \ \ \ Node*\ \doxymbox{\hyperlink{class_graph_compiler_a4c4d0375b2a24f88a3d6983bbaf0da95}{BuildLogic}}\ \ \ \ \ (\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n);\ \ \ }
+\DoxyCodeLine{00090\ \ \ \ \ Node*\ \doxymbox{\hyperlink{class_graph_compiler_addfbcbdf43a361666d684ccdd45929d5}{BuildSequence}}\ \ (\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n);\ \ \ }
+\DoxyCodeLine{00091\ \ \ \ \ Node*\ \doxymbox{\hyperlink{class_graph_compiler_a4b3f330c3cc8489db89c5b554c9db0b4}{BuildBranch}}\ \ \ \ (\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n);\ \ \ }
+\DoxyCodeLine{00092\ \ \ \ \ Node*\ \doxymbox{\hyperlink{class_graph_compiler_a995fe91faa2608fe6a6375484fc53346}{BuildLoop}}\ \ \ \ \ \ (\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n);\ \ \ }
+\DoxyCodeLine{00093\ \ \ \ \ Node*\ \doxymbox{\hyperlink{class_graph_compiler_a60c9fdb74ac1a8da64e348adf37f8e9d}{BuildVariable}}\ \ (\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n);\ \ \ }
+\DoxyCodeLine{00094\ \ \ \ \ Node*\ \doxymbox{\hyperlink{class_graph_compiler_ad9cbe389f5d30d9f2a80734a8ae053f3}{BuildOutput}}\ \ \ \ (\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n);\ \ \ }
+\DoxyCodeLine{00095\ \ \ \ \ Node*\ \doxymbox{\hyperlink{class_graph_compiler_a640f18e76a4d19f2ce726a22adc20c25}{BuildFunction}}\ \ (\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n);\ \ \ }
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00098\ \ \ \ \ \doxymbox{\hyperlink{class_pin_resolver}{PinResolver}}\ resolver\_;\ \ }
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \ \ Node*\ BuildExpr(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_pin}{Pin}}\&\ inputPin);\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00101\ \ \ \ \ Node*\ BuildNode(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n,\ \textcolor{keywordtype}{int}\ outPinIdx\ =\ 0);\ \ }
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00103\ \ \ \ \ \textcolor{comment}{//\ Flow\ compilation\ helpers\ (Start-\/rooted\ execution\ order)}}
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{keywordtype}{void}\ CollectFlowReachableFromOutput(ed::PinId\ flowOutputPinId);}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordtype}{void}\ AppendFlowChainFromOutput(ed::PinId\ flowOutputPinId,\ Node*\ targetScope);}
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keywordtype}{void}\ AppendFlowNode(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n,\ \textcolor{keywordtype}{int}\ triggeredInputPinIdx,\ Node*\ targetScope);}
+\DoxyCodeLine{00107\ }
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{keywordtype}{bool}\ NodeRequiresFlow(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}*\ FindFirstNode(\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{NodeType}}\ type)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00110\ \ \ \ \ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_pin}{Pin}}*\ GetOutputPinByName(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ name)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00111\ \ \ \ \ std::string\ LoopIndexVarName(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00112\ \ \ \ \ std::string\ LoopLastIndexVarName(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \ \ \ \ Node*\ MakeNode(Token\ t)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const};\ \ }
+\DoxyCodeLine{00115\ \ \ \ \ Node*\ MakeNumberNode(\textcolor{keywordtype}{double}\ v)\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const};\ \ }
+\DoxyCodeLine{00116\ \ \ \ \ Node*\ MakeBoolNode(\textcolor{keywordtype}{bool}\ v)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const};\ \ }
+\DoxyCodeLine{00117\ \ \ \ \ Node*\ MakeStringNode(\textcolor{keyword}{const}\ std::string\&\ s)\ \textcolor{keyword}{const};\ \ }
+\DoxyCodeLine{00118\ \ \ \ \ Node*\ MakeIdNode(\textcolor{keyword}{const}\ std::string\&\ name)\ \ \textcolor{keyword}{const};\ \ }
+\DoxyCodeLine{00119\ }
+\DoxyCodeLine{00120\ \ \ \ \ \textcolor{keyword}{const}\ std::string*\ GetField(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n,\ \textcolor{keyword}{const}\ std::string\&\ name)\ \textcolor{keyword}{const};\ \ }
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_pin}{Pin}}*\ GetInputPinByName(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ name)\ \textcolor{keyword}{const};\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00123\ \ \ \ \ \textcolor{keyword}{static}\ Token\ OperatorToken(\textcolor{keyword}{const}\ std::string\&\ op);\ \ }
+\DoxyCodeLine{00124\ \ \ \ \ \textcolor{keyword}{static}\ Token\ CompareToken\ (\textcolor{keyword}{const}\ std::string\&\ op);\ \ }
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keyword}{static}\ Token\ LogicToken\ \ \ (\textcolor{keyword}{const}\ std::string\&\ op);\ \ }
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00127\ \ \ \ \ \textcolor{keywordtype}{void}\ Error(\textcolor{keyword}{const}\ std::string\&\ msg);\ \ }
+\DoxyCodeLine{00128\ \ \ \ \ std::string\ errorMsg\_;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00129\ }
+\DoxyCodeLine{00130\ \ \ \ \ \textcolor{comment}{//\ Tracks\ nodes\ currently\ being\ built\ to\ detect\ recursive\ cycles.}}
+\DoxyCodeLine{00131\ \ \ \ \ std::unordered\_set<uintptr\_t>\ activeNodeBuilds\_;}
+\DoxyCodeLine{00132\ \ \ \ \ std::unordered\_set<uintptr\_t>\ activeLoopBodyNodeIds\_;}
+\DoxyCodeLine{00133\ \ \ \ \ std::unordered\_set<uintptr\_t>\ flowReachableNodes\_;}
+\DoxyCodeLine{00134\ \ \ \ \ std::unordered\_set<uintptr\_t>\ activeFlowOutputs\_;}
+\DoxyCodeLine{00135\ \ \ \ \ std::unordered\_set<uintptr\_t>\ visitedFlowOutputs\_;}
+\DoxyCodeLine{00136\ }
+\DoxyCodeLine{00137\ \ \ \ \ \textcolor{keyword}{const}\ std::vector<VisualNode>*\ nodes\_\ =\ \textcolor{keyword}{nullptr};}
+\DoxyCodeLine{00138\ \};}
+
+\end{DoxyCode}

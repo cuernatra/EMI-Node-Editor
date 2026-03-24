@@ -1,0 +1,74 @@
+\doxysection{Drop\+Bar Class Reference}
+\hypertarget{class_drop_bar}{}\label{class_drop_bar}\index{DropBar@{DropBar}}
+
+
+Collapsible, draggable node type entry in the palette.  
+
+
+
+
+{\ttfamily \+\#include $<$drop\+Bar.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{class_drop_bar_a3ed5126a400396d897158d00fd1d9e40}{Drop\+Bar}} (std::\+string label, int id, \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} node\+Type, float width, float height, bool has\+Spawn\+Button)
+\begin{DoxyCompactList}\small\item\em Construct a node palette entry. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_drop_bar_a597b10d97a7ab49528d6dc725723f41e}{draw}} ()
+\begin{DoxyCompactList}\small\item\em Render this drop bar entry. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Collapsible, draggable node type entry in the palette. 
+
+Each \doxylink{class_drop_bar}{Drop\+Bar} represents one node type (e.\+g., "{}\+Add"{}, "{}\+Branch"{}, "{}\+Output"{}). Users can drag from this entry to spawn a new node of that type in the editor. The associated \doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type} is embedded in the drag-\/and-\/drop payload for proper node instantiation. 
+
+\label{doc-constructors}
+\Hypertarget{class_drop_bar_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_drop_bar_a3ed5126a400396d897158d00fd1d9e40}\index{DropBar@{DropBar}!DropBar@{DropBar}}
+\index{DropBar@{DropBar}!DropBar@{DropBar}}
+\doxysubsubsection{\texorpdfstring{DropBar()}{DropBar()}}
+{\footnotesize\ttfamily \label{class_drop_bar_a3ed5126a400396d897158d00fd1d9e40} 
+Drop\+Bar::\+\+Drop\+Bar (\begin{DoxyParamCaption}\item[{std::\+string}]{label}{, }\item[{int}]{id}{, }\item[{\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}}}]{node\+Type}{, }\item[{float}]{width}{, }\item[{float}]{height}{, }\item[{bool}]{has\+Spawn\+Button}{}\end{DoxyParamCaption})}
+
+
+
+Construct a node palette entry. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em label} & Display name shown in the UI \\
+\hline
+{\em id} & Unique identifier for this palette entry \\
+\hline
+{\em node\+Type} & The type of node this entry creates \\
+\hline
+{\em width} & Display width in pixels \\
+\hline
+{\em height} & Display height in pixels \\
+\hline
+{\em has\+Spawn\+Button} & Whether to show a dedicated spawn button (optional) \\
+\hline
+\end{DoxyParams}
+
+
+\label{doc-func-members}
+\Hypertarget{class_drop_bar_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_drop_bar_a597b10d97a7ab49528d6dc725723f41e}\index{DropBar@{DropBar}!draw@{draw}}
+\index{draw@{draw}!DropBar@{DropBar}}
+\doxysubsubsection{\texorpdfstring{draw()}{draw()}}
+{\footnotesize\ttfamily \label{class_drop_bar_a597b10d97a7ab49528d6dc725723f41e} 
+void Drop\+Bar::\+draw (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Render this drop bar entry. 
+
+Draws the collapsible header and handles drag-\/and-\/drop source logic. Creates a \doxylink{struct_node_spawn_payload}{Node\+Spawn\+Payload} containing the associated \doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}. 
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+ui/\+\doxymbox{\hyperlink{drop_bar_8h}{drop\+Bar.\+h}}\item 
+src/\+ui/\+\doxymbox{\hyperlink{drop_bar_8cpp}{drop\+Bar.\+cpp}}\end{DoxyCompactItemize}
