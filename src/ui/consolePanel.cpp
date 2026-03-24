@@ -1,6 +1,7 @@
 #include "consolePanel.h"
 #include <imgui.h>
 #include <cstdarg>
+#include <ctime>
 
 ConsolePanel::ConsolePanel()
     : m_height{300}, m_lastExpandedHeight{300}, m_minimized{false}
@@ -16,7 +17,22 @@ void ConsolePanel::addLog(const char* fmt, ...)
     buf[IM_ARRAYSIZE(buf)-1] = 0;
     va_end(args);
 
-    m_logs.push_back(buf);
+    char timeBuf[16] = {0};
+    std::time_t now = std::time(nullptr);
+    std::tm localTime{};
+    if (localtime_s(&localTime, &now) == 0)
+    {
+        std::strftime(timeBuf, IM_ARRAYSIZE(timeBuf), "[%H:%M:%S] ", &localTime);
+    }
+
+    if (timeBuf[0] != 0)
+    {
+        m_logs.push_back(std::string(timeBuf) + buf);
+    }
+    else
+    {
+        m_logs.push_back(buf);
+    }
 }
 
 void ConsolePanel::clear()
