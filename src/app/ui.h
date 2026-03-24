@@ -15,8 +15,10 @@
 #include "../ui/leftPanel.h"
 #include "../ui/topPanel.h"
 #include "../ui/consolePanel.h"
+#include "../ui/consoleEmiLogger.h"
 #include "../editor/settings.h"
 #include <cstdint>
+#include <memory>
 
 /**
  * @brief Main UI compositor class
@@ -39,6 +41,8 @@ public:
      * @brief Initialize the UI compositor
      */
     Ui();
+
+    ~Ui();
     
     /**
      * @brief Draw the complete UI hierarchy
@@ -82,9 +86,17 @@ private:
 
     //bottom console panel
     ConsolePanel m_consolePanel;
+    std::unique_ptr<ConsoleEmiLogger> m_consoleEmiLogger;
     
     /// Current width of left panel (-1 = uninitialized, auto-sized on first draw)
     float m_leftPanelWidth = Settings::leftPanelWidth;
+
+    // console panel height (initialized from settings, can be adjusted by user)
+    float m_consolePanelHeight = Settings::consolePanelHeight;
+
+    // Console panel height as a fraction of the right column height.
+    // This keeps console sizing responsive when the window is resized.
+    float m_consolePanelRatio = -1.0f;
     
     /// Reserved for future right panel (currently unused)
     float m_rightPanelWidth = -1.f;

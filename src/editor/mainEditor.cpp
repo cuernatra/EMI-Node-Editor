@@ -7,6 +7,7 @@
 #include "../core/registry/nodeFactory.h"
 #include "imgui_node_editor.h"
 #include "settings.h"
+#include <utility>
 
 MainEditor::MainEditor()
 {
@@ -150,4 +151,12 @@ bool MainEditor::hasStartNode() const
 bool MainEditor::hasVariables() const
 {
     return m_graphState->HasNodeType(NodeType::Variable);
+}
+
+void MainEditor::setCompileLogSink(std::function<void(const std::string&)> sink)
+{
+    if (m_compiler)
+    {
+        m_compiler->SetLogSink(std::move(sink));
+    }
 }
