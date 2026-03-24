@@ -15,8 +15,10 @@
 #include "../ui/leftPanel.h"
 #include "../ui/topPanel.h"
 #include "../ui/consolePanel.h"
+#include "../ui/consoleEmiLogger.h"
 #include "../editor/settings.h"
 #include <cstdint>
+#include <memory>
 
 /**
  * @brief Main UI compositor class
@@ -39,6 +41,8 @@ public:
      * @brief Initialize the UI compositor
      */
     Ui();
+
+    ~Ui();
     
     /**
      * @brief Draw the complete UI hierarchy
@@ -82,6 +86,7 @@ private:
 
     //bottom console panel
     ConsolePanel m_consolePanel;
+    std::unique_ptr<ConsoleEmiLogger> m_consoleEmiLogger;
     
     /// Current width of left panel (-1 = uninitialized, auto-sized on first draw)
     float m_leftPanelWidth = Settings::leftPanelWidth;
