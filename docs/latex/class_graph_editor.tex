@@ -1,0 +1,143 @@
+\doxysection{Graph\+Editor Class Reference}
+\hypertarget{class_graph_editor}{}\label{class_graph_editor}\index{GraphEditor@{GraphEditor}}
+
+
+Node editor canvas renderer and interaction manager.  
+
+
+
+
+{\ttfamily \+\#include $<$graph\+Editor.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{class_graph_editor_a9a09d5d9c80f84442b7b1314ec066000}{Graph\+Editor}} (ed::\+\+Editor\+Context \texorpdfstring{$\ast$}{*}ctx, \doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&state)
+\begin{DoxyCompactList}\small\item\em Initialize the graph editor. \end{DoxyCompactList}\item 
+\doxymbox{\hyperlink{class_graph_editor_a063074d0b285eeaa06f8323c763afa7a}{\texorpdfstring{$\sim$}{\string~}\+Graph\+Editor}} ()
+\begin{DoxyCompactList}\small\item\em Clean up editor resources. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_editor_ac64c42bccd772522491654a8f6587698}{Draw}} ()
+\begin{DoxyCompactList}\small\item\em Draw the editor canvas and handle all interactions. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_editor_a9fc2d054dddc8a3a4277534e8a31c27e}{Draw\+Inspector\+Panel}} ()
+\begin{DoxyCompactList}\small\item\em Draw inspector panel contents for selected node. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{class_graph_editor_a7ee21ed48f4aa4264613d74d83cdb490}{Has\+Selected\+Node}} () const
+\begin{DoxyCompactList}\small\item\em Check if an existing node is currently selected. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_editor_adb96381c835a8cd6b653bd5fcb0b0f15}{Handle\+Delete\+Shortcut\+Fallback}} ()
+\begin{DoxyCompactList}\small\item\em Handle shared delete shortcuts (Delete/\+\+Backspace) for current selection. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{class_graph_editor_acbb87f1c3d2937762f864f4265b35d6d}{Try\+Get\+Single\+Selected\+Node\+Id}} (uintptr\+\_\+t \&out\+Id) const
+\begin{DoxyCompactList}\small\item\em Get selected node id when exactly one alive node is selected. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Node editor canvas renderer and interaction manager. 
+
+Handles all visual and interactive aspects of the node graph:\+
+\begin{DoxyItemize}
+\item Drawing nodes with pins and fields
+\item Rendering links between pins
+\item Processing user interactions (drag, connect, delete)
+\item Displaying context menus for spawning/\+removing elements
+\item Validating link creation (type compatibility, cycle detection)
+\end{DoxyItemize}
+
+Operates on a \doxylink{class_graph_state}{Graph\+State} reference but doesn\textquotesingle{}t own it. 
+
+\label{doc-constructors}
+\Hypertarget{class_graph_editor_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_graph_editor_a9a09d5d9c80f84442b7b1314ec066000}\index{GraphEditor@{GraphEditor}!GraphEditor@{GraphEditor}}
+\index{GraphEditor@{GraphEditor}!GraphEditor@{GraphEditor}}
+\doxysubsubsection{\texorpdfstring{GraphEditor()}{GraphEditor()}}
+{\footnotesize\ttfamily \label{class_graph_editor_a9a09d5d9c80f84442b7b1314ec066000} 
+Graph\+Editor::\+\+Graph\+Editor (\begin{DoxyParamCaption}\item[{ed::\+\+Editor\+Context \texorpdfstring{$\ast$}{*}}]{ctx}{, }\item[{\doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&}]{state}{}\end{DoxyParamCaption})}
+
+
+
+Initialize the graph editor. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em ctx} & The imgui-\/node-\/editor context to use for rendering \\
+\hline
+{\em state} & Reference to the graph state to display and modify \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_graph_editor_a063074d0b285eeaa06f8323c763afa7a}\index{GraphEditor@{GraphEditor}!````~GraphEditor@{\texorpdfstring{$\sim$}{\string~}GraphEditor}}
+\index{````~GraphEditor@{\texorpdfstring{$\sim$}{\string~}GraphEditor}!GraphEditor@{GraphEditor}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}GraphEditor()}{\string~GraphEditor()}}
+{\footnotesize\ttfamily \label{class_graph_editor_a063074d0b285eeaa06f8323c763afa7a} 
+Graph\+Editor::\+\texorpdfstring{$\sim$}{\string~}\+Graph\+Editor (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Clean up editor resources. 
+
+
+
+\label{doc-func-members}
+\Hypertarget{class_graph_editor_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_graph_editor_ac64c42bccd772522491654a8f6587698}\index{GraphEditor@{GraphEditor}!Draw@{Draw}}
+\index{Draw@{Draw}!GraphEditor@{GraphEditor}}
+\doxysubsubsection{\texorpdfstring{Draw()}{Draw()}}
+{\footnotesize\ttfamily \label{class_graph_editor_ac64c42bccd772522491654a8f6587698} 
+void Graph\+Editor::\+\+Draw (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Draw the editor canvas and handle all interactions. 
+
+Must be called within an ed::\+\+Begin() /\+ ed::\+\+End() block. Renders all nodes and links, processes user input, and handles context menu display and actions. \Hypertarget{class_graph_editor_a9fc2d054dddc8a3a4277534e8a31c27e}\index{GraphEditor@{GraphEditor}!DrawInspectorPanel@{DrawInspectorPanel}}
+\index{DrawInspectorPanel@{DrawInspectorPanel}!GraphEditor@{GraphEditor}}
+\doxysubsubsection{\texorpdfstring{DrawInspectorPanel()}{DrawInspectorPanel()}}
+{\footnotesize\ttfamily \label{class_graph_editor_a9fc2d054dddc8a3a4277534e8a31c27e} 
+void Graph\+Editor::\+\+Draw\+Inspector\+Panel (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Draw inspector panel contents for selected node. 
+
+Intended to be called inside a host Im\+Gui child/\+window. \Hypertarget{class_graph_editor_adb96381c835a8cd6b653bd5fcb0b0f15}\index{GraphEditor@{GraphEditor}!HandleDeleteShortcutFallback@{HandleDeleteShortcutFallback}}
+\index{HandleDeleteShortcutFallback@{HandleDeleteShortcutFallback}!GraphEditor@{GraphEditor}}
+\doxysubsubsection{\texorpdfstring{HandleDeleteShortcutFallback()}{HandleDeleteShortcutFallback()}}
+{\footnotesize\ttfamily \label{class_graph_editor_adb96381c835a8cd6b653bd5fcb0b0f15} 
+void Graph\+Editor::\+\+Handle\+Delete\+Shortcut\+Fallback (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Handle shared delete shortcuts (Delete/\+\+Backspace) for current selection. 
+
+Intended to be called from a higher-\/level UI pass so overlay windows can reuse canvas shortcuts even when they have focus. \Hypertarget{class_graph_editor_a7ee21ed48f4aa4264613d74d83cdb490}\index{GraphEditor@{GraphEditor}!HasSelectedNode@{HasSelectedNode}}
+\index{HasSelectedNode@{HasSelectedNode}!GraphEditor@{GraphEditor}}
+\doxysubsubsection{\texorpdfstring{HasSelectedNode()}{HasSelectedNode()}}
+{\footnotesize\ttfamily \label{class_graph_editor_a7ee21ed48f4aa4264613d74d83cdb490} 
+bool Graph\+Editor::\+\+Has\+Selected\+Node (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Check if an existing node is currently selected. 
+
+\Hypertarget{class_graph_editor_acbb87f1c3d2937762f864f4265b35d6d}\index{GraphEditor@{GraphEditor}!TryGetSingleSelectedNodeId@{TryGetSingleSelectedNodeId}}
+\index{TryGetSingleSelectedNodeId@{TryGetSingleSelectedNodeId}!GraphEditor@{GraphEditor}}
+\doxysubsubsection{\texorpdfstring{TryGetSingleSelectedNodeId()}{TryGetSingleSelectedNodeId()}}
+{\footnotesize\ttfamily \label{class_graph_editor_acbb87f1c3d2937762f864f4265b35d6d} 
+bool Graph\+Editor::\+\+Try\+Get\+Single\+Selected\+Node\+Id (\begin{DoxyParamCaption}\item[{uintptr\+\_\+t \&}]{out\+Id}{}\end{DoxyParamCaption}) const}
+
+
+
+Get selected node id when exactly one alive node is selected. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em out\+Id} & Receives selected node id (raw uintptr value) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true when exactly one alive node is selected, otherwise false 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+editor/\+\doxymbox{\hyperlink{graph_editor_8h}{graph\+Editor.\+h}}\item 
+src/\+editor/\+\doxymbox{\hyperlink{graph_editor_8cpp}{graph\+Editor.\+cpp}}\end{DoxyCompactItemize}

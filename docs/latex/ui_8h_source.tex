@@ -1,0 +1,49 @@
+\doxysection{ui.\+h}
+\hypertarget{ui_8h_source}{}\label{ui_8h_source}\index{src/app/ui.h@{src/app/ui.h}}
+\doxymbox{\hyperlink{ui_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#ifndef\ UI\_H}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#define\ UI\_H}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{main_editor_8h}{../editor/mainEditor.h}}"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{left_panel_8h}{../ui/leftPanel.h}}"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{top_panel_8h}{../ui/topPanel.h}}"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{console_panel_8h}{../ui/consolePanel.h}}"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{settings_8h}{../editor/settings.h}}"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00035\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_ui_a6e07807d24fb5874a7e51d7ff0196236}{Ui}}}
+\DoxyCodeLine{00036\ \{}
+\DoxyCodeLine{00037\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00041\ \ \ \ \ \doxymbox{\hyperlink{class_ui_a6e07807d24fb5874a7e51d7ff0196236}{Ui}}();}
+\DoxyCodeLine{00042\ \ \ \ \ }
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_ui_acbba9efd0b9d2b47833bd80a0fd35614}{draw}}();}
+\DoxyCodeLine{00050\ \ \ \ \ }
+\DoxyCodeLine{00051\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keywordtype}{void}\ DrawSplitter(\textcolor{keywordtype}{float}\ totalWidth,\ \textcolor{keywordtype}{float}\ thickness,\ \textcolor{keywordtype}{float}\ minLeft,\ \textcolor{keywordtype}{float}\ minRight);}
+\DoxyCodeLine{00063\ }
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordtype}{void}\ DrawConsoleSplitter(\textcolor{keywordtype}{float}\ width,\ \textcolor{keywordtype}{float}\ thickness,\ \textcolor{keywordtype}{float}\ minMain,\ \textcolor{keywordtype}{float}\ minConsole,\ \textcolor{keywordtype}{float}\ availableHeight);}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00075\ \ \ \ \ \doxymbox{\hyperlink{class_main_editor}{MainEditor}}\ m\_mainEditor;}
+\DoxyCodeLine{00076\ \ \ \ \ }
+\DoxyCodeLine{00078\ \ \ \ \ \doxymbox{\hyperlink{class_left_panel}{LeftPanel}}\ m\_leftPanel;}
+\DoxyCodeLine{00079\ \ \ \ \ }
+\DoxyCodeLine{00081\ \ \ \ \ \doxymbox{\hyperlink{class_top_panel}{TopPanel}}\ m\_topPanel;}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{comment}{//bottom\ console\ panel}}
+\DoxyCodeLine{00084\ \ \ \ \ \doxymbox{\hyperlink{class_console_panel}{ConsolePanel}}\ m\_consolePanel;}
+\DoxyCodeLine{00085\ \ \ \ \ }
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordtype}{float}\ m\_leftPanelWidth\ =\ \doxymbox{\hyperlink{namespace_settings_a1e214421675dfe6fe7ec0cb6dfa043c7}{Settings::leftPanelWidth}};}
+\DoxyCodeLine{00088\ \ \ \ \ }
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{keywordtype}{float}\ m\_rightPanelWidth\ =\ -\/1.f;}
+\DoxyCodeLine{00091\ }
+\DoxyCodeLine{00093\ \ \ \ \ uint32\_t\ m\_inspectorWindowGeneration\ =\ 0;}
+\DoxyCodeLine{00094\ }
+\DoxyCodeLine{00096\ \ \ \ \ uintptr\_t\ m\_lastInspectorNodeId\ =\ 0;}
+\DoxyCodeLine{00097\ \};}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

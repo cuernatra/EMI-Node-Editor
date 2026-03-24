@@ -1,0 +1,116 @@
+\doxysection{Id\+Gen Struct Reference}
+\hypertarget{struct_id_gen}{}\label{struct_id_gen}\index{IdGen@{IdGen}}
+
+
+Simple ID generator for graph elements.  
+
+
+
+
+{\ttfamily \+\#include $<$id\+Gen.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{struct_id_gen_a7f4bf3bafa8ef911eceb011bbda59d5c}{Set\+Next}} (int v)
+\begin{DoxyCompactList}\small\item\em Set the next ID value to be generated. \end{DoxyCompactList}\item 
+ed::\+\+Node\+Id \doxymbox{\hyperlink{struct_id_gen_afadf54d9b82dbdfa6ebf230433b53ccf}{New\+Node}} ()
+\begin{DoxyCompactList}\small\item\em Generate a new unique node ID. \end{DoxyCompactList}\item 
+ed::\+\+Pin\+Id \doxymbox{\hyperlink{struct_id_gen_a3165de93143301e8a879ce2d17e5838c}{New\+Pin}} ()
+\begin{DoxyCompactList}\small\item\em Generate a new unique pin ID. \end{DoxyCompactList}\item 
+ed::\+\+Link\+Id \doxymbox{\hyperlink{struct_id_gen_aed5422bb981f1940a407f872c4380d24}{New\+Link}} ()
+\begin{DoxyCompactList}\small\item\em Generate a new unique link ID. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \doxymbox{\hyperlink{struct_id_gen_a3c9846166fad3b3c4e1dfc126103f8aa}{next}} = 1
+\begin{DoxyCompactList}\small\item\em Next available ID value (starts at 1). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Simple ID generator for graph elements. 
+
+Generates unique sequential IDs for nodes, pins, and links in the visual graph editor. Uses a single shared counter to ensure all IDs are unique across different element types.
+
+\begin{DoxyNote}{Note}
+IDs start at 1 and increment monotonically. ID 0 is reserved as invalid. 
+\end{DoxyNote}
+
+
+\label{doc-func-members}
+\Hypertarget{struct_id_gen_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{struct_id_gen_aed5422bb981f1940a407f872c4380d24}\index{IdGen@{IdGen}!NewLink@{NewLink}}
+\index{NewLink@{NewLink}!IdGen@{IdGen}}
+\doxysubsubsection{\texorpdfstring{NewLink()}{NewLink()}}
+{\footnotesize\ttfamily \label{struct_id_gen_aed5422bb981f1940a407f872c4380d24} 
+ed::\+\+Link\+Id Id\+Gen::\+\+New\+Link (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Generate a new unique link ID. 
+
+\begin{DoxyReturn}{Returns}
+A unique Link\+Id for use in the node editor 
+\end{DoxyReturn}
+\Hypertarget{struct_id_gen_afadf54d9b82dbdfa6ebf230433b53ccf}\index{IdGen@{IdGen}!NewNode@{NewNode}}
+\index{NewNode@{NewNode}!IdGen@{IdGen}}
+\doxysubsubsection{\texorpdfstring{NewNode()}{NewNode()}}
+{\footnotesize\ttfamily \label{struct_id_gen_afadf54d9b82dbdfa6ebf230433b53ccf} 
+ed::\+\+Node\+Id Id\+Gen::\+\+New\+Node (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Generate a new unique node ID. 
+
+\begin{DoxyReturn}{Returns}
+A unique Node\+Id for use in the node editor 
+\end{DoxyReturn}
+\Hypertarget{struct_id_gen_a3165de93143301e8a879ce2d17e5838c}\index{IdGen@{IdGen}!NewPin@{NewPin}}
+\index{NewPin@{NewPin}!IdGen@{IdGen}}
+\doxysubsubsection{\texorpdfstring{NewPin()}{NewPin()}}
+{\footnotesize\ttfamily \label{struct_id_gen_a3165de93143301e8a879ce2d17e5838c} 
+ed::\+\+Pin\+Id Id\+Gen::\+\+New\+Pin (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Generate a new unique pin ID. 
+
+\begin{DoxyReturn}{Returns}
+A unique Pin\+Id for use in the node editor 
+\end{DoxyReturn}
+\Hypertarget{struct_id_gen_a7f4bf3bafa8ef911eceb011bbda59d5c}\index{IdGen@{IdGen}!SetNext@{SetNext}}
+\index{SetNext@{SetNext}!IdGen@{IdGen}}
+\doxysubsubsection{\texorpdfstring{SetNext()}{SetNext()}}
+{\footnotesize\ttfamily \label{struct_id_gen_a7f4bf3bafa8ef911eceb011bbda59d5c} 
+void Id\+Gen::\+\+Set\+Next (\begin{DoxyParamCaption}\item[{int}]{v}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Set the next ID value to be generated. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em v} & The value to set as the next ID\\
+\hline
+\end{DoxyParams}
+Useful for deserializing graphs where you need to ensure new IDs don\textquotesingle{}t conflict with existing ones. 
+
+\label{doc-variable-members}
+\Hypertarget{struct_id_gen_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{struct_id_gen_a3c9846166fad3b3c4e1dfc126103f8aa}\index{IdGen@{IdGen}!next@{next}}
+\index{next@{next}!IdGen@{IdGen}}
+\doxysubsubsection{\texorpdfstring{next}{next}}
+{\footnotesize\ttfamily \label{struct_id_gen_a3c9846166fad3b3c4e1dfc126103f8aa} 
+int Id\+Gen::\+next = 1}
+
+
+
+Next available ID value (starts at 1). 
+
+
+
+The documentation for this struct was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+graph/\+\doxymbox{\hyperlink{id_gen_8h}{id\+Gen.\+h}}\end{DoxyCompactItemize}

@@ -1,0 +1,95 @@
+\doxysection{Node\+Registry Class Reference}
+\hypertarget{class_node_registry}{}\label{class_node_registry}\index{NodeRegistry@{NodeRegistry}}
+
+
+Singleton registry for node type definitions.  
+
+
+
+
+{\ttfamily \+\#include $<$node\+Registry.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+const \doxymbox{\hyperlink{struct_node_descriptor}{Node\+Descriptor}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_node_registry_aebede83060b144eb2fcb726fbb50dc17}{Find}} (\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} type) const
+\begin{DoxyCompactList}\small\item\em Look up a node type descriptor. \end{DoxyCompactList}\item 
+const std::\+unordered\+\_\+map$<$ \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}}, \doxymbox{\hyperlink{struct_node_descriptor}{Node\+Descriptor}} $>$ \& \doxymbox{\hyperlink{class_node_registry_a7c690fae8c338b61af6ce420e7e1acd1}{All}} () const
+\begin{DoxyCompactList}\small\item\em Get all registered descriptors. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static const \doxymbox{\hyperlink{class_node_registry}{Node\+Registry}} \& \doxymbox{\hyperlink{class_node_registry_a18a4ff61afb4d5cd131840e841dad395}{Get}} ()
+\begin{DoxyCompactList}\small\item\em Get the global registry instance. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Singleton registry for node type definitions. 
+
+Central repository mapping \doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type} → \doxylink{struct_node_descriptor}{Node\+Descriptor}. All node types available in the editor are registered here with their complete specifications (pins, fields, labels).
+
+The registry is populated once on first access and remains immutable thereafter. Node implementations live in \doxylink{node_registry_8cpp}{node\+Registry.\+cpp}.
+
+Usage:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{const}\ NodeDescriptor*\ desc\ =\ \doxymbox{\hyperlink{class_node_registry_a18a4ff61afb4d5cd131840e841dad395}{NodeRegistry::Get}}().\doxymbox{\hyperlink{class_node_registry_aebede83060b144eb2fcb726fbb50dc17}{Find}}(\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16ae1b3ec89ead7f83a9245ed5c9cacfdbf}{NodeType::Operator}});}
+\DoxyCodeLine{\textcolor{keywordflow}{if}\ (desc)\ \{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Use\ descriptor\ to\ create\ or\ render\ node}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+ 
+
+\label{doc-func-members}
+\Hypertarget{class_node_registry_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_node_registry_a7c690fae8c338b61af6ce420e7e1acd1}\index{NodeRegistry@{NodeRegistry}!All@{All}}
+\index{All@{All}!NodeRegistry@{NodeRegistry}}
+\doxysubsubsection{\texorpdfstring{All()}{All()}}
+{\footnotesize\ttfamily \label{class_node_registry_a7c690fae8c338b61af6ce420e7e1acd1} 
+const std::\+unordered\+\_\+map$<$ \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}}, \doxymbox{\hyperlink{struct_node_descriptor}{Node\+Descriptor}} $>$ \& Node\+Registry::\+\+All (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Get all registered descriptors. 
+
+\begin{DoxyReturn}{Returns}
+Map of all \doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type} → \doxylink{struct_node_descriptor}{Node\+Descriptor} mappings
+\end{DoxyReturn}
+Useful for building spawn menus or enumerating available node types. \Hypertarget{class_node_registry_aebede83060b144eb2fcb726fbb50dc17}\index{NodeRegistry@{NodeRegistry}!Find@{Find}}
+\index{Find@{Find}!NodeRegistry@{NodeRegistry}}
+\doxysubsubsection{\texorpdfstring{Find()}{Find()}}
+{\footnotesize\ttfamily \label{class_node_registry_aebede83060b144eb2fcb726fbb50dc17} 
+const \doxymbox{\hyperlink{struct_node_descriptor}{Node\+Descriptor}} \texorpdfstring{$\ast$}{*} Node\+Registry::\+\+Find (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}}}]{type}{}\end{DoxyParamCaption}) const}
+
+
+
+Look up a node type descriptor. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em type} & The \doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type} to find \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Pointer to descriptor, or nullptr if not registered
+\end{DoxyReturn}
+Returns nullptr for \doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16a88183b946cc5f0e8c96b2e66e1c74a7e}{Node\+Type::\+\+Unknown} or unregistered types. \Hypertarget{class_node_registry_a18a4ff61afb4d5cd131840e841dad395}\index{NodeRegistry@{NodeRegistry}!Get@{Get}}
+\index{Get@{Get}!NodeRegistry@{NodeRegistry}}
+\doxysubsubsection{\texorpdfstring{Get()}{Get()}}
+{\footnotesize\ttfamily \label{class_node_registry_a18a4ff61afb4d5cd131840e841dad395} 
+const \doxymbox{\hyperlink{class_node_registry}{Node\+Registry}} \& Node\+Registry::\+\+Get (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Get the global registry instance. 
+
+\begin{DoxyReturn}{Returns}
+Reference to the singleton registry
+\end{DoxyReturn}
+Thread-\/safe initialization on first call. 
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+registry/\+\doxymbox{\hyperlink{node_registry_8h}{node\+Registry.\+h}}\item 
+src/\+core/\+registry/\+\doxymbox{\hyperlink{node_registry_8cpp}{node\+Registry.\+cpp}}\end{DoxyCompactItemize}

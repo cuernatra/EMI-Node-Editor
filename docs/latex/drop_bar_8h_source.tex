@@ -1,0 +1,36 @@
+\doxysection{drop\+Bar.\+h}
+\hypertarget{drop_bar_8h_source}{}\label{drop_bar_8h_source}\index{src/ui/dropBar.h@{src/ui/dropBar.h}}
+\doxymbox{\hyperlink{drop_bar_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#ifndef\ DROPBAR\_H}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#define\ DROPBAR\_H}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{constants_8h}{../app/constants.h}}"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{types_8h}{../core/graph/types.h}}"{}}\ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ NodeType}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{link_8h}{../core/graph/link.h}}"{}}\ \ \ \ \ \ \ \ \ \ \textcolor{comment}{//\ NodeSpawnPayload}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00029\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_drop_bar_a3ed5126a400396d897158d00fd1d9e40}{DropBar}}}
+\DoxyCodeLine{00030\ \{}
+\DoxyCodeLine{00031\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00041\ \ \ \ \ \doxymbox{\hyperlink{class_drop_bar_a3ed5126a400396d897158d00fd1d9e40}{DropBar}}(std::string\ label,\ \textcolor{keywordtype}{int}\ \textcolor{keywordtype}{id},\ \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{NodeType}}\ nodeType,}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ width,\ \textcolor{keywordtype}{float}\ height,\ \textcolor{keywordtype}{bool}\ hasSpawnButton);}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_drop_bar_a597b10d97a7ab49528d6dc725723f41e}{draw}}();}
+\DoxyCodeLine{00051\ }
+\DoxyCodeLine{00052\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00053\ \ \ \ \ std::string\ m\_label;\ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keywordtype}{int}\ \ \ \ \ \ \ \ \ m\_id;\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00055\ \ \ \ \ \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{NodeType}}\ \ \ \ m\_nodeType;\ \ \ \ \ \ \ }
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordtype}{float}\ \ \ \ \ \ \ m\_width;\ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keywordtype}{float}\ \ \ \ \ \ \ m\_height;\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ m\_open;\ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \ \ \ \ \ m\_hasSpawnButton;\ }
+\DoxyCodeLine{00060\ \};}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}
