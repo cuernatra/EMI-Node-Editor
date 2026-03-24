@@ -4,6 +4,7 @@
 #include "VM.h"
 #include "Parser/Node.h"
 #include <string>
+#include <utility>
 
 // Pimpl implementation details
 class GraphCompilation::Impl
@@ -26,8 +27,18 @@ GraphCompilation::GraphCompilation()
 
 GraphCompilation::~GraphCompilation() = default;
 
+void GraphCompilation::SetLogSink(LogSink sink)
+{
+    m_logSink = std::move(sink);
+}
+
 void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 {
+    if (m_logSink)
+    {
+        m_logSink("Compiling graph...");
+    }
+
     if (resultOnly)
     {
         EMI::SetCompileLogLevel(EMI::LogLevel::Warning);
@@ -43,14 +54,24 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 
     if (!m_impl || !m_impl->vm)
     {
-        state.SetCompileStatus(false, "Error: EMI environment not initialized");
+        const std::string status = "Error: EMI environment not initialized";
+        state.SetCompileStatus(false, status);
+        if (m_logSink)
+        {
+            m_logSink(status);
+        }
         return;
     }
 
     // Pre-validate: check for Debug Print node
     if (!state.HasOutputNode())
     {
-        state.SetCompileStatus(false, "Error: graph has no Debug Print node.");
+        const std::string status = "Error: graph has no Debug Print node.";
+        state.SetCompileStatus(false, status);
+        if (m_logSink)
+        {
+            m_logSink(status);
+        }
         return;
     }
 
@@ -60,7 +81,12 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 
     if (gc.HasError || !ast)
     {
-        state.SetCompileStatus(false, "Compile error: " + gc.GetError());
+        const std::string status = "Compile error: " + gc.GetError();
+        state.SetCompileStatus(false, status);
+        if (m_logSink)
+        {
+            m_logSink(status);
+        }
         if (ast) delete ast;
         return;
     }
@@ -82,13 +108,22 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
     void* printHandle = m_impl->vm->CompileTemporary(kRunGraphScript);
     if (!m_impl->vm->WaitForResult(printHandle))
     {
-        state.SetCompileStatus(false, "Runtime error: failed to execute '__graph__()'");
+        const std::string status = "Runtime error: failed to execute '__graph__()'";
+        state.SetCompileStatus(false, status);
+        if (m_logSink)
+        {
+            m_logSink(status);
+        }
         return;
     }
 
-    if (resultOnly)
-        state.SetCompileStatus(true, "OK");
-    else
-        state.SetCompileStatus(true, "OK — compiled and executed (__graph__)");
+    const std::string status = resultOnly
+        ? std::string("OK")
+        : std::string("OK - compiled and executed (__graph__)");
+    state.SetCompileStatus(true, status);
+    if (m_logSink)
+    {
+        m_logSink(status);
+    }
 }
 

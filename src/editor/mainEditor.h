@@ -10,6 +10,8 @@
 #include "graphCompilation.h"
 #include <memory>
 #include <cstdint>
+#include <functional>
+#include <string>
 
 namespace ed = ax::NodeEditor;
 
@@ -47,6 +49,9 @@ public:
 
     /// Check whether graph contains at least one Variable node.
     bool hasVariables() const;
+
+    /// Forward compile status messages to an external log sink.
+    void setCompileLogSink(std::function<void(const std::string&)> sink);
 
 private:
 

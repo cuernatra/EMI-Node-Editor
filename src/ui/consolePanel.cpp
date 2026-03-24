@@ -3,6 +3,23 @@
 #include <cstdarg>
 #include <ctime>
 
+std::string ConsolePanel::withTimestamp(const std::string& message) const
+{
+    char timeBuf[16] = {0};
+    std::time_t now = std::time(nullptr);
+    std::tm localTime{};
+    if (localtime_s(&localTime, &now) == 0)
+    {
+        std::strftime(timeBuf, IM_ARRAYSIZE(timeBuf), "[%H:%M:%S] ", &localTime);
+    }
+
+    if (timeBuf[0] != 0)
+    {
+        return std::string(timeBuf) + message;
+    }
+    return message;
+}
+
 ConsolePanel::ConsolePanel()
     : m_height{300}, m_lastExpandedHeight{300}, m_minimized{false}
 {
@@ -17,26 +34,22 @@ void ConsolePanel::addLog(const char* fmt, ...)
     buf[IM_ARRAYSIZE(buf)-1] = 0;
     va_end(args);
 
-    char timeBuf[16] = {0};
-    std::time_t now = std::time(nullptr);
-    std::tm localTime{};
-    if (localtime_s(&localTime, &now) == 0)
-    {
-        std::strftime(timeBuf, IM_ARRAYSIZE(timeBuf), "[%H:%M:%S] ", &localTime);
-    }
+    addLogText(buf);
+}
 
-    if (timeBuf[0] != 0)
+void ConsolePanel::addLogText(const std::string& message)
+{
+    std::lock_guard<std::mutex> lock(m_logsMutex);
+    m_logs.push_back(withTimestamp(message));
+    while (m_logs.size() > kMaxLogLines)
     {
-        m_logs.push_back(std::string(timeBuf) + buf);
-    }
-    else
-    {
-        m_logs.push_back(buf);
+        m_logs.pop_front();
     }
 }
 
 void ConsolePanel::clear()
 {
+    std::lock_guard<std::mutex> lock(m_logsMutex);
     m_logs.clear();
 }
 
@@ -114,8 +127,14 @@ void ConsolePanel::draw()
 
     ImGui::Separator();
     ImGui::BeginChild("scrolling", ImVec2(0, 0), false);
-    
-    for (const auto& log : m_logs)
+
+    std::deque<std::string> logsSnapshot;
+    {
+        std::lock_guard<std::mutex> lock(m_logsMutex);
+        logsSnapshot = m_logs;
+    }
+
+    for (const auto& log : logsSnapshot)
     {
         ImGui::TextUnformatted(log.c_str());
     }

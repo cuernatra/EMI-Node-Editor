@@ -2,13 +2,28 @@
 #include <imgui-SFML.h>
 #include <algorithm>
 #include <cstdio>
+#include <EMI/EMI.h>
 
 Ui::Ui()
 {
-    for (int i = 0; i < 100; ++i)
+    m_mainEditor.setCompileLogSink([this](const std::string& message)
     {
-        m_consolePanel.addLog("Console initialized. Welcome to EMI Visual Programming Tool!");
-    }
+        m_consolePanel.addLogText(message);
+    });
+
+    m_consoleEmiLogger = std::make_unique<ConsoleEmiLogger>(m_consolePanel);
+    EMI::SetCompileLog(m_consoleEmiLogger.get());
+    EMI::SetRuntimeLog(m_consoleEmiLogger.get());
+    EMI::SetScriptLog(m_consoleEmiLogger.get());
+
+    m_consolePanel.addLog("Console initialized. Welcome to EMI Visual Programming Tool!");
+}
+
+Ui::~Ui()
+{
+    EMI::SetCompileLog(nullptr);
+    EMI::SetRuntimeLog(nullptr);
+    EMI::SetScriptLog(nullptr);
 }
 
 void Ui::draw()
