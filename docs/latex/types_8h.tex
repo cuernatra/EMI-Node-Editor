@@ -1,0 +1,204 @@
+\doxysection{src/\+core/\+graph/\+types.h File Reference}
+\hypertarget{types_8h}{}\label{types_8h}\index{src/core/graph/types.h@{src/core/graph/types.h}}
+{\ttfamily \+\#include $<$string$>$}\newline
+{\ttfamily \+\#include $<$functional$>$}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{structstd_1_1hash_3_01_node_type_01_4}{std::\+hash$<$ Node\+Type $>$}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacestd}{std}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum class \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{Pin\+Type}} \{ \newline
+\doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5ab2ee912b91d69b435159c7c3f6df7f5f}{Number}}
+, \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5a27226c864bac7454a8504f8edb15d95b}{Boolean}}
+, \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5a27118326006d3829667a400ad23d5d98}{String}}
+, \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5a4410ec34d9e6c1a68100ca0ce033fb17}{Array}}
+, \newline
+\doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5a86408593c34af77fdd90df932f8b5261}{Function}}
+, \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5af1a76f66cca677c6e628d9ca58a6c8fc}{Flow}}
+, \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5aed36a1ef76a59ee3f15180e0441188ad}{Any}}
+ \}
+\item 
+enum class \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} \{ \newline
+\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16aa6122a65eaa676f700ae68d393054a37}{Start}}
+, \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16acb17869fe51048b5a5c4c6106551a255}{Constant}}
+, \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16ae1b3ec89ead7f83a9245ed5c9cacfdbf}{Operator}}
+, \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16af6c0e3a1c3cfabd32ae8d3ae741fcf0a}{Comparison}}
+, \newline
+\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16a35ba1271dff4019593d3034c929e1bbc}{Logic}}
+, \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16a3ff39d3acb327553070a64ef0cb321d5}{Sequence}}
+, \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16adacdb83ade6c4e8878717e206175dfd8}{Branch}}
+, \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16a89d7b10cb4238977d2b523dfd9ea7745}{Loop}}
+, \newline
+\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16a47c14840d8e15331fa420b9b2f757cd9}{Variable}}
+, \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16a86408593c34af77fdd90df932f8b5261}{Function}}
+, \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16a29c2c02a361c9d7028472e5d92cd4a54}{Output}}
+, \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16a88183b946cc5f0e8c96b2e66e1c74a7e}{Unknown}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+const char \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{types_8h_ae6d1d1e92d355320334a8e82ae54df6a}{Node\+Type\+To\+String}} (\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} t)
+\item 
+\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} \doxymbox{\hyperlink{types_8h_a71c5fe6c8fde64e0998ab448e8ccc74c}{Node\+Type\+From\+String}} (const std::\+string \&s)
+\end{DoxyCompactItemize}
+
+
+\label{doc-enum-members}
+\Hypertarget{types_8h_doc-enum-members}
+\doxysubsection{Enumeration Type Documentation}
+\Hypertarget{types_8h_acac9cbaeea226ed297804c012dc12b16}\index{types.h@{types.h}!NodeType@{NodeType}}
+\index{NodeType@{NodeType}!types.h@{types.h}}
+\doxysubsubsection{\texorpdfstring{NodeType}{NodeType}}
+{\footnotesize\ttfamily \label{types_8h_acac9cbaeea226ed297804c012dc12b16} 
+enum class \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+\begin{DoxyEnumFields}[2]{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Start@{Start}!types.h@{types.h}}
+\index{types.h@{types.h}!Start@{Start}}
+}\Hypertarget{types_8h_acac9cbaeea226ed297804c012dc12b16aa6122a65eaa676f700ae68d393054a37}\label{types_8h_acac9cbaeea226ed297804c012dc12b16aa6122a65eaa676f700ae68d393054a37} 
+Start&Event start node (flow entry). \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Constant@{Constant}!types.h@{types.h}}
+\index{types.h@{types.h}!Constant@{Constant}}
+}\Hypertarget{types_8h_acac9cbaeea226ed297804c012dc12b16acb17869fe51048b5a5c4c6106551a255}\label{types_8h_acac9cbaeea226ed297804c012dc12b16acb17869fe51048b5a5c4c6106551a255} 
+Constant&Constant value node. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Operator@{Operator}!types.h@{types.h}}
+\index{types.h@{types.h}!Operator@{Operator}}
+}\Hypertarget{types_8h_acac9cbaeea226ed297804c012dc12b16ae1b3ec89ead7f83a9245ed5c9cacfdbf}\label{types_8h_acac9cbaeea226ed297804c012dc12b16ae1b3ec89ead7f83a9245ed5c9cacfdbf} 
+Operator&Arithmetic/\+string operators (+, -\/, \texorpdfstring{$\ast$}{*}, /\+). \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Comparison@{Comparison}!types.h@{types.h}}
+\index{types.h@{types.h}!Comparison@{Comparison}}
+}\Hypertarget{types_8h_acac9cbaeea226ed297804c012dc12b16af6c0e3a1c3cfabd32ae8d3ae741fcf0a}\label{types_8h_acac9cbaeea226ed297804c012dc12b16af6c0e3a1c3cfabd32ae8d3ae741fcf0a} 
+Comparison&Comparison operators (==, !=, \texorpdfstring{$<$}{<}, \texorpdfstring{$>$}{>}). \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Logic@{Logic}!types.h@{types.h}}
+\index{types.h@{types.h}!Logic@{Logic}}
+}\Hypertarget{types_8h_acac9cbaeea226ed297804c012dc12b16a35ba1271dff4019593d3034c929e1bbc}\label{types_8h_acac9cbaeea226ed297804c012dc12b16a35ba1271dff4019593d3034c929e1bbc} 
+Logic&Logical operators (and, or, not). \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Sequence@{Sequence}!types.h@{types.h}}
+\index{types.h@{types.h}!Sequence@{Sequence}}
+}\Hypertarget{types_8h_acac9cbaeea226ed297804c012dc12b16a3ff39d3acb327553070a64ef0cb321d5}\label{types_8h_acac9cbaeea226ed297804c012dc12b16a3ff39d3acb327553070a64ef0cb321d5} 
+Sequence&Flow sequence splitter (In -\/\texorpdfstring{$>$}{>} Then 0..N). \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Branch@{Branch}!types.h@{types.h}}
+\index{types.h@{types.h}!Branch@{Branch}}
+}\Hypertarget{types_8h_acac9cbaeea226ed297804c012dc12b16adacdb83ade6c4e8878717e206175dfd8}\label{types_8h_acac9cbaeea226ed297804c012dc12b16adacdb83ade6c4e8878717e206175dfd8} 
+Branch&Conditional branching (if/\+else). \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Loop@{Loop}!types.h@{types.h}}
+\index{types.h@{types.h}!Loop@{Loop}}
+}\Hypertarget{types_8h_acac9cbaeea226ed297804c012dc12b16a89d7b10cb4238977d2b523dfd9ea7745}\label{types_8h_acac9cbaeea226ed297804c012dc12b16a89d7b10cb4238977d2b523dfd9ea7745} 
+Loop&Iteration (for/\+while loops). \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Variable@{Variable}!types.h@{types.h}}
+\index{types.h@{types.h}!Variable@{Variable}}
+}\Hypertarget{types_8h_acac9cbaeea226ed297804c012dc12b16a47c14840d8e15331fa420b9b2f757cd9}\label{types_8h_acac9cbaeea226ed297804c012dc12b16a47c14840d8e15331fa420b9b2f757cd9} 
+Variable&Variable get/\+set. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Function@{Function}!types.h@{types.h}}
+\index{types.h@{types.h}!Function@{Function}}
+}\Hypertarget{types_8h_acac9cbaeea226ed297804c012dc12b16a86408593c34af77fdd90df932f8b5261}\label{types_8h_acac9cbaeea226ed297804c012dc12b16a86408593c34af77fdd90df932f8b5261} 
+Function&Function definition/\+call. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Output@{Output}!types.h@{types.h}}
+\index{types.h@{types.h}!Output@{Output}}
+}\Hypertarget{types_8h_acac9cbaeea226ed297804c012dc12b16a29c2c02a361c9d7028472e5d92cd4a54}\label{types_8h_acac9cbaeea226ed297804c012dc12b16a29c2c02a361c9d7028472e5d92cd4a54} 
+Output&Graph output/\+return value. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Unknown@{Unknown}!types.h@{types.h}}
+\index{types.h@{types.h}!Unknown@{Unknown}}
+}\Hypertarget{types_8h_acac9cbaeea226ed297804c012dc12b16a88183b946cc5f0e8c96b2e66e1c74a7e}\label{types_8h_acac9cbaeea226ed297804c012dc12b16a88183b946cc5f0e8c96b2e66e1c74a7e} 
+Unknown&Uninitialized or invalid type. \\
+\hline
+
+\end{DoxyEnumFields}
+\Hypertarget{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}\index{types.h@{types.h}!PinType@{PinType}}
+\index{PinType@{PinType}!types.h@{types.h}}
+\doxysubsubsection{\texorpdfstring{PinType}{PinType}}
+{\footnotesize\ttfamily \label{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5} 
+enum class \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{Pin\+Type}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+\begin{DoxyEnumFields}[2]{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Number@{Number}!types.h@{types.h}}
+\index{types.h@{types.h}!Number@{Number}}
+}\Hypertarget{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5ab2ee912b91d69b435159c7c3f6df7f5f}\label{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5ab2ee912b91d69b435159c7c3f6df7f5f} 
+Number&Numeric values (doubles). \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Boolean@{Boolean}!types.h@{types.h}}
+\index{types.h@{types.h}!Boolean@{Boolean}}
+}\Hypertarget{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5a27226c864bac7454a8504f8edb15d95b}\label{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5a27226c864bac7454a8504f8edb15d95b} 
+Boolean&Boolean true/\+false. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{String@{String}!types.h@{types.h}}
+\index{types.h@{types.h}!String@{String}}
+}\Hypertarget{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5a27118326006d3829667a400ad23d5d98}\label{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5a27118326006d3829667a400ad23d5d98} 
+String&String values. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Array@{Array}!types.h@{types.h}}
+\index{types.h@{types.h}!Array@{Array}}
+}\Hypertarget{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5a4410ec34d9e6c1a68100ca0ce033fb17}\label{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5a4410ec34d9e6c1a68100ca0ce033fb17} 
+Array&Array/\+list data structures. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Function@{Function}!types.h@{types.h}}
+\index{types.h@{types.h}!Function@{Function}}
+}\Hypertarget{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5a86408593c34af77fdd90df932f8b5261}\label{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5a86408593c34af77fdd90df932f8b5261} 
+Function&Function references. \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Flow@{Flow}!types.h@{types.h}}
+\index{types.h@{types.h}!Flow@{Flow}}
+}\Hypertarget{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5af1a76f66cca677c6e628d9ca58a6c8fc}\label{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5af1a76f66cca677c6e628d9ca58a6c8fc} 
+Flow&Execution flow (control flow). \\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Any@{Any}!types.h@{types.h}}
+\index{types.h@{types.h}!Any@{Any}}
+}\Hypertarget{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5aed36a1ef76a59ee3f15180e0441188ad}\label{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5aed36a1ef76a59ee3f15180e0441188ad} 
+Any&Wildcard type -\/ accepts any connection. \\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\label{doc-func-members}
+\Hypertarget{types_8h_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{types_8h_a71c5fe6c8fde64e0998ab448e8ccc74c}\index{types.h@{types.h}!NodeTypeFromString@{NodeTypeFromString}}
+\index{NodeTypeFromString@{NodeTypeFromString}!types.h@{types.h}}
+\doxysubsubsection{\texorpdfstring{NodeTypeFromString()}{NodeTypeFromString()}}
+{\footnotesize\ttfamily \label{types_8h_a71c5fe6c8fde64e0998ab448e8ccc74c} 
+\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} Node\+Type\+From\+String (\begin{DoxyParamCaption}\item[{const std::\+string \&}]{s}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\Hypertarget{types_8h_ae6d1d1e92d355320334a8e82ae54df6a}\index{types.h@{types.h}!NodeTypeToString@{NodeTypeToString}}
+\index{NodeTypeToString@{NodeTypeToString}!types.h@{types.h}}
+\doxysubsubsection{\texorpdfstring{NodeTypeToString()}{NodeTypeToString()}}
+{\footnotesize\ttfamily \label{types_8h_ae6d1d1e92d355320334a8e82ae54df6a} 
+const char \texorpdfstring{$\ast$}{*} Node\+Type\+To\+String (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}}}]{t}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+

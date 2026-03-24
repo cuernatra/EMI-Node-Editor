@@ -1,0 +1,79 @@
+\doxysection{src/\+core/\+registry/\+node\+Factory.h File Reference}
+\hypertarget{node_factory_8h}{}\label{node_factory_8h}\index{src/core/registry/nodeFactory.h@{src/core/registry/nodeFactory.h}}
+
+
+Node instance creation from registry descriptors.  
+
+
+{\ttfamily \+\#include "{}../\+graph/\+visual\+Node.\+h"{}}\newline
+{\ttfamily \+\#include "{}../\+graph/\+id\+Gen.\+h"{}}\newline
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \doxymbox{\hyperlink{node_factory_8h_ab208acca10ed1531e2ac33a3ca33dd3c}{Create\+Node\+From\+Type}} (\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} type, \doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \&gen, Im\+Vec2 pos)
+\begin{DoxyCompactList}\small\item\em Create a new node with freshly generated IDs. \end{DoxyCompactList}\item 
+\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \doxymbox{\hyperlink{node_factory_8h_ab7085a07ed261749eca46b526bb745d3}{Create\+Node\+From\+Type\+With\+Ids}} (\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} type, int node\+Id, const std::\+vector$<$ int $>$ \&pin\+Ids, Im\+Vec2 pos)
+\begin{DoxyCompactList}\small\item\em Create a node with specific predefined IDs (deserialization). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Node instance creation from registry descriptors. 
+
+Provides factory functions for creating \doxylink{struct_visual_node}{Visual\+Node} instances from their descriptors. Handles both fresh node creation (with new IDs) and deserialization (with existing IDs). 
+
+\label{doc-func-members}
+\Hypertarget{node_factory_8h_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{node_factory_8h_ab208acca10ed1531e2ac33a3ca33dd3c}\index{nodeFactory.h@{nodeFactory.h}!CreateNodeFromType@{CreateNodeFromType}}
+\index{CreateNodeFromType@{CreateNodeFromType}!nodeFactory.h@{nodeFactory.h}}
+\doxysubsubsection{\texorpdfstring{CreateNodeFromType()}{CreateNodeFromType()}}
+{\footnotesize\ttfamily \label{node_factory_8h_ab208acca10ed1531e2ac33a3ca33dd3c} 
+\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} Create\+Node\+From\+Type (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}}}]{type}{, }\item[{\doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \&}]{gen}{, }\item[{Im\+Vec2}]{pos}{}\end{DoxyParamCaption})}
+
+
+
+Create a new node with freshly generated IDs. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em type} & The type of node to create \\
+\hline
+{\em gen} & ID generator for creating unique IDs \\
+\hline
+{\em pos} & Initial position on the canvas \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Fully initialized \doxylink{struct_visual_node}{Visual\+Node}
+\end{DoxyReturn}
+Looks up the descriptor for the given \doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}, creates all pins and fields as specified, and assigns fresh IDs from the generator.
+
+Used when spawning new nodes from the palette or context menu. \Hypertarget{node_factory_8h_ab7085a07ed261749eca46b526bb745d3}\index{nodeFactory.h@{nodeFactory.h}!CreateNodeFromTypeWithIds@{CreateNodeFromTypeWithIds}}
+\index{CreateNodeFromTypeWithIds@{CreateNodeFromTypeWithIds}!nodeFactory.h@{nodeFactory.h}}
+\doxysubsubsection{\texorpdfstring{CreateNodeFromTypeWithIds()}{CreateNodeFromTypeWithIds()}}
+{\footnotesize\ttfamily \label{node_factory_8h_ab7085a07ed261749eca46b526bb745d3} 
+\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} Create\+Node\+From\+Type\+With\+Ids (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}}}]{type}{, }\item[{int}]{node\+Id}{, }\item[{const std::\+vector$<$ int $>$ \&}]{pin\+Ids}{, }\item[{Im\+Vec2}]{pos}{}\end{DoxyParamCaption})}
+
+
+
+Create a node with specific predefined IDs (deserialization). 
+
+
+\begin{DoxyParams}{Parameters}
+{\em type} & The type of node to create \\
+\hline
+{\em node\+Id} & The node ID to assign \\
+\hline
+{\em pin\+Ids} & \doxylink{struct_pin}{Pin} IDs in descriptor order (all inputs, then all outputs) \\
+\hline
+{\em pos} & Initial position on the canvas \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Fully initialized \doxylink{struct_visual_node}{Visual\+Node}
+\end{DoxyReturn}
+Used when loading nodes from disk where IDs are already known. The pin\+Ids vector must match the descriptor\textquotesingle{}s pin order exactly:\+ first all input pins, then all output pins.
+
+\begin{DoxyWarning}{Warning}
+pin\+Ids.\+size() must match the total pin count in the descriptor 
+\end{DoxyWarning}

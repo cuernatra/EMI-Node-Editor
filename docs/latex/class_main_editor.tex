@@ -1,0 +1,143 @@
+\doxysection{Main\+Editor Class Reference}
+\hypertarget{class_main_editor}{}\label{class_main_editor}\index{MainEditor@{MainEditor}}
+
+
+Main editor controller Coordinates graph state, rendering, serialization, and compilation.  
+
+
+
+
+{\ttfamily \+\#include $<$main\+Editor.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{class_main_editor_a62d87e7179eb118ef6da757e8adffbff}{Main\+Editor}} ()
+\begin{DoxyCompactList}\small\item\em Initialize editor; loads saved graph if exists. \end{DoxyCompactList}\item 
+\doxymbox{\hyperlink{class_main_editor_aa382ea807fe0a4fc8d9acb6aefbecb29}{\texorpdfstring{$\sim$}{\string~}\+Main\+Editor}} ()
+\begin{DoxyCompactList}\small\item\em Clean up and save current graph state. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_main_editor_afb72a29309920a39ce002c312277d7a0}{draw}} ()
+\begin{DoxyCompactList}\small\item\em Render editor UI and canvas (called every frame). \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_main_editor_adc5628badb16cb007ba2aa8ba5f86c5f}{draw\+Inspector\+Panel}} ()
+\begin{DoxyCompactList}\small\item\em Render inspector contents for selected node. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_main_editor_a287b07e45d42d59b35334a47d4699365}{handle\+Shared\+Shortcuts}} ()
+\begin{DoxyCompactList}\small\item\em Handle shared shortcuts (e.\+g. Delete) even when overlay windows are focused. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{class_main_editor_ad953c97636608880521e658f297c8608}{has\+Selected\+Node}} () const
+\begin{DoxyCompactList}\small\item\em Check whether any existing node is currently selected. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{class_main_editor_ab94c7c1cdc0967339c27332ffe20cedf}{try\+Get\+Single\+Selected\+Node\+Id}} (uintptr\+\_\+t \&out\+Id) const
+\begin{DoxyCompactList}\small\item\em Try to get currently selected node id (only when exactly one alive node is selected). \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{class_main_editor_a5ec6a61a975c35f4932f72243df75f3c}{has\+Start\+Node}} () const
+\begin{DoxyCompactList}\small\item\em Check whether graph currently contains a Start node. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{class_main_editor_ad781360cb6f2bda877c02cb902cdd215}{has\+Variables}} () const
+\begin{DoxyCompactList}\small\item\em Check whether graph contains at least one Variable node. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Main editor controller Coordinates graph state, rendering, serialization, and compilation. 
+
+Main editor orchestrator Manages graph state, canvas rendering, serialization, and compilation. Owns the node editor context. 
+
+\label{doc-constructors}
+\Hypertarget{class_main_editor_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_main_editor_a62d87e7179eb118ef6da757e8adffbff}\index{MainEditor@{MainEditor}!MainEditor@{MainEditor}}
+\index{MainEditor@{MainEditor}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{MainEditor()}{MainEditor()}}
+{\footnotesize\ttfamily \label{class_main_editor_a62d87e7179eb118ef6da757e8adffbff} 
+Main\+Editor::\+\+Main\+Editor (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Initialize editor; loads saved graph if exists. 
+
+\Hypertarget{class_main_editor_aa382ea807fe0a4fc8d9acb6aefbecb29}\index{MainEditor@{MainEditor}!````~MainEditor@{\texorpdfstring{$\sim$}{\string~}MainEditor}}
+\index{````~MainEditor@{\texorpdfstring{$\sim$}{\string~}MainEditor}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}MainEditor()}{\string~MainEditor()}}
+{\footnotesize\ttfamily \label{class_main_editor_aa382ea807fe0a4fc8d9acb6aefbecb29} 
+Main\+Editor::\+\texorpdfstring{$\sim$}{\string~}\+Main\+Editor (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Clean up and save current graph state. 
+
+
+
+\label{doc-func-members}
+\Hypertarget{class_main_editor_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_main_editor_afb72a29309920a39ce002c312277d7a0}\index{MainEditor@{MainEditor}!draw@{draw}}
+\index{draw@{draw}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{draw()}{draw()}}
+{\footnotesize\ttfamily \label{class_main_editor_afb72a29309920a39ce002c312277d7a0} 
+void Main\+Editor::\+draw (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Render editor UI and canvas (called every frame). 
+
+\Hypertarget{class_main_editor_adc5628badb16cb007ba2aa8ba5f86c5f}\index{MainEditor@{MainEditor}!drawInspectorPanel@{drawInspectorPanel}}
+\index{drawInspectorPanel@{drawInspectorPanel}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{drawInspectorPanel()}{drawInspectorPanel()}}
+{\footnotesize\ttfamily \label{class_main_editor_adc5628badb16cb007ba2aa8ba5f86c5f} 
+void Main\+Editor::\+draw\+Inspector\+Panel (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Render inspector contents for selected node. 
+
+\Hypertarget{class_main_editor_a287b07e45d42d59b35334a47d4699365}\index{MainEditor@{MainEditor}!handleSharedShortcuts@{handleSharedShortcuts}}
+\index{handleSharedShortcuts@{handleSharedShortcuts}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{handleSharedShortcuts()}{handleSharedShortcuts()}}
+{\footnotesize\ttfamily \label{class_main_editor_a287b07e45d42d59b35334a47d4699365} 
+void Main\+Editor::\+handle\+Shared\+Shortcuts (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Handle shared shortcuts (e.\+g. Delete) even when overlay windows are focused. 
+
+\Hypertarget{class_main_editor_ad953c97636608880521e658f297c8608}\index{MainEditor@{MainEditor}!hasSelectedNode@{hasSelectedNode}}
+\index{hasSelectedNode@{hasSelectedNode}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{hasSelectedNode()}{hasSelectedNode()}}
+{\footnotesize\ttfamily \label{class_main_editor_ad953c97636608880521e658f297c8608} 
+bool Main\+Editor::\+has\+Selected\+Node (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Check whether any existing node is currently selected. 
+
+\Hypertarget{class_main_editor_a5ec6a61a975c35f4932f72243df75f3c}\index{MainEditor@{MainEditor}!hasStartNode@{hasStartNode}}
+\index{hasStartNode@{hasStartNode}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{hasStartNode()}{hasStartNode()}}
+{\footnotesize\ttfamily \label{class_main_editor_a5ec6a61a975c35f4932f72243df75f3c} 
+bool Main\+Editor::\+has\+Start\+Node (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Check whether graph currently contains a Start node. 
+
+\Hypertarget{class_main_editor_ad781360cb6f2bda877c02cb902cdd215}\index{MainEditor@{MainEditor}!hasVariables@{hasVariables}}
+\index{hasVariables@{hasVariables}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{hasVariables()}{hasVariables()}}
+{\footnotesize\ttfamily \label{class_main_editor_ad781360cb6f2bda877c02cb902cdd215} 
+bool Main\+Editor::\+has\+Variables (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Check whether graph contains at least one Variable node. 
+
+\Hypertarget{class_main_editor_ab94c7c1cdc0967339c27332ffe20cedf}\index{MainEditor@{MainEditor}!tryGetSingleSelectedNodeId@{tryGetSingleSelectedNodeId}}
+\index{tryGetSingleSelectedNodeId@{tryGetSingleSelectedNodeId}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{tryGetSingleSelectedNodeId()}{tryGetSingleSelectedNodeId()}}
+{\footnotesize\ttfamily \label{class_main_editor_ab94c7c1cdc0967339c27332ffe20cedf} 
+bool Main\+Editor::\+try\+Get\+Single\+Selected\+Node\+Id (\begin{DoxyParamCaption}\item[{uintptr\+\_\+t \&}]{out\+Id}{}\end{DoxyParamCaption}) const}
+
+
+
+Try to get currently selected node id (only when exactly one alive node is selected). 
+
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+editor/\+\doxymbox{\hyperlink{main_editor_8h}{main\+Editor.\+h}}\item 
+src/\+editor/\+\doxymbox{\hyperlink{main_editor_8cpp}{main\+Editor.\+cpp}}\end{DoxyCompactItemize}

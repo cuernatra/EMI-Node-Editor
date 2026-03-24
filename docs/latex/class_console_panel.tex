@@ -1,0 +1,131 @@
+\doxysection{Console\+Panel Class Reference}
+\hypertarget{class_console_panel}{}\label{class_console_panel}\index{ConsolePanel@{ConsolePanel}}
+
+
+Console panel for editor output and logs Display area for compiler messages, runtime logs, and other output.  
+
+
+
+
+{\ttfamily \+\#include $<$console\+Panel.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{class_console_panel_aad534192a164289eea60e6b9b17d6303}{Console\+Panel}} ()
+\begin{DoxyCompactList}\small\item\em Initialize the console panel. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_console_panel_a4ad9d12426b3421af8a745d9524830f1}{draw}} ()
+\begin{DoxyCompactList}\small\item\em Render the console panel (called every frame). \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_console_panel_af2b0f8ade02b8cd72b7ce474005fe1b6}{add\+Log}} (const char \texorpdfstring{$\ast$}{*}fmt,...) IM\+\_\+\+FMTARGS(2)
+\begin{DoxyCompactList}\small\item\em Add a log message to the console. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_console_panel_a80f7d3b6308ba71e65149887f78d73f1}{clear}} ()
+\begin{DoxyCompactList}\small\item\em Clear all log messages. \end{DoxyCompactList}\item 
+float \doxymbox{\hyperlink{class_console_panel_abfc8fcfc4ebe8a993663d8b8ea9b55f1}{get\+Height}} () const
+\begin{DoxyCompactList}\small\item\em Get the height of the console panel. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_console_panel_a3026dbdb042205f6756d74ceab811a2a}{set\+Height}} (float height)
+\begin{DoxyCompactList}\small\item\em Set the height of the console panel. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_console_panel_a6c538b31185992db9b6ca41f0d279607}{toggle\+Minimized}} ()
+\begin{DoxyCompactList}\small\item\em Toggle between minimized and expanded states. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{class_console_panel_a730285fd05a9cc5bf0dd412f754a4eba}{is\+Minimized}} () const
+\begin{DoxyCompactList}\small\item\em Returns true if the console is currently minimized. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Console panel for editor output and logs Display area for compiler messages, runtime logs, and other output. 
+
+Console panel class Manages the display and functionality of the console output area. 
+
+\label{doc-constructors}
+\Hypertarget{class_console_panel_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_console_panel_aad534192a164289eea60e6b9b17d6303}\index{ConsolePanel@{ConsolePanel}!ConsolePanel@{ConsolePanel}}
+\index{ConsolePanel@{ConsolePanel}!ConsolePanel@{ConsolePanel}}
+\doxysubsubsection{\texorpdfstring{ConsolePanel()}{ConsolePanel()}}
+{\footnotesize\ttfamily \label{class_console_panel_aad534192a164289eea60e6b9b17d6303} 
+Console\+Panel::\+\+Console\+Panel (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Initialize the console panel. 
+
+
+
+\label{doc-func-members}
+\Hypertarget{class_console_panel_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_console_panel_af2b0f8ade02b8cd72b7ce474005fe1b6}\index{ConsolePanel@{ConsolePanel}!addLog@{addLog}}
+\index{addLog@{addLog}!ConsolePanel@{ConsolePanel}}
+\doxysubsubsection{\texorpdfstring{addLog()}{addLog()}}
+{\footnotesize\ttfamily \label{class_console_panel_af2b0f8ade02b8cd72b7ce474005fe1b6} 
+void Console\+Panel::\+add\+Log (\begin{DoxyParamCaption}\item[{const char \texorpdfstring{$\ast$}{*}}]{fmt}{, }\item[{}]{...}{}\end{DoxyParamCaption})}
+
+
+
+Add a log message to the console. 
+
+\Hypertarget{class_console_panel_a80f7d3b6308ba71e65149887f78d73f1}\index{ConsolePanel@{ConsolePanel}!clear@{clear}}
+\index{clear@{clear}!ConsolePanel@{ConsolePanel}}
+\doxysubsubsection{\texorpdfstring{clear()}{clear()}}
+{\footnotesize\ttfamily \label{class_console_panel_a80f7d3b6308ba71e65149887f78d73f1} 
+void Console\+Panel::\+clear (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Clear all log messages. 
+
+\Hypertarget{class_console_panel_a4ad9d12426b3421af8a745d9524830f1}\index{ConsolePanel@{ConsolePanel}!draw@{draw}}
+\index{draw@{draw}!ConsolePanel@{ConsolePanel}}
+\doxysubsubsection{\texorpdfstring{draw()}{draw()}}
+{\footnotesize\ttfamily \label{class_console_panel_a4ad9d12426b3421af8a745d9524830f1} 
+void Console\+Panel::\+draw (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Render the console panel (called every frame). 
+
+\Hypertarget{class_console_panel_abfc8fcfc4ebe8a993663d8b8ea9b55f1}\index{ConsolePanel@{ConsolePanel}!getHeight@{getHeight}}
+\index{getHeight@{getHeight}!ConsolePanel@{ConsolePanel}}
+\doxysubsubsection{\texorpdfstring{getHeight()}{getHeight()}}
+{\footnotesize\ttfamily \label{class_console_panel_abfc8fcfc4ebe8a993663d8b8ea9b55f1} 
+float Console\+Panel::\+get\+Height (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Get the height of the console panel. 
+
+\Hypertarget{class_console_panel_a730285fd05a9cc5bf0dd412f754a4eba}\index{ConsolePanel@{ConsolePanel}!isMinimized@{isMinimized}}
+\index{isMinimized@{isMinimized}!ConsolePanel@{ConsolePanel}}
+\doxysubsubsection{\texorpdfstring{isMinimized()}{isMinimized()}}
+{\footnotesize\ttfamily \label{class_console_panel_a730285fd05a9cc5bf0dd412f754a4eba} 
+bool Console\+Panel::\+is\+Minimized (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Returns true if the console is currently minimized. 
+
+\Hypertarget{class_console_panel_a3026dbdb042205f6756d74ceab811a2a}\index{ConsolePanel@{ConsolePanel}!setHeight@{setHeight}}
+\index{setHeight@{setHeight}!ConsolePanel@{ConsolePanel}}
+\doxysubsubsection{\texorpdfstring{setHeight()}{setHeight()}}
+{\footnotesize\ttfamily \label{class_console_panel_a3026dbdb042205f6756d74ceab811a2a} 
+void Console\+Panel::\+set\+Height (\begin{DoxyParamCaption}\item[{float}]{height}{}\end{DoxyParamCaption})}
+
+
+
+Set the height of the console panel. 
+
+\Hypertarget{class_console_panel_a6c538b31185992db9b6ca41f0d279607}\index{ConsolePanel@{ConsolePanel}!toggleMinimized@{toggleMinimized}}
+\index{toggleMinimized@{toggleMinimized}!ConsolePanel@{ConsolePanel}}
+\doxysubsubsection{\texorpdfstring{toggleMinimized()}{toggleMinimized()}}
+{\footnotesize\ttfamily \label{class_console_panel_a6c538b31185992db9b6ca41f0d279607} 
+void Console\+Panel::\+toggle\+Minimized (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Toggle between minimized and expanded states. 
+
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+ui/\+\doxymbox{\hyperlink{console_panel_8h}{console\+Panel.\+h}}\item 
+src/\+ui/\+\doxymbox{\hyperlink{console_panel_8cpp}{console\+Panel.\+cpp}}\end{DoxyCompactItemize}
