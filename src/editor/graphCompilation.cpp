@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <utility>
 
 // Pimpl implementation details
 class GraphCompilation::Impl
@@ -43,16 +44,18 @@ GraphCompilation::GraphCompilation()
  */
 GraphCompilation::~GraphCompilation() = default;
 
-/**
- * @brief Compiles and executes a visual graph.
- *
- * @param state The graph state containing nodes and links to compile.
- * @param resultOnly If true, suppress debug output; if false, enable debug logging.
- *
- * @author Jenny
- */
+void GraphCompilation::SetLogSink(LogSink sink)
+{
+    m_logSink = std::move(sink);
+}
+
 void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 {
+    if (m_logSink)
+    {
+        m_logSink("Compiling graph...");
+    }
+
     if (resultOnly)
     {
         EMI::SetCompileLogLevel(EMI::LogLevel::Warning);
@@ -68,14 +71,24 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 
     if (!m_impl || !m_impl->vm)
     {
-        state.SetCompileStatus(false, "[ERROR] Error: EMI environment not initialized");
+        const std::string status = "[ERROR] Error: EMI environment not initialized";
+        state.SetCompileStatus(false, status);
+        if (m_logSink)
+        {
+            m_logSink(status);
+        }
         return;
     }
 
     // Validate graph has a Debug Print node for output
     if (!state.HasOutputNode())
     {
-        state.SetCompileStatus(false, "[ERROR] Error: Graph requires a Debug Print node for output");
+        const std::string status = "[ERROR] Error: Graph requires a Debug Print node for output";
+        state.SetCompileStatus(false, status);
+        if (m_logSink)
+        {
+            m_logSink(status);
+        }
         return;
     }
 
@@ -85,7 +98,12 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 
     if (gc.HasError || !ast)
     {
-        state.SetCompileStatus(false, "[ERROR] Compile error: " + gc.GetError());
+        const std::string status = "[ERROR] Compile error: " + gc.GetError();
+        state.SetCompileStatus(false, status);
+        if (m_logSink)
+        {
+            m_logSink(status);
+        }
         if (ast) delete ast;
         return;
     }
@@ -111,14 +129,22 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
     void* printHandle = m_impl->vm->CompileTemporary(kRunGraphScript);
     if (!m_impl->vm->WaitForResult(printHandle))
     {
-        state.SetCompileStatus(false, "[ERROR] Runtime error: Failed to execute compiled graph");
-        std::cout << "[ERROR] Runtime error: Failed to execute compiled graph\n";
+        const std::string status = "[ERROR] Runtime error: Failed to execute compiled graph";
+        state.SetCompileStatus(false, status);
+        if (m_logSink)
+        {
+            m_logSink(status);
+        }
         return;
     }
     else
     {
-        state.SetCompileStatus(true, "[OK] Compiled and executed successfully");
-        std::cout << "[OK] Compiled and executed successfully\n";
+        const std::string status = "[OK] Compiled and executed successfully\n";
+        state.SetCompileStatus(true, status);
+        if (m_logSink)
+        {
+            m_logSink(status);
+        }
     }
 }
 

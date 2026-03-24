@@ -6,7 +6,8 @@
 #define CONSOLEPANEL_H
 
 #include "../app/constants.h"
-#include <vector>
+#include <cstddef>
+#include <deque>
 #include <string>
 #include <mutex>
 
@@ -26,6 +27,9 @@ public:
     /// Add a log message to the console
     void addLog(const char* fmt, ...) IM_FMTARGS(2);
 
+    /// Add a preformatted message to the console (thread-safe)
+    void addLogText(const std::string& message);
+
     /// Clear all log messages
     void clear();
 
@@ -42,13 +46,22 @@ public:
     bool isMinimized() const;
     
 private:
+    static constexpr std::size_t kMaxLogLines = 10000;
+
     /// Height of the console panel in pixels
     float m_height;
     /// Last expanded height used when restoring after minimize
     float m_lastExpandedHeight;
     /// Tracks whether the console is minimized
     bool m_minimized;
-    std::vector<std::string> m_logs;
+    std::mutex m_logsMutex;
+    std::deque<std::string> m_logs;
+    std::string m_activeLinePrefix;
+    std::string m_activeLine;
+
+    std::string makeTimestampPrefix() const;
+    std::string withTimestamp(const std::string& message) const;
+    void pushCappedLine(const std::string& line);
 };
 
 #endif
