@@ -68,14 +68,14 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 
     if (!m_impl || !m_impl->vm)
     {
-        state.SetCompileStatus(false, "✗ Error: EMI environment not initialized");
+        state.SetCompileStatus(false, "[ERROR] Error: EMI environment not initialized");
         return;
     }
 
     // Validate graph has a Debug Print node for output
     if (!state.HasOutputNode())
     {
-        state.SetCompileStatus(false, "✗ Error: Graph requires a Debug Print node for output");
+        state.SetCompileStatus(false, "[ERROR] Error: Graph requires a Debug Print node for output");
         return;
     }
 
@@ -85,7 +85,7 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 
     if (gc.HasError || !ast)
     {
-        state.SetCompileStatus(false, "✗ Compile error: " + gc.GetError());
+        state.SetCompileStatus(false, "[ERROR] Compile error: " + gc.GetError());
         if (ast) delete ast;
         return;
     }
@@ -111,13 +111,14 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
     void* printHandle = m_impl->vm->CompileTemporary(kRunGraphScript);
     if (!m_impl->vm->WaitForResult(printHandle))
     {
-        state.SetCompileStatus(false, "✗ Runtime error: Failed to execute compiled graph");
+        state.SetCompileStatus(false, "[ERROR] Runtime error: Failed to execute compiled graph");
+        std::cout << "[ERROR] Runtime error: Failed to execute compiled graph\n";
         return;
     }
-
-    if (resultOnly)
-        state.SetCompileStatus(true, "✓ Compilation successful");
     else
-        state.SetCompileStatus(true, "✓ Compiled and executed successfully");
+    {
+        state.SetCompileStatus(true, "[OK] Compiled and executed successfully");
+        std::cout << "[OK] Compiled and executed successfully\n";
+    }
 }
 
