@@ -1,0 +1,20 @@
+\doxysection{src/\+core/\+registry/\+node\+Registry.h File Reference}
+\hypertarget{node_registry_8h}{}\label{node_registry_8h}\index{src/core/registry/nodeRegistry.h@{src/core/registry/nodeRegistry.h}}
+
+
+Central registry of all node type definitions.  
+
+
+{\ttfamily \+\#include "{}node\+Descriptor.\+h"{}}\newline
+{\ttfamily \+\#include $<$unordered\+\_\+map$>$}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{class_node_registry}{Node\+Registry}}
+\begin{DoxyCompactList}\small\item\em Singleton registry for node type definitions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Central registry of all node type definitions. 
+
+Singleton registry that maps \doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type} enums to their descriptors. All supported node types are registered here with their pin/\+field configurations. 

@@ -1,0 +1,73 @@
+\doxysection{src/\+app/\+constants.h File Reference}
+\hypertarget{constants_8h}{}\label{constants_8h}\index{src/app/constants.h@{src/app/constants.h}}
+
+
+Application-\/wide constants for UI layout, sizing, and colors.  
+
+
+{\ttfamily \+\#include $<$imgui.\+h$>$}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{struct_position}{Position}}
+\begin{DoxyCompactList}\small\item\em Simple 2D position structure. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespaceapp_constants}{app\+Constants}}
+\begin{DoxyCompactList}\small\item\em Core application window dimensions. \end{DoxyCompactList}\item 
+namespace \doxymbox{\hyperlink{namespacecolors}{colors}}
+\begin{DoxyCompactList}\small\item\em Color palette used throughout the UI. \end{DoxyCompactList}\item 
+namespace \doxymbox{\hyperlink{namespaceelement_sizes}{element\+Sizes}}
+\begin{DoxyCompactList}\small\item\em Dimensions for UI panels and components. \end{DoxyCompactList}\item 
+namespace \doxymbox{\hyperlink{namespaceelement_locations}{element\+Locations}}
+\begin{DoxyCompactList}\small\item\em Fixed positions for UI elements. \end{DoxyCompactList}\item 
+namespace \doxymbox{\hyperlink{namespacenode_preview_constants}{node\+Preview\+Constants}}
+\begin{DoxyCompactList}\small\item\em Constants specific to node preview rendering in the left panel. \end{DoxyCompactList}\item 
+namespace \doxymbox{\hyperlink{namespacefont_constants}{font\+Constants}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+const float \doxymbox{\hyperlink{namespaceapp_constants_a25e3e91d2fb39881f52d6c8858253048}{app\+Constants::\+window\+Width}} = 1280
+\begin{DoxyCompactList}\small\item\em Default window width in pixels. \end{DoxyCompactList}\item 
+constexpr int \doxymbox{\hyperlink{namespaceapp_constants_a88dc79d258134455e1f1e725d12af936}{app\+Constants::\+windowheight}} = 720
+\begin{DoxyCompactList}\small\item\em Default window height in pixels. \end{DoxyCompactList}\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_a47d55ea25440aade97901a6d4fb6d50c}{colors::\+green}} = Im\+Vec4(0.\+2f, 0.\+8f, 0.\+2f, 1.\+0f)
+\begin{DoxyCompactList}\small\item\em Success/\+active state color. \end{DoxyCompactList}\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_af065fa008e79726dc665f939d8e71f82}{colors::\+gray}} = Im\+Vec4(0.\+4f, 0.\+4f, 0.\+4f, 1.\+0f)
+\begin{DoxyCompactList}\small\item\em Disabled/\+inactive state color. \end{DoxyCompactList}\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_a6db1527dc70f0e90b9027a79931ebc6c}{colors::\+light\+Gray}} = Im\+Vec4(0.\+6f, 0.\+6f, 0.\+6f, 1.\+0f)
+\begin{DoxyCompactList}\small\item\em Secondary UI element color. \end{DoxyCompactList}\item 
+const Im\+U32 \doxymbox{\hyperlink{namespacecolors_ac59ab1d006d90bb42fe9a41758d83120}{colors::\+blue}} = IM\+\_\+\+COL32(120, 168, 179, 255)
+\begin{DoxyCompactList}\small\item\em Accent color for highlights. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespaceelement_sizes_af973f05542c20c3e3899253bbfa3dfe4}{element\+Sizes::\+top\+Bar\+Height}} = \doxymbox{\hyperlink{namespaceapp_constants_a88dc79d258134455e1f1e725d12af936}{app\+Constants::\+windowheight}} /\+ 20
+\begin{DoxyCompactList}\small\item\em Height of top toolbar (36px). \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespaceelement_sizes_af9d2ef5a90872840cdf74f5ec14dc08e}{element\+Sizes::\+drop\+Bar\+Height}} = \doxymbox{\hyperlink{namespaceapp_constants_a88dc79d258134455e1f1e725d12af936}{app\+Constants::\+windowheight}} /\+ 10
+\begin{DoxyCompactList}\small\item\em Height of drag-\/drop items (72px). \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespaceelement_sizes_a80661b09bd29480716ad41cadec6b202}{element\+Sizes::\+drop\+Bar\+Width}} = \doxymbox{\hyperlink{namespaceapp_constants_a88dc79d258134455e1f1e725d12af936}{app\+Constants::\+windowheight}} /\+ 10
+\begin{DoxyCompactList}\small\item\em Width of drag-\/drop items (72px). \end{DoxyCompactList}\item 
+const \doxymbox{\hyperlink{struct_position}{Position}} \doxymbox{\hyperlink{namespaceelement_locations_a027c97c146d27f5b7f0ef40f308b6e22}{element\+Locations::\+drop\+Bar\+Location\+\_\+A}} = \{10.\+0f, 50.\+0f\}
+\begin{DoxyCompactList}\small\item\em \doxylink{struct_position}{Position} of first drop bar item. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacenode_preview_constants_a164f31e22084ad2d19a0db3d8f88167c}{node\+Preview\+Constants::\+header\+Height}} = 20.\+0f
+\begin{DoxyCompactList}\small\item\em Height of the node preview header. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacenode_preview_constants_aa706c60f1610dd6deee69d3f2cc933bc}{node\+Preview\+Constants::\+fixed\+Width}} = 120.\+0f
+\begin{DoxyCompactList}\small\item\em Fixed width for all node previews. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacenode_preview_constants_a32628f8ef97f3541a9550b6f9476a051}{node\+Preview\+Constants::\+fixed\+Height}} = 100.\+0f
+\begin{DoxyCompactList}\small\item\em Fixed height for all node previews. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacenode_preview_constants_a97f7c77d5376d4a0235537091187a8b2}{node\+Preview\+Constants::\+padding}} = 7.\+0f
+\begin{DoxyCompactList}\small\item\em Padding inside node previews. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacenode_preview_constants_a3e0c5c6230ccd3bb30491d75c2f57b5f}{node\+Preview\+Constants::\+pin\+Radius}} = 3.\+5f
+\begin{DoxyCompactList}\small\item\em Radius of the pin circles in node previews. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacefont_constants_a3ea8acdb2571c505d50696c4c8ea7286}{font\+Constants::\+font\+Size}} = 15.\+0f
+\begin{DoxyCompactList}\small\item\em Default font size for Im\+Gui elements. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacefont_constants_afd8f75ea13176a16b579bccc347e70d1}{font\+Constants::\+oversampleH}} = 5.\+0f
+\begin{DoxyCompactList}\small\item\em Horizontal oversampling for font rendering. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacefont_constants_aa03d535daed66703d2c0f0761ee4c1bb}{font\+Constants::\+oversampleV}} = 5.\+0f
+\begin{DoxyCompactList}\small\item\em Vertical oversampling for. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Application-\/wide constants for UI layout, sizing, and colors. 
+
+Central repository for all magic numbers used throughout the application. Defines window dimensions, UI element sizes, color palettes, and positions. 
