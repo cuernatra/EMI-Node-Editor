@@ -13,6 +13,7 @@ MainEditor::MainEditor()
 {
     ed::Config config;
     config.SettingsFile = "node_editor.json";
+    config.CanvasSizeMode = ed::CanvasSizeMode::CenterOnly;
     m_editorContext = ed::CreateEditor(&config);
 
     m_graphState = std::make_unique<GraphState>();
