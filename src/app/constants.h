@@ -79,8 +79,8 @@ namespace elementLocations
 namespace nodePreviewConstants
 {
     const float headerHeight = 20.0f;          ///< Height of the node preview header
-    const float fixedWidth = 120.0f;           ///< Fixed width for all node previews
-    const float fixedHeight = 100.0f;          ///< Fixed height for all node previews
+    const float fixedWidth = 125.0f;           ///< Fixed width for all node previews
+    const float fixedHeight = 110.0f;          ///< Fixed height for all node previews
     const float padding = 7.0f;                ///< Padding inside node previews
     const float pinRadius = 3.5f;              ///< Radius of the pin circles in node previews
 }

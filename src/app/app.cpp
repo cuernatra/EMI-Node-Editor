@@ -59,12 +59,58 @@ void App::loadFont()
 {
     ImGuiIO& io = ImGui::GetIO();
 
-    io.Fonts->Clear();
+    // imgui styling
+    auto& style = ImGui::GetStyle();
+    style.Alpha = 1.f;
 
+    style.WindowTitleAlign = ImVec2(0.5, 0.5);
+    style.WindowPadding = ImVec2(10, 10);
+    style.WindowRounding = 5.0f;
+    style.FramePadding = ImVec2(5, 1);
+    style.FrameRounding = 4.0f;
+    style.ItemSpacing = ImVec2(5, 5);
+    style.ItemInnerSpacing = ImVec2(8, 6);
+    style.IndentSpacing = 25.0f;
+    style.ScrollbarSize = 4.0f;
+    style.ScrollbarRounding = 0.f;//9.0f;
+    style.GrabMinSize = 10.0f;
+    style.GrabRounding = 4.0f;
+
+    style.Colors[ImGuiCol_Text] = ImVec4(1.86f, 1.93f, 1.89f, 0.78f);
+    style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.86f, 0.93f, 0.89f, 0.78f);
+    style.Colors[ImGuiCol_WindowBg] = ImColor(20, 20, 20, 255);
+    style.Colors[ImGuiCol_ChildBg] = ImColor(15, 15, 15, 255);
+    style.Colors[ImGuiCol_FrameBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.09f);
+    style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.29f, 0.29f, 0.29f, 1.00f);
+    style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.04f, 0.04f, 0.04f, 0.88f);
+    style.Colors[ImGuiCol_TitleBg] = ImVec4(0.20f, 0.22f, 0.27f, 1.00f);
+    style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.20f, 0.22f, 0.27f, 0.75f);
+    style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.15f, 0.60f, 0.78f, 1.00f);
+
+    style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
+    style.Colors[ImGuiCol_ScrollbarBg] = ImColor(0, 0, 0, 0);
+    style.Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.26f, 0.59f, 0.98f, 0.60f);
+    style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
+    style.Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
+    style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
+    style.Colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+    style.Colors[ImGuiCol_CheckMark] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
+    style.Colors[ImGuiCol_Button] = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
+    style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.125f, 0.125f, 0.125f, 1.00f);
+    style.Colors[ImGuiCol_Header] = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
+    style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.1f, 0.1f, 0.1f, 1.00f);
+    style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    style.Colors[ImGuiCol_SeparatorHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
+    style.Colors[ImGuiCol_Border] = ImVec4(0.27f, 0.27f, .27f, 1.00f);
+
+    // fonts
     ImFontConfig config;
     config.OversampleH = fontConstants::oversampleH;   // Horizontal oversampling
     config.OversampleV = fontConstants::oversampleV;   // Vertical oversampling 
     config.PixelSnapH  = false;
+
+    io.Fonts->Clear();
     #ifdef _WIN32
     std::filesystem::path fontPath = std::filesystem::path(_pgmptr).parent_path() / "assets/fonts/Roboto-Regular.ttf";
     if (std::filesystem::exists(fontPath))
