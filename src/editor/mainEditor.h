@@ -53,6 +53,12 @@ public:
     /// Forward compile status messages to an external log sink.
     void setCompileLogSink(std::function<void(const std::string&)> sink);
 
+    /// Expose graph state for read-only auxiliary views like preview panels.
+    const GraphState& getGraphState() const;
+
+    /// Sync live node positions from node editor so previews can use current layout.
+    void syncNodePositionsForPreview();
+
 private:
 
     ed::EditorContext* m_editorContext = nullptr;  ///< imgui-node-editor context

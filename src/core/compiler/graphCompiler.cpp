@@ -686,6 +686,24 @@ Node* GraphCompiler::BuildNot(const VisualNode& n)
     return root;
 }
 
+Node* GraphCompiler::BuildDrawRect(const VisualNode& n)
+{
+    (void)n;
+    return MakeNode(Token::Scope);
+}
+
+Node* GraphCompiler::BuildDrawGrid(const VisualNode& n)
+{
+    (void)n;
+    return MakeNode(Token::Scope);
+}
+
+Node* GraphCompiler::BuildDelay(const VisualNode& n)
+{
+    (void)n;
+    return MakeNode(Token::Scope);
+}
+
 Node* GraphCompiler::BuildSequence(const VisualNode& n)
 {
     // Sequence is a flow-structuring node in the editor.

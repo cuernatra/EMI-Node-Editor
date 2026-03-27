@@ -69,19 +69,20 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
     const bool isSequence = (type == NodeType::Sequence);
     const bool isVariable = (type == NodeType::Variable);
     const bool isLoop = (type == NodeType::Loop);
+    const bool isDrawGrid = (type == NodeType::DrawGrid);
     if ((!isSequence && !isLoop && pinIds.size() != desc->pins.size()) ||
         (isSequence && pinIds.size() < desc->pins.size()))
     {
         // Backward compatibility for older Variable node saves
         // (legacy Set/Get layouts used different pin counts).
-        if (!isVariable)
+        if (!isVariable && !(isDrawGrid && pinIds.size() == desc->pins.size() + 1))
         {
             std::cerr << "CreateNodeFromTypeWithIds: Pin ID count mismatch\n";
             return {};
         }
     }
 
-    assert((isSequence || isVariable || isLoop || pinIds.size() == desc->pins.size()) && "Pin ID count mismatch");
+    assert((isSequence || isVariable || isLoop || (isDrawGrid && pinIds.size() == desc->pins.size() + 1) || pinIds.size() == desc->pins.size()) && "Pin ID count mismatch");
 
     VisualNode n;
     n.id         = ed::NodeId(nodeId);
@@ -179,6 +180,25 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
             n.outPins.push_back(MakePin(
                 static_cast<uint32_t>(pinIds[4]), n.id, n.nodeType,
                 "Index", PinType::Number, false));
+        }
+
+        for (const FieldDescriptor& fd : desc->fields)
+            n.fields.push_back(MakeNodeField(fd));
+    }
+    else if (isDrawGrid && pinIds.size() == desc->pins.size() + 1)
+    {
+        // Legacy Draw Grid layout had an extra Step input pin between H and RGB.
+        static const int kLegacyPinMap[] = { 0, 1, 2, 3, 4, 6, 7, 8, 9 };
+        for (int mappedIndex : kLegacyPinMap)
+        {
+            const PinDescriptor& pd = desc->pins[pinIndex];
+            Pin p = MakePin(static_cast<uint32_t>(pinIds[mappedIndex]), n.id, desc->type,
+                            pd.name, pd.type, pd.isInput, pd.isMultiInput);
+            if (pd.isInput)
+                n.inPins.push_back(p);
+            else
+                n.outPins.push_back(p);
+            ++pinIndex;
         }
 
         for (const FieldDescriptor& fd : desc->fields)

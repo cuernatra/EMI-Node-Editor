@@ -120,6 +120,83 @@ descriptors_[NodeType::Constant] = {
     };
 
     // ------------------------------------------------------------------
+    // Draw Rect — preview-only rectangle renderer
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::DrawRect] = {
+        NodeType::DrawRect,
+        "Draw Rect",
+        {
+            { "In", PinType::Flow, /*isInput=*/true },
+            { "X", PinType::Number, /*isInput=*/true },
+            { "Y", PinType::Number, /*isInput=*/true },
+            { "W", PinType::Number, /*isInput=*/true },
+            { "H", PinType::Number, /*isInput=*/true },
+            { "R", PinType::Number, /*isInput=*/true },
+            { "G", PinType::Number, /*isInput=*/true },
+            { "B", PinType::Number, /*isInput=*/true },
+            { "Out", PinType::Flow, /*isInput=*/false }
+        },
+        {
+            { "Color", PinType::String, "120, 180, 255" },
+            { "X", PinType::Number, "0.0" },
+            { "Y", PinType::Number, "0.0" },
+            { "W", PinType::Number, "1.0" },
+            { "H", PinType::Number, "1.0" },
+            { "R", PinType::Number, "120.0" },
+            { "G", PinType::Number, "180.0" },
+            { "B", PinType::Number, "255.0" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildDrawRect(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // Draw Grid — preview-only grid renderer that participates in flow order
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::DrawGrid] = {
+        NodeType::DrawGrid,
+        "Draw Grid",
+        {
+            { "In", PinType::Flow, /*isInput=*/true },
+            { "X", PinType::Number, /*isInput=*/true },
+            { "Y", PinType::Number, /*isInput=*/true },
+            { "W", PinType::Number, /*isInput=*/true },
+            { "H", PinType::Number, /*isInput=*/true },
+            { "R", PinType::Number, /*isInput=*/true },
+            { "G", PinType::Number, /*isInput=*/true },
+            { "B", PinType::Number, /*isInput=*/true },
+            { "Out", PinType::Flow, /*isInput=*/false }
+        },
+        {
+            { "Color", PinType::String, "30, 30, 38" },
+            { "X", PinType::Number, "0.0" },
+            { "Y", PinType::Number, "0.0" },
+            { "W", PinType::Number, "40.0" },
+            { "H", PinType::Number, "60.0" },
+            { "R", PinType::Number, "30.0" },
+            { "G", PinType::Number, "30.0" },
+            { "B", PinType::Number, "38.0" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildDrawGrid(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // Delay — flow-only ordering helper for preview/testing
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::Delay] = {
+        NodeType::Delay,
+        "Delay",
+        {
+            { "In", PinType::Flow, /*isInput=*/true },
+            { "Duration", PinType::Number, /*isInput=*/true },
+            { "Out", PinType::Flow, /*isInput=*/false }
+        },
+        {
+            { "Duration", PinType::Number, "100.0" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildDelay(n); }
+    };
+
+    // ------------------------------------------------------------------
     // Sequence  —  Flow in -> Then outputs (expandable)
     // ------------------------------------------------------------------
     descriptors_[NodeType::Sequence] = {

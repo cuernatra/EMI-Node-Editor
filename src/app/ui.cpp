@@ -6,6 +6,16 @@
 
 Ui::Ui()
 {
+    m_topPanel.setFilesystemCallback([this]() {
+        m_consolePanel.addLogText("Filesystem");
+    });
+    m_topPanel.setSettingsCallback([this]() {
+        m_consolePanel.addLogText("Settings");
+    });
+    m_topPanel.setPreviewCallback([this]() {
+        m_showPreviewWindow = true;
+    });
+
     m_mainEditor.setCompileLogSink([this](const std::string& message)
     {
         m_consolePanel.addLogText(message);
@@ -235,6 +245,16 @@ void Ui::draw()
     // This keeps legacy actions (e.g. Delete selected node/link) working even
     // when the overlay currently has keyboard focus.
     m_mainEditor.handleSharedShortcuts();
+
+    if (m_showPreviewWindow)
+    {
+        if (!m_graphPreviewPanel.isOpen())
+            m_graphPreviewPanel.open();
+        m_showPreviewWindow = false;
+    }
+
+    m_mainEditor.syncNodePositionsForPreview();
+    m_graphPreviewPanel.update(m_mainEditor.getGraphState());
 }
 
 void Ui::DrawSplitter(float totalWidth, float thickness, float minLeft, float minRight)

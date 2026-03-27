@@ -1,8 +1,22 @@
 #include "topPanel.h"
-#include <string>
 
 TopPanel::TopPanel() : m_height{elementSizes::topBarHeight}
 {
+}
+
+void TopPanel::setFilesystemCallback(std::function<void()> cb)
+{
+    m_filesystemCallback = std::move(cb);
+}
+
+void TopPanel::setSettingsCallback(std::function<void()> cb)
+{
+    m_settingsCallback = std::move(cb);
+}
+
+void TopPanel::setPreviewCallback(std::function<void()> cb)
+{
+    m_previewCallback = std::move(cb);
 }
 
 void TopPanel::draw()
@@ -14,30 +28,26 @@ void TopPanel::draw()
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::lightGray);
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::gray);
 
-    if (ImGui::Button("test1", ImVec2(80, m_height - 14)))
+    if (ImGui::Button("Filesystem", ImVec2(95, m_height - 14)))
     {
-        printf("miau\n");
-    }
-
-    ImGui::SameLine(0, 55);
-
-    if (ImGui::Button("test2", ImVec2(80, m_height - 14)))
-    {
-        printf("test2\n");
+        if (m_filesystemCallback)
+            m_filesystemCallback();
     }
 
     ImGui::SameLine(0, 10);
 
-    if (ImGui::Button("test3", ImVec2(80, m_height - 14)))
+    if (ImGui::Button("Settings", ImVec2(85, m_height - 14)))
     {
-        printf("test3\n");
+        if (m_settingsCallback)
+            m_settingsCallback();
     }
 
     ImGui::SameLine(0, 10);
 
-    if (ImGui::Button("test4", ImVec2(80, m_height - 14)))
+    if (ImGui::Button("Preview", ImVec2(85, m_height - 14)))
     {
-        printf("test4\n");
+        if (m_previewCallback)
+            m_previewCallback();
     }
 
     ImGui::PopStyleColor(3);

@@ -19,6 +19,10 @@ static const char* NodeTypeToSaveToken(NodeType t)
 {
     // Keep graph file format stable and single-token for parser safety.
     // UI label for NodeType::Output is "Debug Print", but save token remains "Output".
+    if (t == NodeType::DrawRect)
+        return "DrawRect";
+    if (t == NodeType::DrawGrid)
+        return "DrawGrid";
     if (t == NodeType::Output)
         return "Output";
     return NodeTypeToString(t);
@@ -315,8 +319,10 @@ void GraphSerializer::Load(GraphState& state, const char* path)
             int         pinCount;
             in >> nid >> nodeTypeStr;
 
-            // Backward compatibility for accidental two-token save format:
+            // Backward compatibility for accidental multi-token save formats:
             //   node <id> Debug Print <pinCount> ...
+            //   node <id> Draw Grid <pinCount> ...
+            //   node <id> Draw Rect <pinCount> ...
             if (nodeTypeStr == "Debug")
             {
                 std::string maybePrint;
@@ -325,6 +331,17 @@ void GraphSerializer::Load(GraphState& state, const char* path)
                     nodeTypeStr = "Debug Print";
                 else
                     nodeTypeStr = maybePrint;
+            }
+            else if (nodeTypeStr == "Draw")
+            {
+                std::string maybeKind;
+                in >> maybeKind;
+                if (maybeKind == "Grid")
+                    nodeTypeStr = "Draw Grid";
+                else if (maybeKind == "Rect")
+                    nodeTypeStr = "Draw Rect";
+                else
+                    nodeTypeStr = maybeKind;
             }
 
             in >> pinCount;
