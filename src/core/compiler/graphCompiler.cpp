@@ -266,6 +266,26 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
             return;
         }
 
+        case NodeType::While:
+        {
+            Node* whileNode = BuildWhile(n);
+            if (HasError || !whileNode) { delete whileNode; return; }
+
+            Node* bodyScope = (whileNode->children.size() > 1) ? whileNode->children[1] : nullptr;
+
+            if (const Pin* bodyOut = GetOutputPinByName(n, "Body"))
+                AppendFlowChainFromOutput(bodyOut->id, bodyScope);
+            if (HasError) { delete whileNode; return; }
+
+            targetScope->children.push_back(whileNode);
+
+            if (const Pin* completedOut = GetOutputPinByName(n, "Completed"))
+                AppendFlowChainFromOutput(completedOut->id, targetScope);
+            if (HasError) return;
+
+            return;
+        }
+
         default:
             break;
     }
@@ -819,6 +839,27 @@ Node* GraphCompiler::BuildVariable(const VisualNode& n)
     assign->children.push_back(lhs);
     assign->children.push_back(rhs);
     return assign;
+}
+
+Node* GraphCompiler::BuildWhile(const VisualNode& n)
+{
+    const Pin* conditionPin = GetInputPinByName(n, "Condition");
+    if (!conditionPin)
+    {
+        Error("While node needs Condition input");
+        return nullptr;
+    }
+
+    Node* condExpr = BuildExpr(*conditionPin);
+    if (HasError || !condExpr)
+        return nullptr;
+
+    Node* body = MakeNode(Token::Scope);
+
+    Node* whileNode = MakeNode(Token::While);
+    whileNode->children.push_back(condExpr);
+    whileNode->children.push_back(body);
+    return whileNode;
 }
 
 Node* GraphCompiler::BuildOutput(const VisualNode& n)

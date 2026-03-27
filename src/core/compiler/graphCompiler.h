@@ -90,6 +90,7 @@ public:
     Node* BuildSequence  (const VisualNode& n);   ///< Builds AST for Sequence nodes
     Node* BuildBranch    (const VisualNode& n);   ///< Builds AST for Branch nodes
     Node* BuildLoop      (const VisualNode& n);   ///< Builds AST for Loop nodes
+    Node* BuildWhile     (const VisualNode& n);   ///< Builds AST for While nodes
     Node* BuildVariable  (const VisualNode& n);   ///< Builds AST for Variable nodes
     Node* BuildOutput    (const VisualNode& n);   ///< Builds AST for Output nodes
     Node* BuildFunction  (const VisualNode& n);   ///< Builds AST for Function nodes
