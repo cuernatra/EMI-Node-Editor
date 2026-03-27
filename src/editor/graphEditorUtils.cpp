@@ -831,6 +831,80 @@ bool RefreshLoopNodeLayout(GraphState& state)
     return changed;
 }
 
+bool RefreshDrawRectNodeLayout(GraphState& state)
+{
+    bool changed = false;
+
+    auto& nodes = state.GetNodes();
+    for (auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::DrawRect)
+            continue;
+
+        const size_t inBefore = n.inPins.size();
+        RemovePinsByNameExcept(n.inPins, { "In", "X", "Y", "W", "H", "R", "G", "B" });
+        if (n.inPins.size() != inBefore)
+            changed = true;
+
+        const size_t outBefore = n.outPins.size();
+        RemovePinsByNameExcept(n.outPins, { "Out" });
+        if (n.outPins.size() != outBefore)
+            changed = true;
+
+        auto ensureInput = [&](const char* name, PinType type)
+        {
+            Pin* pin = FindPinByName(n.inPins, name);
+            if (!pin)
+            {
+                n.inPins.push_back(MakePin(
+                    static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                    n.id,
+                    n.nodeType,
+                    name,
+                    type,
+                    true
+                ));
+                changed = true;
+            }
+            else if (pin->type != type)
+            {
+                pin->type = type;
+                changed = true;
+            }
+        };
+
+        ensureInput("In", PinType::Flow);
+        ensureInput("X", PinType::Number);
+        ensureInput("Y", PinType::Number);
+        ensureInput("W", PinType::Number);
+        ensureInput("H", PinType::Number);
+        ensureInput("R", PinType::Number);
+        ensureInput("G", PinType::Number);
+        ensureInput("B", PinType::Number);
+
+        Pin* outPin = FindPinByName(n.outPins, "Out");
+        if (!outPin)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "Out",
+                PinType::Flow,
+                false
+            ));
+            changed = true;
+        }
+        else if (outPin->type != PinType::Flow)
+        {
+            outPin->type = PinType::Flow;
+            changed = true;
+        }
+    }
+
+    return changed;
+}
+
 bool SyncLinkTypesAndPruneInvalid(GraphState& state)
 {
     bool changed = false;

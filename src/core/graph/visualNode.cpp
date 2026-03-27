@@ -4,6 +4,166 @@
 #include "imgui.h"
 #include "imgui_node_editor.h"
 #include <algorithm>
+#include <array>
+#include <cmath>
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
+
+namespace
+{
+NodeField* FindFieldByName(VisualNode& node, const char* name)
+{
+    for (NodeField& field : node.fields)
+    {
+        if (field.name == name)
+            return &field;
+    }
+    return nullptr;
+}
+
+const NodeField* FindFieldByName(const VisualNode& node, const char* name)
+{
+    for (const NodeField& field : node.fields)
+    {
+        if (field.name == name)
+            return &field;
+    }
+    return nullptr;
+}
+
+float ParseNodeFloat(const std::string& value, float fallback = 0.0f)
+{
+    try
+    {
+        return std::stof(value);
+    }
+    catch (...)
+    {
+        return fallback;
+    }
+}
+
+std::string FormatFloatString(float value)
+{
+    char buffer[32] = {};
+    std::snprintf(buffer, sizeof(buffer), "%.3f", value);
+    return buffer;
+}
+
+std::string FormatColorString(int r, int g, int b)
+{
+    return std::to_string(r) + ", " + std::to_string(g) + ", " + std::to_string(b);
+}
+
+bool TryParseColorString(const std::string& text, std::array<int, 3>& rgb)
+{
+    const char* cursor = text.c_str();
+    char* end = nullptr;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        while (*cursor != '\0' && std::isspace(static_cast<unsigned char>(*cursor)))
+            ++cursor;
+
+        const long component = std::strtol(cursor, &end, 10);
+        if (end == cursor)
+            return false;
+
+        rgb[i] = static_cast<int>(std::clamp(component, 0L, 255L));
+        cursor = end;
+
+        while (*cursor != '\0' && std::isspace(static_cast<unsigned char>(*cursor)))
+            ++cursor;
+
+        if (i < 2)
+        {
+            if (*cursor != ',')
+                return false;
+            ++cursor;
+        }
+    }
+
+    while (*cursor != '\0' && std::isspace(static_cast<unsigned char>(*cursor)))
+        ++cursor;
+
+    return *cursor == '\0';
+}
+
+bool ClampFieldToRange(NodeField& field, float minValue, float maxValue)
+{
+    const float clamped = std::clamp(ParseNodeFloat(field.value, minValue), minValue, maxValue);
+    const std::string normalized = FormatFloatString(clamped);
+    if (field.value != normalized)
+    {
+        field.value = normalized;
+        return true;
+    }
+    return false;
+}
+
+bool SyncDrawNodeColorFields(VisualNode& node, bool preferColorText)
+{
+    NodeField* colorField = FindFieldByName(node, "Color");
+    NodeField* rField = FindFieldByName(node, "R");
+    NodeField* gField = FindFieldByName(node, "G");
+    NodeField* bField = FindFieldByName(node, "B");
+    if (!colorField || !rField || !gField || !bField)
+        return false;
+
+    bool changed = false;
+
+    changed |= ClampFieldToRange(*rField, 0.0f, 255.0f);
+    changed |= ClampFieldToRange(*gField, 0.0f, 255.0f);
+    changed |= ClampFieldToRange(*bField, 0.0f, 255.0f);
+
+    if (preferColorText)
+    {
+        std::array<int, 3> rgb{};
+        if (TryParseColorString(colorField->value, rgb))
+        {
+            const std::string rText = FormatFloatString(static_cast<float>(rgb[0]));
+            const std::string gText = FormatFloatString(static_cast<float>(rgb[1]));
+            const std::string bText = FormatFloatString(static_cast<float>(rgb[2]));
+            if (rField->value != rText) { rField->value = rText; changed = true; }
+            if (gField->value != gText) { gField->value = gText; changed = true; }
+            if (bField->value != bText) { bField->value = bText; changed = true; }
+
+            const std::string normalizedColor = FormatColorString(rgb[0], rgb[1], rgb[2]);
+            if (colorField->value != normalizedColor)
+            {
+                colorField->value = normalizedColor;
+                changed = true;
+            }
+            return changed;
+        }
+    }
+
+    const int r = static_cast<int>(std::clamp(std::lround(ParseNodeFloat(rField->value)), 0L, 255L));
+    const int g = static_cast<int>(std::clamp(std::lround(ParseNodeFloat(gField->value)), 0L, 255L));
+    const int b = static_cast<int>(std::clamp(std::lround(ParseNodeFloat(bField->value)), 0L, 255L));
+    const std::string normalizedColor = FormatColorString(r, g, b);
+    if (colorField->value != normalizedColor)
+    {
+        colorField->value = normalizedColor;
+        changed = true;
+    }
+
+    return changed;
+}
+
+bool ClampDrawNodeGeometryFields(VisualNode& node)
+{
+    bool changed = false;
+
+    if (NodeField* x = FindFieldByName(node, "X")) changed |= ClampFieldToRange(*x, 0.0f, 100000.0f);
+    if (NodeField* y = FindFieldByName(node, "Y")) changed |= ClampFieldToRange(*y, 0.0f, 100000.0f);
+    if (NodeField* w = FindFieldByName(node, "W")) changed |= ClampFieldToRange(*w, 0.0f, 100000.0f);
+    if (NodeField* h = FindFieldByName(node, "H")) changed |= ClampFieldToRange(*h, 0.0f, 100000.0f);
+
+    return changed;
+}
+}
 
 static bool NodePopupComboDynamic(const char* id,
                                   std::string& value,
@@ -139,12 +299,19 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const bool isBinaryDefaultNode =
         (n.nodeType == NodeType::Operator || n.nodeType == NodeType::Comparison || n.nodeType == NodeType::Logic);
     const bool isUnaryDefaultNode = (n.nodeType == NodeType::Not);
+    const bool isDrawRectNode = (n.nodeType == NodeType::DrawRect);
+    const bool isDrawGridNode = (n.nodeType == NodeType::DrawGrid);
+    bool drawNodeColorTextChanged = false;
 
     bool drewDeferredDefaultPin = false;
     bool drewDeferredStartPin = false;
     bool drewDeferredCountPin = false;
     bool drewDeferredAPin = false;
     bool drewDeferredBPin = false;
+    bool drewDeferredXPin = false;
+    bool drewDeferredYPin = false;
+    bool drewDeferredWPin = false;
+    bool drewDeferredHPin = false;
 
     auto drawDeferredPinByName = [&](const char* pinName)
     {
@@ -170,6 +337,14 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             return true;
 
         if (isUnaryDefaultNode && pin.name == "A")
+            return true;
+
+        if (isDrawRectNode &&
+            (pin.name == "X" || pin.name == "Y" || pin.name == "W" || pin.name == "H"))
+            return true;
+
+        if (isDrawGridNode &&
+            (pin.name == "X" || pin.name == "Y" || pin.name == "W" || pin.name == "H"))
             return true;
 
         return false;
@@ -353,6 +528,60 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 continue;
             }
 
+            if (isDrawRectNode &&
+                (field.name == "X" || field.name == "Y" || field.name == "W" || field.name == "H"))
+            {
+                if (field.name == "X") { drawDeferredPinByName("X"); drewDeferredXPin = true; }
+                else if (field.name == "Y") { drawDeferredPinByName("Y"); drewDeferredYPin = true; }
+                else if (field.name == "W") { drawDeferredPinByName("W"); drewDeferredWPin = true; }
+                else if (field.name == "H") { drawDeferredPinByName("H"); drewDeferredHPin = true; }
+
+                const bool pinConnected = isInputPinConnected(field.name.c_str());
+                if (pinConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
+            if (isDrawGridNode &&
+                (field.name == "X" || field.name == "Y" || field.name == "W" || field.name == "H"))
+            {
+                if (field.name == "X") { drawDeferredPinByName("X"); drewDeferredXPin = true; }
+                else if (field.name == "Y") { drawDeferredPinByName("Y"); drewDeferredYPin = true; }
+                else if (field.name == "W") { drawDeferredPinByName("W"); drewDeferredWPin = true; }
+                else if (field.name == "H") { drawDeferredPinByName("H"); drewDeferredHPin = true; }
+
+                const bool pinConnected = isInputPinConnected(field.name.c_str());
+                if (pinConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
+            if ((isDrawRectNode || isDrawGridNode) && field.name == "Color")
+            {
+                ImGui::Text("%s", field.name.c_str());
+                ImGui::SameLine();
+                ImGui::PushItemWidth(100.0f);
+
+                char buf[128] = {};
+                std::snprintf(buf, sizeof(buf), "%s", field.value.c_str());
+                if (ImGui::InputText("##value", buf, sizeof(buf)))
+                {
+                    field.value = buf;
+                    changed = true;
+                    drawNodeColorTextChanged = true;
+                }
+                ImGui::PopItemWidth();
+                continue;
+            }
+
+            if ((isDrawRectNode || isDrawGridNode) &&
+                (field.name == "R" || field.name == "G" || field.name == "B"))
+                continue;
+
             changed |= DrawField(field);
         }
         ImGui::PopID();
@@ -380,6 +609,28 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
     if (isUnaryDefaultNode && !drewDeferredAPin)
         drawDeferredPinByName("A");
+
+    if (isDrawRectNode)
+    {
+        if (!drewDeferredXPin) drawDeferredPinByName("X");
+        if (!drewDeferredYPin) drawDeferredPinByName("Y");
+        if (!drewDeferredWPin) drawDeferredPinByName("W");
+        if (!drewDeferredHPin) drawDeferredPinByName("H");
+    }
+
+    if (isDrawGridNode)
+    {
+        if (!drewDeferredXPin) drawDeferredPinByName("X");
+        if (!drewDeferredYPin) drawDeferredPinByName("Y");
+        if (!drewDeferredWPin) drawDeferredPinByName("W");
+        if (!drewDeferredHPin) drawDeferredPinByName("H");
+    }
+
+    if (isDrawRectNode || isDrawGridNode)
+    {
+        changed |= ClampDrawNodeGeometryFields(n);
+        changed |= SyncDrawNodeColorFields(n, drawNodeColorTextChanged);
+    }
 
     if (changed)
         GraphSerializer::ApplyConstantTypeFromFields(n, /*resetValueOnTypeChange=*/true);

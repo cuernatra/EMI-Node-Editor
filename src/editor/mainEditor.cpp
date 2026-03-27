@@ -161,3 +161,22 @@ void MainEditor::setCompileLogSink(std::function<void(const std::string&)> sink)
         m_compiler->SetLogSink(std::move(sink));
     }
 }
+
+const GraphState& MainEditor::getGraphState() const
+{
+    return *m_graphState;
+}
+
+void MainEditor::syncNodePositionsForPreview()
+{
+    ed::SetCurrentEditor(m_editorContext);
+    for (auto& node : m_graphState->GetNodes())
+    {
+        if (!node.alive)
+            continue;
+
+        node.initialPos = ed::GetNodePosition(node.id);
+        node.positioned = true;
+    }
+    ed::SetCurrentEditor(nullptr);
+}

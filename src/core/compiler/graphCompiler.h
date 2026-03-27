@@ -88,6 +88,9 @@ public:
     Node* BuildComparison(const VisualNode& n);   ///< Builds AST for Comparison nodes
     Node* BuildLogic     (const VisualNode& n);   ///< Builds AST for Logic nodes
     Node* BuildNot       (const VisualNode& n);   ///< Builds AST for Not nodes
+    Node* BuildDrawRect  (const VisualNode& n);   ///< Preview-only node, compiles to no-op scope
+    Node* BuildDrawGrid  (const VisualNode& n);   ///< Preview-only node, compiles to no-op scope
+    Node* BuildDelay     (const VisualNode& n);   ///< Flow utility node, compiles to no-op scope
     Node* BuildSequence  (const VisualNode& n);   ///< Builds AST for Sequence nodes
     Node* BuildBranch    (const VisualNode& n);   ///< Builds AST for Branch nodes
     Node* BuildLoop      (const VisualNode& n);   ///< Builds AST for Loop nodes

@@ -8,6 +8,7 @@
 
 #include "../app/constants.h"
 #include <vector>
+#include <functional>
 
 /**
  * @brief Top toolbar panel
@@ -21,10 +22,17 @@ public:
     
     /// Render the top panel (called every frame).
     void draw();
+
+    void setFilesystemCallback(std::function<void()> cb);
+    void setSettingsCallback(std::function<void()> cb);
+    void setPreviewCallback(std::function<void()> cb);
     
 private:
     /// Height of the toolbar in pixels
     float m_height;
+    std::function<void()> m_filesystemCallback;
+    std::function<void()> m_settingsCallback;
+    std::function<void()> m_previewCallback;
 };
 
 #endif

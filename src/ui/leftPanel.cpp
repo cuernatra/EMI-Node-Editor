@@ -86,7 +86,10 @@ LeftPanel::LeftPanel()
         NodeType::Comparison,
         NodeType::Logic,
         NodeType::Not,
+        NodeType::DrawRect,
+        NodeType::DrawGrid,
         NodeType::Function,
+        NodeType::Delay,
         NodeType::Sequence,
         NodeType::Branch,
         NodeType::Loop,
@@ -151,10 +154,13 @@ void LeftPanel::draw(bool hasStartNode)
             case NodeType::Comparison:
             case NodeType::Logic:
             case NodeType::Not:
+            case NodeType::DrawGrid:
             case NodeType::Function:
                 logicTypes.push_back(makeDefaultItem(t));
                 break;
 
+            case NodeType::Delay:
+            case NodeType::DrawRect:
             case NodeType::Sequence:
             case NodeType::Branch:
             case NodeType::Loop:

@@ -16,6 +16,7 @@
 #include "../ui/topPanel.h"
 #include "../ui/consolePanel.h"
 #include "../ui/consoleEmiLogger.h"
+#include "../ui/graphPreviewPanel.h"
 #include "../editor/settings.h"
 #include <cstdint>
 #include <memory>
@@ -87,6 +88,7 @@ private:
     //bottom console panel
     ConsolePanel m_consolePanel;
     std::unique_ptr<ConsoleEmiLogger> m_consoleEmiLogger;
+    GraphPreviewPanel m_graphPreviewPanel;
     
     /// Current width of left panel (-1 = uninitialized, auto-sized on first draw)
     float m_leftPanelWidth = Settings::leftPanelWidth;
@@ -106,6 +108,10 @@ private:
 
     /// Last single-selected node id used to detect selection transitions
     uintptr_t m_lastInspectorNodeId = 0;
+
+    bool m_showFilesystemWindow = false;
+    bool m_showSettingsWindow = false;
+    bool m_showPreviewWindow = false;
 };
 
 #endif

@@ -25,9 +25,17 @@ void NodePreview::Draw(NodeType nodeType, const char* titleOverride)
     const std::string override = titleOverride ? titleOverride : "";
     const bool isVariableSetPreview = (nodeType == NodeType::Variable && override == "Set Variable");
     const bool isVariableGetPreview = (nodeType == NodeType::Variable && override == "Get Variable");
+    const bool isDrawRectPreview = (nodeType == NodeType::DrawRect);
+    const bool isDrawGridPreview = (nodeType == NodeType::DrawGrid);
 
     auto keepPin = [&](const PinDescriptor& pd) -> bool
     {
+        if (isDrawRectPreview)
+            return (pd.name == "In" || pd.name == "X" || pd.name == "Y" || pd.name == "Out");
+
+        if (isDrawGridPreview)
+            return (pd.name == "In" || pd.name == "W" || pd.name == "H" || pd.name == "Out");
+
         if (!isVariableSetPreview && !isVariableGetPreview)
             return true;
 
@@ -48,6 +56,12 @@ void NodePreview::Draw(NodeType nodeType, const char* titleOverride)
 
         if (isVariableSetPreview)
             return (fd.name == "Name" || fd.name == "Default");
+
+        if (isDrawRectPreview)
+            return (fd.name == "X" || fd.name == "Y" || fd.name == "W" || fd.name == "H");
+
+        if (isDrawGridPreview)
+            return (fd.name == "W" || fd.name == "H");
 
         return true;
     };
