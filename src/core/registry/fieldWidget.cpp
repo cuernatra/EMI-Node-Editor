@@ -172,7 +172,7 @@ bool DrawField(NodeField& field)
             {
                 static const char* kArith[] = { "+", "-", "*", "/", nullptr };
                 static const char* kCmp[]   = { "==", "!=", "<", "<=", ">", ">=", nullptr };
-                static const char* kLogic[] = { "AND", "OR", "NOT", nullptr };
+                static const char* kLogic[] = { "AND", "OR", nullptr };
 
                 const char** items = kArith;
 
@@ -182,7 +182,7 @@ bool DrawField(NodeField& field)
                 {
                     items = kCmp;
                 }
-                else if (field.value == "AND" || field.value == "OR" || field.value == "NOT")
+                else if (field.value == "AND" || field.value == "OR")
                 {
                     items = kLogic;
                 }

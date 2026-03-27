@@ -85,6 +85,7 @@ LeftPanel::LeftPanel()
         NodeType::Operator,
         NodeType::Comparison,
         NodeType::Logic,
+        NodeType::Not,
         NodeType::Function,
         NodeType::Sequence,
         NodeType::Branch,
@@ -149,6 +150,7 @@ void LeftPanel::draw(bool hasStartNode)
             case NodeType::Operator:
             case NodeType::Comparison:
             case NodeType::Logic:
+            case NodeType::Not:
             case NodeType::Function:
                 logicTypes.push_back(makeDefaultItem(t));
                 break;

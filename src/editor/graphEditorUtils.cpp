@@ -240,7 +240,7 @@ bool DrawInspectorField(NodeField& field)
         {
             if (field.name == "Op")
             {
-                const char* items[] = { "+", "-", "*", "/", "==", "!=", "<", "<=", ">", ">=", "AND", "OR", "NOT" };
+                const char* items[] = { "+", "-", "*", "/", "==", "!=", "<", "<=", ">", ">=", "AND", "OR" };
                 if (ImGui::BeginCombo("Op", field.value.c_str()))
                 {
                     for (const char* item : items)

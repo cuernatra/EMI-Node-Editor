@@ -89,7 +89,6 @@ Token GraphCompiler::LogicToken(const std::string& op)
 {
     if (op == "AND") return Token::And;
     if (op == "OR")  return Token::Or;
-    if (op == "NOT") return Token::Not;
     return Token::None;
 }
 
@@ -651,25 +650,38 @@ Node* GraphCompiler::BuildLogic(const VisualNode& n)
 
     Node* root = MakeNode(tok);
 
-    if (tok == Token::Not)
+    const Pin* pinA = GetInputPinByName(n, "A");
+    const Pin* pinB = GetInputPinByName(n, "B");
+    if (!pinA || !pinB) { Error("Logic node needs A and B inputs"); return nullptr; }
+    Node* lhs = buildBoolInputOrDefault(*pinA, "A");
+    Node* rhs = buildBoolInputOrDefault(*pinB, "B");
+    if (HasError) { delete root; return nullptr; }
+    root->children.push_back(lhs);
+    root->children.push_back(rhs);
+
+    return root;
+}
+
+Node* GraphCompiler::BuildNot(const VisualNode& n)
+{
+    const Pin* pinA = GetInputPinByName(n, "A");
+    if (!pinA) { Error("Not node needs A input"); return nullptr; }
+
+    auto buildBoolInputOrDefault = [&](const Pin& pin, const char* fieldName) -> Node*
     {
-        const Pin* pinA = GetInputPinByName(n, "A");
-        if (!pinA) { Error("NOT node needs A input"); return nullptr; }
-        Node* operand = buildBoolInputOrDefault(*pinA, "A");
-        if (HasError) { delete root; return nullptr; }
-        root->children.push_back(operand);
-    }
-    else
-    {
-        const Pin* pinA = GetInputPinByName(n, "A");
-        const Pin* pinB = GetInputPinByName(n, "B");
-        if (!pinA || !pinB) { Error("Logic node needs A and B inputs"); return nullptr; }
-        Node* lhs = buildBoolInputOrDefault(*pinA, "A");
-        Node* rhs = buildBoolInputOrDefault(*pinB, "B");
-        if (HasError) { delete root; return nullptr; }
-        root->children.push_back(lhs);
-        root->children.push_back(rhs);
-    }
+        const PinSource* src = resolver_.Resolve(pin.id);
+        if (src)
+            return BuildNode(*src->node, src->pinIdx);
+
+        const std::string* fieldValue = GetField(n, fieldName);
+        const std::string value = fieldValue ? *fieldValue : "false";
+        return MakeBoolNode(value == "true" || value == "True" || value == "1");
+    };
+
+    Node* root = MakeNode(Token::Not);
+    Node* operand = buildBoolInputOrDefault(*pinA, "A");
+    if (HasError) { delete root; return nullptr; }
+    root->children.push_back(operand);
 
     return root;
 }
