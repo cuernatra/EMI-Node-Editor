@@ -10,6 +10,7 @@ add_executable(emi-editor
   ui/nodePreview.cpp
   editor/mainEditor.cpp
   editor/graphEditor.cpp
+  editor/graphEditorUtils.cpp
   editor/graphCompilation.cpp
   editor/graphState.cpp
   editor/graphSerializer.cpp
