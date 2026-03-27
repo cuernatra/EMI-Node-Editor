@@ -94,11 +94,29 @@ descriptors_[NodeType::Constant] = {
             { "Result", PinType::Boolean, /*isInput=*/false }
         },
         {
-            { "Op", PinType::String, "AND" },  // Rendered as combo: AND OR NOT XOR
+            { "Op", PinType::String, "AND" },  // Rendered as combo: AND OR
             { "A",  PinType::Boolean, "false" },
             { "B",  PinType::Boolean, "false" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildLogic(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // Not  —  Boolean invert A -> Result
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::Not] = {
+        NodeType::Not,
+        "Not",
+        {
+            { "In",     PinType::Flow,    /*isInput=*/true  },
+            { "A",      PinType::Boolean, /*isInput=*/true  },
+            { "Out",    PinType::Flow,    /*isInput=*/false },
+            { "Result", PinType::Boolean, /*isInput=*/false }
+        },
+        {
+            { "A",  PinType::Boolean, "false" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildNot(n); }
     };
 
     // ------------------------------------------------------------------

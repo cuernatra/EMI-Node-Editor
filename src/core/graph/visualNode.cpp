@@ -138,6 +138,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const bool isLoopNode = (n.nodeType == NodeType::Loop);
     const bool isBinaryDefaultNode =
         (n.nodeType == NodeType::Operator || n.nodeType == NodeType::Comparison || n.nodeType == NodeType::Logic);
+    const bool isUnaryDefaultNode = (n.nodeType == NodeType::Not);
 
     bool drewDeferredDefaultPin = false;
     bool drewDeferredStartPin = false;
@@ -166,6 +167,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             return true;
 
         if (isBinaryDefaultNode && (pin.name == "A" || pin.name == "B"))
+            return true;
+
+        if (isUnaryDefaultNode && pin.name == "A")
             return true;
 
         return false;
@@ -336,6 +340,19 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 continue;
             }
 
+            if (isUnaryDefaultNode && field.name == "A")
+            {
+                drawDeferredPinByName("A");
+                drewDeferredAPin = true;
+
+                const bool pinConnected = isInputPinConnected(field.name.c_str());
+                if (pinConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
             changed |= DrawField(field);
         }
         ImGui::PopID();
@@ -360,6 +377,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         if (!drewDeferredBPin)
             drawDeferredPinByName("B");
     }
+
+    if (isUnaryDefaultNode && !drewDeferredAPin)
+        drawDeferredPinByName("A");
 
     if (changed)
         GraphSerializer::ApplyConstantTypeFromFields(n, /*resetValueOnTypeChange=*/true);
