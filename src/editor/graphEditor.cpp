@@ -389,6 +389,38 @@ void GraphEditor::DrawInspectorPanel()
             }
             ImGui::PopID();
         }
+        else if (selectedNode->nodeType == NodeType::Operator
+              || selectedNode->nodeType == NodeType::Comparison
+              || selectedNode->nodeType == NodeType::Logic)
+        {
+            auto isInputPinConnected = [&](const char* pinName) -> bool
+            {
+                Pin* targetPin = GraphEditorUtils::FindPinByName(selectedNode->inPins, pinName);
+                if (!targetPin)
+                    return false;
+
+                for (const Link& l : m_state.GetLinks())
+                {
+                    if (l.alive && l.endPinId == targetPin->id)
+                        return true;
+                }
+                return false;
+            };
+
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+            for (NodeField& field : selectedNode->fields)
+            {
+                if ((field.name == "A" || field.name == "B")
+                    && isInputPinConnected(field.name.c_str()))
+                {
+                    GraphEditorUtils::DrawInspectorReadOnlyField(field);
+                    continue;
+                }
+
+                fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
+            }
+            ImGui::PopID();
+        }
         else if (selectedNode->nodeType == NodeType::While)
         {
             ImGui::TextUnformatted("While runs body while Condition is true.");

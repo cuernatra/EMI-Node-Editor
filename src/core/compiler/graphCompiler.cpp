@@ -580,9 +580,20 @@ Node* GraphCompiler::BuildOperator(const VisualNode& n)
     Token tok = opStr ? OperatorToken(*opStr) : Token::Add;
     if (tok == Token::None) { Error("Unknown operator: " + (opStr ? *opStr : "?")); return nullptr; }
 
+    auto buildNumberInputOrDefault = [&](const Pin& pin, const char* fieldName) -> Node*
+    {
+        const PinSource* src = resolver_.Resolve(pin.id);
+        if (src)
+            return BuildNode(*src->node, src->pinIdx);
+
+        const std::string* fieldValue = GetField(n, fieldName);
+        try { return MakeNumberNode(fieldValue ? std::stod(*fieldValue) : 0.0); }
+        catch (...) { return MakeNumberNode(0.0); }
+    };
+
     Node* root = MakeNode(tok);
-    Node* lhs  = BuildExpr(*pinA);
-    Node* rhs  = BuildExpr(*pinB);
+    Node* lhs  = buildNumberInputOrDefault(*pinA, "A");
+    Node* rhs  = buildNumberInputOrDefault(*pinB, "B");
     if (HasError) { delete root; return nullptr; }
 
     root->children.push_back(lhs);
@@ -600,9 +611,20 @@ Node* GraphCompiler::BuildComparison(const VisualNode& n)
     Token tok = opStr ? CompareToken(*opStr) : Token::Equal;
     if (tok == Token::None) { Error("Unknown comparison: " + (opStr ? *opStr : "?")); return nullptr; }
 
+    auto buildNumberInputOrDefault = [&](const Pin& pin, const char* fieldName) -> Node*
+    {
+        const PinSource* src = resolver_.Resolve(pin.id);
+        if (src)
+            return BuildNode(*src->node, src->pinIdx);
+
+        const std::string* fieldValue = GetField(n, fieldName);
+        try { return MakeNumberNode(fieldValue ? std::stod(*fieldValue) : 0.0); }
+        catch (...) { return MakeNumberNode(0.0); }
+    };
+
     Node* root = MakeNode(tok);
-    Node* lhs  = BuildExpr(*pinA);
-    Node* rhs  = BuildExpr(*pinB);
+    Node* lhs  = buildNumberInputOrDefault(*pinA, "A");
+    Node* rhs  = buildNumberInputOrDefault(*pinB, "B");
     if (HasError) { delete root; return nullptr; }
 
     root->children.push_back(lhs);
@@ -616,13 +638,24 @@ Node* GraphCompiler::BuildLogic(const VisualNode& n)
     Token tok = opStr ? LogicToken(*opStr) : Token::And;
     if (tok == Token::None) { Error("Unknown logic op: " + (opStr ? *opStr : "?")); return nullptr; }
 
+    auto buildBoolInputOrDefault = [&](const Pin& pin, const char* fieldName) -> Node*
+    {
+        const PinSource* src = resolver_.Resolve(pin.id);
+        if (src)
+            return BuildNode(*src->node, src->pinIdx);
+
+        const std::string* fieldValue = GetField(n, fieldName);
+        const std::string value = fieldValue ? *fieldValue : "false";
+        return MakeBoolNode(value == "true" || value == "True" || value == "1");
+    };
+
     Node* root = MakeNode(tok);
 
     if (tok == Token::Not)
     {
         const Pin* pinA = GetInputPinByName(n, "A");
         if (!pinA) { Error("NOT node needs A input"); return nullptr; }
-        Node* operand = BuildExpr(*pinA);
+        Node* operand = buildBoolInputOrDefault(*pinA, "A");
         if (HasError) { delete root; return nullptr; }
         root->children.push_back(operand);
     }
@@ -631,8 +664,8 @@ Node* GraphCompiler::BuildLogic(const VisualNode& n)
         const Pin* pinA = GetInputPinByName(n, "A");
         const Pin* pinB = GetInputPinByName(n, "B");
         if (!pinA || !pinB) { Error("Logic node needs A and B inputs"); return nullptr; }
-        Node* lhs = BuildExpr(*pinA);
-        Node* rhs = BuildExpr(*pinB);
+        Node* lhs = buildBoolInputOrDefault(*pinA, "A");
+        Node* rhs = buildBoolInputOrDefault(*pinB, "B");
         if (HasError) { delete root; return nullptr; }
         root->children.push_back(lhs);
         root->children.push_back(rhs);
