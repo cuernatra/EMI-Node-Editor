@@ -136,10 +136,14 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const bool isSetVariable =
         (n.nodeType == NodeType::Variable && variant && *variant == "Set");
     const bool isLoopNode = (n.nodeType == NodeType::Loop);
+    const bool isBinaryDefaultNode =
+        (n.nodeType == NodeType::Operator || n.nodeType == NodeType::Comparison || n.nodeType == NodeType::Logic);
 
     bool drewDeferredDefaultPin = false;
     bool drewDeferredStartPin = false;
     bool drewDeferredCountPin = false;
+    bool drewDeferredAPin = false;
+    bool drewDeferredBPin = false;
 
     auto drawDeferredPinByName = [&](const char* pinName)
     {
@@ -159,6 +163,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             return true;
 
         if (isLoopNode && (pin.name == "Start" || pin.name == "Count"))
+            return true;
+
+        if (isBinaryDefaultNode && (pin.name == "A" || pin.name == "B"))
             return true;
 
         return false;
@@ -308,6 +315,27 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 continue;
             }
 
+            if (isBinaryDefaultNode && (field.name == "A" || field.name == "B"))
+            {
+                if (field.name == "A")
+                {
+                    drawDeferredPinByName("A");
+                    drewDeferredAPin = true;
+                }
+                else
+                {
+                    drawDeferredPinByName("B");
+                    drewDeferredBPin = true;
+                }
+
+                const bool pinConnected = isInputPinConnected(field.name.c_str());
+                if (pinConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
             changed |= DrawField(field);
         }
         ImGui::PopID();
@@ -323,6 +351,14 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             drawDeferredPinByName("Start");
         if (!drewDeferredCountPin)
             drawDeferredPinByName("Count");
+    }
+
+    if (isBinaryDefaultNode)
+    {
+        if (!drewDeferredAPin)
+            drawDeferredPinByName("A");
+        if (!drewDeferredBPin)
+            drawDeferredPinByName("B");
     }
 
     if (changed)

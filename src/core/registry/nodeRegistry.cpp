@@ -52,7 +52,9 @@ descriptors_[NodeType::Constant] = {
             { "Result", PinType::Number, /*isInput=*/false }
         },
         {
-            { "Op", PinType::String, "+" }   // Rendered as combo: + - * /
+            { "Op", PinType::String, "+" },  // Rendered as combo: + - * /
+            { "A",  PinType::Number, "0.0" },
+            { "B",  PinType::Number, "0.0" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildOperator(n); }
     };
@@ -71,7 +73,9 @@ descriptors_[NodeType::Constant] = {
             { "Result", PinType::Boolean, /*isInput=*/false }
         },
         {
-            { "Op", PinType::String, ">=" }  // Rendered as combo: == != < <= > >=
+            { "Op", PinType::String, ">=" },  // Rendered as combo: == != < <= > >=
+            { "A",  PinType::Number, "0.0" },
+            { "B",  PinType::Number, "0.0" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildComparison(n); }
     };
@@ -90,7 +94,9 @@ descriptors_[NodeType::Constant] = {
             { "Result", PinType::Boolean, /*isInput=*/false }
         },
         {
-            { "Op", PinType::String, "AND" }  // Rendered as combo: AND OR NOT XOR
+            { "Op", PinType::String, "AND" },  // Rendered as combo: AND OR NOT XOR
+            { "A",  PinType::Boolean, "false" },
+            { "B",  PinType::Boolean, "false" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildLogic(n); }
     };
