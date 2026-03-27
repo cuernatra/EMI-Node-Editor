@@ -497,7 +497,7 @@ bool RefreshVariableNodeTypes(GraphState& state)
         NodeField* nameField = FindField(n.fields, "Name");
         NodeField* typeField = FindField(n.fields, "Type");
         const std::string variant = variantField ? variantField->value : "Set";
-        const std::string varName = nameField ? nameField->value : "myVar";
+        const std::string varName = nameField ? nameField->value : "";
 
         if (variant == "Get")
         {
@@ -513,7 +513,22 @@ bool RefreshVariableNodeTypes(GraphState& state)
                 changed = true;
             }
 
-            const auto it = definitions.find(varName);
+            if (nameField && definitions.empty())
+            {
+                if (!nameField->value.empty())
+                {
+                    nameField->value.clear();
+                    changed = true;
+                }
+            }
+            else if (nameField && !definitions.empty() && definitions.find(nameField->value) == definitions.end())
+            {
+                nameField->value = definitions.begin()->first;
+                changed = true;
+            }
+
+            const std::string resolvedName = nameField ? nameField->value : "";
+            const auto it = definitions.find(resolvedName);
             const PinType getType = (it != definitions.end())
                 ? it->second.type
                 : VariableTypeFromString(typeField ? typeField->value : "Number");

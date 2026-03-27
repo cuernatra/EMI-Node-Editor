@@ -147,6 +147,22 @@ descriptors_[NodeType::Constant] = {
     };
 
     // ------------------------------------------------------------------
+    // While  —  Flow in + condition -> Body flow + Completed flow
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::While] = {
+        NodeType::While,
+        "While",
+        {
+            { "In",        PinType::Flow,    /*isInput=*/true  },
+            { "Condition", PinType::Boolean, /*isInput=*/true  },
+            { "Body",      PinType::Flow,    /*isInput=*/false },
+            { "Completed", PinType::Flow,    /*isInput=*/false }
+        },
+        {},
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildWhile(n); }
+    };
+
+    // ------------------------------------------------------------------
     // Variable  —  Named variable with get/set flow
     // ------------------------------------------------------------------
     descriptors_[NodeType::Variable] = {

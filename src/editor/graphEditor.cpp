@@ -304,6 +304,11 @@ void GraphEditor::DrawInspectorPanel()
                 {
                     if (setVariableNames.empty())
                     {
+                        if (!nameField->value.empty())
+                        {
+                            nameField->value.clear();
+                            fieldsChanged = true;
+                        }
                         ImGui::TextUnformatted("Variable");
                         ImGui::SameLine();
                         ImGui::TextDisabled("(no Set variables)");
@@ -383,6 +388,10 @@ void GraphEditor::DrawInspectorPanel()
                 fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
             }
             ImGui::PopID();
+        }
+        else if (selectedNode->nodeType == NodeType::While)
+        {
+            ImGui::TextUnformatted("While runs body while Condition is true.");
         }
         else
         {

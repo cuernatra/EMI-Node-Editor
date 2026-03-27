@@ -241,6 +241,11 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
                 if (setVariableNames.empty())
                 {
+                    if (!field.value.empty())
+                    {
+                        field.value.clear();
+                        changed = true;
+                    }
                     ImGui::TextUnformatted("Variable");
                     ImGui::SameLine();
                     ImGui::TextDisabled("(none)");
