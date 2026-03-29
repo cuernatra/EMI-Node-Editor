@@ -17,6 +17,7 @@ add_executable(emi-editor
   editor/graphSerializer.cpp
   editor/settings.cpp
   core/graph/visualNode.cpp
+  core/graph/pin.cpp
   core/graph/link.cpp
   core/registry/fieldWidget.cpp
   core/registry/nodeFactory.cpp

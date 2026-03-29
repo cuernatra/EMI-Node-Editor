@@ -1,12 +1,5 @@
-/**
- * @file visualNode.h
- * @brief Visual node representation for the node graph
- * 
- * Defines the runtime representation of a node in the visual editor.
- * Nodes contain pins (connection points), editable fields, and state
- * for positioning and lifecycle management.
- * 
- */
+/** @file visualNode.h */
+/** @brief Visual node data and rendering entry points. */
 
 #ifndef VISUALNODE_H
 #define VISUALNODE_H
@@ -18,20 +11,7 @@
 #include <vector>
 #include <string>
 
-/**
- * @brief Runtime instance of a node in the visual graph
- * 
- * Represents a single node on the canvas with:
- * - Unique ID and type
- * - Collections of input and output pins
- * - Editable fields (for constant values, parameters)
- * - Position and lifecycle state
- * 
- * The node's structure (which pins/fields it has) is defined by its
- * NodeType's descriptor in the registry. This struct holds the live
- * runtime state.
- * 
- */
+/** @brief Runtime instance of a graph node. */
 struct VisualNode
 {
     ed::NodeId  id{};                         
@@ -48,27 +28,15 @@ struct VisualNode
     bool   alive      = true;         ///< false marks node for deletion
 };
 
-/**
- * @brief Render a single pin on a node
- * @param pin The pin to render
- * 
- * Draws an individual connection point using imgui-node-editor.
- * Must be called within an ed::BeginNode() / ed::EndNode() block.
- */
-static void DrawPin(const Pin& pin);
+/** @brief Returns width for one field row (label + spacing + widget). */
+float MeasureFieldWidth(const NodeField& field);
 
-/**
- * @brief Render a visual node on the canvas
- * @param n The node to render
- * 
- * Draws the node using imgui-node-editor primitives:
- * - Node body with title
- * - Input pins on the left
- * - Output pins on the right
- * - Editable fields in the center
- * 
- * Must be called within an ed::Begin() / ed::End() block.
- */
+/** @brief Returns minimum content width needed to render node body. */
+float MeasureNodeContentWidth(const VisualNode& n);
+
+/** @brief Draws one pin row and icon with width-aware alignment. */
+void DrawPin(const Pin& pin, float contentWidth, const std::vector<Link>* allLinks);
+
 bool DrawVisualNode(VisualNode& n);
 bool DrawVisualNode(VisualNode& n, IdGen* idGen);
 bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* allNodes);
