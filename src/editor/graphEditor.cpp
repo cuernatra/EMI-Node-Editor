@@ -240,6 +240,23 @@ void GraphEditor::DrawInspectorPanel()
     ImGui::Spacing();
 
     bool fieldsChanged = false;
+
+    auto isInputPinConnectedByName = [&](const char* pinName) -> bool
+    {
+        if (!selectedNode || !pinName)
+            return false;
+
+        Pin* targetPin = GraphEditorUtils::FindPinByName(selectedNode->inPins, pinName);
+        if (!targetPin || targetPin->type == PinType::Flow)
+            return false;
+
+        for (const Link& l : m_state.GetLinks())
+        {
+            if (l.alive && l.endPinId == targetPin->id)
+                return true;
+        }
+        return false;
+    };
     if (selectedNode->fields.empty())
     {
         ImGui::TextUnformatted("No values.");
@@ -348,7 +365,8 @@ void GraphEditor::DrawInspectorPanel()
                     if (&field == variantField)
                         continue;
 
-                    if (field.name == "Default" && defaultConnected)
+                    if ((field.name == "Default" && defaultConnected)
+                        || isInputPinConnectedByName(field.name.c_str()))
                     {
                         GraphEditorUtils::DrawInspectorReadOnlyField(field);
                         continue;
@@ -358,6 +376,21 @@ void GraphEditor::DrawInspectorPanel()
                 }
             }
 
+            ImGui::PopID();
+        }
+        else if (selectedNode->nodeType == NodeType::ForEach)
+        {
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+            for (NodeField& field : selectedNode->fields)
+            {
+                if (isInputPinConnectedByName(field.name.c_str()))
+                {
+                    GraphEditorUtils::DrawInspectorReadOnlyField(field);
+                    continue;
+                }
+
+                fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
+            }
             ImGui::PopID();
         }
         else if (selectedNode->nodeType == NodeType::Loop)
@@ -498,6 +531,7 @@ void GraphEditor::DrawInspectorPanel()
         GraphSerializer::ApplyConstantTypeFromFields(*selectedNode, /*resetValueOnTypeChange=*/true);
 
         GraphEditorUtils::RefreshVariableNodeTypes(m_state);
+        GraphEditorUtils::RefreshForEachNodeLayout(m_state);
         GraphEditorUtils::RefreshLoopNodeLayout(m_state);
         GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
         GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
@@ -591,6 +625,31 @@ void GraphEditor::CreateNewLink()
     const Pin* endPin   = m_state.FindPin(endPinId);
 
     if (!startPin || !endPin || !Pin::CanConnect(*startPin, *endPin))
+    {
+        ed::RejectNewItem();
+        return;
+    }
+
+    // Safety rule:
+    // For Each "Array" input must receive Array-compatible data.
+    // Allow:
+    // - Array (explicit)
+    // - Any only from For Each "Element" output (nested array iteration wiring)
+    // Reject all other Any/non-array sources to avoid runtime crashes.
+    const Pin* outPinPreview = !startPin->isInput ? startPin : endPin;
+    const Pin* inPinPreview  = startPin->isInput ? startPin : endPin;
+    const bool isNestedForEachElementSource =
+        outPinPreview
+        && outPinPreview->type == PinType::Any
+        && outPinPreview->parentNodeType == NodeType::ForEach
+        && outPinPreview->name == "Element";
+
+    if (inPinPreview
+        && inPinPreview->parentNodeType == NodeType::ForEach
+        && inPinPreview->name == "Array"
+        && outPinPreview
+        && outPinPreview->type != PinType::Array
+        && !isNestedForEachElementSource)
     {
         ed::RejectNewItem();
         return;

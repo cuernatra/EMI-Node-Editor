@@ -215,15 +215,15 @@ void Ui::draw()
     if (showInspector)
     {
         const float inspectorPaddingX = layoutConstants::inspectorPaddingX;
-        const ImVec2 mainEditorSize(mainWidth, std::max(50.0f, mainHeight));
+        const float inspectorHeight = std::max(50.0f, rightColumnHeight);
 
         inspectorPos = ImVec2(
-            mainEditorPos.x + mainEditorSize.x - inspectorWidth - inspectorPaddingX,
+            mainEditorPos.x + mainWidth - inspectorWidth - inspectorPaddingX,
             mainEditorPos.y
         );
         inspectorSize = ImVec2(
             inspectorWidth,
-            mainEditorSize.y
+            inspectorHeight
         );
 
         drawInspectorOverlay = true;

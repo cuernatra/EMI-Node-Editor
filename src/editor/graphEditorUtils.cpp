@@ -124,6 +124,8 @@ std::string BuildArrayString(const std::vector<std::string>& items)
     return out;
 }
 
+static std::unordered_map<ImGuiID, bool> s_arrayItemOpenState;
+
 bool TryParseDouble(const std::string& s, double& out);
 bool ParseBoolLoose(const std::string& s);
 
@@ -579,6 +581,15 @@ bool DrawInspectorField(NodeField& field)
 
                 ArrayItemType itemType = DetectArrayItemType(items[static_cast<size_t>(i)]);
                 std::string payload = ArrayItemPayload(items[static_cast<size_t>(i)], itemType);
+                std::vector<std::string> nestedItemsPreview;
+                bool nestedOpen = false;
+                ImGuiID nestedId = 0;
+                if (itemType == ArrayItemType::Array)
+                {
+                    nestedItemsPreview = ParseArrayItems(items[static_cast<size_t>(i)]);
+                    nestedId = ImGui::GetID("##nestedOpen");
+                    nestedOpen = s_arrayItemOpenState[nestedId];
+                }
 
                 // Value editor first (wider), type selector second.
                 ImGui::PushItemWidth(-150.0f);
@@ -594,6 +605,16 @@ bool DrawInspectorField(NodeField& field)
                 else if (itemType == ArrayItemType::Null)
                 {
                     ImGui::TextDisabled("null");
+                }
+                else if (itemType == ArrayItemType::Array)
+                {
+                    if (ImGui::ArrowButton("##nestedArrow", nestedOpen ? ImGuiDir_Down : ImGuiDir_Right))
+                    {
+                        nestedOpen = !nestedOpen;
+                        s_arrayItemOpenState[nestedId] = nestedOpen;
+                    }
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("Array [%d]", static_cast<int>(nestedItemsPreview.size()));
                 }
                 else
                 {
@@ -645,6 +666,116 @@ bool DrawInspectorField(NodeField& field)
                 ImGui::SameLine();
                 if (ImGui::SmallButton("-") && removeIndex < 0)
                     removeIndex = i;
+
+                if (itemType == ArrayItemType::Array && nestedOpen)
+                {
+                    std::vector<std::string> nestedItems = ParseArrayItems(items[static_cast<size_t>(i)]);
+                    bool nestedChanged = false;
+                    int nestedRemove = -1;
+
+                    ImGui::Indent(16.0f);
+                    for (int ni = 0; ni < static_cast<int>(nestedItems.size()); ++ni)
+                    {
+                        ImGui::PushID(ni);
+                        ImGui::TextDisabled("%d.%d", i, ni);
+                        ImGui::SameLine();
+
+                        ArrayItemType nestedType = DetectArrayItemType(nestedItems[static_cast<size_t>(ni)]);
+                        std::string nestedPayload = ArrayItemPayload(nestedItems[static_cast<size_t>(ni)], nestedType);
+
+                        ImGui::PushItemWidth(-150.0f);
+                        if (nestedType == ArrayItemType::Boolean)
+                        {
+                            bool b = ParseBoolLoose(nestedPayload);
+                            if (ImGui::Checkbox("##nestedBool", &b))
+                            {
+                                nestedItems[static_cast<size_t>(ni)] = b ? "true" : "false";
+                                nestedChanged = true;
+                            }
+                        }
+                        else if (nestedType == ArrayItemType::Null)
+                        {
+                            ImGui::TextDisabled("null");
+                        }
+                        else if (nestedType == ArrayItemType::Array)
+                        {
+                            const std::vector<std::string> nestedNested = ParseArrayItems(nestedItems[static_cast<size_t>(ni)]);
+                            ImGui::TextDisabled("Array [%d]", static_cast<int>(nestedNested.size()));
+                        }
+                        else
+                        {
+                            char nbuf[192] = {};
+                            std::strncpy(nbuf, nestedPayload.c_str(), sizeof(nbuf) - 1);
+                            const char* nestedWidgetId =
+                                (nestedType == ArrayItemType::Number) ? "##nestedNumber" :
+                                "##nestedString";
+
+                            if (ImGui::InputText(nestedWidgetId, nbuf, sizeof(nbuf)))
+                            {
+                                nestedPayload = nbuf;
+                                nestedItems[static_cast<size_t>(ni)] = BuildArrayItemFromPayload(nestedType, nestedPayload);
+                                nestedChanged = true;
+                            }
+                        }
+                        ImGui::PopItemWidth();
+
+                        ImGui::SameLine();
+                        ImGui::SetNextItemWidth(96.0f);
+                        if (ImGui::BeginCombo("##nestedType", ArrayItemTypeToLabel(nestedType)))
+                        {
+                            const ArrayItemType allTypes[] = {
+                                ArrayItemType::Number,
+                                ArrayItemType::Boolean,
+                                ArrayItemType::String,
+                                ArrayItemType::Array,
+                                ArrayItemType::Null
+                            };
+
+                            for (ArrayItemType t : allTypes)
+                            {
+                                const bool selected = (nestedType == t);
+                                if (ImGui::Selectable(ArrayItemTypeToLabel(t), selected))
+                                {
+                                    nestedType = t;
+                                    nestedItems[static_cast<size_t>(ni)] = BuildArrayItemFromPayload(nestedType, nestedPayload);
+                                    nestedChanged = true;
+                                }
+                                if (selected)
+                                    ImGui::SetItemDefaultFocus();
+                            }
+                            ImGui::EndCombo();
+                        }
+
+                        ImGui::SameLine();
+                        if (ImGui::SmallButton("-##nestedRemove") && nestedRemove < 0)
+                            nestedRemove = ni;
+
+                        ImGui::PopID();
+                    }
+
+                    if (nestedRemove >= 0)
+                    {
+                        nestedItems.erase(nestedItems.begin() + nestedRemove);
+                        nestedChanged = true;
+                    }
+
+                    if (ImGui::SmallButton("+ Add nested"))
+                    {
+                        const ArrayItemType nextNestedType = nestedItems.empty()
+                            ? ArrayItemType::Null
+                            : DetectArrayItemType(nestedItems.back());
+                        nestedItems.push_back(BuildArrayItemFromPayload(nextNestedType, ""));
+                        nestedChanged = true;
+                    }
+
+                    ImGui::Unindent(16.0f);
+
+                    if (nestedChanged)
+                    {
+                        items[static_cast<size_t>(i)] = BuildArrayString(nestedItems);
+                        localChanged = true;
+                    }
+                }
                 ImGui::PopID();
             }
 
