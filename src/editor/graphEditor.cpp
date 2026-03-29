@@ -1083,6 +1083,9 @@ void GraphEditor::DrawContextMenus()
 
 void GraphEditor::DrawInspectorPanel()
 {
+    ImGui::Text("INSPECTOR PANEL");
+    ImGui::Separator();
+    
     uintptr_t selectedNodeRawId = 0;
     if (!TryGetSingleSelectedNodeId(selectedNodeRawId))
         return;

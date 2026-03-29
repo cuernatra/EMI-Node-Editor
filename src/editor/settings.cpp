@@ -21,6 +21,17 @@ void Load()
         // Layout
         leftPanelWidth = s.value("leftPanelWidth", leftPanelWidth);
 
+        // Graph canvas colors
+        gridBgColorR = s.value("gridBgColorR", gridBgColorR);
+        gridBgColorG = s.value("gridBgColorG", gridBgColorG);
+        gridBgColorB = s.value("gridBgColorB", gridBgColorB);
+        gridBgColorA = s.value("gridBgColorA", gridBgColorA);
+
+        gridLineColorR = s.value("gridLineColorR", gridLineColorR);
+        gridLineColorG = s.value("gridLineColorG", gridLineColorG);
+        gridLineColorB = s.value("gridLineColorB", gridLineColorB);
+        gridLineColorA = s.value("gridLineColorA", gridLineColorA);
+
         // Add new settings here:
         // myNewSetting = s.value("myNewSetting", myNewSetting);
     }
@@ -36,6 +47,17 @@ void Save()
 
     // Layout
     s["leftPanelWidth"] = leftPanelWidth;
+
+    // Graph canvas colors
+    s["gridBgColorR"] = gridBgColorR;
+    s["gridBgColorG"] = gridBgColorG;
+    s["gridBgColorB"] = gridBgColorB;
+    s["gridBgColorA"] = gridBgColorA;
+
+    s["gridLineColorR"] = gridLineColorR;
+    s["gridLineColorG"] = gridLineColorG;
+    s["gridLineColorB"] = gridLineColorB;
+    s["gridLineColorA"] = gridLineColorA;
 
     // Add new settings here:
     // s["myNewSetting"] = myNewSetting;
