@@ -53,5 +53,9 @@ CMakePresets.json
 compile_commands.json
 .clangd
 
-#json files
-*.json
+# settigns json
+settings.json
+
+#testing directory temp files
+tests/Testing/*
+
