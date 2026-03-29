@@ -26,6 +26,7 @@ namespace colors
     const ImVec4 error = ImVec4(1.0f, 0.3f, 0.3f, 1.0f);        ///< Error/failure state color
     const ImVec4 gray  = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);        ///< Disabled/inactive state color
     const ImVec4 lightGray = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);    ///< Secondary UI element color
+    const ImVec4 topPanelButtonHover = ImVec4(32.0f / 255.0f, 32.0f / 255.0f, 32.0f / 255.0f, 1.0f); ///< Top panel button hover tone
     const ImU32 blue = IM_COL32(78, 161, 255, 255);             ///< Accent color for highlights
 }
 
