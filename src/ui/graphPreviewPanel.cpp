@@ -9,6 +9,10 @@
 #include <functional>
 #include <unordered_set>
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 namespace
 {
 constexpr float kPreviewGridStep = 32.0f;
@@ -17,6 +21,27 @@ const sf::Color kPreviewEmptyBackground(22, 22, 28);
 const sf::Color kPreviewDefaultGridColor(52, 52, 68);
 const sf::Color kPreviewGridAreaFill(28, 30, 40, 150);
 const sf::Color kPreviewGridAreaOutline(120, 150, 210, 210);
+
+void SetPreviewWindowAlwaysOnTop(sf::RenderWindow* window)
+{
+    if (!window)
+        return;
+
+#if defined(_WIN32)
+    const sf::WindowHandle handle = window->getSystemHandle();
+    if (handle)
+    {
+        ::SetWindowPos(
+            static_cast<HWND>(handle),
+            HWND_TOPMOST,
+            0, 0, 0, 0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW
+        );
+    }
+#else
+    (void)window;
+#endif
+}
 
 bool TryParseDouble(const std::string& s, double& out)
 {
@@ -98,6 +123,7 @@ void GraphPreviewPanel::open()
         "EMI Visual Preview",
         sf::Style::Titlebar | sf::Style::Close
     );
+    SetPreviewWindowAlwaysOnTop(m_window.get());
     m_window->setFramerateLimit(60);
 }
 
