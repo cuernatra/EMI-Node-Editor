@@ -34,7 +34,7 @@ FetchContent_MakeAvailable(json)
 
 # Emi script
 
-set(EMI_LOCAL_SOURCE_DIR "${CMAKE_SOURCE_DIR}/EMI-Script")
+set(EMI_LOCAL_SOURCE_DIR "${CMAKE_SOURCE_DIR}/EMI-Script/EMI-Script-master")
 
 if(EXISTS "${EMI_LOCAL_SOURCE_DIR}/CMakeLists.txt")
   message(STATUS "Using local EMI-Script source: ${EMI_LOCAL_SOURCE_DIR}")

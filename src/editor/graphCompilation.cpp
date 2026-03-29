@@ -49,6 +49,24 @@ void GraphCompilation::SetLogSink(LogSink sink)
     m_logSink = std::move(sink);
 }
 
+void GraphCompilation::RequestForceStop()
+{
+    m_forceStopRequested.store(true);
+    if (m_impl && m_impl->vm)
+    {
+        m_impl->vm->Interrupt();
+    }
+}
+
+void GraphCompilation::ClearForceStopRequest()
+{
+    m_forceStopRequested.store(false);
+    if (m_impl && m_impl->vm)
+    {
+        m_impl->vm->ClearInterrupt();
+    }
+}
+
 void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
 {
     const CompileResult result = CompileGraphSnapshot(state.GetNodes(), state.GetLinks(), resultOnly);
@@ -60,6 +78,21 @@ GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
     const std::vector<Link>& links,
     bool resultOnly)
 {
+    if (m_impl && m_impl->vm)
+    {
+        m_impl->vm->ClearInterrupt();
+    }
+
+    auto makeCancelled = [&]() -> CompileResult
+    {
+        const std::string status = "[WARN] Compile force-stopped by user\n";
+        if (m_logSink)
+        {
+            m_logSink(status);
+        }
+        return { false, status };
+    };
+
     if (m_logSink)
     {
         m_logSink("Compiling graph...\n");
@@ -88,6 +121,11 @@ GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
         return { false, status };
     }
 
+    if (m_forceStopRequested.load())
+    {
+        return makeCancelled();
+    }
+
     // Debug Print is optional: graphs may be valid without explicit output nodes.
     bool hasOutputNode = false;
     for (const auto& n : nodes)
@@ -107,6 +145,12 @@ GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
     // Compile visual graph to AST
     GraphCompiler gc;
     Node* ast = gc.Compile(nodes, links);
+
+    if (m_forceStopRequested.load())
+    {
+        if (ast) delete ast;
+        return makeCancelled();
+    }
 
     if (gc.HasError || !ast)
     {
@@ -135,11 +179,21 @@ GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
     // Compile AST to VM bytecode
     m_impl->vm->CompileAST(kCompileUnitName, ast);
 
+    if (m_forceStopRequested.load())
+    {
+        return makeCancelled();
+    }
+
     // Execute the compiled graph function
     constexpr const char* kRunGraphScript = "__graph__();";
     void* printHandle = m_impl->vm->CompileTemporary(kRunGraphScript);
     if (!printHandle || !m_impl->vm->WaitForResult(printHandle))
     {
+        if (m_forceStopRequested.load())
+        {
+            return makeCancelled();
+        }
+
         const std::string status = "[ERROR] Runtime error: Failed to execute compiled graph\n";
         if (m_logSink)
         {
@@ -149,6 +203,11 @@ GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
     }
     else
     {
+        if (m_forceStopRequested.load())
+        {
+            return makeCancelled();
+        }
+
         const std::string status = "[OK] Compiled and executed successfully\n";
         if (m_logSink)
         {
