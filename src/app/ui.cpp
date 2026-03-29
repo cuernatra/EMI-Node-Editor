@@ -1,4 +1,5 @@
 #include "ui.h"
+#include "../ui/theme.h"
 #include <imgui-SFML.h>
 #include <algorithm>
 #include <cstdio>
@@ -57,12 +58,17 @@ void Ui::draw()
     bool drawInspectorOverlay = false;
     ImVec2 inspectorPos(0.0f, 0.0f);
     ImVec2 inspectorSize(0.0f, 0.0f);
+    const ImVec2 panelPadding = layoutConstants::panelPadding;
+    const ImVec2 panelItemSpacing = layoutConstants::panelItemSpacing;
 
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
 
     // Make window responsive
     ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize, ImGuiCond_Always);
 
+    // Root layout window should have no padding/spacing so panel boundaries are flush.
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, layoutConstants::rootWindowPadding);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, layoutConstants::rootItemSpacing);
     ImGui::Begin(
         "EMI EDITOR", 
         nullptr, 
@@ -75,9 +81,9 @@ void Ui::draw()
     );
 
     const float totalWidth = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
-    const float minLeft = 50.f;
-    const float minRight = 200.f;
-    const float splitterWidth = 5.f;
+    const float minLeft = layoutConstants::minLeftPanelWidth;
+    const float minRight = layoutConstants::minInspectorPanelWidth;
+    const float splitterWidth = layoutConstants::horizontalSplitterWidth;
 
     if(m_leftPanelWidth <= 0.0f)
     {
@@ -94,14 +100,20 @@ void Ui::draw()
     Settings::leftPanelWidth = m_leftPanelWidth;
     
 
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, panelPadding);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, panelItemSpacing);
     ImGui::BeginChild("TOP BAR", ImVec2(totalWidth, elementSizes::topBarHeight), true,
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     m_topPanel.draw();
     ImGui::EndChild();
+    ImGui::PopStyleVar(2);
 
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, panelPadding);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, panelItemSpacing);
     ImGui::BeginChild("NODE PALETTE", ImVec2(m_leftPanelWidth, 0), true);
     m_leftPanel.draw(m_mainEditor.hasStartNode());
     ImGui::EndChild();
+    ImGui::PopStyleVar(2);
 
     ImGui::SameLine(0.0f, 0.0f);
 
@@ -128,11 +140,11 @@ void Ui::draw()
     );
     const float inspectorWidth = std::clamp(m_rightPanelWidth, minRight, maxRightWidth);
 
-    const float mainWidth = totalWidth - m_leftPanelWidth - splitterWidth;
+    const float mainWidth = std::max(1.0f, ImGui::GetContentRegionAvail().x);
     const float rightColumnHeight = ImGui::GetContentRegionAvail().y;
-    const float consoleSplitterThickness = 5.0f;
-    const float minMainHeight = 80.0f;
-    const float minConsoleHeight = 60.0f;
+    const float consoleSplitterThickness = layoutConstants::consoleSplitterThickness;
+    const float minMainHeight = layoutConstants::minMainEditorHeight;
+    const float minConsoleHeight = layoutConstants::minConsoleHeight;
     const bool consoleMinimized = m_consolePanel.isMinimized();
 
     if (!consoleMinimized)
@@ -175,9 +187,12 @@ void Ui::draw()
 
     const ImVec2 mainEditorPos = ImGui::GetCursorScreenPos();
 
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, panelPadding);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, panelItemSpacing);
     ImGui::BeginChild("MAIN EDITOR", ImVec2(mainWidth, mainHeight), true);
     m_mainEditor.draw();
     ImGui::EndChild();
+    ImGui::PopStyleVar(2);
 
     if (!consoleMinimized)
     {
@@ -190,14 +205,17 @@ void Ui::draw()
         );
     }
 
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, panelPadding);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, panelItemSpacing);
     m_consolePanel.draw();
+    ImGui::PopStyleVar(2);
 
     ImGui::EndGroup();
 
     if (showInspector)
     {
-        const float inspectorPaddingX = 8.0f;
-        const ImVec2 mainEditorSize = ImGui::GetItemRectSize();
+        const float inspectorPaddingX = layoutConstants::inspectorPaddingX;
+        const ImVec2 mainEditorSize(mainWidth, std::max(50.0f, mainHeight));
 
         inspectorPos = ImVec2(
             mainEditorPos.x + mainEditorSize.x - inspectorWidth - inspectorPaddingX,
@@ -205,13 +223,14 @@ void Ui::draw()
         );
         inspectorSize = ImVec2(
             inspectorWidth,
-            std::max(50.0f, mainEditorSize.y)
+            mainEditorSize.y
         );
 
         drawInspectorOverlay = true;
     }
 
     ImGui::End();
+    ImGui::PopStyleVar(2);
 
     if (drawInspectorOverlay)
     {
@@ -227,8 +246,8 @@ void Ui::draw()
 
         // Separate topmost inspector window (kept fixed in place).
         // Slight transparency only.
-        const ImVec4 overlayBg(0.04f, 0.04f, 0.06f, 0.70f);
-        const ImVec4 overlayBorder(0.35f, 0.35f, 0.35f, 0.95f);
+        const ImVec4 overlayBg(colors::background.x, colors::background.y, colors::background.z, 0.70f);
+        const ImVec4 overlayBorder(colors::textSecondary.x, colors::textSecondary.y, colors::textSecondary.z, 0.95f);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, overlayBg);
         ImGui::PushStyleColor(ImGuiCol_Border, overlayBorder);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);

@@ -716,8 +716,29 @@ Node* GraphCompiler::BuildDelay(const VisualNode& n)
     Node* params = MakeNode(Token::CallParams);
     if (const Pin* durationPin = GetInputPinByName(n, "Duration"))
     {
-        params->children.push_back(BuildExpr(*durationPin));
-        if (HasError) { delete call; return nullptr; }
+        const PinSource* durationSrc = resolver_.Resolve(durationPin->id);
+        if (durationSrc)
+        {
+            params->children.push_back(BuildNode(*durationSrc->node, durationSrc->pinIdx));
+            if (HasError) { delete call; return nullptr; }
+        }
+        else
+        {
+            const std::string* durationStr = GetField(n, "Duration");
+            double durationMs = 1000.0;
+            if (durationStr)
+            {
+                try
+                {
+                    durationMs = std::stod(*durationStr);
+                }
+                catch (...)
+                {
+                    durationMs = 1000.0;
+                }
+            }
+            params->children.push_back(MakeNumberNode(durationMs));
+        }
     }
     else
     {
