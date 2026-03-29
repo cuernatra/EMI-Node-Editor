@@ -59,6 +59,11 @@ private:
     */
     void loadFont();
 
+    /**
+    * @brief Apply custom ImGui style settings
+    */
+    void applyImGuiStyle();
+
     /// SFML window for rendering
     sf::RenderWindow m_window;
     
