@@ -8,6 +8,7 @@
 
 #include "../app/constants.h"
 #include <vector>
+#include <functional>
 
 /**
  * @brief Top toolbar panel
@@ -22,14 +23,21 @@ public:
     /// Render the top panel (called every frame).
     void draw();
 
-    /// Returns true once when the settings button was pressed.
-    bool consumeOpenSettingsRequested();
+    void setFilesystemCallback(std::function<void()> cb);
+    void setSettingsCallback(std::function<void()> cb);
+    void setPreviewCallback(std::function<void(bool)> cb);
+
+    /// Whether preview-on-compile mode is enabled.
+    bool isPreviewEnabled() const { return m_previewEnabled; }
     
 private:
     /// Height of the toolbar in pixels
     float m_height;
 
-    bool m_openSettingsRequested = false;
+    std::function<void()> m_filesystemCallback;
+    std::function<void()> m_settingsCallback;
+    std::function<void(bool)> m_previewCallback;
+    bool m_previewEnabled = false;
 };
 
 #endif

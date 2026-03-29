@@ -1,52 +1,77 @@
 #include "topPanel.h"
-#include <string>
 
 TopPanel::TopPanel() : m_height{elementSizes::topBarHeight}
 {
+}
+
+void TopPanel::setFilesystemCallback(std::function<void()> cb)
+{
+    m_filesystemCallback = std::move(cb);
+}
+
+void TopPanel::setSettingsCallback(std::function<void()> cb)
+{
+    m_settingsCallback = std::move(cb);
+}
+
+void TopPanel::setPreviewCallback(std::function<void(bool)> cb)
+{
+    m_previewCallback = std::move(cb);
 }
 
 void TopPanel::draw()
 {   
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 2));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
 
-    ImGui::PushStyleColor(ImGuiCol_Button, colors::gray);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::lightGray);
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::gray);
+    const float buttonHeight = m_height - 14.0f;
+    ImGui::SetCursorPosY((m_height - buttonHeight) * 0.5f);
 
-    if (ImGui::Button("test1", ImVec2(80, m_height - 14)))
+    ImGui::PushStyleColor(ImGuiCol_Button, colors::elevated);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::topPanelButtonHover);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::surface);
+
+    if (ImGui::Button("Filesystem", ImVec2(95, buttonHeight)))
     {
-        printf("miau\n");
-    }
-
-    ImGui::SameLine(0, 55);
-
-    if (ImGui::Button("test2", ImVec2(80, m_height - 14)))
-    {
-        m_openSettingsRequested = true;
-    }
-
-    ImGui::SameLine(0, 10);
-
-    if (ImGui::Button("test3", ImVec2(80, m_height - 14)))
-    {
-        printf("test3\n");
+        if (m_filesystemCallback)
+            m_filesystemCallback();
     }
 
     ImGui::SameLine(0, 10);
 
-    if (ImGui::Button("test4", ImVec2(80, m_height - 14)))
+    if (ImGui::Button("Settings", ImVec2(85, buttonHeight)))
     {
-        printf("test4\n");
+        if (m_settingsCallback)
+            m_settingsCallback();
+    }
+
+    ImGui::SameLine(0, 10);
+
+    const bool previewWasEnabled = m_previewEnabled;
+
+    if (previewWasEnabled)
+    {
+        // Show toggled state as "pressed" by using active-like colors.
+        ImGui::PushStyleColor(ImGuiCol_Button, colors::accent);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::accent);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::accent);
+    }
+
+    if (ImGui::Button("Preview", ImVec2(85, buttonHeight)))
+    {
+        m_previewEnabled = !m_previewEnabled;
+        if (m_previewCallback)
+            m_previewCallback(m_previewEnabled);
+    }
+
+    // Pop using the pre-click state so style stack always stays balanced
+    // even when the click toggles m_previewEnabled.
+    if (previewWasEnabled)
+    {
+        ImGui::PopStyleColor(3);
     }
 
     ImGui::PopStyleColor(3);
-    ImGui::PopStyleVar(2);
-}
-
-bool TopPanel::consumeOpenSettingsRequested()
-{
-    const bool requested = m_openSettingsRequested;
-    m_openSettingsRequested = false;
-    return requested;
+    ImGui::PopStyleVar(3);
 }

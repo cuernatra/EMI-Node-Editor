@@ -52,7 +52,9 @@ descriptors_[NodeType::Constant] = {
             { "Result", PinType::Number, /*isInput=*/false }
         },
         {
-            { "Op", PinType::String, "+" }   // Rendered as combo: + - * /
+            { "Op", PinType::String, "+" },  // Rendered as combo: + - * /
+            { "A",  PinType::Number, "0.0" },
+            { "B",  PinType::Number, "0.0" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildOperator(n); }
     };
@@ -71,7 +73,9 @@ descriptors_[NodeType::Constant] = {
             { "Result", PinType::Boolean, /*isInput=*/false }
         },
         {
-            { "Op", PinType::String, ">=" }  // Rendered as combo: == != < <= > >=
+            { "Op", PinType::String, ">=" },  // Rendered as combo: == != < <= > >=
+            { "A",  PinType::Number, "0.0" },
+            { "B",  PinType::Number, "0.0" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildComparison(n); }
     };
@@ -90,9 +94,106 @@ descriptors_[NodeType::Constant] = {
             { "Result", PinType::Boolean, /*isInput=*/false }
         },
         {
-            { "Op", PinType::String, "AND" }  // Rendered as combo: AND OR NOT XOR
+            { "Op", PinType::String, "AND" },  // Rendered as combo: AND OR
+            { "A",  PinType::Boolean, "false" },
+            { "B",  PinType::Boolean, "false" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildLogic(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // Not  —  Boolean invert A -> Result
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::Not] = {
+        NodeType::Not,
+        "Not",
+        {
+            { "In",     PinType::Flow,    /*isInput=*/true  },
+            { "A",      PinType::Boolean, /*isInput=*/true  },
+            { "Out",    PinType::Flow,    /*isInput=*/false },
+            { "Result", PinType::Boolean, /*isInput=*/false }
+        },
+        {
+            { "A",  PinType::Boolean, "false" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildNot(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // Draw Rect — preview-only rectangle renderer
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::DrawRect] = {
+        NodeType::DrawRect,
+        "Draw Rect",
+        {
+            { "In", PinType::Flow, /*isInput=*/true },
+            { "X", PinType::Number, /*isInput=*/true },
+            { "Y", PinType::Number, /*isInput=*/true },
+            { "W", PinType::Number, /*isInput=*/true },
+            { "H", PinType::Number, /*isInput=*/true },
+            { "R", PinType::Number, /*isInput=*/true },
+            { "G", PinType::Number, /*isInput=*/true },
+            { "B", PinType::Number, /*isInput=*/true },
+            { "Out", PinType::Flow, /*isInput=*/false }
+        },
+        {
+            { "Color", PinType::String, "120, 180, 255" },
+            { "X", PinType::Number, "0.0" },
+            { "Y", PinType::Number, "0.0" },
+            { "W", PinType::Number, "1.0" },
+            { "H", PinType::Number, "1.0" },
+            { "R", PinType::Number, "120.0" },
+            { "G", PinType::Number, "180.0" },
+            { "B", PinType::Number, "255.0" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildDrawRect(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // Draw Grid — preview-only grid renderer that participates in flow order
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::DrawGrid] = {
+        NodeType::DrawGrid,
+        "Draw Grid",
+        {
+            { "In", PinType::Flow, /*isInput=*/true },
+            { "X", PinType::Number, /*isInput=*/true },
+            { "Y", PinType::Number, /*isInput=*/true },
+            { "W", PinType::Number, /*isInput=*/true },
+            { "H", PinType::Number, /*isInput=*/true },
+            { "R", PinType::Number, /*isInput=*/true },
+            { "G", PinType::Number, /*isInput=*/true },
+            { "B", PinType::Number, /*isInput=*/true },
+            { "Out", PinType::Flow, /*isInput=*/false }
+        },
+        {
+            { "Color", PinType::String, "30, 30, 38" },
+            { "X", PinType::Number, "0.0" },
+            { "Y", PinType::Number, "0.0" },
+            { "W", PinType::Number, "40.0" },
+            { "H", PinType::Number, "60.0" },
+            { "R", PinType::Number, "30.0" },
+            { "G", PinType::Number, "30.0" },
+            { "B", PinType::Number, "38.0" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildDrawGrid(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // Delay — flow-only ordering helper for preview/testing
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::Delay] = {
+        NodeType::Delay,
+        "Delay",
+        {
+            { "In", PinType::Flow, /*isInput=*/true },
+            { "Duration", PinType::Number, /*isInput=*/true },
+            { "Out", PinType::Flow, /*isInput=*/false }
+        },
+        {
+            { "Duration", PinType::Number, "1000.0" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildDelay(n); }
     };
 
     // ------------------------------------------------------------------
@@ -144,6 +245,22 @@ descriptors_[NodeType::Constant] = {
             { "Count", PinType::Number, "0" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildLoop(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // While  —  Flow in + condition -> Body flow + Completed flow
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::While] = {
+        NodeType::While,
+        "While",
+        {
+            { "In",        PinType::Flow,    /*isInput=*/true  },
+            { "Condition", PinType::Boolean, /*isInput=*/true  },
+            { "Body",      PinType::Flow,    /*isInput=*/false },
+            { "Completed", PinType::Flow,    /*isInput=*/false }
+        },
+        {},
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildWhile(n); }
     };
 
     // ------------------------------------------------------------------

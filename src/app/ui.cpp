@@ -1,14 +1,61 @@
 #include "ui.h"
+#include "../ui/theme.h"
 #include <imgui-SFML.h>
 #include <algorithm>
 #include <cstdio>
+#include <EMI/EMI.h>
 
 Ui::Ui()
 {
-    for (int i = 0; i < 100; ++i)
+    m_topPanel.setFilesystemCallback([this]() {
+        m_consolePanel.addLogText("Filesystem");
+    });
+    m_topPanel.setSettingsCallback([this]() {
+        m_showSettingsOverlay = !m_showSettingsOverlay;
+        if (m_showSettingsOverlay)
+        {
+            ++m_settingsWindowGeneration;
+            m_forceSettingsFocus = true;
+        }
+    });
+    m_topPanel.setPreviewCallback([this](bool enabled) {
+        m_previewEnabled = enabled;
+        if (!m_previewEnabled)
+        {
+            m_graphPreviewPanel.close();
+        }
+    });
+
+    m_mainEditor.setCompileCallback([this]() {
+        if (!m_previewEnabled)
+            return;
+
+        if (!m_graphPreviewPanel.isOpen())
+            m_graphPreviewPanel.open();
+
+        m_graphPreviewPanel.restartPlayback();
+
+        // Draw first frame immediately so preview doesn't stay blank while
+        // compile/runtime work is still running on the main thread.
+        m_mainEditor.syncNodePositionsForPreview();
+        m_graphPreviewPanel.update(m_mainEditor.getGraphState());
+    });
+
+    m_mainEditor.setCompileLogSink([this](const std::string& message)
     {
-        m_consolePanel.addLog("Console initialized. Welcome to EMI Visual Programming Tool!");
-    }
+        m_consolePanel.addLogText(message);
+    });
+
+    m_consoleEmiLogger = std::make_unique<ConsoleEmiLogger>(m_consolePanel);
+    EMI::SetCompileLog(m_consoleEmiLogger.get());
+    EMI::SetRuntimeLog(m_consoleEmiLogger.get());
+    EMI::SetScriptLog(m_consoleEmiLogger.get());
+
+    m_consolePanel.addLog("Console initialized. Welcome to EMI Visual Programming Tool!");
+}
+
+Ui::~Ui()
+{
 }
 
 void Ui::draw()
@@ -16,13 +63,17 @@ void Ui::draw()
     bool drawInspectorOverlay = false;
     ImVec2 inspectorPos(0.0f, 0.0f);
     ImVec2 inspectorSize(0.0f, 0.0f);
-    bool forceSettingsFocus = false;
+    const ImVec2 panelPadding = layoutConstants::panelPadding;
+    const ImVec2 panelItemSpacing = layoutConstants::panelItemSpacing;
 
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
 
     // Make window responsive
     ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize, ImGuiCond_Always);
 
+    // Root layout window should have no padding/spacing so panel boundaries are flush.
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, layoutConstants::rootWindowPadding);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, layoutConstants::rootItemSpacing);
     ImGui::Begin(
         "EMI EDITOR", 
         nullptr, 
@@ -35,9 +86,9 @@ void Ui::draw()
     );
 
     const float totalWidth = ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x;
-    const float minLeft = 50.f;
-    const float minRight = 200.f;
-    const float splitterWidth = 5.f;
+    const float minLeft = layoutConstants::minLeftPanelWidth;
+    const float minRight = layoutConstants::minInspectorPanelWidth;
+    const float splitterWidth = layoutConstants::horizontalSplitterWidth;
 
     if(m_leftPanelWidth <= 0.0f)
     {
@@ -50,26 +101,24 @@ void Ui::draw()
         m_rightPanelWidth = std::clamp(totalWidth * 0.24f, minRight, maxRight);
     }
 
-    // save new left panel width value to settings
+    // set new left panel width value to settings
     Settings::leftPanelWidth = m_leftPanelWidth;
+    
 
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, panelPadding);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, panelItemSpacing);
     ImGui::BeginChild("TOP BAR", ImVec2(totalWidth, elementSizes::topBarHeight), true,
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     m_topPanel.draw();
-    if (m_topPanel.consumeOpenSettingsRequested())
-    {
-        m_showSettingsOverlay = !m_showSettingsOverlay;
-        if (m_showSettingsOverlay)
-        {
-            ++m_settingsWindowGeneration;
-            forceSettingsFocus = true;
-        }
-    }
     ImGui::EndChild();
+    ImGui::PopStyleVar(2);
 
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, panelPadding);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, panelItemSpacing);
     ImGui::BeginChild("NODE PALETTE", ImVec2(m_leftPanelWidth, 0), true);
     m_leftPanel.draw(m_mainEditor.hasStartNode());
     ImGui::EndChild();
+    ImGui::PopStyleVar(2);
 
     ImGui::SameLine(0.0f, 0.0f);
 
@@ -96,11 +145,11 @@ void Ui::draw()
     );
     const float inspectorWidth = std::clamp(m_rightPanelWidth, minRight, maxRightWidth);
 
-    const float mainWidth = totalWidth - m_leftPanelWidth - splitterWidth;
+    const float mainWidth = std::max(1.0f, ImGui::GetContentRegionAvail().x);
     const float rightColumnHeight = ImGui::GetContentRegionAvail().y;
-    const float consoleSplitterThickness = 5.0f;
-    const float minMainHeight = 80.0f;
-    const float minConsoleHeight = 60.0f;
+    const float consoleSplitterThickness = layoutConstants::consoleSplitterThickness;
+    const float minMainHeight = layoutConstants::minMainEditorHeight;
+    const float minConsoleHeight = layoutConstants::minConsoleHeight;
     const bool consoleMinimized = m_consolePanel.isMinimized();
 
     if (!consoleMinimized)
@@ -109,17 +158,46 @@ void Ui::draw()
             minConsoleHeight,
             rightColumnHeight - minMainHeight - consoleSplitterThickness
         );
-        m_consolePanel.setHeight(std::clamp(m_consolePanel.getHeight(), minConsoleHeight, maxConsoleHeight));
+
+        // Initialize ratio from persisted pixel height once, then keep sizing
+        // responsive by deriving height from ratio on every frame.
+        if (m_consolePanelHeight <= 0.0f)
+        {
+            m_consolePanelHeight = 300.0f;
+        }
+
+        const float safeHeight = std::max(1.0f, rightColumnHeight);
+        const float minRatio = minConsoleHeight / safeHeight;
+        const float maxRatio = maxConsoleHeight / safeHeight;
+
+        if (m_consolePanelRatio <= 0.0f)
+        {
+            const float clampedInitialHeight = std::clamp(m_consolePanelHeight, minConsoleHeight, maxConsoleHeight);
+            m_consolePanelRatio = std::clamp(clampedInitialHeight / safeHeight, minRatio, maxRatio);
+        }
+        else
+        {
+            m_consolePanelRatio = std::clamp(m_consolePanelRatio, minRatio, maxRatio);
+        }
+
+        m_consolePanelHeight = std::clamp(safeHeight * m_consolePanelRatio, minConsoleHeight, maxConsoleHeight);
+        m_consolePanel.setHeight(m_consolePanelHeight);
     }
+
+    // Persist finalized console panel height every frame.
+    Settings::consolePanelHeight = m_consolePanelHeight;
 
     const float activeConsoleSplitterThickness = consoleMinimized ? 0.0f : consoleSplitterThickness;
     const float mainHeight = rightColumnHeight - m_consolePanel.getHeight() - activeConsoleSplitterThickness;
 
     const ImVec2 mainEditorPos = ImGui::GetCursorScreenPos();
 
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, panelPadding);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, panelItemSpacing);
     ImGui::BeginChild("MAIN EDITOR", ImVec2(mainWidth, mainHeight), true);
     m_mainEditor.draw();
     ImGui::EndChild();
+    ImGui::PopStyleVar(2);
 
     if (!consoleMinimized)
     {
@@ -132,14 +210,17 @@ void Ui::draw()
         );
     }
 
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, panelPadding);
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, panelItemSpacing);
     m_consolePanel.draw();
+    ImGui::PopStyleVar(2);
 
     ImGui::EndGroup();
 
     if (showInspector)
     {
-        const float inspectorPaddingX = 8.0f;
-        const ImVec2 mainEditorSize = ImGui::GetItemRectSize();
+        const float inspectorPaddingX = layoutConstants::inspectorPaddingX;
+        const ImVec2 mainEditorSize(mainWidth, std::max(50.0f, mainHeight));
 
         inspectorPos = ImVec2(
             mainEditorPos.x + mainEditorSize.x - inspectorWidth - inspectorPaddingX,
@@ -147,13 +228,14 @@ void Ui::draw()
         );
         inspectorSize = ImVec2(
             inspectorWidth,
-            std::max(50.0f, mainEditorSize.y)
+            mainEditorSize.y
         );
 
         drawInspectorOverlay = true;
     }
 
     ImGui::End();
+    ImGui::PopStyleVar(2);
 
     if (drawInspectorOverlay)
     {
@@ -169,8 +251,8 @@ void Ui::draw()
 
         // Separate topmost inspector window (kept fixed in place).
         // Slight transparency only.
-        const ImVec4 overlayBg(0.04f, 0.04f, 0.06f, 0.70f);
-        const ImVec4 overlayBorder(0.35f, 0.35f, 0.35f, 0.95f);
+        const ImVec4 overlayBg(colors::background.x, colors::background.y, colors::background.z, 0.70f);
+        const ImVec4 overlayBorder(colors::textSecondary.x, colors::textSecondary.y, colors::textSecondary.z, 0.95f);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, overlayBg);
         ImGui::PushStyleColor(ImGuiCol_Border, overlayBorder);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
@@ -230,8 +312,9 @@ void Ui::draw()
         ImGui::SetNextWindowPos(settingsPos, ImGuiCond_Appearing);
         ImGui::SetNextWindowSize(settingsSize, ImGuiCond_Appearing);
         ImGui::SetNextWindowBgAlpha(0.70f);
-        if (forceSettingsFocus)
+        if (m_forceSettingsFocus)
             ImGui::SetNextWindowFocus();
+        m_forceSettingsFocus = false;
 
         const ImVec4 overlayBg(0.04f, 0.04f, 0.06f, 0.70f);
         const ImVec4 overlayBorder(0.35f, 0.35f, 0.35f, 0.95f);
@@ -300,6 +383,9 @@ void Ui::draw()
         ImGui::PopStyleColor(2);
         style.Alpha = prevAlpha;
     }
+
+    m_mainEditor.syncNodePositionsForPreview();
+    m_graphPreviewPanel.update(m_mainEditor.getGraphState());
 }
 
 void Ui::DrawSplitter(float totalWidth, float thickness, float minLeft, float minRight)
@@ -337,6 +423,11 @@ void Ui::DrawConsoleSplitter(float width, float thickness, float minMain, float 
         const float delta = ImGui::GetIO().MouseDelta.y;
         const float maxConsole = std::max(minConsole, availableHeight - minMain - thickness);
         const float newConsoleHeight = std::clamp(m_consolePanel.getHeight() - delta, minConsole, maxConsole);
+        m_consolePanelHeight = newConsoleHeight; // Update member variable to persist height
+        if (availableHeight > 0.0f)
+        {
+            m_consolePanelRatio = newConsoleHeight / availableHeight;
+        }
         m_consolePanel.setHeight(newConsoleHeight);
     }
 
