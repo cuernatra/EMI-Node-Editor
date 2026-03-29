@@ -262,7 +262,7 @@ float MeasureNodeContentWidth(const VisualNode& n)
     return maxWidth;
 }
 
-static void DrawPin(const Pin& pin, float contentWidth, const std::vector<Link>* allLinks)
+void DrawPin(const Pin& pin, float contentWidth, const std::vector<Link>* allLinks)
 {
     const ImVec4      colorF    = pin.GetTypeColor();
     const ImU32       iconColor = ImGui::ColorConvertFloat4ToU32(colorF);
