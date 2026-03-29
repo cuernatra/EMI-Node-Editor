@@ -105,7 +105,7 @@ void App::applyImGuiStyle()
     // --- Layout & Spacing ---
     style.WindowTitleAlign  = ImVec2(0.5f, 0.5f);
     style.WindowPadding     = ImVec2(10.f, 10.f);
-    style.WindowRounding    = 5.0f;
+    style.WindowRounding    = 0.0f;
     style.FramePadding      = ImVec2(5.f, 1.f);
     style.FrameRounding     = 4.0f;
     style.ItemSpacing       = ImVec2(5.f, 5.f);
@@ -157,7 +157,7 @@ void App::applyImGuiStyle()
 
     // Misc
     style.Colors[ImGuiCol_MenuBarBg] = colors::elevated;
-    style.Colors[ImGuiCol_Border]    = colors::transparent;
+    style.Colors[ImGuiCol_Border]    = withAlpha(colors::textSecondary, 0.20f);
 }
 
 void App::loadFont()

@@ -1,4 +1,5 @@
 #include "graphPreviewPanel.h"
+#include "theme.h"
 #include "../core/graph/types.h"
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
@@ -17,11 +18,24 @@
 namespace
 {
 constexpr float kPreviewGridStep = 32.0f;
-const sf::Color kPreviewBackground(18, 18, 24);
-const sf::Color kPreviewEmptyBackground(22, 22, 28);
-const sf::Color kPreviewDefaultGridColor(52, 52, 68);
-const sf::Color kPreviewGridAreaFill(28, 30, 40, 150);
-const sf::Color kPreviewGridAreaOutline(120, 150, 210, 210);
+
+sf::Color ToSfColor(const ImVec4& c, sf::Uint8 alpha = 255)
+{
+    auto toByte = [](float v) -> sf::Uint8
+    {
+        float clamped = std::clamp(v, 0.0f, 1.0f);
+        return static_cast<sf::Uint8>(clamped * 255.0f + 0.5f);
+    };
+
+    return sf::Color(toByte(c.x), toByte(c.y), toByte(c.z), alpha);
+}
+
+const sf::Color kPreviewBackground = ToSfColor(colors::background);
+const sf::Color kPreviewEmptyBackground = ToSfColor(colors::surface);
+const sf::Color kPreviewDefaultGridColor = ToSfColor(colors::elevated);
+const sf::Color kPreviewGridAreaFill = ToSfColor(colors::elevated, 150);
+const sf::Color kPreviewGridAreaOutline = ToSfColor(colors::accent, 210);
+const sf::Color kPreviewRectOutline = ToSfColor(colors::textPrimary, 110);
 
 void SetPreviewWindowAlwaysOnTop(sf::RenderWindow* window)
 {
@@ -644,7 +658,7 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
         // Keep outlines inside the rectangle so adjacent unit-sized rects
         // (e.g. X=0 and X=1 with W=1) do not visually overlap.
         rect.setOutlineThickness(-1.0f);
-        rect.setOutlineColor(sf::Color(255, 255, 255, 110));
+        rect.setOutlineColor(kPreviewRectOutline);
         m_window->draw(rect);
     }
 }
