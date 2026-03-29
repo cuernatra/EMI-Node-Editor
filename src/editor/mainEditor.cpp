@@ -102,6 +102,9 @@ void MainEditor::draw()
             const bool resultOnlySnapshot = m_resultOnlyCompile;
             GraphCompilation* compiler = m_compiler.get();
 
+            if (m_compiler)
+                m_compiler->ClearForceStopRequest();
+
             m_compileInProgress = true;
             m_compileFuture = std::async(std::launch::async,
                 [compiler, nodesSnapshot, linksSnapshot, resultOnlySnapshot]() mutable
@@ -110,6 +113,18 @@ void MainEditor::draw()
                 });
         }
     }
+
+    ImGui::SameLine();
+    if (!m_compileInProgress)
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+    if (ImGui::Button("Force Stop") && m_compileInProgress)
+    {
+        if (m_compiler)
+            m_compiler->RequestForceStop();
+        m_graphState->SetCompileStatus(false, "[WARN] Force stop requested...\n");
+    }
+    if (!m_compileInProgress)
+        ImGui::PopStyleVar();
 
     ImGui::SameLine();
     ImGui::Checkbox("Result only", &m_resultOnlyCompile);

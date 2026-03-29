@@ -28,7 +28,20 @@ void printLn(Variable& out, Variable* args, size_t argc) {
 
 void delay(Variable&, Variable* args, size_t argc) {
 	if (argc > 0) {
-		std::this_thread::sleep_for(std::chrono::milliseconds((size_t)toNumber(args[0])));
+		auto totalMs = static_cast<size_t>(toNumber(args[0]));
+		constexpr size_t kChunkMs = 10;
+		size_t elapsed = 0;
+
+		while (elapsed < totalMs) {
+			if (IsRuntimeInterruptRequested()) {
+				break;
+			}
+
+			const size_t remaining = totalMs - elapsed;
+			const size_t currentChunk = (remaining < kChunkMs) ? remaining : kChunkMs;
+			std::this_thread::sleep_for(std::chrono::milliseconds(currentChunk));
+			elapsed += currentChunk;
+		}
 	}
 }
 
