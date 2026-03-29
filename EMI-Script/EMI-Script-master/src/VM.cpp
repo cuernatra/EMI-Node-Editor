@@ -118,7 +118,12 @@ void VM::CompileAST(const char* name, Node* ast)
 
 void VM::Interrupt()
 {
+	RequestRuntimeInterrupt();
+}
 
+void VM::ClearInterrupt()
+{
+	ClearRuntimeInterrupt();
 }
 
 std::string VM::FindLibrary(const char*) const

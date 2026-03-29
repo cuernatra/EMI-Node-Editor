@@ -153,6 +153,7 @@ public:
 	void* CompileTemporary(const char* data);
 	void CompileAST(const char* name, Node* ast);
 	void Interrupt();
+	void ClearInterrupt();
 
 	std::string FindLibrary(const char* name) const;
 	void LoadLibrary(const char* name);

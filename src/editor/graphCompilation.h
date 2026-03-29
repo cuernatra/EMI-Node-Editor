@@ -14,6 +14,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <atomic>
 
 class GraphState;
 struct VisualNode;
@@ -80,11 +81,18 @@ public:
     /// Set optional sink for forwarding compile status messages to external UI.
     void SetLogSink(LogSink sink);
 
+    /// Request force-stop for currently running compile/execute operation.
+    void RequestForceStop();
+
+    /// Clear any previously requested force-stop state before a new compile run.
+    void ClearForceStopRequest();
+
 private:
     // Pimpl to hide EMI types from header
     class Impl;
     std::unique_ptr<Impl> m_impl;
     LogSink m_logSink;
+    std::atomic<bool> m_forceStopRequested{ false };
 };
 
 
