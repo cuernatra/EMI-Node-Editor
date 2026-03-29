@@ -12,8 +12,27 @@ Ui::Ui()
     m_topPanel.setSettingsCallback([this]() {
         m_consolePanel.addLogText("Settings");
     });
-    m_topPanel.setPreviewCallback([this]() {
-        m_showPreviewWindow = true;
+    m_topPanel.setPreviewCallback([this](bool enabled) {
+        m_previewEnabled = enabled;
+        if (!m_previewEnabled)
+        {
+            m_graphPreviewPanel.close();
+        }
+    });
+
+    m_mainEditor.setCompileCallback([this]() {
+        if (!m_previewEnabled)
+            return;
+
+        if (!m_graphPreviewPanel.isOpen())
+            m_graphPreviewPanel.open();
+
+        m_graphPreviewPanel.restartPlayback();
+
+        // Draw first frame immediately so preview doesn't stay blank while
+        // compile/runtime work is still running on the main thread.
+        m_mainEditor.syncNodePositionsForPreview();
+        m_graphPreviewPanel.update(m_mainEditor.getGraphState());
     });
 
     m_mainEditor.setCompileLogSink([this](const std::string& message)
@@ -245,13 +264,6 @@ void Ui::draw()
     // This keeps legacy actions (e.g. Delete selected node/link) working even
     // when the overlay currently has keyboard focus.
     m_mainEditor.handleSharedShortcuts();
-
-    if (m_showPreviewWindow)
-    {
-        if (!m_graphPreviewPanel.isOpen())
-            m_graphPreviewPanel.open();
-        m_showPreviewWindow = false;
-    }
 
     m_mainEditor.syncNodePositionsForPreview();
     m_graphPreviewPanel.update(m_mainEditor.getGraphState());

@@ -14,7 +14,7 @@ void TopPanel::setSettingsCallback(std::function<void()> cb)
     m_settingsCallback = std::move(cb);
 }
 
-void TopPanel::setPreviewCallback(std::function<void()> cb)
+void TopPanel::setPreviewCallback(std::function<void(bool)> cb)
 {
     m_previewCallback = std::move(cb);
 }
@@ -44,10 +44,28 @@ void TopPanel::draw()
 
     ImGui::SameLine(0, 10);
 
+    const bool previewWasEnabled = m_previewEnabled;
+
+    if (previewWasEnabled)
+    {
+        // Show toggled state as "pressed" by using active-like colors.
+        ImGui::PushStyleColor(ImGuiCol_Button, colors::lightGray);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::lightGray);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::gray);
+    }
+
     if (ImGui::Button("Preview", ImVec2(85, m_height - 14)))
     {
+        m_previewEnabled = !m_previewEnabled;
         if (m_previewCallback)
-            m_previewCallback();
+            m_previewCallback(m_previewEnabled);
+    }
+
+    // Pop using the pre-click state so style stack always stays balanced
+    // even when the click toggles m_previewEnabled.
+    if (previewWasEnabled)
+    {
+        ImGui::PopStyleColor(3);
     }
 
     ImGui::PopStyleColor(3);

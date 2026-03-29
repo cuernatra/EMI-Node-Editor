@@ -25,14 +25,18 @@ public:
 
     void setFilesystemCallback(std::function<void()> cb);
     void setSettingsCallback(std::function<void()> cb);
-    void setPreviewCallback(std::function<void()> cb);
+    void setPreviewCallback(std::function<void(bool)> cb);
+
+    /// Whether preview-on-compile mode is enabled.
+    bool isPreviewEnabled() const { return m_previewEnabled; }
     
 private:
     /// Height of the toolbar in pixels
     float m_height;
     std::function<void()> m_filesystemCallback;
     std::function<void()> m_settingsCallback;
-    std::function<void()> m_previewCallback;
+    std::function<void(bool)> m_previewCallback;
+    bool m_previewEnabled = false;
 };
 
 #endif

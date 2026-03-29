@@ -111,7 +111,7 @@ private:
 
     bool m_showFilesystemWindow = false;
     bool m_showSettingsWindow = false;
-    bool m_showPreviewWindow = false;
+    bool m_previewEnabled = false;
 };
 
 #endif

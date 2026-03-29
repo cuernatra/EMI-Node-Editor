@@ -4,6 +4,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
+#include <SFML/System/Clock.hpp>
 #include <memory>
 
 /**
@@ -15,6 +16,7 @@ public:
     void open();
     void close();
     bool isOpen() const;
+    void restartPlayback();
     void update(const GraphState& state);
 
 private:
@@ -41,4 +43,6 @@ private:
     void renderDrawCommands(const GraphState& state);
 
     std::unique_ptr<sf::RenderWindow> m_window;
+    sf::Clock m_playbackClock;
+    bool m_hasPlaybackStart = false;
 };

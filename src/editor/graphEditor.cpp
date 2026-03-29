@@ -455,6 +455,35 @@ void GraphEditor::DrawInspectorPanel()
         {
             ImGui::TextUnformatted("While runs body while Condition is true.");
         }
+        else if (selectedNode->nodeType == NodeType::Delay)
+        {
+            auto isInputPinConnected = [&](const char* pinName) -> bool
+            {
+                Pin* targetPin = GraphEditorUtils::FindPinByName(selectedNode->inPins, pinName);
+                if (!targetPin)
+                    return false;
+
+                for (const Link& l : m_state.GetLinks())
+                {
+                    if (l.alive && l.endPinId == targetPin->id)
+                        return true;
+                }
+                return false;
+            };
+
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+            for (NodeField& field : selectedNode->fields)
+            {
+                if (field.name == "Duration" && isInputPinConnected("Duration"))
+                {
+                    GraphEditorUtils::DrawInspectorReadOnlyField(field);
+                    continue;
+                }
+
+                fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
+            }
+            ImGui::PopID();
+        }
         else
         {
             ImGui::PushID(static_cast<int>(selectedNode->id.Get()));

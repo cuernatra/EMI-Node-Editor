@@ -12,6 +12,9 @@
 #include <cstdint>
 #include <functional>
 #include <string>
+#include <future>
+#include <mutex>
+#include <vector>
 
 namespace ed = ax::NodeEditor;
 
@@ -53,17 +56,29 @@ public:
     /// Forward compile status messages to an external log sink.
     void setCompileLogSink(std::function<void(const std::string&)> sink);
 
+    /// Set callback invoked after Compile button runs compilation.
+    void setCompileCallback(std::function<void()> cb);
+
     /// Expose graph state for read-only auxiliary views like preview panels.
     const GraphState& getGraphState() const;
 
     /// Sync live node positions from node editor so previews can use current layout.
     void syncNodePositionsForPreview();
 
+    void flushPendingCompileLogs();
+    void pollAsyncCompileResult();
+
 private:
 
     ed::EditorContext* m_editorContext = nullptr;  ///< imgui-node-editor context
     std::unique_ptr<GraphState> m_graphState;      ///< Graph data (must be constructed before GraphEditor)
     std::unique_ptr<GraphEditor> m_graphEditor;    ///< Canvas renderer (holds reference to m_graphState)
+    std::function<void(const std::string&)> m_uiCompileLogSink;
+    std::mutex m_pendingCompileLogsMutex;
+    std::vector<std::string> m_pendingCompileLogs;
+    std::future<GraphCompilation::CompileResult> m_compileFuture;
+    bool m_compileInProgress = false;
     std::unique_ptr<GraphCompilation> m_compiler;  ///< Graph compilation and execution engine
+    std::function<void()> m_compileCallback;
     bool m_resultOnlyCompile = true;               ///< If true, compile status stays minimal while terminal prints result
 };

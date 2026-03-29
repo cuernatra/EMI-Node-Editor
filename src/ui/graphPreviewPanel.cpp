@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <functional>
+#include <limits>
 #include <unordered_set>
 
 #if defined(_WIN32)
@@ -125,6 +126,8 @@ void GraphPreviewPanel::open()
     );
     SetPreviewWindowAlwaysOnTop(m_window.get());
     m_window->setFramerateLimit(60);
+    m_playbackClock.restart();
+    m_hasPlaybackStart = true;
 }
 
 void GraphPreviewPanel::close()
@@ -134,6 +137,8 @@ void GraphPreviewPanel::close()
         m_window->close();
         m_window.reset();
     }
+
+    m_hasPlaybackStart = false;
 }
 
 bool GraphPreviewPanel::isOpen() const
@@ -141,10 +146,22 @@ bool GraphPreviewPanel::isOpen() const
     return m_window && m_window->isOpen();
 }
 
+void GraphPreviewPanel::restartPlayback()
+{
+    m_playbackClock.restart();
+    m_hasPlaybackStart = true;
+}
+
 void GraphPreviewPanel::update(const GraphState& state)
 {
     if (!m_window || !m_window->isOpen())
         return;
+
+    if (!m_hasPlaybackStart)
+    {
+        m_playbackClock.restart();
+        m_hasPlaybackStart = true;
+    }
 
     sf::Event event{};
     while (m_window->pollEvent(event))
@@ -317,6 +334,7 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
     struct ScheduledCommand
     {
         long long orderKey = 0;
+        long long timeMs = 0;
         bool isGrid = false;
         GridDrawCommand grid;
         RectDrawCommand rect;
@@ -386,6 +404,7 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
         {
             ScheduledCommand cmd;
             cmd.orderKey = timeCursor * 1000LL + depth;
+            cmd.timeMs = timeCursor;
             cmd.isGrid = true;
             cmd.grid.x = static_cast<float>(evalNamedInput(*targetNode, "X"));
             cmd.grid.y = static_cast<float>(evalNamedInput(*targetNode, "Y"));
@@ -409,6 +428,7 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
         {
             ScheduledCommand cmd;
             cmd.orderKey = timeCursor * 1000LL + depth;
+            cmd.timeMs = timeCursor;
             cmd.isGrid = false;
             float localX = static_cast<float>(evalNamedInput(*targetNode, "X"));
             float localY = static_cast<float>(evalNamedInput(*targetNode, "Y"));
@@ -491,6 +511,7 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
 
             ScheduledCommand cmd;
             cmd.orderKey = static_cast<long long>(commands.size());
+            cmd.timeMs = 0;
             cmd.isGrid = false;
             cmd.rect.x = static_cast<float>(evalNamedInput(node, "X"));
             cmd.rect.y = static_cast<float>(evalNamedInput(node, "Y"));
@@ -510,6 +531,22 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
     {
         return a.orderKey < b.orderKey;
     });
+
+    // Normalize timeline so the first drawable command appears immediately
+    // when preview playback starts (no initial blank wait).
+    long long firstCommandTimeMs = std::numeric_limits<long long>::max();
+    for (const auto& cmd : commands)
+        firstCommandTimeMs = std::min(firstCommandTimeMs, cmd.timeMs);
+
+    if (firstCommandTimeMs != std::numeric_limits<long long>::max() && firstCommandTimeMs > 0)
+    {
+        for (auto& cmd : commands)
+            cmd.timeMs = std::max(0LL, cmd.timeMs - firstCommandTimeMs);
+    }
+
+    const long long elapsedMs = m_hasPlaybackStart
+        ? static_cast<long long>(m_playbackClock.getElapsedTime().asMilliseconds())
+        : std::numeric_limits<long long>::max();
 
     struct ViewTransform
     {
@@ -547,6 +584,9 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
 
     for (const auto& cmd : commands)
     {
+        if (cmd.timeMs > elapsedMs)
+            continue;
+
         if (cmd.isGrid)
             includeBounds(cmd.grid.x, cmd.grid.y, cmd.grid.width, cmd.grid.height);
         else
@@ -570,6 +610,9 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
 
     for (const auto& cmd : commands)
     {
+        if (cmd.timeMs > elapsedMs)
+            continue;
+
         auto tx = [&](float x) { return x * transform.scale + transform.offsetX; };
         auto ty = [&](float y) { return y * transform.scale + transform.offsetY; };
 
