@@ -1,6 +1,7 @@
 #include "fieldWidget.h"
 #include "imgui.h"
 #include "imgui_node_editor.h"
+#include "../../ui/theme.h"
 #include <cstdlib>
 #include <cstring>
 #include <array>
@@ -76,7 +77,7 @@ static bool OpPopupCombo(const char* id, std::string& value, const char** items,
         ImVec2(arrowX - 4.0f, arrowY - 2.0f),
         ImVec2(arrowX + 4.0f, arrowY - 2.0f),
         ImVec2(arrowX,        arrowY + 3.0f),
-        ImGui::GetColorU32(ImGuiCol_Text)
+        ImGui::GetColorU32(colors::textPrimary)
     );
 
     ImGui::PopStyleVar();

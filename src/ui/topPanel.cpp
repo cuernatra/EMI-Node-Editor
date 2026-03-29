@@ -23,12 +23,16 @@ void TopPanel::draw()
 {   
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 2));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
 
-    ImGui::PushStyleColor(ImGuiCol_Button, colors::gray);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::lightGray);
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::gray);
+    const float buttonHeight = m_height - 14.0f;
+    ImGui::SetCursorPosY((m_height - buttonHeight) * 0.5f);
 
-    if (ImGui::Button("Filesystem", ImVec2(95, m_height - 14)))
+    ImGui::PushStyleColor(ImGuiCol_Button, colors::elevated);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::topPanelButtonHover);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::surface);
+
+    if (ImGui::Button("Filesystem", ImVec2(95, buttonHeight)))
     {
         if (m_filesystemCallback)
             m_filesystemCallback();
@@ -36,7 +40,7 @@ void TopPanel::draw()
 
     ImGui::SameLine(0, 10);
 
-    if (ImGui::Button("Settings", ImVec2(85, m_height - 14)))
+    if (ImGui::Button("Settings", ImVec2(85, buttonHeight)))
     {
         if (m_settingsCallback)
             m_settingsCallback();
@@ -49,12 +53,12 @@ void TopPanel::draw()
     if (previewWasEnabled)
     {
         // Show toggled state as "pressed" by using active-like colors.
-        ImGui::PushStyleColor(ImGuiCol_Button, colors::lightGray);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::lightGray);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::gray);
+        ImGui::PushStyleColor(ImGuiCol_Button, colors::accent);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::accent);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::accent);
     }
 
-    if (ImGui::Button("Preview", ImVec2(85, m_height - 14)))
+    if (ImGui::Button("Preview", ImVec2(85, buttonHeight)))
     {
         m_previewEnabled = !m_previewEnabled;
         if (m_previewCallback)
@@ -69,5 +73,5 @@ void TopPanel::draw()
     }
 
     ImGui::PopStyleColor(3);
-    ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar(3);
 }

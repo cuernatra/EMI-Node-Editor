@@ -8,6 +8,7 @@
 #include "imgui_node_editor.h"
 #include "../core/graph/pin.h"
 #include "settings.h"
+#include "../ui/theme.h"
 #include <chrono>
 #include <utility>
 
@@ -70,6 +71,13 @@ void MainEditor::draw()
 {
     flushPendingCompileLogs();
     pollAsyncCompileResult();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 2));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleColor(ImGuiCol_Button, colors::elevated);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::topPanelButtonHover);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::surface);
 
     // Top toolbar on a single row:
     // [Compile] [Result only] [Clear] [compile status message..........] [+]
@@ -142,8 +150,8 @@ void MainEditor::draw()
     if (!compileMsg.empty())
     {
         ImVec4 col = m_graphState->IsCompileSuccess()
-            ? ImVec4(0.2f, 0.9f, 0.2f, 1.0f)
-            : ImVec4(1.0f, 0.3f, 0.3f, 1.0f);
+            ? colors::green
+            : colors::error;
         ImGui::PushStyleColor(ImGuiCol_Text, col);
         ImGui::TextUnformatted(compileMsg.c_str());
         ImGui::PopStyleColor();
@@ -162,6 +170,9 @@ void MainEditor::draw()
             ed::NavigateToContent();
         ed::SetCurrentEditor(nullptr);
     }
+
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar(3);
     
 
     ImGui::Separator();
