@@ -14,10 +14,21 @@ FetchContent_MakeAvailable(Catch2)
 
 add_executable(tests
     test_placeholder.cpp
+    ../src/editor/graphState.cpp
+    ../src/editor/settings.cpp
+)
+
+target_include_directories(tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/dependencies/imgui-node-editor
+    ${CMAKE_BINARY_DIR}/_deps/imgui-src
 )
 
 target_link_libraries(tests PRIVATE
     Catch2::Catch2WithMain
+    nlohmann_json::nlohmann_json
 )
 
-add_test(NAME tests COMMAND tests)
+include(CTest)
+include(Catch)
+catch_discover_tests(tests)
