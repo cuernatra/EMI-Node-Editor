@@ -378,6 +378,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const bool isBinaryDefaultNode =
         (n.nodeType == NodeType::Operator || n.nodeType == NodeType::Comparison || n.nodeType == NodeType::Logic);
     const bool isUnaryDefaultNode = (n.nodeType == NodeType::Not);
+    const bool isDelayNode = (n.nodeType == NodeType::Delay);
     const bool isDrawRectNode = (n.nodeType == NodeType::DrawRect);
     const bool isDrawGridNode = (n.nodeType == NodeType::DrawGrid);
     bool drawNodeColorTextChanged = false;
@@ -387,6 +388,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     bool drewDeferredCountPin = false;
     bool drewDeferredAPin = false;
     bool drewDeferredBPin = false;
+    bool drewDeferredDurationPin = false;
     bool drewDeferredXPin = false;
     bool drewDeferredYPin = false;
     bool drewDeferredWPin = false;
@@ -416,6 +418,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             return true;
 
         if (isUnaryDefaultNode && pin.name == "A")
+            return true;
+
+        if (isDelayNode && pin.name == "Duration")
             return true;
 
         if (isDrawRectNode &&
@@ -607,6 +612,19 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 continue;
             }
 
+            if (isDelayNode && field.name == "Duration")
+            {
+                drawDeferredPinByName("Duration");
+                drewDeferredDurationPin = true;
+
+                const bool pinConnected = isInputPinConnected(field.name.c_str());
+                if (pinConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
             if (isDrawRectNode &&
                 (field.name == "X" || field.name == "Y" || field.name == "W" || field.name == "H"))
             {
@@ -688,6 +706,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
     if (isUnaryDefaultNode && !drewDeferredAPin)
         drawDeferredPinByName("A");
+
+    if (isDelayNode && !drewDeferredDurationPin)
+        drawDeferredPinByName("Duration");
 
     if (isDrawRectNode)
     {
