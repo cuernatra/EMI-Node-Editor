@@ -10,6 +10,7 @@
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
+#include <unordered_map>
 
 namespace
 {
@@ -164,6 +165,89 @@ bool ClampDrawNodeGeometryFields(VisualNode& node)
 
     return changed;
 }
+
+std::string TrimArrayToken(const std::string& s)
+{
+    size_t a = 0;
+    size_t b = s.size();
+    while (a < b && std::isspace(static_cast<unsigned char>(s[a]))) ++a;
+    while (b > a && std::isspace(static_cast<unsigned char>(s[b - 1]))) --b;
+    return s.substr(a, b - a);
+}
+
+std::vector<std::string> ParseArrayItemsForNodeView(const std::string& text)
+{
+    std::string src = TrimArrayToken(text);
+    if (src.size() >= 2 && src.front() == '[' && src.back() == ']')
+        src = src.substr(1, src.size() - 2);
+
+    std::vector<std::string> out;
+    std::string current;
+    current.reserve(src.size());
+
+    int bracketDepth = 0;
+    int parenDepth = 0;
+    int braceDepth = 0;
+    bool inQuote = false;
+    char quoteChar = '\0';
+    bool escape = false;
+
+    auto pushCurrent = [&]()
+    {
+        std::string item = TrimArrayToken(current);
+        if (!item.empty())
+            out.push_back(item);
+        current.clear();
+    };
+
+    for (char ch : src)
+    {
+        if (escape)
+        {
+            current.push_back(ch);
+            escape = false;
+            continue;
+        }
+
+        if (inQuote)
+        {
+            current.push_back(ch);
+            if (ch == '\\')
+                escape = true;
+            else if (ch == quoteChar)
+                inQuote = false;
+            continue;
+        }
+
+        if (ch == '"' || ch == '\'')
+        {
+            inQuote = true;
+            quoteChar = ch;
+            current.push_back(ch);
+            continue;
+        }
+
+        if (ch == '[') ++bracketDepth;
+        else if (ch == ']') bracketDepth = std::max(0, bracketDepth - 1);
+        else if (ch == '(') ++parenDepth;
+        else if (ch == ')') parenDepth = std::max(0, parenDepth - 1);
+        else if (ch == '{') ++braceDepth;
+        else if (ch == '}') braceDepth = std::max(0, braceDepth - 1);
+
+        if (ch == ',' && bracketDepth == 0 && parenDepth == 0 && braceDepth == 0)
+        {
+            pushCurrent();
+            continue;
+        }
+
+        current.push_back(ch);
+    }
+
+    pushCurrent();
+    return out;
+}
+
+static std::unordered_map<ImGuiID, bool> s_nodeArrayOpenState;
 }
 
 static bool NodePopupComboDynamic(const char* id,
@@ -230,6 +314,39 @@ static void DrawReadOnlyField(const NodeField& field)
     ImGui::TextUnformatted(field.name.c_str());
     ImGui::SameLine();
     ImGui::TextDisabled("%s", field.value.c_str());
+}
+
+static void DrawReadOnlyArrayFieldCollapsed(const NodeField& field)
+{
+    const std::vector<std::string> items = ParseArrayItemsForNodeView(field.value);
+    ImGui::PushID(field.name.c_str());
+
+    ImGuiID stateId = ImGui::GetID("##arrayOpenState");
+    bool& open = s_nodeArrayOpenState[stateId];
+
+    if (ImGui::ArrowButton("##arrayArrow", open ? ImGuiDir_Down : ImGuiDir_Right))
+        open = !open;
+
+    ImGui::SameLine();
+    const std::string label = field.name + " [" + std::to_string(items.size()) + "]";
+    ImGui::TextUnformatted(label.c_str());
+
+    if (open)
+    {
+        ImGui::Indent(14.0f);
+        if (items.empty())
+        {
+            ImGui::TextDisabled("(empty)");
+        }
+        else
+        {
+            for (size_t i = 0; i < items.size(); ++i)
+                ImGui::TextDisabled("%d: %s", static_cast<int>(i), items[i].c_str());
+        }
+        ImGui::Unindent(14.0f);
+    }
+
+    ImGui::PopID();
 }
 
 float MeasureFieldWidth(const NodeField& field)
@@ -679,6 +796,13 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             if ((isDrawRectNode || isDrawGridNode) &&
                 (field.name == "R" || field.name == "G" || field.name == "B"))
                 continue;
+
+            if (field.valueType == PinType::Array)
+            {
+                // Node body arrays are view-only (expand/collapse), editing stays in inspector.
+                DrawReadOnlyArrayFieldCollapsed(field);
+                continue;
+            }
 
             changed |= DrawField(field);
         }

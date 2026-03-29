@@ -248,6 +248,26 @@ descriptors_[NodeType::Constant] = {
     };
 
     // ------------------------------------------------------------------
+    // For Each  —  Flow in + array -> Body flow + element output
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::ForEach] = {
+        NodeType::ForEach,
+        "For Each",
+        {
+            { "In",        PinType::Flow,  /*isInput=*/true  },
+            { "Array",     PinType::Array, /*isInput=*/true  },
+            { "Body",      PinType::Flow,  /*isInput=*/false },
+            { "Completed", PinType::Flow,  /*isInput=*/false },
+            { "Element",   PinType::Any,   /*isInput=*/false }
+        },
+        {
+            { "Element Type", PinType::String, "Any" },
+            { "Array", PinType::Array, "[]" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildForEach(n); }
+    };
+
+    // ------------------------------------------------------------------
     // While  —  Flow in + condition -> Body flow + Completed flow
     // ------------------------------------------------------------------
     descriptors_[NodeType::While] = {

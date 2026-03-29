@@ -93,6 +93,7 @@ LeftPanel::LeftPanel()
         NodeType::Sequence,
         NodeType::Branch,
         NodeType::Loop,
+        NodeType::ForEach,
         NodeType::While,
         NodeType::Output
     };
@@ -164,6 +165,7 @@ void LeftPanel::draw(bool hasStartNode)
             case NodeType::Sequence:
             case NodeType::Branch:
             case NodeType::Loop:
+            case NodeType::ForEach:
             case NodeType::While:
             case NodeType::Output:
                 flowTypes.push_back(makeDefaultItem(t));

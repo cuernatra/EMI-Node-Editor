@@ -58,7 +58,7 @@ namespace layoutConstants
 
     const float horizontalSplitterWidth = 5.0f;              ///< Width of left/right splitter
     const float minLeftPanelWidth = 50.0f;                   ///< Minimum width for left panel
-    const float minInspectorPanelWidth = 200.0f;             ///< Minimum width for inspector side
+    const float minInspectorPanelWidth = 520.0f;             ///< Minimum width for inspector side
 
     const float consoleSplitterThickness = 5.0f;             ///< Thickness of console splitter
     const float minMainEditorHeight = 80.0f;                 ///< Minimum height for main editor area
