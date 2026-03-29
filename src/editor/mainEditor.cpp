@@ -7,6 +7,7 @@
 #include "../core/registry/nodeFactory.h"
 #include "imgui_node_editor.h"
 #include "settings.h"
+#include <chrono>
 #include <utility>
 
 MainEditor::MainEditor()
@@ -19,6 +20,11 @@ MainEditor::MainEditor()
     m_graphState = std::make_unique<GraphState>();
     m_graphEditor = std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
     m_compiler = std::make_unique<GraphCompilation>();
+    m_compiler->SetLogSink([this](const std::string& message)
+    {
+        std::lock_guard<std::mutex> lock(m_pendingCompileLogsMutex);
+        m_pendingCompileLogs.push_back(message);
+    });
 
     GraphSerializer::Load(*m_graphState, "graph.txt");
 
@@ -28,6 +34,14 @@ MainEditor::MainEditor()
 
 MainEditor::~MainEditor()
 {
+    if (m_compileFuture.valid())
+    {
+        m_compileFuture.wait();
+        m_compileInProgress = false;
+    }
+
+    flushPendingCompileLogs();
+
     // save settings
     Settings::Save();
 
@@ -48,11 +62,39 @@ MainEditor::~MainEditor()
 
 void MainEditor::draw()
 {
+    flushPendingCompileLogs();
+    pollAsyncCompileResult();
+
     // Top toolbar on a single row:
     // [Compile] [Result only] [Clear] [compile status message..........] [+]
     if (ImGui::Button("Compile"))
     {
-        m_compiler->CompileGraph(*m_graphState, m_resultOnlyCompile);
+        if (m_compileInProgress)
+        {
+            if (m_uiCompileLogSink)
+                m_uiCompileLogSink("[WARN] Compile already running...\n");
+        }
+        else
+        {
+        // Notify listeners immediately on click (before potentially long compile/execute),
+        // so preview window can open right away.
+        if (m_compileCallback)
+            m_compileCallback();
+
+            m_graphState->SetCompileStatus(false, "[INFO] Compiling graph...\n");
+
+            const std::vector<VisualNode> nodesSnapshot = m_graphState->GetNodes();
+            const std::vector<Link> linksSnapshot = m_graphState->GetLinks();
+            const bool resultOnlySnapshot = m_resultOnlyCompile;
+            GraphCompilation* compiler = m_compiler.get();
+
+            m_compileInProgress = true;
+            m_compileFuture = std::async(std::launch::async,
+                [compiler, nodesSnapshot, linksSnapshot, resultOnlySnapshot]() mutable
+                {
+                    return compiler->CompileGraphSnapshot(nodesSnapshot, linksSnapshot, resultOnlySnapshot);
+                });
+        }
     }
 
     ImGui::SameLine();
@@ -156,10 +198,12 @@ bool MainEditor::hasVariables() const
 
 void MainEditor::setCompileLogSink(std::function<void(const std::string&)> sink)
 {
-    if (m_compiler)
-    {
-        m_compiler->SetLogSink(std::move(sink));
-    }
+    m_uiCompileLogSink = std::move(sink);
+}
+
+void MainEditor::setCompileCallback(std::function<void()> cb)
+{
+    m_compileCallback = std::move(cb);
 }
 
 const GraphState& MainEditor::getGraphState() const
@@ -179,4 +223,36 @@ void MainEditor::syncNodePositionsForPreview()
         node.positioned = true;
     }
     ed::SetCurrentEditor(nullptr);
+}
+
+void MainEditor::flushPendingCompileLogs()
+{
+    if (!m_uiCompileLogSink)
+        return;
+
+    std::vector<std::string> logs;
+    {
+        std::lock_guard<std::mutex> lock(m_pendingCompileLogsMutex);
+        if (m_pendingCompileLogs.empty())
+            return;
+
+        logs.swap(m_pendingCompileLogs);
+    }
+
+    for (const auto& msg : logs)
+        m_uiCompileLogSink(msg);
+}
+
+void MainEditor::pollAsyncCompileResult()
+{
+    if (!m_compileInProgress || !m_compileFuture.valid())
+        return;
+
+    using namespace std::chrono_literals;
+    if (m_compileFuture.wait_for(0ms) != std::future_status::ready)
+        return;
+
+    const GraphCompilation::CompileResult outcome = m_compileFuture.get();
+    m_compileInProgress = false;
+    m_graphState->SetCompileStatus(outcome.success, outcome.message);
 }

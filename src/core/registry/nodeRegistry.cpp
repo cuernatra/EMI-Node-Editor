@@ -191,7 +191,7 @@ descriptors_[NodeType::Constant] = {
             { "Out", PinType::Flow, /*isInput=*/false }
         },
         {
-            { "Duration", PinType::Number, "100.0" }
+            { "Duration", PinType::Number, "1000.0" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildDelay(n); }
     };

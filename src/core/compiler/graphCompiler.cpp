@@ -710,8 +710,22 @@ Node* GraphCompiler::BuildDrawGrid(const VisualNode& n)
 
 Node* GraphCompiler::BuildDelay(const VisualNode& n)
 {
-    (void)n;
-    return MakeNode(Token::Scope);
+    Node* call = MakeNode(Token::FunctionCall);
+    call->children.push_back(MakeIdNode("delay"));
+
+    Node* params = MakeNode(Token::CallParams);
+    if (const Pin* durationPin = GetInputPinByName(n, "Duration"))
+    {
+        params->children.push_back(BuildExpr(*durationPin));
+        if (HasError) { delete call; return nullptr; }
+    }
+    else
+    {
+        params->children.push_back(MakeNumberNode(1000.0));
+    }
+
+    call->children.push_back(params);
+    return call;
 }
 
 Node* GraphCompiler::BuildSequence(const VisualNode& n)
