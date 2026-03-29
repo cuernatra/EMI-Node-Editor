@@ -158,12 +158,22 @@ void ConsolePanel::draw()
     const float rightAlignedX = currentX + ImGui::GetContentRegionAvail().x - buttonsWidth;
     ImGui::SetCursorPosX(std::max(currentX, rightAlignedX));
 
+    // Match top-panel button styling for terminal controls.
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 2));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleColor(ImGuiCol_Button, colors::elevated);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::topPanelButtonHover);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::surface);
+
     if (m_minimized)
     {
         if (ImGui::Button(toggleLabel))
         {
             toggleMinimized();
         }
+        ImGui::PopStyleColor(3);
+        ImGui::PopStyleVar(3);
         ImGui::EndChild();
         return;
     }
@@ -178,6 +188,9 @@ void ConsolePanel::draw()
     {
         toggleMinimized();
     }
+
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar(3);
 
     ImGui::Separator();
     ImGui::BeginChild("scrolling", ImVec2(0, 0), false);

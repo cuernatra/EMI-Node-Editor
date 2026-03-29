@@ -23,15 +23,14 @@ void TopPanel::draw()
 {   
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 2));
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
 
     const float buttonHeight = m_height - 14.0f;
     ImGui::SetCursorPosY((m_height - buttonHeight) * 0.5f);
 
-    ImGui::PushStyleColor(ImGuiCol_Button, colors::background);
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::elevated);
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::elevated);
-    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(colors::textSecondary.x, colors::textSecondary.y, colors::textSecondary.z, 0.45f));
+    ImGui::PushStyleColor(ImGuiCol_Button, colors::elevated);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::topPanelButtonHover);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::surface);
 
     if (ImGui::Button("Filesystem", ImVec2(95, buttonHeight)))
     {
@@ -54,9 +53,9 @@ void TopPanel::draw()
     if (previewWasEnabled)
     {
         // Show toggled state as "pressed" by using active-like colors.
-        ImGui::PushStyleColor(ImGuiCol_Button, colors::surface);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::elevated);
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::background);
+        ImGui::PushStyleColor(ImGuiCol_Button, colors::accent);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::accent);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::accent);
     }
 
     if (ImGui::Button("Preview", ImVec2(85, buttonHeight)))
@@ -73,6 +72,6 @@ void TopPanel::draw()
         ImGui::PopStyleColor(3);
     }
 
-    ImGui::PopStyleColor(4);
+    ImGui::PopStyleColor(3);
     ImGui::PopStyleVar(3);
 }

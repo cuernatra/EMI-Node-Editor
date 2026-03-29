@@ -72,6 +72,13 @@ void MainEditor::draw()
     flushPendingCompileLogs();
     pollAsyncCompileResult();
 
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 2));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleColor(ImGuiCol_Button, colors::elevated);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::topPanelButtonHover);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::surface);
+
     // Top toolbar on a single row:
     // [Compile] [Result only] [Clear] [compile status message..........] [+]
     if (ImGui::Button("Compile"))
@@ -148,6 +155,9 @@ void MainEditor::draw()
             ed::NavigateToContent();
         ed::SetCurrentEditor(nullptr);
     }
+
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar(3);
     
 
     ImGui::Separator();
