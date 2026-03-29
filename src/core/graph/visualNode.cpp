@@ -1,6 +1,7 @@
 #include "visualNode.h"
 #include "../registry/fieldWidget.h"
 #include "editor/graphSerializer.h"
+#include "app/constants.h"
 #include "imgui.h"
 #include "imgui_node_editor.h"
 #include <algorithm>
@@ -188,7 +189,7 @@ static bool NodePopupComboDynamic(const char* id,
         ImVec2(arrowX - 4.0f, arrowY - 2.0f),
         ImVec2(arrowX + 4.0f, arrowY - 2.0f),
         ImVec2(arrowX,        arrowY + 3.0f),
-        ImGui::GetColorU32(ImGuiCol_Text)
+        ImGui::GetColorU32(colors::textPrimary)
     );
     ImGui::PopStyleVar();
 
@@ -266,7 +267,7 @@ void DrawPin(const Pin& pin, float contentWidth, const std::vector<Link>* allLin
 {
     const ImVec4      colorF    = pin.GetTypeColor();
     const ImU32       iconColor = ImGui::ColorConvertFloat4ToU32(colorF);
-    const ImU32       innerColor = ImGui::GetColorU32(ImVec4(0.08f, 0.08f, 0.08f, 1.0f));
+    const ImU32       innerColor = ImGui::GetColorU32(colors::background);
     const ImVec2      iconSize(14.0f, 14.0f);
     const PinIconType iconType = GetPinTypeIcon(pin.type);
 
@@ -293,7 +294,7 @@ void DrawPin(const Pin& pin, float contentWidth, const std::vector<Link>* allLin
         return { tl, br };
     };
 
-    ImGui::PushStyleColor(ImGuiCol_Text, colorF);
+    ImGui::PushStyleColor(ImGuiCol_Text, colors::textPrimary);
     ed::BeginPin(pin.id, pin.isInput ? ed::PinKind::Input : ed::PinKind::Output);
 
     if (pin.isInput)

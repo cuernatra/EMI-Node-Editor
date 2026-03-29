@@ -92,16 +92,19 @@ void NodePreview::Draw(NodeType nodeType, const char* titleOverride)
     const ImVec2 cursorPos = ImGui::GetCursorScreenPos();
     ImDrawList*  drawList  = ImGui::GetWindowDrawList();
 
-    const ImU32 bgColor     = ImGui::GetColorU32(ImGuiCol_FrameBg);
-    const ImU32 textColor   = ImGui::GetColorU32(ImGuiCol_Text);
-    const ImU32 pinColor    = ImGui::GetColorU32(ImGuiCol_TabActive);
-    const ImU32 headerColor = ImGui::GetColorU32(ImGuiCol_HeaderHovered);
+    const ImU32 bgColor     = ImGui::GetColorU32(colors::surface);
+    const bool isInactivePreview = ImGui::GetStyle().Alpha < 0.99f;
+    const ImU32 textColor   = ImGui::GetColorU32(isInactivePreview ? colors::textSecondary : colors::textPrimary);
+    const ImU32 pinColor    = ImGui::GetColorU32(colors::accent);
+    const ImU32 headerColor = ImGui::GetColorU32(colors::elevated);
+    const ImU32 borderColorNormal = headerColor;
+    const ImU32 borderColorHover = ImGui::GetColorU32(colors::accent);
 
     const ImVec2 nodeMax(cursorPos.x + fixedWidth, cursorPos.y + fixedHeight);
 
     // Hover effect
     const bool  hovered         = ImGui::IsMouseHoveringRect(cursorPos, nodeMax);
-    const ImU32 borderColor     = hovered ? ImGui::GetColorU32(ImGuiCol_ButtonHovered) : textColor;
+    const ImU32 borderColor     = hovered ? borderColorHover : borderColorNormal;
     const float expand          = hovered ? 1.0f : 0.0f;
     const float borderThickness = 1.0f + 2.0f * expand;
 
