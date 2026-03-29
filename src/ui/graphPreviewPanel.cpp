@@ -186,6 +186,7 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
 
     std::function<double(const VisualNode&, const Pin&)> evalPin;
     std::function<double(const VisualNode&, const char*)> evalNamedInput;
+    std::unordered_set<uintptr_t> activeEvalPins;
 
     evalNamedInput = [&](const VisualNode& node, const char* name) -> double
     {
@@ -202,6 +203,17 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
 
     evalPin = [&](const VisualNode& owner, const Pin& pin) -> double
     {
+        const uintptr_t evalKey = static_cast<uintptr_t>(pin.id.Get());
+        if (!activeEvalPins.insert(evalKey).second)
+            return 0.0;
+
+        struct ScopedErase
+        {
+            std::unordered_set<uintptr_t>& set;
+            uintptr_t key;
+            ~ScopedErase() { set.erase(key); }
+        } guard{ activeEvalPins, evalKey };
+
         for (const auto& link : links)
         {
             if (!link.alive || link.endPinId != pin.id)
@@ -560,7 +572,9 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
         ));
         rect.setPosition(tx(cmd.rect.x), ty(cmd.rect.y));
         rect.setFillColor(cmd.rect.color);
-        rect.setOutlineThickness(1.0f);
+        // Keep outlines inside the rectangle so adjacent unit-sized rects
+        // (e.g. X=0 and X=1 with W=1) do not visually overlap.
+        rect.setOutlineThickness(-1.0f);
         rect.setOutlineColor(sf::Color(255, 255, 255, 110));
         m_window->draw(rect);
     }

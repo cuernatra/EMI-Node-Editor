@@ -1,0 +1,270 @@
+AO EMI Visual Programming Tool – Tiivis tiedosto-opas
+
+=====================================================
+
+Oppaan tarkoitus
+  mitä kukin src-kansion tiedosto tekee
+  missä tiedostoissa muutokset yleensä näkyvät (vaikutusalue)
+  Nopea alku
+
+Jos haluat muuttaa...
+
+🔹 Node-tyyppejä (uusi node, pinni, kenttä)
+  src/core/graph/types.h
+  src/core/registry/nodeRegistry.cpp
+  src/core/registry/nodeDescriptor.h
+  src/core/registry/nodeFactory.cpp
+  src/editor/graphEditorUtils.cpp
+  src/core/compiler/graphCompiler.cpp
+  src/ui/nodePreview.cpp
+  
+🔹 Compile- / runtime-logiikkaa
+  src/editor/graphCompilation.cpp
+  src/core/compiler/graphCompiler.cpp
+  src/core/compiler/pinResolver.cpp
+  src/editor/graphState.h (jos tarvitset lisätilaa)
+
+🔹 Editorin käyttöä (drag & drop, linkit, inspector)
+  src/editor/graphEditor.cpp
+  src/editor/graphEditorUtils.cpp
+  src/core/registry/fieldWidget.cpp
+  src/ui/leftPanel.cpp
+  src/ui/dropBar.cpp
+
+🔹 Preview-ikkunaa
+  src/ui/graphPreviewPanel.cpp
+  src/app/ui.cpp
+  src/editor/mainEditor.cpp
+
+🔹 Tallennus-/latausformaattia
+  src/editor/graphSerializer.cpp
+  src/core/graph/types.h
+  src/core/registry/nodeFactory.cpp
+
+
+1) Entrypoint ja sovellus
+
+==========================
+
+src/CMakeLists.txt
+Rooli: src-kansion build-määrittely
+Vaikutus: jos lisäät tai poistat tiedostoja/kirjastoja, build rikkoutuu täällä ensimmäisenä
+
+src/main.cpp
+Rooli: ohjelman käynnistyspiste
+Vaikutus: sovelluksen alustus, sammutus ja main loop
+src/app/app.h
+
+Rooli: App-luokan rajapinta
+Vaikutus: jos muutat APIa → myös app.cpp ja käyttäjät päivitettävä
+src/app/app.cpp
+
+Rooli: sovelluksen runko (ikkuna, ImGui/SFML, loop)
+Vaikutus: koko ohjelman toiminta (frame update, init-järjestys)
+src/app/constants.h
+
+Rooli: UI/layout/font-vakiot
+Vaikutus: vaikuttaa lähes kaikkiin paneeleihin
+src/app/ui.h
+
+Rooli: UI:n pääkoordinaattori
+Vaikutus: paneelien välinen kommunikointi
+src/app/ui.cpp
+
+Rooli: UI-looppi, splitterit, overlayt
+Vaikutus: jos UI tuntuu sekavalta → katso tämä ensin
+
+
+2) Core Graph – datamalli
+
+==========================
+
+types.h
+NodeType + PinType enumit
+Vaikutus: koko järjestelmä (editori, compiler, serializer, UI)
+pin.h
+
+Pin-rakenne (input/output)
+Vaikutus: linkitys ja type check
+link.h
+
+Link-rakenne (pin → pin)
+Vaikutus: editori, serializer, compiler
+visualNode.h
+
+Node-olio (id, title, pinni, kentät, sijainti)
+Vaikutus: koko node-editorin perusyksikkö
+visualNode.cpp
+
+Nodejen piirtologiikka
+Vaikutus: ulkoasu
+idGen.h
+
+Uniikkien ID:iden generointi
+Vaikutus: jos menee rikki → editori + serializer bugaa
+
+
+3) Registry ja Factory (node-määrittelyt)
+
+==========================================
+
+nodeDescriptor.h
+Node-, Pin- ja Field-kuvaukset
+
+nodeRegistry.cpp
+Kaikki node-tyypit määritellään täällä
+Vaikutus: uudet nodet, pinit, fieldit
+
+nodeFactory.cpp
+Luo VisualNode-instanssit descriptorista
+Vaikutus: jos node spawn on rikki → vika usein täällä
+
+fieldWidget.cpp
+Inspectorin kenttäwidgetit
+Vaikutus: editorin käyttökokemus
+
+
+4) Compiler (graph → AST → runtime)
+
+====================================
+
+pinResolver.cpp
+Selvittää mistä pinni saa arvonsa
+Vaikutus: dataflow toimii oikein
+
+graphCompiler.cpp
+Koko käännöslogiikka
+Vaikutus: ohjelman toiminta runtime:ssa
+
+⚠️ Jos algoritmi (esim. A*) antaa väärää tulosta → tarkista tämä
+
+
+5) Editor (tila, canvas, tallennus)
+
+=====================================
+
+graphState
+Keskitetty tila (nodes, links, status)
+
+graphSerializer.cpp
+Tallennus ja lataus
+Vaikutus: tiedostoyhteensopivuus
+
+graphEditor.cpp
+Canvas + interaktiot
+Vaikutus: editorin pääkäyttö
+
+graphEditorUtils.cpp
+Apulogiikka (pin sync, validointi)
+Vaikutus: jos asiat “desync” → katso tämä
+
+graphCompilation.cpp
+Compile + runtime yhdistäminen
+Vaikutus: compile/run nappi
+
+
+6) UI-komponentit
+
+===================
+
+topPanel.cpp
+Yläpalkki (napit)
+
+leftPanel.cpp
+Node-valikko
+
+dropBar.cpp
+Drag & drop logiikka
+
+nodePreview.cpp
+Nodejen preview
+
+consolePanel.cpp
+Konsoli (logit)
+
+graphPreviewPanel.cpp
+Preview-ikkuna
+Vaikutus: visuaalinen testaus (DrawGrid, DrawRect)
+
+
+7) Assetit
+
+============
+
+Fontit
+Roboto-Regular.ttf
+Jos puuttuu → UI voi hajota
+
+
+Muutoskartta (yleisimmät tilanteet)
+====================================
+
+A) Uusi node (esim. A*)
+types.h
+nodeRegistry.cpp
+graphCompiler.cpp
+graphEditorUtils.cpp
+nodePreview.cpp
+graphSerializer.cpp
+
+B) Muutat pinien/fieldien nimiä
+Pakolliset:
+nodeRegistry.cpp
+graphCompiler.cpp
+graphEditorUtils.cpp
+graphSerializer.cpp
+nodePreview.cpp
+
+C) Muutat compile-logiikkaa
+graphCompiler.cpp
+pinResolver.cpp
+graphCompilation.cpp
+
+D) Muutat editorin UX:ää
+graphEditor.cpp
+graphEditorUtils.cpp
+dropBar.cpp
+leftPanel.cpp
+
+E) Muutat tallennusformaattia
+graphSerializer.cpp
+types.h
+nodeFactory.cpp
+
+F) Muutat preview-renderöintiä
+graphPreviewPanel.cpp
+app/ui.cpp
+mainEditor.cpp
+
+
+Kaksi tärkeää sääntöä
+======================
+1)
+Jos muutat NodeTypea tai pinin nimeä → päivitä myös:
+compiler
+serializer
+editor utils
+node preview
+
+2)
+Jos bugi on:
+toimii editorissa mutta ei compile/run, 
+tarkista järjestyksessä:
+graphCompiler.cpp
+pinResolver.cpp
+graphCompilation.cpp
+Nopea debug-jäljitys
+
+=====================
+
+Node ei spawnaa oikein:
+nodeRegistry.cpp → nodeFactory.cpp → graphEditor.cpp
+
+Linkki toimii mutta arvo väärä:
+graphEditorUtils.cpp → pinResolver.cpp → graphCompiler.cpp
+
+Graph ei lataudu oikein:
+graphSerializer.cpp + types.h + nodeRegistry.cpp
+
+Compile-nappi antaa virheen:
+graphCompilation.cpp → graphCompiler.cpp → console (EMI log)

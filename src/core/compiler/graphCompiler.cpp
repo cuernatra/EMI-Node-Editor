@@ -140,6 +140,16 @@ std::string GraphCompiler::LoopLastIndexVarName(const VisualNode& n) const
     return "__loop_last_i_" + std::to_string(static_cast<unsigned long long>(static_cast<uintptr_t>(n.id.Get())));
 }
 
+std::string GraphCompiler::LoopStartVarName(const VisualNode& n) const
+{
+    return "__loop_start_i_" + std::to_string(static_cast<unsigned long long>(static_cast<uintptr_t>(n.id.Get())));
+}
+
+std::string GraphCompiler::LoopEndVarName(const VisualNode& n) const
+{
+    return "__loop_end_i_" + std::to_string(static_cast<unsigned long long>(static_cast<uintptr_t>(n.id.Get())));
+}
+
 void GraphCompiler::CollectFlowReachableFromOutput(ed::PinId flowOutputPinId)
 {
     const uintptr_t outKey = static_cast<uintptr_t>(flowOutputPinId.Get());
@@ -806,22 +816,36 @@ Node* GraphCompiler::BuildLoop(const VisualNode& n)
 
     const std::string indexVarName = LoopIndexVarName(n);
     const std::string lastIndexVarName = LoopLastIndexVarName(n);
+    const std::string startVarName = LoopStartVarName(n);
+    const std::string endVarName = LoopEndVarName(n);
+
+    Node* prelude = MakeNode(Token::Scope);
+
+    Node* startDecl = MakeNode(Token::VarDeclare);
+    startDecl->data = startVarName;
+    startDecl->children.push_back(MakeNode(Token::TypeNumber));
+    startDecl->children.push_back(startExpr);
+    prelude->children.push_back(startDecl);
+
+    Node* endDecl = MakeNode(Token::VarDeclare);
+    endDecl->data = endVarName;
+    endDecl->children.push_back(MakeNode(Token::TypeNumber));
+    Node* endExpr = MakeNode(Token::Add);
+    endExpr->children.push_back(MakeIdNode(startVarName));
+    endExpr->children.push_back(countEx);
+    endDecl->children.push_back(endExpr);
+    prelude->children.push_back(endDecl);
 
     Node* varDecl = MakeNode(Token::VarDeclare);
     varDecl->data = indexVarName;
     Node* initType = MakeNode(Token::TypeNumber);
     varDecl->children.push_back(initType);
-    varDecl->children.push_back(startExpr);
+    varDecl->children.push_back(MakeIdNode(startVarName));
 
     Node* cond    = MakeNode(Token::Less);
     Node* iRef    = MakeIdNode(indexVarName);
-
-    Node* inclusiveUpperBoundExpr = MakeNode(Token::Add);
-    inclusiveUpperBoundExpr->children.push_back(countEx);
-    inclusiveUpperBoundExpr->children.push_back(MakeNumberNode(1.0));
-
     cond->children.push_back(iRef);
-    cond->children.push_back(inclusiveUpperBoundExpr);
+    cond->children.push_back(MakeIdNode(endVarName));
 
     Node* incr  = MakeNode(Token::Increment);
     Node* iRef2 = MakeIdNode(indexVarName);
@@ -841,7 +865,9 @@ Node* GraphCompiler::BuildLoop(const VisualNode& n)
     forNode->children.push_back(body);
     forNode->children.push_back(completed);
 
-    return forNode;
+    prelude->children.push_back(forNode);
+
+    return prelude;
 }
 
 Node* GraphCompiler::BuildVariable(const VisualNode& n)
@@ -849,8 +875,14 @@ Node* GraphCompiler::BuildVariable(const VisualNode& n)
     const std::string* nameStr = GetField(n, "Name");
     const std::string* typeStr = GetField(n, "Type");
     const std::string* defaultStr = GetField(n, "Default");
+    const std::string* variantStr = GetField(n, "Variant");
 
     std::string varName = nameStr ? *nameStr : "__unnamed";
+
+    // Compile behavior is driven by Variant instead of inferred pin layout.
+    const bool isGetVariant = (variantStr && *variantStr == "Get");
+    if (isGetVariant)
+        return MakeIdNode(varName);
 
     const PinType defaultType = VariableTypeFromString(typeStr ? *typeStr : "Number");
     const std::string defaultValue = defaultStr ? *defaultStr : "0.0";
@@ -858,8 +890,6 @@ Node* GraphCompiler::BuildVariable(const VisualNode& n)
     const Pin* setInput = GetInputPinByName(n, "Default");
     if (!setInput)
         setInput = GetInputPinByName(n, "Set"); // backward compatibility
-    if (!setInput)
-        return MakeIdNode(varName);
 
     if (setInput)
     {

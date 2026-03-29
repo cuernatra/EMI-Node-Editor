@@ -80,16 +80,10 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
         return;
     }
 
-    // Validate graph has a Debug Print node for output
-    if (!state.HasOutputNode())
+    // Debug Print is optional: graphs may be valid without explicit output nodes.
+    if (!state.HasOutputNode() && m_logSink)
     {
-        const std::string status = "[ERROR] Error: Graph requires a Debug Print node for output\n";
-        state.SetCompileStatus(false, status);
-        if (m_logSink)
-        {
-            m_logSink(status);
-        }
-        return;
+        m_logSink("[WARN] No Debug Print node found. Graph will run without console output.\n");
     }
 
     // Compile visual graph to AST
@@ -127,7 +121,7 @@ void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
     // Execute the compiled graph function
     constexpr const char* kRunGraphScript = "__graph__();";
     void* printHandle = m_impl->vm->CompileTemporary(kRunGraphScript);
-    if (!m_impl->vm->WaitForResult(printHandle))
+    if (!printHandle || !m_impl->vm->WaitForResult(printHandle))
     {
         const std::string status = "[ERROR] Runtime error: Failed to execute compiled graph\n";
         state.SetCompileStatus(false, status);
