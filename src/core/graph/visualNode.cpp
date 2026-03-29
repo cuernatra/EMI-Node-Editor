@@ -231,26 +231,101 @@ static void DrawReadOnlyField(const NodeField& field)
     ImGui::TextDisabled("%s", field.value.c_str());
 }
 
-static void DrawPin(const Pin& pin)
+float MeasureFieldWidth(const NodeField& field)
 {
+    const float labelWidth  = ImGui::CalcTextSize(field.name.c_str()).x;
+    const float widgetWidth = 110.0f;
+    const float spacing     = ImGui::GetStyle().ItemSpacing.x;
+    return labelWidth + spacing + widgetWidth;
+}
 
-    ImVec4 col = pin.GetTypeColor();
-    ImGui::PushStyleColor(ImGuiCol_Text, col);
+float MeasureNodeContentWidth(const VisualNode& n)
+{
+    const float iconWidth = 14.0f;
+    const float pinGap    = 6.0f;
+    const float pinRowPad = iconWidth + pinGap;
+
+    float maxWidth = ImGui::CalcTextSize(n.title.c_str()).x;
+
+    for (const Pin& pin : n.inPins)
+        maxWidth = std::max(maxWidth, pinRowPad + ImGui::CalcTextSize(pin.name.c_str()).x);
+
+    for (const Pin& pin : n.outPins)
+        maxWidth = std::max(maxWidth, ImGui::CalcTextSize(pin.name.c_str()).x + pinGap + iconWidth);
+
+    for (const NodeField& field : n.fields)
+    {
+        if (field.name == "Variant") continue;
+        maxWidth = std::max(maxWidth, MeasureFieldWidth(field));
+    }
+
+    return maxWidth;
+}
+
+static void DrawPin(const Pin& pin, float contentWidth, const std::vector<Link>* allLinks)
+{
+    const ImVec4      colorF    = pin.GetTypeColor();
+    const ImU32       iconColor = ImGui::ColorConvertFloat4ToU32(colorF);
+    const ImU32       innerColor = ImGui::GetColorU32(ImVec4(0.08f, 0.08f, 0.08f, 1.0f));
+    const ImVec2      iconSize(14.0f, 14.0f);
+    const PinIconType iconType = GetPinTypeIcon(pin.type);
+
+    // Fill icon only when this pin has at least one live link.
+    bool iconFilled = false;
+    if (allLinks)
+    {
+        for (const Link& link : *allLinks)
+        {
+            const bool connected = link.alive && (pin.isInput
+                ? link.endPinId   == pin.id
+                : link.startPinId == pin.id);
+            if (connected) { iconFilled = true; break; }
+        }
+    }
+
+    // Draw icon at current cursor and advance layout by icon size.
+    auto drawIcon = [&]() -> std::pair<ImVec2, ImVec2>
+    {
+        const ImVec2 tl = ImGui::GetCursorScreenPos();
+        const ImVec2 br(tl.x + iconSize.x, tl.y + iconSize.y);
+        DrawPinIcon(ImGui::GetWindowDrawList(), tl, br, iconType, iconFilled, iconColor, innerColor);
+        ImGui::Dummy(iconSize);
+        return { tl, br };
+    };
+
+    ImGui::PushStyleColor(ImGuiCol_Text, colorF);
+    ed::BeginPin(pin.id, pin.isInput ? ed::PinKind::Input : ed::PinKind::Output);
 
     if (pin.isInput)
     {
-        ed::BeginPin(pin.id, ed::PinKind::Input);
-        ImGui::Text("-> %s", pin.name.c_str());
+        // Input row layout: [icon][gap][label], pivot at left edge.
+        auto [tl, br] = drawIcon();
+        const ImVec2 leftEdge(tl.x, (tl.y + br.y) * 0.5f);
+        ed::PinPivotRect(leftEdge, leftEdge);
+
+        ImGui::SameLine(0.0f, 6.0f);
+        ImGui::TextUnformatted(pin.name.c_str());
     }
     else
-    {   
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 100);
-        ed::BeginPin(pin.id, ed::PinKind::Output);
-        ImGui::Text("%s ->", pin.name.c_str());
+    {
+        // Output row layout: [label][gap][icon], right-aligned to contentWidth.
+        const float   gap       = 6.0f;
+        const float   textWidth = ImGui::CalcTextSize(pin.name.c_str()).x;
+        const ImVec2  rowStart  = ImGui::GetCursorPos();
+        const float   iconX     = rowStart.x + contentWidth - iconSize.x;
+        const float   textX     = iconX - gap - textWidth;
+
+        ImGui::SetCursorPos(ImVec2(std::max(textX, rowStart.x), rowStart.y));
+        ImGui::TextUnformatted(pin.name.c_str());
+
+        ImGui::SetCursorPos(ImVec2(std::max(iconX, rowStart.x), rowStart.y));
+        auto [tl, br] = drawIcon();
+        const ImVec2 rightEdge(br.x, (tl.y + br.y) * 0.5f);
+        ed::PinPivotRect(rightEdge, rightEdge);
     }
-    ImGui::PopStyleColor();
 
     ed::EndPin();
+    ImGui::PopStyleColor();
 }
 
 bool DrawVisualNode(VisualNode& n)
@@ -276,9 +351,13 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         n.positioned = true;
     }
 
-     ed::BeginNode(n.id);
+     const float contentWidth = MeasureNodeContentWidth(n);
+
+    ed::BeginNode(n.id);
 
     ImGui::TextUnformatted(n.title.c_str());
+    // Reserve horizontal space so node width matches measured content width.
+    ImGui::Dummy(ImVec2(contentWidth, 0.0f));
     ImGui::Spacing();
 
     bool changed = false;
@@ -319,7 +398,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         {
             if (pin.name == pinName)
             {
-                DrawPin(pin);
+                DrawPin(pin, contentWidth, allLinks);
                 return;
             }
         }
@@ -354,7 +433,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     {
         if (shouldDeferInputPin(pin))
             continue;
-        DrawPin(pin);
+        DrawPin(pin, contentWidth, allLinks);
     }
 
     if (!n.fields.empty())
@@ -662,7 +741,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     }
 
     for (const Pin& pin : n.outPins)
-        DrawPin(pin);
+        DrawPin(pin, contentWidth, allLinks);
 
     ed::EndNode();
     return changed;

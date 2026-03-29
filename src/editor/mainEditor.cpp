@@ -6,6 +6,7 @@
 #include "imgui.h"
 #include "../core/registry/nodeFactory.h"
 #include "imgui_node_editor.h"
+#include "../core/graph/pin.h"
 #include "settings.h"
 #include <chrono>
 #include <utility>
@@ -16,6 +17,11 @@ MainEditor::MainEditor()
     config.SettingsFile = "node_editor.json";
     config.CanvasSizeMode = ed::CanvasSizeMode::CenterOnly;
     m_editorContext = ed::CreateEditor(&config);
+
+    // Apply editor pin shape settings from pin module.
+    ed::SetCurrentEditor(m_editorContext);
+    ApplyEditorPinStyle(ed::GetStyle());
+    ed::SetCurrentEditor(nullptr);
 
     m_graphState = std::make_unique<GraphState>();
     m_graphEditor = std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
