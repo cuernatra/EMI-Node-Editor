@@ -254,9 +254,45 @@ void Ui::draw()
         }
         else
         {
-            ImGui::TextUnformatted("Settings panel placeholder");
+            ImGui::TextUnformatted("Settings");
             ImGui::Separator();
-            ImGui::TextDisabled("Opened from the top-bar test2 button.");
+
+            ImGui::TextUnformatted("Grid Colors");
+            ImVec4 gridBgColor(
+                Settings::gridBgColorR,
+                Settings::gridBgColorG,
+                Settings::gridBgColorB,
+                Settings::gridBgColorA
+            );
+            if (ImGui::ColorEdit4("Grid background", reinterpret_cast<float*>(&gridBgColor)))
+            {
+                Settings::gridBgColorR = gridBgColor.x;
+                Settings::gridBgColorG = gridBgColor.y;
+                Settings::gridBgColorB = gridBgColor.z;
+                Settings::gridBgColorA = gridBgColor.w;
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::TextUnformatted("Grid Line Colors");
+
+            ImVec4 gridLineColor(
+                Settings::gridLineColorR,
+                Settings::gridLineColorG,
+                Settings::gridLineColorB,
+                Settings::gridLineColorA
+            );
+            if (ImGui::ColorEdit4("Grid lines", reinterpret_cast<float*>(&gridLineColor)))
+            {
+                Settings::gridLineColorR = gridLineColor.x;
+                Settings::gridLineColorG = gridLineColor.y;
+                Settings::gridLineColorB = gridLineColor.z;
+                Settings::gridLineColorA = gridLineColor.w;
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::TextDisabled("Values are saved to settings.json on app exit.");
             ImGui::End();
         }
 

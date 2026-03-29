@@ -21,6 +21,19 @@ namespace Settings
     // Layout
     // -------------------------------------------------------------------------
     inline float leftPanelWidth = -1.0f;  ///< Width of the left panel in pixels
+
+    // -------------------------------------------------------------------------
+    // Graph canvas colors
+    // -------------------------------------------------------------------------
+    inline float gridBgColorR = 0.235f;
+    inline float gridBgColorG = 0.235f;
+    inline float gridBgColorB = 0.275f;
+    inline float gridBgColorA = 0.784f;
+
+    inline float gridLineColorR = 0.470f;
+    inline float gridLineColorG = 0.470f;
+    inline float gridLineColorB = 0.470f;
+    inline float gridLineColorA = 0.157f;
  
     // -------------------------------------------------------------------------
     // Add new settings below, following the same pattern
