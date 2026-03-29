@@ -6,17 +6,32 @@
 #include "imgui.h"
 #include "../core/registry/nodeFactory.h"
 #include "imgui_node_editor.h"
+#include "../core/graph/pin.h"
 #include "settings.h"
+#include "../ui/theme.h"
+#include <chrono>
+#include <utility>
 
 MainEditor::MainEditor()
 {
     ed::Config config;
     config.SettingsFile = "node_editor.json";
+    config.CanvasSizeMode = ed::CanvasSizeMode::CenterOnly;
     m_editorContext = ed::CreateEditor(&config);
+
+    // Apply editor pin shape settings from pin module.
+    ed::SetCurrentEditor(m_editorContext);
+    ApplyEditorPinStyle(ed::GetStyle());
+    ed::SetCurrentEditor(nullptr);
 
     m_graphState = std::make_unique<GraphState>();
     m_graphEditor = std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
     m_compiler = std::make_unique<GraphCompilation>();
+    m_compiler->SetLogSink([this](const std::string& message)
+    {
+        std::lock_guard<std::mutex> lock(m_pendingCompileLogsMutex);
+        m_pendingCompileLogs.push_back(message);
+    });
 
     GraphSerializer::Load(*m_graphState, "graph.txt");
 
@@ -26,6 +41,14 @@ MainEditor::MainEditor()
 
 MainEditor::~MainEditor()
 {
+    if (m_compileFuture.valid())
+    {
+        m_compileFuture.wait();
+        m_compileInProgress = false;
+    }
+
+    flushPendingCompileLogs();
+
     // save settings
     Settings::Save();
 
@@ -46,11 +69,46 @@ MainEditor::~MainEditor()
 
 void MainEditor::draw()
 {
+    flushPendingCompileLogs();
+    pollAsyncCompileResult();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 2));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
+    ImGui::PushStyleColor(ImGuiCol_Button, colors::elevated);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::topPanelButtonHover);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::surface);
+
     // Top toolbar on a single row:
     // [Compile] [Result only] [Clear] [compile status message..........] [+]
     if (ImGui::Button("Compile"))
     {
-        m_compiler->CompileGraph(*m_graphState, m_resultOnlyCompile);
+        if (m_compileInProgress)
+        {
+            if (m_uiCompileLogSink)
+                m_uiCompileLogSink("[WARN] Compile already running...\n");
+        }
+        else
+        {
+        // Notify listeners immediately on click (before potentially long compile/execute),
+        // so preview window can open right away.
+        if (m_compileCallback)
+            m_compileCallback();
+
+            m_graphState->SetCompileStatus(false, "[INFO] Compiling graph...\n");
+
+            const std::vector<VisualNode> nodesSnapshot = m_graphState->GetNodes();
+            const std::vector<Link> linksSnapshot = m_graphState->GetLinks();
+            const bool resultOnlySnapshot = m_resultOnlyCompile;
+            GraphCompilation* compiler = m_compiler.get();
+
+            m_compileInProgress = true;
+            m_compileFuture = std::async(std::launch::async,
+                [compiler, nodesSnapshot, linksSnapshot, resultOnlySnapshot]() mutable
+                {
+                    return compiler->CompileGraphSnapshot(nodesSnapshot, linksSnapshot, resultOnlySnapshot);
+                });
+        }
     }
 
     ImGui::SameLine();
@@ -77,8 +135,8 @@ void MainEditor::draw()
     if (!compileMsg.empty())
     {
         ImVec4 col = m_graphState->IsCompileSuccess()
-            ? ImVec4(0.2f, 0.9f, 0.2f, 1.0f)
-            : ImVec4(1.0f, 0.3f, 0.3f, 1.0f);
+            ? colors::green
+            : colors::error;
         ImGui::PushStyleColor(ImGuiCol_Text, col);
         ImGui::TextUnformatted(compileMsg.c_str());
         ImGui::PopStyleColor();
@@ -97,6 +155,9 @@ void MainEditor::draw()
             ed::NavigateToContent();
         ed::SetCurrentEditor(nullptr);
     }
+
+    ImGui::PopStyleColor(3);
+    ImGui::PopStyleVar(3);
     
 
     ImGui::Separator();
@@ -167,4 +228,65 @@ bool MainEditor::hasStartNode() const
 bool MainEditor::hasVariables() const
 {
     return m_graphState->HasNodeType(NodeType::Variable);
+}
+
+void MainEditor::setCompileLogSink(std::function<void(const std::string&)> sink)
+{
+    m_uiCompileLogSink = std::move(sink);
+}
+
+void MainEditor::setCompileCallback(std::function<void()> cb)
+{
+    m_compileCallback = std::move(cb);
+}
+
+const GraphState& MainEditor::getGraphState() const
+{
+    return *m_graphState;
+}
+
+void MainEditor::syncNodePositionsForPreview()
+{
+    ed::SetCurrentEditor(m_editorContext);
+    for (auto& node : m_graphState->GetNodes())
+    {
+        if (!node.alive)
+            continue;
+
+        node.initialPos = ed::GetNodePosition(node.id);
+        node.positioned = true;
+    }
+    ed::SetCurrentEditor(nullptr);
+}
+
+void MainEditor::flushPendingCompileLogs()
+{
+    if (!m_uiCompileLogSink)
+        return;
+
+    std::vector<std::string> logs;
+    {
+        std::lock_guard<std::mutex> lock(m_pendingCompileLogsMutex);
+        if (m_pendingCompileLogs.empty())
+            return;
+
+        logs.swap(m_pendingCompileLogs);
+    }
+
+    for (const auto& msg : logs)
+        m_uiCompileLogSink(msg);
+}
+
+void MainEditor::pollAsyncCompileResult()
+{
+    if (!m_compileInProgress || !m_compileFuture.valid())
+        return;
+
+    using namespace std::chrono_literals;
+    if (m_compileFuture.wait_for(0ms) != std::future_status::ready)
+        return;
+
+    const GraphCompilation::CompileResult outcome = m_compileFuture.get();
+    m_compileInProgress = false;
+    m_graphState->SetCompileStatus(outcome.success, outcome.message);
 }

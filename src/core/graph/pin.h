@@ -1,11 +1,5 @@
-/**
- * @file pin.h
- * @brief Pin definitions for the visual graph
- * 
- * Defines the data structures for pins (node connection points) and
- * helper functions for type compatibility and pin creation.
- * 
- */
+/** @file pin.h */
+/** @brief Pin types, styles, and helpers for the graph editor. */
 
 #ifndef PIN_H
 #define PIN_H
@@ -20,13 +14,7 @@ namespace ed = ax::NodeEditor;
 
 
 
-/**
- * @brief Connection point on a node
- * 
- * Represents an input or output pin on a visual node. Pins have a data type,
- * direction (input/output), and can be connected via links. The visual
- * appearance (color) is determined by the pin's type.
- */
+/** @brief Connection point on a node. */
 struct Pin
 {
     ed::PinId   id{};                                      ///< Unique ID (imgui-node-editor handle)
@@ -37,83 +25,76 @@ struct Pin
     bool        isInput    = true;                        ///< true = input pin, false = output pin
     bool        isMultiInput = false;                     ///< Allow multiple incoming connections
 
-    // ------------------------------------------------------------------
-    // Helpers
-    // ------------------------------------------------------------------
+    /** @brief Returns the display color for this pin type. */
+    ImVec4 GetTypeColor() const;
 
-    /**
-     * @brief Get the color for this pin based on its type
-     * @return RGBA color vector for rendering
-     */
-    ImVec4 GetTypeColor() const
-    {
-        switch (type)
-        {
-            case PinType::Number:   return {1.0f, 0.8f, 0.0f, 1.0f}; // Yellow
-            case PinType::Boolean:  return {1.0f, 0.0f, 0.0f, 1.0f}; // Red
-            case PinType::String:   return {0.0f, 1.0f, 0.0f, 1.0f}; // Green
-            case PinType::Array:    return {0.0f, 0.0f, 1.0f, 1.0f}; // Blue
-            case PinType::Function: return {1.0f, 0.0f, 1.0f, 1.0f}; // Magenta
-            case PinType::Flow:     return {1.0f, 1.0f, 1.0f, 1.0f}; // White
-            case PinType::Any:
-            default:                return {0.5f, 0.5f, 0.5f, 1.0f}; // Gray
-        }
-    }
-
-    /**
-     * @brief Check if two pins can be connected
-     * @param output The source (output) pin
-     * @param input The destination (input) pin
-     * @return true if a valid connection can be made
-     * 
-     * Validates:
-     * - Direction: output must be output pin, input must be input pin
-     * - Type: Types must match, or one side must be PinType::Any
-     */
-    static bool CanConnect(const Pin& output, const Pin& input)
-    {
-        if (output.isInput || !input.isInput)
-            return false; // direction mismatch
-
-        if (output.type == PinType::Any || input.type == PinType::Any)
-            return true;
-
-        return output.type == input.type;
-    }
+    /** @brief Returns true if output can connect to input. */
+    static bool CanConnect(const Pin& output, const Pin& input);
 };
 
-// ---------------------------------------------------------------------------
-// Factory helpers
-// ---------------------------------------------------------------------------
-
-/**
- * @brief Create a fully initialized pin
- * @param id Unique numeric ID
- * @param parentNodeId ID of the node that owns this pin
- * @param parentNodeType Type of the owning node
- * @param name Display label for the pin
- * @param type Data type this pin handles
- * @param isInput true for input pin, false for output pin
- * @param isMultiInput Whether this input accepts multiple connections
- * @return Fully initialized Pin struct
- */
-inline Pin MakePin(uint32_t id, ed::NodeId parentNodeId, NodeType parentNodeType,
-                   std::string name, PinType type, bool isInput,
-                   bool isMultiInput = false)
+/** @brief Color palette for pin types. */
+struct PinStylePalette
 {
-    Pin p;
-    p.id = ed::PinId(id);
-    p.parentNodeId   = parentNodeId;
-    p.parentNodeType = parentNodeType;
-    p.name           = std::move(name);
-    p.type           = type;
-    p.isInput        = isInput;
-    p.isMultiInput   = isMultiInput;
-    return p;
-}
+    ImVec4 number   = {1.0f, 0.8f, 0.0f, 1.0f};
+    ImVec4 boolean  = {1.0f, 0.0f, 0.0f, 1.0f};
+    ImVec4 string   = {0.0f, 1.0f, 0.0f, 1.0f};
+    ImVec4 array    = {0.0f, 0.0f, 1.0f, 1.0f};
+    ImVec4 function = {1.0f, 0.0f, 1.0f, 1.0f};
+    ImVec4 flow     = {1.0f, 1.0f, 1.0f, 1.0f};
+    ImVec4 any      = {0.5f, 0.5f, 0.5f, 1.0f};
+};
 
-// ---------------------------------------------------------------------------
-// NodeType conversion helpers
-// ---------------------------------------------------------------------------
+enum class PinIconType
+{
+    Circle,
+    Flow
+};
+
+/** @brief Icon mapping for pin types. */
+struct PinIconPalette
+{
+    PinIconType number   = PinIconType::Circle;
+    PinIconType boolean  = PinIconType::Circle;
+    PinIconType string   = PinIconType::Circle;
+    PinIconType array    = PinIconType::Circle;
+    PinIconType function = PinIconType::Circle;
+    PinIconType flow     = PinIconType::Flow;
+    PinIconType any      = PinIconType::Circle;
+    bool filled          = true;
+};
+
+/** @brief Node-editor pin style settings. */
+struct EditorPinStyle
+{
+    float pinRounding    = 4.0f;
+    float pinBorderWidth = 0.0f;
+    float pinRadius      = 0.0f;
+    float pinArrowSize   = 0.0f;
+    float pinArrowWidth  = 0.0f;
+};
+
+const PinStylePalette& GetPinStylePalette();
+void SetPinStylePalette(const PinStylePalette& palette);
+ImVec4 GetPinTypeColor(PinType type);
+
+const PinIconPalette& GetPinIconPalette();
+void SetPinIconPalette(const PinIconPalette& palette);
+PinIconType GetPinTypeIcon(PinType type);
+void DrawPinIcon(ImDrawList* drawList,
+                 const ImVec2& a,
+                 const ImVec2& b,
+                 PinIconType type,
+                 bool filled,
+                 ImU32 color,
+                 ImU32 innerColor);
+
+const EditorPinStyle& GetEditorPinStyle();
+void SetEditorPinStyle(const EditorPinStyle& style);
+void ApplyEditorPinStyle(ed::Style& style);
+
+/** @brief Creates and returns a pin instance. */
+Pin MakePin(uint32_t id, ed::NodeId parentNodeId, NodeType parentNodeType,
+            std::string name, PinType type, bool isInput,
+            bool isMultiInput = false);
 
 #endif // PIN_H

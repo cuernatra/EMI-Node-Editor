@@ -22,6 +22,10 @@ namespace Settings
     // -------------------------------------------------------------------------
     inline float leftPanelWidth = -1.0f;  ///< Width of the left panel in pixels
 
+    inline float consolePanelHeight = -1.0f; ///< Height of the console panel in pixels
+
+    inline bool consolePanelIsMinimized = false; ///< Whether the console panel is currently minimized
+
     // -------------------------------------------------------------------------
     // Graph canvas colors
     // -------------------------------------------------------------------------

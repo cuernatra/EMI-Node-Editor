@@ -1,6 +1,7 @@
 #include "fieldWidget.h"
 #include "imgui.h"
 #include "imgui_node_editor.h"
+#include "../../ui/theme.h"
 #include <cstdlib>
 #include <cstring>
 #include <array>
@@ -76,7 +77,7 @@ static bool OpPopupCombo(const char* id, std::string& value, const char** items,
         ImVec2(arrowX - 4.0f, arrowY - 2.0f),
         ImVec2(arrowX + 4.0f, arrowY - 2.0f),
         ImVec2(arrowX,        arrowY + 3.0f),
-        ImGui::GetColorU32(ImGuiCol_Text)
+        ImGui::GetColorU32(colors::textPrimary)
     );
 
     ImGui::PopStyleVar();
@@ -172,7 +173,7 @@ bool DrawField(NodeField& field)
             {
                 static const char* kArith[] = { "+", "-", "*", "/", nullptr };
                 static const char* kCmp[]   = { "==", "!=", "<", "<=", ">", ">=", nullptr };
-                static const char* kLogic[] = { "AND", "OR", "NOT", nullptr };
+                static const char* kLogic[] = { "AND", "OR", nullptr };
 
                 const char** items = kArith;
 
@@ -182,7 +183,7 @@ bool DrawField(NodeField& field)
                 {
                     items = kCmp;
                 }
-                else if (field.value == "AND" || field.value == "OR" || field.value == "NOT")
+                else if (field.value == "AND" || field.value == "OR")
                 {
                     items = kLogic;
                 }

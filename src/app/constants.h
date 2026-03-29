@@ -11,6 +11,7 @@
 #define APPCONSTANTS_H
 
 #include <imgui.h>
+#include "../ui/theme.h"
 
 /**
  * @brief Simple 2D position structure
@@ -32,21 +33,6 @@ namespace appConstants
 }
 
 /**
- * @namespace colors
- * @brief Color palette used throughout the UI
- * 
- * Provides consistent colors for success states, disabled elements,
- * and UI accents.
- */
-namespace colors
-{
-    const ImVec4 green = ImVec4(0.2f, 0.8f, 0.2f, 1.0f);      ///< Success/active state color
-    const ImVec4 gray  = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);      ///< Disabled/inactive state color
-    const ImVec4 lightGray = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);  ///< Secondary UI element color
-    const ImU32 blue = IM_COL32(120, 168, 179, 255);          ///< Accent color for highlights
-}
-
-/**
  * @namespace elementSizes
  * @brief Dimensions for UI panels and components
  * 
@@ -57,6 +43,27 @@ namespace elementSizes
     const float topBarHeight = appConstants::windowheight / 20;    ///< Height of top toolbar (36px)
     const float dropBarHeight = appConstants::windowheight / 10;   ///< Height of drag-drop items (72px)
     const float dropBarWidth = appConstants::windowheight / 10;    ///< Width of drag-drop items (72px)
+}
+
+/**
+ * @namespace layoutConstants
+ * @brief Layout tuning values for panel spacing, splitters, and limits.
+ */
+namespace layoutConstants
+{
+    const ImVec2 rootWindowPadding = ImVec2(0.0f, 0.0f);     ///< Root layout padding (panels stay flush)
+    const ImVec2 rootItemSpacing = ImVec2(0.0f, 0.0f);       ///< Root item spacing (no gaps between panels)
+    const ImVec2 panelPadding = ImVec2(10.0f, 10.0f);        ///< Internal content padding for each panel
+    const ImVec2 panelItemSpacing = ImVec2(5.0f, 5.0f);      ///< Internal spacing between widgets in each panel
+
+    const float horizontalSplitterWidth = 5.0f;              ///< Width of left/right splitter
+    const float minLeftPanelWidth = 50.0f;                   ///< Minimum width for left panel
+    const float minInspectorPanelWidth = 200.0f;             ///< Minimum width for inspector side
+
+    const float consoleSplitterThickness = 5.0f;             ///< Thickness of console splitter
+    const float minMainEditorHeight = 80.0f;                 ///< Minimum height for main editor area
+    const float minConsoleHeight = 60.0f;                    ///< Minimum height for console area
+    const float inspectorPaddingX = 8.0f;                    ///< Horizontal inset of overlay inspector
 }
 
 /**
@@ -79,8 +86,8 @@ namespace elementLocations
 namespace nodePreviewConstants
 {
     const float headerHeight = 20.0f;          ///< Height of the node preview header
-    const float fixedWidth = 120.0f;           ///< Fixed width for all node previews
-    const float fixedHeight = 100.0f;          ///< Fixed height for all node previews
+    const float fixedWidth = 125.0f;           ///< Fixed width for all node previews
+    const float fixedHeight = 110.0f;          ///< Fixed height for all node previews
     const float padding = 7.0f;                ///< Padding inside node previews
     const float pinRadius = 3.5f;              ///< Radius of the pin circles in node previews
 }

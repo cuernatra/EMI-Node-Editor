@@ -5,15 +5,19 @@ add_executable(emi-editor
   ui/leftPanel.cpp
   ui/topPanel.cpp
   ui/consolePanel.cpp
+  ui/consoleEmiLogger.cpp
+  ui/graphPreviewPanel.cpp
   ui/dropBar.cpp
   ui/nodePreview.cpp
   editor/mainEditor.cpp
   editor/graphEditor.cpp
+  editor/graphEditorUtils.cpp
   editor/graphCompilation.cpp
   editor/graphState.cpp
   editor/graphSerializer.cpp
   editor/settings.cpp
   core/graph/visualNode.cpp
+  core/graph/pin.cpp
   core/graph/link.cpp
   core/registry/fieldWidget.cpp
   core/registry/nodeFactory.cpp

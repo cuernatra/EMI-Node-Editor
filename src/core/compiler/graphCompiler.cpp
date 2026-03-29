@@ -89,7 +89,6 @@ Token GraphCompiler::LogicToken(const std::string& op)
 {
     if (op == "AND") return Token::And;
     if (op == "OR")  return Token::Or;
-    if (op == "NOT") return Token::Not;
     return Token::None;
 }
 
@@ -139,6 +138,16 @@ std::string GraphCompiler::LoopIndexVarName(const VisualNode& n) const
 std::string GraphCompiler::LoopLastIndexVarName(const VisualNode& n) const
 {
     return "__loop_last_i_" + std::to_string(static_cast<unsigned long long>(static_cast<uintptr_t>(n.id.Get())));
+}
+
+std::string GraphCompiler::LoopStartVarName(const VisualNode& n) const
+{
+    return "__loop_start_i_" + std::to_string(static_cast<unsigned long long>(static_cast<uintptr_t>(n.id.Get())));
+}
+
+std::string GraphCompiler::LoopEndVarName(const VisualNode& n) const
+{
+    return "__loop_end_i_" + std::to_string(static_cast<unsigned long long>(static_cast<uintptr_t>(n.id.Get())));
 }
 
 void GraphCompiler::CollectFlowReachableFromOutput(ed::PinId flowOutputPinId)
@@ -259,6 +268,26 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
             targetScope->children.push_back(forNode);
 
             // Execute Completed chain strictly after the loop statement has finished.
+            if (const Pin* completedOut = GetOutputPinByName(n, "Completed"))
+                AppendFlowChainFromOutput(completedOut->id, targetScope);
+            if (HasError) return;
+
+            return;
+        }
+
+        case NodeType::While:
+        {
+            Node* whileNode = BuildWhile(n);
+            if (HasError || !whileNode) { delete whileNode; return; }
+
+            Node* bodyScope = (whileNode->children.size() > 1) ? whileNode->children[1] : nullptr;
+
+            if (const Pin* bodyOut = GetOutputPinByName(n, "Body"))
+                AppendFlowChainFromOutput(bodyOut->id, bodyScope);
+            if (HasError) { delete whileNode; return; }
+
+            targetScope->children.push_back(whileNode);
+
             if (const Pin* completedOut = GetOutputPinByName(n, "Completed"))
                 AppendFlowChainFromOutput(completedOut->id, targetScope);
             if (HasError) return;
@@ -560,9 +589,20 @@ Node* GraphCompiler::BuildOperator(const VisualNode& n)
     Token tok = opStr ? OperatorToken(*opStr) : Token::Add;
     if (tok == Token::None) { Error("Unknown operator: " + (opStr ? *opStr : "?")); return nullptr; }
 
+    auto buildNumberInputOrDefault = [&](const Pin& pin, const char* fieldName) -> Node*
+    {
+        const PinSource* src = resolver_.Resolve(pin.id);
+        if (src)
+            return BuildNode(*src->node, src->pinIdx);
+
+        const std::string* fieldValue = GetField(n, fieldName);
+        try { return MakeNumberNode(fieldValue ? std::stod(*fieldValue) : 0.0); }
+        catch (...) { return MakeNumberNode(0.0); }
+    };
+
     Node* root = MakeNode(tok);
-    Node* lhs  = BuildExpr(*pinA);
-    Node* rhs  = BuildExpr(*pinB);
+    Node* lhs  = buildNumberInputOrDefault(*pinA, "A");
+    Node* rhs  = buildNumberInputOrDefault(*pinB, "B");
     if (HasError) { delete root; return nullptr; }
 
     root->children.push_back(lhs);
@@ -580,9 +620,20 @@ Node* GraphCompiler::BuildComparison(const VisualNode& n)
     Token tok = opStr ? CompareToken(*opStr) : Token::Equal;
     if (tok == Token::None) { Error("Unknown comparison: " + (opStr ? *opStr : "?")); return nullptr; }
 
+    auto buildNumberInputOrDefault = [&](const Pin& pin, const char* fieldName) -> Node*
+    {
+        const PinSource* src = resolver_.Resolve(pin.id);
+        if (src)
+            return BuildNode(*src->node, src->pinIdx);
+
+        const std::string* fieldValue = GetField(n, fieldName);
+        try { return MakeNumberNode(fieldValue ? std::stod(*fieldValue) : 0.0); }
+        catch (...) { return MakeNumberNode(0.0); }
+    };
+
     Node* root = MakeNode(tok);
-    Node* lhs  = BuildExpr(*pinA);
-    Node* rhs  = BuildExpr(*pinB);
+    Node* lhs  = buildNumberInputOrDefault(*pinA, "A");
+    Node* rhs  = buildNumberInputOrDefault(*pinB, "B");
     if (HasError) { delete root; return nullptr; }
 
     root->children.push_back(lhs);
@@ -596,29 +647,85 @@ Node* GraphCompiler::BuildLogic(const VisualNode& n)
     Token tok = opStr ? LogicToken(*opStr) : Token::And;
     if (tok == Token::None) { Error("Unknown logic op: " + (opStr ? *opStr : "?")); return nullptr; }
 
+    auto buildBoolInputOrDefault = [&](const Pin& pin, const char* fieldName) -> Node*
+    {
+        const PinSource* src = resolver_.Resolve(pin.id);
+        if (src)
+            return BuildNode(*src->node, src->pinIdx);
+
+        const std::string* fieldValue = GetField(n, fieldName);
+        const std::string value = fieldValue ? *fieldValue : "false";
+        return MakeBoolNode(value == "true" || value == "True" || value == "1");
+    };
+
     Node* root = MakeNode(tok);
 
-    if (tok == Token::Not)
+    const Pin* pinA = GetInputPinByName(n, "A");
+    const Pin* pinB = GetInputPinByName(n, "B");
+    if (!pinA || !pinB) { Error("Logic node needs A and B inputs"); return nullptr; }
+    Node* lhs = buildBoolInputOrDefault(*pinA, "A");
+    Node* rhs = buildBoolInputOrDefault(*pinB, "B");
+    if (HasError) { delete root; return nullptr; }
+    root->children.push_back(lhs);
+    root->children.push_back(rhs);
+
+    return root;
+}
+
+Node* GraphCompiler::BuildNot(const VisualNode& n)
+{
+    const Pin* pinA = GetInputPinByName(n, "A");
+    if (!pinA) { Error("Not node needs A input"); return nullptr; }
+
+    auto buildBoolInputOrDefault = [&](const Pin& pin, const char* fieldName) -> Node*
     {
-        const Pin* pinA = GetInputPinByName(n, "A");
-        if (!pinA) { Error("NOT node needs A input"); return nullptr; }
-        Node* operand = BuildExpr(*pinA);
-        if (HasError) { delete root; return nullptr; }
-        root->children.push_back(operand);
+        const PinSource* src = resolver_.Resolve(pin.id);
+        if (src)
+            return BuildNode(*src->node, src->pinIdx);
+
+        const std::string* fieldValue = GetField(n, fieldName);
+        const std::string value = fieldValue ? *fieldValue : "false";
+        return MakeBoolNode(value == "true" || value == "True" || value == "1");
+    };
+
+    Node* root = MakeNode(Token::Not);
+    Node* operand = buildBoolInputOrDefault(*pinA, "A");
+    if (HasError) { delete root; return nullptr; }
+    root->children.push_back(operand);
+
+    return root;
+}
+
+Node* GraphCompiler::BuildDrawRect(const VisualNode& n)
+{
+    (void)n;
+    return MakeNode(Token::Scope);
+}
+
+Node* GraphCompiler::BuildDrawGrid(const VisualNode& n)
+{
+    (void)n;
+    return MakeNode(Token::Scope);
+}
+
+Node* GraphCompiler::BuildDelay(const VisualNode& n)
+{
+    Node* call = MakeNode(Token::FunctionCall);
+    call->children.push_back(MakeIdNode("delay"));
+
+    Node* params = MakeNode(Token::CallParams);
+    if (const Pin* durationPin = GetInputPinByName(n, "Duration"))
+    {
+        params->children.push_back(BuildExpr(*durationPin));
+        if (HasError) { delete call; return nullptr; }
     }
     else
     {
-        const Pin* pinA = GetInputPinByName(n, "A");
-        const Pin* pinB = GetInputPinByName(n, "B");
-        if (!pinA || !pinB) { Error("Logic node needs A and B inputs"); return nullptr; }
-        Node* lhs = BuildExpr(*pinA);
-        Node* rhs = BuildExpr(*pinB);
-        if (HasError) { delete root; return nullptr; }
-        root->children.push_back(lhs);
-        root->children.push_back(rhs);
+        params->children.push_back(MakeNumberNode(1000.0));
     }
 
-    return root;
+    call->children.push_back(params);
+    return call;
 }
 
 Node* GraphCompiler::BuildSequence(const VisualNode& n)
@@ -723,22 +830,36 @@ Node* GraphCompiler::BuildLoop(const VisualNode& n)
 
     const std::string indexVarName = LoopIndexVarName(n);
     const std::string lastIndexVarName = LoopLastIndexVarName(n);
+    const std::string startVarName = LoopStartVarName(n);
+    const std::string endVarName = LoopEndVarName(n);
+
+    Node* prelude = MakeNode(Token::Scope);
+
+    Node* startDecl = MakeNode(Token::VarDeclare);
+    startDecl->data = startVarName;
+    startDecl->children.push_back(MakeNode(Token::TypeNumber));
+    startDecl->children.push_back(startExpr);
+    prelude->children.push_back(startDecl);
+
+    Node* endDecl = MakeNode(Token::VarDeclare);
+    endDecl->data = endVarName;
+    endDecl->children.push_back(MakeNode(Token::TypeNumber));
+    Node* endExpr = MakeNode(Token::Add);
+    endExpr->children.push_back(MakeIdNode(startVarName));
+    endExpr->children.push_back(countEx);
+    endDecl->children.push_back(endExpr);
+    prelude->children.push_back(endDecl);
 
     Node* varDecl = MakeNode(Token::VarDeclare);
     varDecl->data = indexVarName;
     Node* initType = MakeNode(Token::TypeNumber);
     varDecl->children.push_back(initType);
-    varDecl->children.push_back(startExpr);
+    varDecl->children.push_back(MakeIdNode(startVarName));
 
     Node* cond    = MakeNode(Token::Less);
     Node* iRef    = MakeIdNode(indexVarName);
-
-    Node* inclusiveUpperBoundExpr = MakeNode(Token::Add);
-    inclusiveUpperBoundExpr->children.push_back(countEx);
-    inclusiveUpperBoundExpr->children.push_back(MakeNumberNode(1.0));
-
     cond->children.push_back(iRef);
-    cond->children.push_back(inclusiveUpperBoundExpr);
+    cond->children.push_back(MakeIdNode(endVarName));
 
     Node* incr  = MakeNode(Token::Increment);
     Node* iRef2 = MakeIdNode(indexVarName);
@@ -758,7 +879,9 @@ Node* GraphCompiler::BuildLoop(const VisualNode& n)
     forNode->children.push_back(body);
     forNode->children.push_back(completed);
 
-    return forNode;
+    prelude->children.push_back(forNode);
+
+    return prelude;
 }
 
 Node* GraphCompiler::BuildVariable(const VisualNode& n)
@@ -766,8 +889,14 @@ Node* GraphCompiler::BuildVariable(const VisualNode& n)
     const std::string* nameStr = GetField(n, "Name");
     const std::string* typeStr = GetField(n, "Type");
     const std::string* defaultStr = GetField(n, "Default");
+    const std::string* variantStr = GetField(n, "Variant");
 
     std::string varName = nameStr ? *nameStr : "__unnamed";
+
+    // Compile behavior is driven by Variant instead of inferred pin layout.
+    const bool isGetVariant = (variantStr && *variantStr == "Get");
+    if (isGetVariant)
+        return MakeIdNode(varName);
 
     const PinType defaultType = VariableTypeFromString(typeStr ? *typeStr : "Number");
     const std::string defaultValue = defaultStr ? *defaultStr : "0.0";
@@ -775,8 +904,6 @@ Node* GraphCompiler::BuildVariable(const VisualNode& n)
     const Pin* setInput = GetInputPinByName(n, "Default");
     if (!setInput)
         setInput = GetInputPinByName(n, "Set"); // backward compatibility
-    if (!setInput)
-        return MakeIdNode(varName);
 
     if (setInput)
     {
@@ -819,6 +946,27 @@ Node* GraphCompiler::BuildVariable(const VisualNode& n)
     assign->children.push_back(lhs);
     assign->children.push_back(rhs);
     return assign;
+}
+
+Node* GraphCompiler::BuildWhile(const VisualNode& n)
+{
+    const Pin* conditionPin = GetInputPinByName(n, "Condition");
+    if (!conditionPin)
+    {
+        Error("While node needs Condition input");
+        return nullptr;
+    }
+
+    Node* condExpr = BuildExpr(*conditionPin);
+    if (HasError || !condExpr)
+        return nullptr;
+
+    Node* body = MakeNode(Token::Scope);
+
+    Node* whileNode = MakeNode(Token::While);
+    whileNode->children.push_back(condExpr);
+    whileNode->children.push_back(body);
+    return whileNode;
 }
 
 Node* GraphCompiler::BuildOutput(const VisualNode& n)

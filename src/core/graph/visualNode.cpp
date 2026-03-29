@@ -1,9 +1,170 @@
 #include "visualNode.h"
 #include "../registry/fieldWidget.h"
 #include "editor/graphSerializer.h"
+#include "app/constants.h"
 #include "imgui.h"
 #include "imgui_node_editor.h"
 #include <algorithm>
+#include <array>
+#include <cmath>
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
+
+namespace
+{
+NodeField* FindFieldByName(VisualNode& node, const char* name)
+{
+    for (NodeField& field : node.fields)
+    {
+        if (field.name == name)
+            return &field;
+    }
+    return nullptr;
+}
+
+const NodeField* FindFieldByName(const VisualNode& node, const char* name)
+{
+    for (const NodeField& field : node.fields)
+    {
+        if (field.name == name)
+            return &field;
+    }
+    return nullptr;
+}
+
+float ParseNodeFloat(const std::string& value, float fallback = 0.0f)
+{
+    try
+    {
+        return std::stof(value);
+    }
+    catch (...)
+    {
+        return fallback;
+    }
+}
+
+std::string FormatFloatString(float value)
+{
+    char buffer[32] = {};
+    std::snprintf(buffer, sizeof(buffer), "%.3f", value);
+    return buffer;
+}
+
+std::string FormatColorString(int r, int g, int b)
+{
+    return std::to_string(r) + ", " + std::to_string(g) + ", " + std::to_string(b);
+}
+
+bool TryParseColorString(const std::string& text, std::array<int, 3>& rgb)
+{
+    const char* cursor = text.c_str();
+    char* end = nullptr;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        while (*cursor != '\0' && std::isspace(static_cast<unsigned char>(*cursor)))
+            ++cursor;
+
+        const long component = std::strtol(cursor, &end, 10);
+        if (end == cursor)
+            return false;
+
+        rgb[i] = static_cast<int>(std::clamp(component, 0L, 255L));
+        cursor = end;
+
+        while (*cursor != '\0' && std::isspace(static_cast<unsigned char>(*cursor)))
+            ++cursor;
+
+        if (i < 2)
+        {
+            if (*cursor != ',')
+                return false;
+            ++cursor;
+        }
+    }
+
+    while (*cursor != '\0' && std::isspace(static_cast<unsigned char>(*cursor)))
+        ++cursor;
+
+    return *cursor == '\0';
+}
+
+bool ClampFieldToRange(NodeField& field, float minValue, float maxValue)
+{
+    const float clamped = std::clamp(ParseNodeFloat(field.value, minValue), minValue, maxValue);
+    const std::string normalized = FormatFloatString(clamped);
+    if (field.value != normalized)
+    {
+        field.value = normalized;
+        return true;
+    }
+    return false;
+}
+
+bool SyncDrawNodeColorFields(VisualNode& node, bool preferColorText)
+{
+    NodeField* colorField = FindFieldByName(node, "Color");
+    NodeField* rField = FindFieldByName(node, "R");
+    NodeField* gField = FindFieldByName(node, "G");
+    NodeField* bField = FindFieldByName(node, "B");
+    if (!colorField || !rField || !gField || !bField)
+        return false;
+
+    bool changed = false;
+
+    changed |= ClampFieldToRange(*rField, 0.0f, 255.0f);
+    changed |= ClampFieldToRange(*gField, 0.0f, 255.0f);
+    changed |= ClampFieldToRange(*bField, 0.0f, 255.0f);
+
+    if (preferColorText)
+    {
+        std::array<int, 3> rgb{};
+        if (TryParseColorString(colorField->value, rgb))
+        {
+            const std::string rText = FormatFloatString(static_cast<float>(rgb[0]));
+            const std::string gText = FormatFloatString(static_cast<float>(rgb[1]));
+            const std::string bText = FormatFloatString(static_cast<float>(rgb[2]));
+            if (rField->value != rText) { rField->value = rText; changed = true; }
+            if (gField->value != gText) { gField->value = gText; changed = true; }
+            if (bField->value != bText) { bField->value = bText; changed = true; }
+
+            const std::string normalizedColor = FormatColorString(rgb[0], rgb[1], rgb[2]);
+            if (colorField->value != normalizedColor)
+            {
+                colorField->value = normalizedColor;
+                changed = true;
+            }
+            return changed;
+        }
+    }
+
+    const int r = static_cast<int>(std::clamp(std::lround(ParseNodeFloat(rField->value)), 0L, 255L));
+    const int g = static_cast<int>(std::clamp(std::lround(ParseNodeFloat(gField->value)), 0L, 255L));
+    const int b = static_cast<int>(std::clamp(std::lround(ParseNodeFloat(bField->value)), 0L, 255L));
+    const std::string normalizedColor = FormatColorString(r, g, b);
+    if (colorField->value != normalizedColor)
+    {
+        colorField->value = normalizedColor;
+        changed = true;
+    }
+
+    return changed;
+}
+
+bool ClampDrawNodeGeometryFields(VisualNode& node)
+{
+    bool changed = false;
+
+    if (NodeField* x = FindFieldByName(node, "X")) changed |= ClampFieldToRange(*x, 0.0f, 100000.0f);
+    if (NodeField* y = FindFieldByName(node, "Y")) changed |= ClampFieldToRange(*y, 0.0f, 100000.0f);
+    if (NodeField* w = FindFieldByName(node, "W")) changed |= ClampFieldToRange(*w, 0.0f, 100000.0f);
+    if (NodeField* h = FindFieldByName(node, "H")) changed |= ClampFieldToRange(*h, 0.0f, 100000.0f);
+
+    return changed;
+}
+}
 
 static bool NodePopupComboDynamic(const char* id,
                                   std::string& value,
@@ -28,7 +189,7 @@ static bool NodePopupComboDynamic(const char* id,
         ImVec2(arrowX - 4.0f, arrowY - 2.0f),
         ImVec2(arrowX + 4.0f, arrowY - 2.0f),
         ImVec2(arrowX,        arrowY + 3.0f),
-        ImGui::GetColorU32(ImGuiCol_Text)
+        ImGui::GetColorU32(colors::textPrimary)
     );
     ImGui::PopStyleVar();
 
@@ -71,26 +232,101 @@ static void DrawReadOnlyField(const NodeField& field)
     ImGui::TextDisabled("%s", field.value.c_str());
 }
 
-static void DrawPin(const Pin& pin)
+float MeasureFieldWidth(const NodeField& field)
 {
+    const float labelWidth  = ImGui::CalcTextSize(field.name.c_str()).x;
+    const float widgetWidth = 110.0f;
+    const float spacing     = ImGui::GetStyle().ItemSpacing.x;
+    return labelWidth + spacing + widgetWidth;
+}
 
-    ImVec4 col = pin.GetTypeColor();
-    ImGui::PushStyleColor(ImGuiCol_Text, col);
+float MeasureNodeContentWidth(const VisualNode& n)
+{
+    const float iconWidth = 14.0f;
+    const float pinGap    = 6.0f;
+    const float pinRowPad = iconWidth + pinGap;
+
+    float maxWidth = ImGui::CalcTextSize(n.title.c_str()).x;
+
+    for (const Pin& pin : n.inPins)
+        maxWidth = std::max(maxWidth, pinRowPad + ImGui::CalcTextSize(pin.name.c_str()).x);
+
+    for (const Pin& pin : n.outPins)
+        maxWidth = std::max(maxWidth, ImGui::CalcTextSize(pin.name.c_str()).x + pinGap + iconWidth);
+
+    for (const NodeField& field : n.fields)
+    {
+        if (field.name == "Variant") continue;
+        maxWidth = std::max(maxWidth, MeasureFieldWidth(field));
+    }
+
+    return maxWidth;
+}
+
+void DrawPin(const Pin& pin, float contentWidth, const std::vector<Link>* allLinks)
+{
+    const ImVec4      colorF    = pin.GetTypeColor();
+    const ImU32       iconColor = ImGui::ColorConvertFloat4ToU32(colorF);
+    const ImU32       innerColor = ImGui::GetColorU32(colors::background);
+    const ImVec2      iconSize(14.0f, 14.0f);
+    const PinIconType iconType = GetPinTypeIcon(pin.type);
+
+    // Fill icon only when this pin has at least one live link.
+    bool iconFilled = false;
+    if (allLinks)
+    {
+        for (const Link& link : *allLinks)
+        {
+            const bool connected = link.alive && (pin.isInput
+                ? link.endPinId   == pin.id
+                : link.startPinId == pin.id);
+            if (connected) { iconFilled = true; break; }
+        }
+    }
+
+    // Draw icon at current cursor and advance layout by icon size.
+    auto drawIcon = [&]() -> std::pair<ImVec2, ImVec2>
+    {
+        const ImVec2 tl = ImGui::GetCursorScreenPos();
+        const ImVec2 br(tl.x + iconSize.x, tl.y + iconSize.y);
+        DrawPinIcon(ImGui::GetWindowDrawList(), tl, br, iconType, iconFilled, iconColor, innerColor);
+        ImGui::Dummy(iconSize);
+        return { tl, br };
+    };
+
+    ImGui::PushStyleColor(ImGuiCol_Text, colors::textPrimary);
+    ed::BeginPin(pin.id, pin.isInput ? ed::PinKind::Input : ed::PinKind::Output);
 
     if (pin.isInput)
     {
-        ed::BeginPin(pin.id, ed::PinKind::Input);
-        ImGui::Text("-> %s", pin.name.c_str());
+        // Input row layout: [icon][gap][label], pivot at left edge.
+        auto [tl, br] = drawIcon();
+        const ImVec2 leftEdge(tl.x, (tl.y + br.y) * 0.5f);
+        ed::PinPivotRect(leftEdge, leftEdge);
+
+        ImGui::SameLine(0.0f, 6.0f);
+        ImGui::TextUnformatted(pin.name.c_str());
     }
     else
-    {   
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 100);
-        ed::BeginPin(pin.id, ed::PinKind::Output);
-        ImGui::Text("%s ->", pin.name.c_str());
+    {
+        // Output row layout: [label][gap][icon], right-aligned to contentWidth.
+        const float   gap       = 6.0f;
+        const float   textWidth = ImGui::CalcTextSize(pin.name.c_str()).x;
+        const ImVec2  rowStart  = ImGui::GetCursorPos();
+        const float   iconX     = rowStart.x + contentWidth - iconSize.x;
+        const float   textX     = iconX - gap - textWidth;
+
+        ImGui::SetCursorPos(ImVec2(std::max(textX, rowStart.x), rowStart.y));
+        ImGui::TextUnformatted(pin.name.c_str());
+
+        ImGui::SetCursorPos(ImVec2(std::max(iconX, rowStart.x), rowStart.y));
+        auto [tl, br] = drawIcon();
+        const ImVec2 rightEdge(br.x, (tl.y + br.y) * 0.5f);
+        ed::PinPivotRect(rightEdge, rightEdge);
     }
-    ImGui::PopStyleColor();
 
     ed::EndPin();
+    ImGui::PopStyleColor();
 }
 
 bool DrawVisualNode(VisualNode& n)
@@ -116,9 +352,13 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         n.positioned = true;
     }
 
-     ed::BeginNode(n.id);
+     const float contentWidth = MeasureNodeContentWidth(n);
+
+    ed::BeginNode(n.id);
 
     ImGui::TextUnformatted(n.title.c_str());
+    // Reserve horizontal space so node width matches measured content width.
+    ImGui::Dummy(ImVec2(contentWidth, 0.0f));
     ImGui::Spacing();
 
     bool changed = false;
@@ -136,10 +376,22 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const bool isSetVariable =
         (n.nodeType == NodeType::Variable && variant && *variant == "Set");
     const bool isLoopNode = (n.nodeType == NodeType::Loop);
+    const bool isBinaryDefaultNode =
+        (n.nodeType == NodeType::Operator || n.nodeType == NodeType::Comparison || n.nodeType == NodeType::Logic);
+    const bool isUnaryDefaultNode = (n.nodeType == NodeType::Not);
+    const bool isDrawRectNode = (n.nodeType == NodeType::DrawRect);
+    const bool isDrawGridNode = (n.nodeType == NodeType::DrawGrid);
+    bool drawNodeColorTextChanged = false;
 
     bool drewDeferredDefaultPin = false;
     bool drewDeferredStartPin = false;
     bool drewDeferredCountPin = false;
+    bool drewDeferredAPin = false;
+    bool drewDeferredBPin = false;
+    bool drewDeferredXPin = false;
+    bool drewDeferredYPin = false;
+    bool drewDeferredWPin = false;
+    bool drewDeferredHPin = false;
 
     auto drawDeferredPinByName = [&](const char* pinName)
     {
@@ -147,7 +399,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         {
             if (pin.name == pinName)
             {
-                DrawPin(pin);
+                DrawPin(pin, contentWidth, allLinks);
                 return;
             }
         }
@@ -161,6 +413,20 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         if (isLoopNode && (pin.name == "Start" || pin.name == "Count"))
             return true;
 
+        if (isBinaryDefaultNode && (pin.name == "A" || pin.name == "B"))
+            return true;
+
+        if (isUnaryDefaultNode && pin.name == "A")
+            return true;
+
+        if (isDrawRectNode &&
+            (pin.name == "X" || pin.name == "Y" || pin.name == "W" || pin.name == "H"))
+            return true;
+
+        if (isDrawGridNode &&
+            (pin.name == "X" || pin.name == "Y" || pin.name == "W" || pin.name == "H"))
+            return true;
+
         return false;
     };
 
@@ -168,7 +434,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     {
         if (shouldDeferInputPin(pin))
             continue;
-        DrawPin(pin);
+        DrawPin(pin, contentWidth, allLinks);
     }
 
     if (!n.fields.empty())
@@ -241,6 +507,11 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
                 if (setVariableNames.empty())
                 {
+                    if (!field.value.empty())
+                    {
+                        field.value.clear();
+                        changed = true;
+                    }
                     ImGui::TextUnformatted("Variable");
                     ImGui::SameLine();
                     ImGui::TextDisabled("(none)");
@@ -303,6 +574,94 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 continue;
             }
 
+            if (isBinaryDefaultNode && (field.name == "A" || field.name == "B"))
+            {
+                if (field.name == "A")
+                {
+                    drawDeferredPinByName("A");
+                    drewDeferredAPin = true;
+                }
+                else
+                {
+                    drawDeferredPinByName("B");
+                    drewDeferredBPin = true;
+                }
+
+                const bool pinConnected = isInputPinConnected(field.name.c_str());
+                if (pinConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
+            if (isUnaryDefaultNode && field.name == "A")
+            {
+                drawDeferredPinByName("A");
+                drewDeferredAPin = true;
+
+                const bool pinConnected = isInputPinConnected(field.name.c_str());
+                if (pinConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
+            if (isDrawRectNode &&
+                (field.name == "X" || field.name == "Y" || field.name == "W" || field.name == "H"))
+            {
+                if (field.name == "X") { drawDeferredPinByName("X"); drewDeferredXPin = true; }
+                else if (field.name == "Y") { drawDeferredPinByName("Y"); drewDeferredYPin = true; }
+                else if (field.name == "W") { drawDeferredPinByName("W"); drewDeferredWPin = true; }
+                else if (field.name == "H") { drawDeferredPinByName("H"); drewDeferredHPin = true; }
+
+                const bool pinConnected = isInputPinConnected(field.name.c_str());
+                if (pinConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
+            if (isDrawGridNode &&
+                (field.name == "X" || field.name == "Y" || field.name == "W" || field.name == "H"))
+            {
+                if (field.name == "X") { drawDeferredPinByName("X"); drewDeferredXPin = true; }
+                else if (field.name == "Y") { drawDeferredPinByName("Y"); drewDeferredYPin = true; }
+                else if (field.name == "W") { drawDeferredPinByName("W"); drewDeferredWPin = true; }
+                else if (field.name == "H") { drawDeferredPinByName("H"); drewDeferredHPin = true; }
+
+                const bool pinConnected = isInputPinConnected(field.name.c_str());
+                if (pinConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
+            if ((isDrawRectNode || isDrawGridNode) && field.name == "Color")
+            {
+                ImGui::Text("%s", field.name.c_str());
+                ImGui::SameLine();
+                ImGui::PushItemWidth(100.0f);
+
+                char buf[128] = {};
+                std::snprintf(buf, sizeof(buf), "%s", field.value.c_str());
+                if (ImGui::InputText("##value", buf, sizeof(buf)))
+                {
+                    field.value = buf;
+                    changed = true;
+                    drawNodeColorTextChanged = true;
+                }
+                ImGui::PopItemWidth();
+                continue;
+            }
+
+            if ((isDrawRectNode || isDrawGridNode) &&
+                (field.name == "R" || field.name == "G" || field.name == "B"))
+                continue;
+
             changed |= DrawField(field);
         }
         ImGui::PopID();
@@ -318,6 +677,39 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             drawDeferredPinByName("Start");
         if (!drewDeferredCountPin)
             drawDeferredPinByName("Count");
+    }
+
+    if (isBinaryDefaultNode)
+    {
+        if (!drewDeferredAPin)
+            drawDeferredPinByName("A");
+        if (!drewDeferredBPin)
+            drawDeferredPinByName("B");
+    }
+
+    if (isUnaryDefaultNode && !drewDeferredAPin)
+        drawDeferredPinByName("A");
+
+    if (isDrawRectNode)
+    {
+        if (!drewDeferredXPin) drawDeferredPinByName("X");
+        if (!drewDeferredYPin) drawDeferredPinByName("Y");
+        if (!drewDeferredWPin) drawDeferredPinByName("W");
+        if (!drewDeferredHPin) drawDeferredPinByName("H");
+    }
+
+    if (isDrawGridNode)
+    {
+        if (!drewDeferredXPin) drawDeferredPinByName("X");
+        if (!drewDeferredYPin) drawDeferredPinByName("Y");
+        if (!drewDeferredWPin) drawDeferredPinByName("W");
+        if (!drewDeferredHPin) drawDeferredPinByName("H");
+    }
+
+    if (isDrawRectNode || isDrawGridNode)
+    {
+        changed |= ClampDrawNodeGeometryFields(n);
+        changed |= SyncDrawNodeColorFields(n, drawNodeColorTextChanged);
     }
 
     if (changed)
@@ -350,7 +742,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     }
 
     for (const Pin& pin : n.outPins)
-        DrawPin(pin);
+        DrawPin(pin, contentWidth, allLinks);
 
     ed::EndNode();
     return changed;

@@ -11,8 +11,13 @@
 #pragma once
 
 #include <memory>
+#include <functional>
+#include <string>
+#include <vector>
 
 class GraphState;
+struct VisualNode;
+struct Link;
 
 /**
  * @brief High-level graph compilation and execution interface
@@ -28,6 +33,14 @@ class GraphState;
 class GraphCompilation
 {
 public:
+    using LogSink = std::function<void(const std::string&)>;
+
+    struct CompileResult
+    {
+        bool success = false;
+        std::string message;
+    };
+
     /**
      * @brief Initialize the EMI environment for compilation
      * 
@@ -59,10 +72,19 @@ public:
      */
     void CompileGraph(GraphState& state, bool resultOnly = false);
 
+    /// Compile and execute from immutable graph snapshots (thread-friendly API).
+    CompileResult CompileGraphSnapshot(const std::vector<VisualNode>& nodes,
+                                       const std::vector<Link>& links,
+                                       bool resultOnly = false);
+
+    /// Set optional sink for forwarding compile status messages to external UI.
+    void SetLogSink(LogSink sink);
+
 private:
     // Pimpl to hide EMI types from header
     class Impl;
     std::unique_ptr<Impl> m_impl;
+    LogSink m_logSink;
 };
 
 

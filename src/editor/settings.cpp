@@ -20,6 +20,8 @@ void Load()
 
         // Layout
         leftPanelWidth = s.value("leftPanelWidth", leftPanelWidth);
+        consolePanelHeight = s.value("consolePanelHeight", consolePanelHeight);
+        consolePanelIsMinimized = s.value("consolePanelIsMinimized", consolePanelIsMinimized);
 
         // Graph canvas colors
         gridBgColorR = s.value("gridBgColorR", gridBgColorR);
@@ -47,6 +49,8 @@ void Save()
 
     // Layout
     s["leftPanelWidth"] = leftPanelWidth;
+    s["consolePanelHeight"] = consolePanelHeight;
+    s["consolePanelIsMinimized"] = consolePanelIsMinimized;
 
     // Graph canvas colors
     s["gridBgColorR"] = gridBgColorR;

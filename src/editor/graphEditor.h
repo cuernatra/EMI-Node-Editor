@@ -1,6 +1,11 @@
 /**
  * @file graphEditor.h
  * @brief Node editor canvas renderer and interaction handler
+ *
+ * This class handles the visible editor side:
+ * drawing the canvas, reading user input, and running editor actions.
+ * Shared graph rules and helper code should stay in graphEditorUtils
+ * so this file is easier to read and safer to change.
  * 
  * Manages the imgui-node-editor canvas: rendering nodes and links,
  * handling user interactions (dragging, connecting, deleting),

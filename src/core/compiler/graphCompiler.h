@@ -87,9 +87,14 @@ public:
     Node* BuildOperator  (const VisualNode& n);   ///< Builds AST for Operator nodes
     Node* BuildComparison(const VisualNode& n);   ///< Builds AST for Comparison nodes
     Node* BuildLogic     (const VisualNode& n);   ///< Builds AST for Logic nodes
+    Node* BuildNot       (const VisualNode& n);   ///< Builds AST for Not nodes
+    Node* BuildDrawRect  (const VisualNode& n);   ///< Preview-only node, compiles to no-op scope
+    Node* BuildDrawGrid  (const VisualNode& n);   ///< Preview-only node, compiles to no-op scope
+    Node* BuildDelay     (const VisualNode& n);   ///< Flow utility node, compiles to no-op scope
     Node* BuildSequence  (const VisualNode& n);   ///< Builds AST for Sequence nodes
     Node* BuildBranch    (const VisualNode& n);   ///< Builds AST for Branch nodes
     Node* BuildLoop      (const VisualNode& n);   ///< Builds AST for Loop nodes
+    Node* BuildWhile     (const VisualNode& n);   ///< Builds AST for While nodes
     Node* BuildVariable  (const VisualNode& n);   ///< Builds AST for Variable nodes
     Node* BuildOutput    (const VisualNode& n);   ///< Builds AST for Output nodes
     Node* BuildFunction  (const VisualNode& n);   ///< Builds AST for Function nodes
@@ -110,6 +115,8 @@ private:
     const Pin* GetOutputPinByName(const VisualNode& n, const char* name) const;
     std::string LoopIndexVarName(const VisualNode& n) const;
     std::string LoopLastIndexVarName(const VisualNode& n) const;
+    std::string LoopStartVarName(const VisualNode& n) const;
+    std::string LoopEndVarName(const VisualNode& n) const;
 
     Node* MakeNode(Token t)                    const;  ///< Creates a bare AST node with the given token type
     Node* MakeNumberNode(double v)             const;  ///< Creates an AST numeric literal node
