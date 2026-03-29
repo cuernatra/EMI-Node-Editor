@@ -5,11 +5,49 @@
 #include "constants.h"
 #include <filesystem>
 
+#ifdef _WIN32
+#include <windows.h>
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
+#endif
+
+#ifdef _WIN32
+namespace
+{
+void setDarkWindowChrome(sf::WindowHandle handle)
+{
+    if (!handle)
+        return;
+
+    const BOOL enableDark = TRUE;
+    const HRESULT hr = DwmSetWindowAttribute(
+        static_cast<HWND>(handle),
+        20,
+        &enableDark,
+        sizeof(enableDark)
+    );
+
+    if (FAILED(hr))
+    {
+        DwmSetWindowAttribute(
+            static_cast<HWND>(handle),
+            19,
+            &enableDark,
+            sizeof(enableDark)
+        );
+    }
+}
+}
+#endif
+
 App::App()
     : m_window(sf::VideoMode(appConstants::windowWidth, appConstants::windowheight), 
     "EMI editor") 
 {
     m_window.setFramerateLimit(60);
+#ifdef _WIN32
+    setDarkWindowChrome(m_window.getSystemHandle());
+#endif
     ImGui::SFML::Init(m_window);
     loadFont();
 }
@@ -58,6 +96,11 @@ void App::render()
 void App::applyImGuiStyle()
 {
     auto& style = ImGui::GetStyle();
+    const auto withAlpha = [](ImVec4 color, float alpha)
+    {
+        color.w = alpha;
+        return color;
+    };
 
     // --- Layout & Spacing ---
     style.WindowTitleAlign  = ImVec2(0.5f, 0.5f);
@@ -75,46 +118,46 @@ void App::applyImGuiStyle()
     style.Alpha             = 1.0f;
 
     // Text
-    style.Colors[ImGuiCol_Text]         = ImVec4(1.86f, 1.93f, 1.89f, 0.78f);
-    style.Colors[ImGuiCol_TextDisabled] = ImVec4(0.86f, 0.93f, 0.89f, 0.78f);
+    style.Colors[ImGuiCol_Text]         = colors::textPrimary;
+    style.Colors[ImGuiCol_TextDisabled] = colors::textSecondary;
 
     // Windows & Frames
-    style.Colors[ImGuiCol_WindowBg]      = ImColor(20, 20, 20, 255);
-    style.Colors[ImGuiCol_ChildBg]       = ImColor(15, 15, 15, 255);
-    style.Colors[ImGuiCol_PopupBg]       = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
-    style.Colors[ImGuiCol_FrameBg]       = ImVec4(0.80f, 0.80f, 0.80f, 0.09f);
-    style.Colors[ImGuiCol_FrameBgHovered]= ImVec4(0.29f, 0.29f, 0.29f, 1.00f);
-    style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.04f, 0.04f, 0.04f, 0.88f);
+    style.Colors[ImGuiCol_WindowBg]      = colors::background;
+    style.Colors[ImGuiCol_ChildBg]       = colors::surface;
+    style.Colors[ImGuiCol_PopupBg]       = colors::elevated;
+    style.Colors[ImGuiCol_FrameBg]       = colors::surface;
+    style.Colors[ImGuiCol_FrameBgHovered]= colors::elevated;
+    style.Colors[ImGuiCol_FrameBgActive] = colors::background;
 
     // Title Bar
-    style.Colors[ImGuiCol_TitleBg]          = ImVec4(0.20f, 0.22f, 0.27f, 1.00f);
-    style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.20f, 0.22f, 0.27f, 0.75f);
-    style.Colors[ImGuiCol_TitleBgActive]    = ImVec4(0.15f, 0.60f, 0.78f, 1.00f);
+    style.Colors[ImGuiCol_TitleBg]          = colors::surface;
+    style.Colors[ImGuiCol_TitleBgCollapsed] = withAlpha(colors::surface, 0.75f);
+    style.Colors[ImGuiCol_TitleBgActive]    = colors::accent;
 
     // Buttons
-    style.Colors[ImGuiCol_Button]       = ImVec4(0.10f,  0.10f,  0.10f,  1.00f);
-    style.Colors[ImGuiCol_ButtonHovered]= ImVec4(0.15f,  0.15f,  0.15f,  1.00f);
-    style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.125f, 0.125f, 0.125f, 1.00f);
+    style.Colors[ImGuiCol_Button]       = colors::background;
+    style.Colors[ImGuiCol_ButtonHovered]= colors::surface;
+    style.Colors[ImGuiCol_ButtonActive] = colors::elevated;
 
     // Headers
-    style.Colors[ImGuiCol_Header]       = ImVec4(0.08f, 0.08f, 0.08f, 1.00f);
-    style.Colors[ImGuiCol_HeaderHovered]= ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
-    style.Colors[ImGuiCol_HeaderActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
+    style.Colors[ImGuiCol_Header]       = colors::surface;
+    style.Colors[ImGuiCol_HeaderHovered]= colors::elevated;
+    style.Colors[ImGuiCol_HeaderActive] = colors::background;
 
     // Scrollbar
-    style.Colors[ImGuiCol_ScrollbarBg]         = ImColor(0, 0, 0, 0);
-    style.Colors[ImGuiCol_ScrollbarGrab]        = ImVec4(0.26f, 0.59f, 0.98f, 0.60f);
-    style.Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.26f, 0.59f, 0.98f, 0.80f);
-    style.Colors[ImGuiCol_ScrollbarGrabActive]  = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
+    style.Colors[ImGuiCol_ScrollbarBg]         = colors::transparent;
+    style.Colors[ImGuiCol_ScrollbarGrab]        = withAlpha(colors::accent, 0.60f);
+    style.Colors[ImGuiCol_ScrollbarGrabHovered] = withAlpha(colors::accent, 0.80f);
+    style.Colors[ImGuiCol_ScrollbarGrabActive]  = withAlpha(colors::accent, 0.40f);
 
     // Accents (shared blue highlight)
-    style.Colors[ImGuiCol_CheckMark]       = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
-    style.Colors[ImGuiCol_SliderGrabActive]= ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
-    style.Colors[ImGuiCol_SeparatorHovered]= ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
+    style.Colors[ImGuiCol_CheckMark]       = withAlpha(colors::accent, 0.40f);
+    style.Colors[ImGuiCol_SliderGrabActive]= withAlpha(colors::accent, 0.40f);
+    style.Colors[ImGuiCol_SeparatorHovered]= withAlpha(colors::accent, 0.40f);
 
     // Misc
-    style.Colors[ImGuiCol_MenuBarBg] = ImVec4(0.35f, 0.35f, 0.35f, 1.00f);
-    style.Colors[ImGuiCol_Border]    = ImVec4(0.27f, 0.27f, 0.27f, 1.00f);
+    style.Colors[ImGuiCol_MenuBarBg] = colors::elevated;
+    style.Colors[ImGuiCol_Border]    = colors::transparent;
 }
 
 void App::loadFont()
