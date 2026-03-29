@@ -30,4 +30,13 @@ namespace colors
     const ImU32 blue = IM_COL32(78, 161, 255, 255);             ///< Accent color for highlights
 }
 
+/**
+ * @namespace uiFonts
+ * @brief Shared ImGui font handles used by specific UI areas.
+ */
+namespace uiFonts
+{
+    inline ImFont* terminal = nullptr; ///< Monospace font for terminal/console logs
+}
+
 #endif

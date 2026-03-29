@@ -4,6 +4,7 @@
 #include <iostream>
 #include "constants.h"
 #include <filesystem>
+#include <array>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -173,20 +174,66 @@ void App::loadFont()
     config.PixelSnapH  = false;
 
     io.Fonts->Clear();
-    #ifdef _WIN32
-    std::filesystem::path fontPath = std::filesystem::path(_pgmptr).parent_path() / "assets/fonts/Roboto-Regular.ttf";
-    if (std::filesystem::exists(fontPath))
+
+    ImFont* baseFont = nullptr;
+#ifdef _WIN32
+    const std::filesystem::path uiFontPath = std::filesystem::path(_pgmptr).parent_path() / "assets/fonts/Roboto-Regular.ttf";
+    if (std::filesystem::exists(uiFontPath))
     {
-        io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), fontConstants::fontSize, &config);
+        baseFont = io.Fonts->AddFontFromFileTTF(uiFontPath.string().c_str(), fontConstants::fontSize, &config);
     }
-    else 
+    else
     {
-        std::cerr << "[ERROR] Font file not found at " << fontPath.string() << std::endl;
-        io.Fonts->AddFontDefault(&config);
+        std::cerr << "[WARN] UI font file not found at " << uiFontPath.string() << ", falling back to default font." << std::endl;
+        baseFont = io.Fonts->AddFontDefault(&config);
     }
-    #else    
-    io.Fonts->AddFontFromFileTTF("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", fontConstants::fontSize, &config);
-    #endif
+#else
+    const std::filesystem::path uiFontPath = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf";
+    if (std::filesystem::exists(uiFontPath))
+    {
+        baseFont = io.Fonts->AddFontFromFileTTF(uiFontPath.string().c_str(), fontConstants::fontSize, &config);
+    }
+    else
+    {
+        std::cerr << "[WARN] Linux UI font not found at " << uiFontPath.string() << ", falling back to default font." << std::endl;
+        baseFont = io.Fonts->AddFontDefault(&config);
+    }
+#endif
+
+    // Load a terminal-like monospace font with OS-specific fallbacks.
+    uiFonts::terminal = nullptr;
+#ifdef _WIN32
+    const std::array<const char*, 3> monoCandidates = {
+        "C:/Windows/Fonts/consola.ttf",      // Consolas
+        "C:/Windows/Fonts/CascadiaMono.ttf", // Cascadia Mono (optional)
+        "C:/Windows/Fonts/lucon.ttf"         // Lucida Console
+    };
+#else
+    const std::array<const char*, 4> monoCandidates = {
+        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+        "/usr/share/fonts/truetype/liberation2/LiberationMono-Regular.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf",
+        "/usr/share/fonts/truetype/noto/NotoSansMono-Regular.ttf"
+    };
+#endif
+
+    for (const char* candidate : monoCandidates)
+    {
+        if (!std::filesystem::exists(candidate))
+            continue;
+
+        uiFonts::terminal = io.Fonts->AddFontFromFileTTF(candidate, fontConstants::fontSize, &config);
+        if (uiFonts::terminal)
+            break;
+    }
+
+    if (!uiFonts::terminal)
+    {
+        // Final fallback keeps console readable if no mono font path exists.
+        uiFonts::terminal = baseFont ? baseFont : io.Fonts->AddFontDefault(&config);
+    }
+
+    io.FontDefault = baseFont ? baseFont : io.FontDefault;
 
     io.Fonts->Build();
     ImGui::SFML::UpdateFontTexture();
