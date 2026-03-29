@@ -1272,11 +1272,54 @@ Node* GraphCompiler::BuildOutput(const VisualNode& n)
     const Pin* valuePin = GetInputPinByName(n, "Value");
     if (valuePin)
     {
+        Node* valueExpr = nullptr;
+
+        const PinSource* valueSrc = resolver_.Resolve(valuePin->id);
+        if (valueSrc)
+        {
+            valueExpr = BuildNode(*valueSrc->node, valueSrc->pinIdx);
+            if (HasError) { delete scope; return nullptr; }
+        }
+        else
+        {
+            // QoL fallback:
+            // If Debug Print value is unconnected but this node is executed from
+            // a ForEach Body flow, default to that ForEach's current Element value.
+            const Pin* flowIn = GetInputPinByName(n, "In");
+            if (!flowIn)
+                flowIn = GetInputPinByName(n, "Flow");
+
+            if (flowIn)
+            {
+                const FlowTarget* flowSrc = resolver_.ResolveFlow(flowIn->id);
+                if (flowSrc && flowSrc->node && flowSrc->node->nodeType == NodeType::ForEach)
+                {
+                    int elementOutIdx = -1;
+                    for (int i = 0; i < static_cast<int>(flowSrc->node->outPins.size()); ++i)
+                    {
+                        const Pin& outPin = flowSrc->node->outPins[static_cast<size_t>(i)];
+                        if (outPin.type != PinType::Flow && outPin.name == "Element")
+                        {
+                            elementOutIdx = i;
+                            break;
+                        }
+                    }
+
+                    if (elementOutIdx >= 0)
+                        valueExpr = BuildNode(*flowSrc->node, elementOutIdx);
+                    if (HasError) { delete scope; return nullptr; }
+                }
+            }
+
+            if (!valueExpr)
+                valueExpr = BuildExpr(*valuePin);
+            if (HasError) { delete scope; return nullptr; }
+        }
+
         Node* printValue = MakeNode(Token::FunctionCall);
         printValue->children.push_back(MakeIdNode("println"));
         Node* valueParams = MakeNode(Token::CallParams);
-        valueParams->children.push_back(BuildExpr(*valuePin));
-        if (HasError) { delete scope; return nullptr; }
+        valueParams->children.push_back(valueExpr);
         printValue->children.push_back(valueParams);
         scope->children.push_back(printValue);
     }

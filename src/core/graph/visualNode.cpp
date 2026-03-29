@@ -341,7 +341,18 @@ static void DrawReadOnlyArrayFieldCollapsed(const NodeField& field)
         else
         {
             for (size_t i = 0; i < items.size(); ++i)
-                ImGui::TextDisabled("%d: %s", static_cast<int>(i), items[i].c_str());
+            {
+                const std::string token = TrimArrayToken(items[i]);
+                if (token.size() >= 2 && token.front() == '[' && token.back() == ']')
+                {
+                    const std::vector<std::string> nested = ParseArrayItemsForNodeView(token);
+                    ImGui::TextDisabled("%d: Array [%d]", static_cast<int>(i), static_cast<int>(nested.size()));
+                }
+                else
+                {
+                    ImGui::TextDisabled("%d: %s", static_cast<int>(i), token.c_str());
+                }
+            }
         }
         ImGui::Unindent(14.0f);
     }
@@ -796,13 +807,6 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             if ((isDrawRectNode || isDrawGridNode) &&
                 (field.name == "R" || field.name == "G" || field.name == "B"))
                 continue;
-
-            if (field.valueType == PinType::Array)
-            {
-                // Node body arrays are view-only (expand/collapse), editing stays in inspector.
-                DrawReadOnlyArrayFieldCollapsed(field);
-                continue;
-            }
 
             changed |= DrawField(field);
         }
