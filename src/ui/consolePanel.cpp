@@ -195,6 +195,12 @@ void ConsolePanel::draw()
     ImGui::Separator();
     ImGui::BeginChild("scrolling", ImVec2(0, 0), false);
 
+    const bool hasTerminalFont = (uiFonts::terminal != nullptr);
+    if (hasTerminalFont)
+    {
+        ImGui::PushFont(uiFonts::terminal);
+    }
+
     std::deque<std::string> logsSnapshot;
     std::string activeLineSnapshot;
     {
@@ -219,6 +225,11 @@ void ConsolePanel::draw()
     if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
     {
         ImGui::SetScrollHereY(1.0f);
+    }
+
+    if (hasTerminalFont)
+    {
+        ImGui::PopFont();
     }
 
     ImGui::EndChild();
