@@ -503,6 +503,8 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         (n.nodeType == NodeType::Variable && variant && *variant == "Get");
     const bool isSetVariable =
         (n.nodeType == NodeType::Variable && variant && *variant == "Set");
+    const bool isConstantNode = (n.nodeType == NodeType::Constant);
+    const bool isForEachNode = (n.nodeType == NodeType::ForEach);
     const bool isLoopNode = (n.nodeType == NodeType::Loop);
     const bool isBinaryDefaultNode =
         (n.nodeType == NodeType::Operator || n.nodeType == NodeType::Comparison || n.nodeType == NodeType::Logic);
@@ -679,6 +681,51 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 {
                     changed |= DrawField(field);
                 }
+                continue;
+            }
+
+            // Use the same popup/dropbar behavior as Get Variable node for
+            // requested nodes/fields.
+            if ((isConstantNode || isSetVariable) && field.name == "Type")
+            {
+                static const std::vector<std::string> kTypeItems = {
+                    "Number", "Boolean", "String", "Array"
+                };
+
+                ImGui::TextUnformatted("Type");
+                ImGui::SameLine();
+                changed |= NodePopupComboDynamic("##TypeDropBar", field.value, kTypeItems, 110.0f);
+                continue;
+            }
+
+            if (isForEachNode && field.name == "Element Type")
+            {
+                static const std::vector<std::string> kElementTypeItems = {
+                    "Any", "Number", "Boolean", "String", "Array"
+                };
+
+                ImGui::TextUnformatted("Element Type");
+                ImGui::SameLine();
+                changed |= NodePopupComboDynamic("##ElementTypeDropBar", field.value, kElementTypeItems, 110.0f);
+                continue;
+            }
+
+            if (field.name == "Op"
+                && (n.nodeType == NodeType::Operator
+                    || n.nodeType == NodeType::Comparison
+                    || n.nodeType == NodeType::Logic))
+            {
+                std::vector<std::string> opItems;
+                if (n.nodeType == NodeType::Operator)
+                    opItems = { "+", "-", "*", "/" };
+                else if (n.nodeType == NodeType::Comparison)
+                    opItems = { "==", "!=", "<", "<=", ">", ">=" };
+                else
+                    opItems = { "AND", "OR" };
+
+                ImGui::TextUnformatted("Op");
+                ImGui::SameLine();
+                changed |= NodePopupComboDynamic("##OpDropBar", field.value, opItems, 110.0f);
                 continue;
             }
 

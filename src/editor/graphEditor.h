@@ -124,7 +124,16 @@ private:
      */
     void DeleteLinks(ed::LinkId linkId);
 
+    /**
+     * @brief Draw spawn-menu entries and spawn selected node at given canvas position
+     * @return true if a node was spawned
+     */
+    bool DrawSpawnNodeMenuContents(const ImVec2& spawnCanvasPos);
+
     ed::EditorContext* m_ctx;  ///< The imgui-node-editor context
     GraphState& m_state;       ///< Reference to the graph state
     bool m_initialAutoStartHandled = false; ///< Ensures empty-graph Start auto-spawn runs only once at startup
+    bool m_openSpawnPopupRequested = false;
+    ImVec2 m_spawnPopupScreenPos = ImVec2(0.0f, 0.0f);
+    ImVec2 m_spawnPopupCanvasPos = ImVec2(0.0f, 0.0f);
 };

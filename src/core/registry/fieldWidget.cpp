@@ -196,6 +196,15 @@ static const char* ArrayItemTypeToLabel(ArrayItemType t)
     }
 }
 
+static ArrayItemType ArrayItemTypeFromLabel(const std::string& label)
+{
+    if (label == "Number")  return ArrayItemType::Number;
+    if (label == "Boolean") return ArrayItemType::Boolean;
+    if (label == "String")  return ArrayItemType::String;
+    if (label == "Array")   return ArrayItemType::Array;
+    return ArrayItemType::Null;
+}
+
 static std::string ArrayItemPayload(const std::string& raw, ArrayItemType type)
 {
     std::string v = TrimArrayToken(raw);
@@ -299,11 +308,13 @@ static bool OpPopupCombo(const char* id, std::string& value, const char** items,
     if (open)
         ImGui::OpenPopup("##popup");
 
-    ImVec2 desiredPos(leftMin.x, rightMax.y);
-
     ed::Suspend();
 
-    ImGui::SetNextWindowPos(desiredPos, ImGuiCond_Appearing);
+    // Keep popup behavior consistent with other node dropbars:
+    // anchor popup to click/mouse position so nested array dropdowns
+    // open in the correct place inside node-editor suspended rendering.
+    ImGui::SetNextWindowPos({ImGui::GetMousePos().x, ImGui::GetMousePos().y}, ImGuiCond_Appearing);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(40.0f, 0.0f), ImVec2(10000.0f, 10000.0f));
     
     if (ImGui::BeginPopup("##popup",
         ImGuiWindowFlags_NoMove |
@@ -430,6 +441,10 @@ bool DrawField(NodeField& field)
 
         case PinType::Array:
         {
+            static const char* kArrayItemTypes[] = {
+                "Number", "Boolean", "String", "Array", "Null", nullptr
+            };
+
             std::vector<std::string> items = ParseArrayItems(field.value);
             bool localChanged = false;
             int removeIndex = -1;
@@ -454,32 +469,13 @@ bool DrawField(NodeField& field)
                     ArrayItemType itemType = DetectArrayItemType(items[static_cast<size_t>(i)]);
                     std::string payload = ArrayItemPayload(items[static_cast<size_t>(i)], itemType);
 
-                    ImGui::PushItemWidth(120.0f);
-                    if (ImGui::BeginCombo("##itemType", ArrayItemTypeToLabel(itemType)))
+                    std::string selectedType = ArrayItemTypeToLabel(itemType);
+                    if (OpPopupCombo("##itemType", selectedType, kArrayItemTypes, 120.0f))
                     {
-                        const ArrayItemType allTypes[] = {
-                            ArrayItemType::Number,
-                            ArrayItemType::Boolean,
-                            ArrayItemType::String,
-                            ArrayItemType::Array,
-                            ArrayItemType::Null
-                        };
-
-                        for (ArrayItemType t : allTypes)
-                        {
-                            const bool selected = (itemType == t);
-                            if (ImGui::Selectable(ArrayItemTypeToLabel(t), selected))
-                            {
-                                items[static_cast<size_t>(i)] = BuildArrayItemFromPayload(t, payload);
-                                localChanged = true;
-                            }
-                            if (selected)
-                                ImGui::SetItemDefaultFocus();
-                        }
-
-                        ImGui::EndCombo();
+                        const ArrayItemType parsedType = ArrayItemTypeFromLabel(selectedType);
+                        items[static_cast<size_t>(i)] = BuildArrayItemFromPayload(parsedType, payload);
+                        localChanged = true;
                     }
-                    ImGui::PopItemWidth();
 
                     ImGui::SameLine();
 
@@ -528,31 +524,13 @@ bool DrawField(NodeField& field)
                                 ArrayItemType nestedType = DetectArrayItemType(nestedItems[static_cast<size_t>(ni)]);
                                 std::string nestedPayload = ArrayItemPayload(nestedItems[static_cast<size_t>(ni)], nestedType);
 
-                                ImGui::PushItemWidth(92.0f);
-                                if (ImGui::BeginCombo("##nestedType", ArrayItemTypeToLabel(nestedType)))
+                                std::string selectedNestedType = ArrayItemTypeToLabel(nestedType);
+                                if (OpPopupCombo("##nestedType", selectedNestedType, kArrayItemTypes, 92.0f))
                                 {
-                                    const ArrayItemType allTypes[] = {
-                                        ArrayItemType::Number,
-                                        ArrayItemType::Boolean,
-                                        ArrayItemType::String,
-                                        ArrayItemType::Array,
-                                        ArrayItemType::Null
-                                    };
-
-                                    for (ArrayItemType t : allTypes)
-                                    {
-                                        const bool selected = (nestedType == t);
-                                        if (ImGui::Selectable(ArrayItemTypeToLabel(t), selected))
-                                        {
-                                            nestedItems[static_cast<size_t>(ni)] = BuildArrayItemFromPayload(t, nestedPayload);
-                                            nestedChanged = true;
-                                        }
-                                        if (selected)
-                                            ImGui::SetItemDefaultFocus();
-                                    }
-                                    ImGui::EndCombo();
+                                    const ArrayItemType parsedNestedType = ArrayItemTypeFromLabel(selectedNestedType);
+                                    nestedItems[static_cast<size_t>(ni)] = BuildArrayItemFromPayload(parsedNestedType, nestedPayload);
+                                    nestedChanged = true;
                                 }
-                                ImGui::PopItemWidth();
 
                                 ImGui::SameLine();
                                 nestedType = DetectArrayItemType(nestedItems[static_cast<size_t>(ni)]);
