@@ -1184,6 +1184,110 @@ Node* GraphCompiler::BuildForEach(const VisualNode& n)
     return loop;
 }
 
+Node* GraphCompiler::BuildArrayAddAt(const VisualNode& n)
+{
+    const Pin* arrayPin = GetInputPinByName(n, "Array");
+    const Pin* indexPin = GetInputPinByName(n, "Index");
+    const Pin* valuePin = GetInputPinByName(n, "Value");
+    if (!arrayPin || !indexPin || !valuePin)
+    {
+        Error("Array Add node needs Array, Index and Value inputs");
+        return nullptr;
+    }
+
+    Node* arrayExpr = nullptr;
+    if (const PinSource* arraySrc = resolver_.Resolve(arrayPin->id))
+        arrayExpr = BuildNode(*arraySrc->node, arraySrc->pinIdx);
+    else
+    {
+        const std::string* arrayText = GetField(n, "Array");
+        arrayExpr = BuildArrayLiteralNode(arrayText ? *arrayText : "[]");
+    }
+
+    Node* indexExpr = nullptr;
+    if (const PinSource* indexSrc = resolver_.Resolve(indexPin->id))
+        indexExpr = BuildNode(*indexSrc->node, indexSrc->pinIdx);
+    else
+    {
+        const std::string* indexText = GetField(n, "Index");
+        double indexValue = 0.0;
+        if (indexText)
+        {
+            try { indexValue = std::stod(*indexText); }
+            catch (...) { indexValue = 0.0; }
+        }
+        indexExpr = MakeNumberNode(indexValue);
+    }
+
+    Node* valueExpr = BuildExpr(*valuePin);
+    if (HasError || !arrayExpr || !indexExpr || !valueExpr)
+    {
+        delete arrayExpr;
+        delete indexExpr;
+        delete valueExpr;
+        return nullptr;
+    }
+
+    Node* call = MakeNode(Token::FunctionCall);
+    call->children.push_back(MakeIdNode("Array.Insert"));
+    Node* params = MakeNode(Token::CallParams);
+    params->children.push_back(arrayExpr);
+    params->children.push_back(indexExpr);
+    params->children.push_back(valueExpr);
+    call->children.push_back(params);
+    return call;
+}
+
+Node* GraphCompiler::BuildArrayRemoveAt(const VisualNode& n)
+{
+    const Pin* arrayPin = GetInputPinByName(n, "Array");
+    const Pin* indexPin = GetInputPinByName(n, "Index");
+    if (!arrayPin || !indexPin)
+    {
+        Error("Array Remove node needs Array and Index inputs");
+        return nullptr;
+    }
+
+    Node* arrayExpr = nullptr;
+    if (const PinSource* arraySrc = resolver_.Resolve(arrayPin->id))
+        arrayExpr = BuildNode(*arraySrc->node, arraySrc->pinIdx);
+    else
+    {
+        const std::string* arrayText = GetField(n, "Array");
+        arrayExpr = BuildArrayLiteralNode(arrayText ? *arrayText : "[]");
+    }
+
+    Node* indexExpr = nullptr;
+    if (const PinSource* indexSrc = resolver_.Resolve(indexPin->id))
+        indexExpr = BuildNode(*indexSrc->node, indexSrc->pinIdx);
+    else
+    {
+        const std::string* indexText = GetField(n, "Index");
+        double indexValue = 0.0;
+        if (indexText)
+        {
+            try { indexValue = std::stod(*indexText); }
+            catch (...) { indexValue = 0.0; }
+        }
+        indexExpr = MakeNumberNode(indexValue);
+    }
+
+    if (HasError || !arrayExpr || !indexExpr)
+    {
+        delete arrayExpr;
+        delete indexExpr;
+        return nullptr;
+    }
+
+    Node* call = MakeNode(Token::FunctionCall);
+    call->children.push_back(MakeIdNode("Array.RemoveIndex"));
+    Node* params = MakeNode(Token::CallParams);
+    params->children.push_back(arrayExpr);
+    params->children.push_back(indexExpr);
+    call->children.push_back(params);
+    return call;
+}
+
 Node* GraphCompiler::BuildVariable(const VisualNode& n)
 {
     const std::string* nameStr = GetField(n, "Name");

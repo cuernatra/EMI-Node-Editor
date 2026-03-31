@@ -117,8 +117,21 @@ void arrayRemoveIdx(Variable&, Variable* args, size_t argc) {
 	if (argc == 2 && args[0].getType() == VariableType::Array) {
 		auto& data = args[0].as<Array>()->data();
 		auto idx = toNumber(args[1]);
-		if (idx < data.size())
+		if (idx >= 0.0 && idx < static_cast<double>(data.size()))
 			data.erase(data.begin() + static_cast<size_t>(idx));
+	}
+}
+
+void arrayInsertIdx(Variable&, Variable* args, size_t argc) {
+	if (argc == 3 && args[0].getType() == VariableType::Array) {
+		auto& data = args[0].as<Array>()->data();
+		auto idxNumber = toNumber(args[1]);
+		size_t idx = 0;
+		if (idxNumber > 0.0)
+			idx = static_cast<size_t>(idxNumber);
+		if (idx > data.size())
+			idx = data.size();
+		data.insert(data.begin() + idx, args[2]);
 	}
 }
 
@@ -238,6 +251,7 @@ SymbolTable IntrinsicFunctions = { {
 	AddFunction("Array.Pop", arrayPop,					VariableType::Undefined, { {"array", VariableType::Array } }),
 	AddFunction("Array.Remove", arrayRemove,			VariableType::Undefined, { {"array", VariableType::Array }, { "value", VariableType::Undefined } }),
 	AddFunction("Array.RemoveIndex", arrayRemoveIdx,	VariableType::Undefined, { {"array", VariableType::Array }, { "index", VariableType::Number } }),
+	AddFunction("Array.Insert", arrayInsertIdx,		VariableType::Undefined, { {"array", VariableType::Array }, { "index", VariableType::Number }, { "value", VariableType::Undefined } }),
 	AddFunction("Array.Clear", arrayClear,				VariableType::Undefined, { {"array", VariableType::Array } } ),
 	AddFunction("Array.Find", arrayFind,				VariableType::Number,	 { {"array", VariableType::Array } }, true),
 	

@@ -512,6 +512,8 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const bool isDelayNode = (n.nodeType == NodeType::Delay);
     const bool isDrawRectNode = (n.nodeType == NodeType::DrawRect);
     const bool isDrawGridNode = (n.nodeType == NodeType::DrawGrid);
+    const bool isArrayIndexNode =
+        (n.nodeType == NodeType::ArrayAddAt || n.nodeType == NodeType::ArrayRemoveAt);
     bool drawNodeColorTextChanged = false;
 
     bool drewDeferredDefaultPin = false;
@@ -524,6 +526,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     bool drewDeferredYPin = false;
     bool drewDeferredWPin = false;
     bool drewDeferredHPin = false;
+    bool drewDeferredIndexPin = false;
 
     auto drawDeferredPinByName = [&](const char* pinName)
     {
@@ -560,6 +563,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
         if (isDrawGridNode &&
             (pin.name == "X" || pin.name == "Y" || pin.name == "W" || pin.name == "H"))
+            return true;
+
+        if (isArrayIndexNode && pin.name == "Index")
             return true;
 
         return false;
@@ -801,6 +807,19 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 continue;
             }
 
+            if (isArrayIndexNode && field.name == "Index")
+            {
+                drawDeferredPinByName("Index");
+                drewDeferredIndexPin = true;
+
+                const bool pinConnected = isInputPinConnected(field.name.c_str());
+                if (pinConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
             if (isDrawRectNode &&
                 (field.name == "X" || field.name == "Y" || field.name == "W" || field.name == "H"))
             {
@@ -885,6 +904,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
     if (isDelayNode && !drewDeferredDurationPin)
         drawDeferredPinByName("Duration");
+
+    if (isArrayIndexNode && !drewDeferredIndexPin)
+        drawDeferredPinByName("Index");
 
     if (isDrawRectNode)
     {
