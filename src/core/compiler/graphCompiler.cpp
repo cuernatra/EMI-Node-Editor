@@ -356,7 +356,27 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
             Node* forNode = BuildLoop(n);
             if (HasError || !forNode) { delete forNode; return; }
 
-            Node* bodyScope = (forNode->children.size() > 3) ? forNode->children[3] : nullptr;
+            Node* bodyScope = nullptr;
+            if (forNode->type == Token::For)
+            {
+                bodyScope = (forNode->children.size() > 3) ? forNode->children[3] : nullptr;
+            }
+            else if (forNode->type == Token::Scope)
+            {
+                // Loop builder currently returns a prelude scope that contains
+                // start/end temporary declarations and the actual For node as
+                // its last child. Body flow must be appended inside that inner
+                // For body scope so it executes on every iteration.
+                for (auto it = forNode->children.rbegin(); it != forNode->children.rend(); ++it)
+                {
+                    Node* child = *it;
+                    if (!child || child->type != Token::For)
+                        continue;
+
+                    bodyScope = (child->children.size() > 3) ? child->children[3] : nullptr;
+                    break;
+                }
+            }
 
             if (const Pin* bodyOut = GetOutputPinByName(n, "Body"))
             {
