@@ -13,9 +13,20 @@
 
 #include "../app/constants.h"
 #include "../core/graph/types.h"         // NodeType
-#include "../core/graph/link.h"          // NodeSpawnPayload
 #include <vector>
 #include <string>
+
+/**
+ * @brief Drag-and-drop payload for spawning new nodes from the palette.
+ *
+ * Passed via ImGui drag-and-drop ("SPAWN_NODE") from a DropBar or the left
+ * panel to the graph editor canvas, which reads it and instantiates the node.
+ */
+struct NodeSpawnPayload
+{
+    char    title[32] = {};           ///< Node type name (e.g. "For Each")
+    PinType pinType   = PinType::Any; ///< Pin type that initiated the drag (for auto-wiring)
+};
 
 /**
  * @brief Collapsible, draggable node type entry in the palette

@@ -53,27 +53,7 @@ struct Link
 };
 
 // ---------------------------------------------------------------------------
-// NodeSpawnPayload
-// ---------------------------------------------------------------------------
-
-/**
- * @brief Drag-and-drop payload for spawning new nodes
- * 
- * Carries information when dragging from a panel or pin to create a new node.
- * Contains the node type to spawn and the originating pin type to enable
- * automatic connection to compatible pins.
- */
-struct NodeSpawnPayload
-{
-    /// Node type name/identifier (e.g., "Add", "Multiply", "Output")
-    char title[32]   = {};
-    
-    /// Type of the pin that initiated the spawn (for auto-wiring)
-    PinType pinType  = PinType::Any;
-};
-
-// ---------------------------------------------------------------------------
-// Link utilities  
+// Link utilities
 // ---------------------------------------------------------------------------
 
 /**
