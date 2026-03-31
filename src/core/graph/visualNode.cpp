@@ -363,7 +363,7 @@ static void DrawReadOnlyArrayFieldCollapsed(const NodeField& field)
 float MeasureFieldWidth(const NodeField& field)
 {
     const float labelWidth  = ImGui::CalcTextSize(field.name.c_str()).x;
-    const float widgetWidth = 110.0f;
+    const float widgetWidth = 82.0f;
     const float spacing     = ImGui::GetStyle().ItemSpacing.x;
     return labelWidth + spacing + widgetWidth;
 }
