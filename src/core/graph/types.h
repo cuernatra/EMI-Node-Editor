@@ -31,6 +31,8 @@ enum class NodeType
     Branch,      ///< Conditional branching (if/else)
     Loop,        ///< Iteration (for/while loops)
     ForEach,     ///< Iterate over array elements
+    ArrayAddAt,  ///< Insert value to array at index
+    ArrayRemoveAt, ///< Remove value from array at index
     While,       ///< While loop
     Variable,    ///< Variable get/set
     Function,    ///< Function definition/call
@@ -55,6 +57,8 @@ inline const char* NodeTypeToString(NodeType t)
         case NodeType::Branch:     return "Branch";
         case NodeType::Loop:       return "Loop";
         case NodeType::ForEach:    return "For Each";
+        case NodeType::ArrayAddAt: return "Array Add";
+        case NodeType::ArrayRemoveAt: return "Array Remove";
         case NodeType::While:      return "While";
         case NodeType::Variable:   return "Variable";
         case NodeType::Function:   return "Function";
@@ -81,6 +85,10 @@ inline NodeType NodeTypeFromString(const std::string& s)
     if (s == "Loop")       return NodeType::Loop;
     if (s == "ForEach")    return NodeType::ForEach;
     if (s == "For Each")   return NodeType::ForEach;
+    if (s == "ArrayAddAt") return NodeType::ArrayAddAt;
+    if (s == "Array Add")  return NodeType::ArrayAddAt;
+    if (s == "ArrayRemoveAt") return NodeType::ArrayRemoveAt;
+    if (s == "Array Remove")  return NodeType::ArrayRemoveAt;
     if (s == "While")      return NodeType::While;
     if (s == "Variable")   return NodeType::Variable;
     if (s == "Function")   return NodeType::Function;

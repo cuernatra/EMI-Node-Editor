@@ -191,10 +191,11 @@ void GraphEditor::DrawNodeCanvas()
 
     const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
     const bool loopLayoutChanged = GraphEditorUtils::RefreshLoopNodeLayout(m_state);
+    const bool forEachLayoutChanged = GraphEditorUtils::RefreshForEachNodeLayout(m_state);
     const bool drawRectLayoutChanged = GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
     const bool outputInputTypesChanged = GraphEditorUtils::RefreshOutputNodeInputTypes(m_state);
     const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-    if (variableTypesChanged || loopLayoutChanged || drawRectLayoutChanged || outputInputTypesChanged || linksChanged)
+    if (variableTypesChanged || loopLayoutChanged || forEachLayoutChanged || drawRectLayoutChanged || outputInputTypesChanged || linksChanged)
         m_state.MarkDirty();
 
     ed::End();
@@ -279,6 +280,10 @@ bool GraphEditor::DrawSpawnNodeMenuContents(const ImVec2& spawnCanvasPos)
             return spawnFromPayloadTitle("Loop");
         if (ImGui::MenuItem("For Each"))
             return spawnFromPayloadTitle("For Each");
+        if (ImGui::MenuItem("Array Add"))
+            return spawnFromPayloadTitle("Array Add");
+        if (ImGui::MenuItem("Array Remove"))
+            return spawnFromPayloadTitle("Array Remove");
         if (ImGui::MenuItem("While"))
             return spawnFromPayloadTitle("While");
         if (ImGui::MenuItem("Debug Print"))
@@ -504,6 +509,22 @@ void GraphEditor::DrawInspectorPanel()
             ImGui::PopID();
         }
         else if (selectedNode->nodeType == NodeType::ForEach)
+        {
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+            for (NodeField& field : selectedNode->fields)
+            {
+                if (isInputPinConnectedByName(field.name.c_str()))
+                {
+                    GraphEditorUtils::DrawInspectorReadOnlyField(field);
+                    continue;
+                }
+
+                fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
+            }
+            ImGui::PopID();
+        }
+        else if (selectedNode->nodeType == NodeType::ArrayAddAt
+              || selectedNode->nodeType == NodeType::ArrayRemoveAt)
         {
             ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
             for (NodeField& field : selectedNode->fields)
