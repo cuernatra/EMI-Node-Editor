@@ -491,12 +491,12 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
     bool changed = false;
     auto findFieldValue = [&](const char* name) -> const std::string*
-    {
-        for (const NodeField& f : n.fields)
-            if (f.name == name)
-                return &f.value;
-        return nullptr;
-    };
+        {
+            for (const NodeField& f : n.fields)
+                if (f.name == name)
+                    return &f.value;
+            return nullptr;
+        };
 
     const std::string* variant = findFieldValue("Variant");
     const bool isGetVariable =
@@ -512,8 +512,8 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const bool isDelayNode = (n.nodeType == NodeType::Delay);
     const bool isDrawRectNode = (n.nodeType == NodeType::DrawRect);
     const bool isDrawGridNode = (n.nodeType == NodeType::DrawGrid);
+    const bool isCallFunction = (n.nodeType == NodeType::CallFunction); //???????????????????????????
     bool drawNodeColorTextChanged = false;
-
     bool drewDeferredDefaultPin = false;
     bool drewDeferredStartPin = false;
     bool drewDeferredCountPin = false;
@@ -538,18 +538,18 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     };
 
     auto shouldDeferInputPin = [&](const Pin& pin) -> bool
-    {
-        if (isSetVariable && pin.name == "Default")
-            return true;
+        {
+            if (isSetVariable && pin.name == "Default")
+                return true;
 
-        if (isLoopNode && (pin.name == "Start" || pin.name == "Count"))
-            return true;
+            if (isLoopNode && (pin.name == "Start" || pin.name == "Count"))
+                return true;
 
-        if (isBinaryDefaultNode && (pin.name == "A" || pin.name == "B"))
-            return true;
+            if (isBinaryDefaultNode && (pin.name == "A" || pin.name == "B"))
+                return true;
 
-        if (isUnaryDefaultNode && pin.name == "A")
-            return true;
+            if (isUnaryDefaultNode && pin.name == "A")
+                return true;
 
         if (isDelayNode && pin.name == "Duration")
             return true;
@@ -558,12 +558,12 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             (pin.name == "X" || pin.name == "Y" || pin.name == "W" || pin.name == "H"))
             return true;
 
-        if (isDrawGridNode &&
-            (pin.name == "X" || pin.name == "Y" || pin.name == "W" || pin.name == "H"))
-            return true;
+            if (isDrawGridNode &&
+                (pin.name == "X" || pin.name == "Y" || pin.name == "W" || pin.name == "H"))
+                return true;
 
-        return false;
-    };
+            return false;
+        };
 
     for (const Pin& pin : n.inPins)
     {
@@ -575,29 +575,29 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     if (!n.fields.empty())
     {
         auto isInputPinConnected = [&](const char* pinName) -> bool
-        {
-            if (!allLinks)
-                return false;
-
-            const Pin* targetPin = nullptr;
-            for (const Pin& p : n.inPins)
             {
-                if (p.name == pinName)
+                if (!allLinks)
+                    return false;
+
+                const Pin* targetPin = nullptr;
+                for (const Pin& p : n.inPins)
                 {
-                    targetPin = &p;
-                    break;
+                    if (p.name == pinName)
+                    {
+                        targetPin = &p;
+                        break;
+                    }
                 }
-            }
-            if (!targetPin)
-                return false;
+                if (!targetPin)
+                    return false;
 
-            for (const Link& l : *allLinks)
-            {
-                if (l.alive && l.endPinId == targetPin->id)
-                    return true;
-            }
-            return false;
-        };
+                for (const Link& l : *allLinks)
+                {
+                    if (l.alive && l.endPinId == targetPin->id)
+                        return true;
+                }
+                return false;
+            };
 
         ImGui::Spacing();
         ImGui::PushID((int)n.id.Get());
@@ -637,6 +637,22 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                         const std::string variableName = otherName ? otherName->value : "myVar";
                         if (std::find(setVariableNames.begin(), setVariableNames.end(), variableName) == setVariableNames.end())
                             setVariableNames.push_back(variableName);
+                    }
+
+                    // ?????????????????????????????????????????????????????????????????????
+                    for (const VisualNode& other : *allNodes)
+                    {
+                        if (!other.alive || other.nodeType != NodeType::Function)
+                            continue;
+
+                        for (const NodeField& of : other.fields)
+                        {
+                            if (of.name.rfind("Param", 0) != 0 || of.value.empty())
+                                continue;
+
+                            if (std::find(setVariableNames.begin(), setVariableNames.end(), of.value) == setVariableNames.end())
+                                setVariableNames.push_back(of.value);
+                        }
                     }
                 }
 
@@ -855,11 +871,57 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 (field.name == "R" || field.name == "G" || field.name == "B"))
                 continue;
 
-            changed |= DrawField(field);
-        }
-        ImGui::PopID();
-        ImGui::Spacing();
+            // LISÄÄ TÄHÄN
+            if (isCallFunction && field.name == "Name")
+            {
+                std::vector<std::string> functionNames;
+
+                if (allNodes)
+                {
+                    for (const VisualNode& other : *allNodes)
+                    {
+                        if (!other.alive || other.nodeType != NodeType::Function)
+                            continue;
+
+                        const NodeField* nameField = nullptr;
+                        for (const NodeField& of : other.fields)
+                            if (of.name == "Name") nameField = &of;
+
+                        if (!nameField || nameField->value.empty())
+                            continue;
+
+                        if (std::find(functionNames.begin(), functionNames.end(), nameField->value) == functionNames.end())
+                            functionNames.push_back(nameField->value);
+                    }
+                }
+
+                if (functionNames.empty())
+                {
+                    ImGui::TextUnformatted("Function");
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("(none)");
+                }
+                else
+                {
+                    if (std::find(functionNames.begin(), functionNames.end(), field.value) == functionNames.end())
+                    {
+                        field.value = functionNames.front();
+                        changed = true;
+                    }
+
+                    ImGui::TextUnformatted("Function");
+                    ImGui::SameLine();
+                    changed |= NodePopupComboDynamic("##CallFunctionCombo", field.value, functionNames, 110.0f);
+                }
+
+                continue;
+            }
+        
+        changed |= DrawField(field);
     }
+    ImGui::PopID();
+    ImGui::Spacing();
+}
 
     if (isSetVariable && !drewDeferredDefaultPin)
         drawDeferredPinByName("Default");
@@ -934,6 +996,42 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 n.outPins.pop_back();
                 changed = true;
             }
+        }
+    }
+
+    //???????????????????????????????????????????????????????????????????????????????????
+    if (n.nodeType == NodeType::Function && idGen)
+    {
+        if (ImGui::SmallButton("+ Param"))
+        {
+            int paramIndex = 0;
+            for (const NodeField& f : n.fields)
+                if (f.name.rfind("Param", 0) == 0)
+                    paramIndex++;
+
+            const std::string paramName = "param" + std::to_string(paramIndex);
+
+            // Lisää vain kenttä — RefreshFunctionNodeLayout luo pinin
+            n.fields.push_back(NodeField{
+                "Param" + std::to_string(paramIndex),
+                PinType::String,
+                paramName
+                });
+            changed = true;
+        }
+
+        if (ImGui::SmallButton("- Param"))
+        {
+            for (int i = static_cast<int>(n.fields.size()) - 1; i >= 0; --i)
+            {
+                if (n.fields[i].name.rfind("Param", 0) == 0)
+                {
+                    n.fields.erase(n.fields.begin() + i);
+                    changed = true;
+                    break;
+                }
+            }
+            // RefreshFunctionNodeLayout poistaa vastaavan pinin
         }
     }
 

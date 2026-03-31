@@ -315,6 +315,16 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
     if (!n.alive || !targetScope)
         return;
 
+    // Function-node käännetään erikseen Compile()-loopin kautta!!!!!!!!!!!!!!!=??????????????
+    // joten ohitetaan se flow-ketjussa
+    if (n.nodeType == NodeType::Function)
+    {
+        if (const Pin* outFlow = GetOutputPinByName(n, "Out"))
+            AppendFlowChainFromOutput(outFlow->id, targetScope);
+        return;
+    }
+    //?????????????????????????????????????????????????????????????????????????????????????????????
+
     switch (n.nodeType)
     {
         case NodeType::Sequence:
@@ -569,25 +579,57 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
         body->children.push_back(loopLastDecl);
     }
 
+    // 0.2) Declare temp variables for CallFunction result pins?????????????????????????????????
+    for (const VisualNode& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::CallFunction)
+            continue;
+
+        const std::string tempVar = "__call_result_" +
+            std::to_string(static_cast<uintptr_t>(n.id.Get()));
+
+        Node* decl = MakeNode(Token::VarDeclare);
+        decl->data = tempVar;
+        decl->children.push_back(MakeNode(Token::AnyType));
+        body->children.push_back(decl);
+    }
+
     visitedFlowOutputs_.clear();
     activeFlowOutputs_.clear();
     AppendFlowChainFromOutput(startOut->id, body);
     if (HasError) { delete body; return nullptr; }
 
     // Wrap the body in a function declaration:
-    //   def __graph__() { <body> }
-    // FunctionDef is consumed by ASTWalker's pre-pass; name goes in data.
     Node* funcDecl = MakeNode(Token::FunctionDef);
     funcDecl->data = std::string(kGraphFunctionName);
     Node* params = MakeNode(Token::CallParams);
     funcDecl->children.push_back(params);
     funcDecl->children.push_back(body);
 
-    // The AST root is a Scope containing the single function declaration.
+    // Kerää Function-nodet ensin
+    std::vector<Node*> userFunctions;
+    for (const VisualNode& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Function)
+            continue;
+
+        Node* userFunc = BuildFunction(n);
+        if (HasError)
+        {
+            for (Node* f : userFunctions) delete f;
+            delete body;
+            delete funcDecl;
+            return nullptr;
+        }
+        if (userFunc) userFunctions.push_back(userFunc);
+    }
+
     Node* root = MakeNode(Token::Scope);
+    for (Node* f : userFunctions)
+        root->children.push_back(f);
     root->children.push_back(funcDecl);
 
-    return root;
+    return root;//??????????????????????????????????????????????????????
 }
 
 Node* GraphCompiler::BuildExpr(const Pin& inputPin)
@@ -607,7 +649,11 @@ Node* GraphCompiler::BuildExpr(const Pin& inputPin)
     if (!src)
         return MakeDefaultValue();
 
-    if (src->node && NodeRequiresFlow(*src->node))
+    // CallFunction-noden Result-pini on data eikä flow
+    // joten ohitetaan flow-reachable tarkistus?????????????????????????????????????????????????????????????????
+    const bool isCallFunction = (src->node && src->node->nodeType == NodeType::CallFunction);
+
+    if (!isCallFunction && src->node && NodeRequiresFlow(*src->node))
     {
         const uintptr_t key = static_cast<uintptr_t>(src->node->id.Get());
         if (flowReachableNodes_.find(key) == flowReachableNodes_.end())
@@ -659,6 +705,20 @@ Node* GraphCompiler::BuildNode(const VisualNode& n, int outPinIdx)
             return MakeIdNode(readingInsideThisLoopBody
                 ? LoopIndexVarName(n)
                 : LoopLastIndexVarName(n));
+        }
+    }
+
+    //????????????????????????????????????????????????????????????????????????????????????????????????????????????
+    if (n.nodeType == NodeType::CallFunction
+        && outPinIdx >= 0
+        && outPinIdx < static_cast<int>(n.outPins.size()))
+    {
+        const Pin& requestedOutPin = n.outPins[outPinIdx];
+        if (requestedOutPin.name == "Result")
+        {
+            const std::string tempVar = "__call_result_" +
+                std::to_string(static_cast<uintptr_t>(n.id.Get()));
+            return MakeIdNode(tempVar);
         }
     }
 
@@ -1327,17 +1387,18 @@ Node* GraphCompiler::BuildOutput(const VisualNode& n)
     return scope;
 }
 
-Node* GraphCompiler::BuildFunction(const VisualNode& n)
+Node* GraphCompiler::BuildCallFunction(const VisualNode& n)
 {
     const std::string* nameStr = GetField(n, "Name");
-    std::string funcName = nameStr ? *nameStr : "__fn";
+    const std::string funcName = (nameStr && !nameStr->empty())
+        ? *nameStr : "__unnamed_func";
+    const std::string tempVar = "__call_result_" +
+        std::to_string(static_cast<uintptr_t>(n.id.Get()));
 
-    Node* call   = MakeNode(Token::FunctionCall);
-    Node* nameId = MakeIdNode(funcName);
-    call->children.push_back(nameId);
+    Node* call = MakeNode(Token::FunctionCall);
+    call->children.push_back(MakeIdNode(funcName));
 
     Node* params = MakeNode(Token::CallParams);
-
     for (const Pin& pin : n.inPins)
     {
         if (pin.type == PinType::Flow) continue;
@@ -1345,9 +1406,53 @@ Node* GraphCompiler::BuildFunction(const VisualNode& n)
         if (HasError) { delete call; return nullptr; }
         params->children.push_back(arg);
     }
-
     call->children.push_back(params);
 
-    return call;
+    Node* assign = MakeNode(Token::Assign);
+    assign->children.push_back(MakeIdNode(tempVar));
+    assign->children.push_back(call);
+    return assign;
+}
+
+Node* GraphCompiler::BuildFunction(const VisualNode& n)
+{
+    const std::string* nameStr = GetField(n, "Name");
+    const std::string funcName = (nameStr && !nameStr->empty())
+        ? *nameStr : "__unnamed_func";
+
+    Node* funcDecl = MakeNode(Token::FunctionDef);
+    funcDecl->data = funcName;
+
+    Node* params = MakeNode(Token::CallParams);
+    for (int i = 0; ; ++i)
+    {
+        const std::string* p = GetField(n, "Param" + std::to_string(i));
+        if (!p || p->empty()) break;
+
+        Node* param = MakeNode(Token::Id);
+        param->data = *p;
+        Node* typeNode = MakeNode(Token::AnyType);
+        param->children.push_back(typeNode);
+        params->children.push_back(param);
+    }
+    funcDecl->children.push_back(params);
+
+    Node* body = MakeNode(Token::Scope);
+    if (const Pin* bodyOut = GetOutputPinByName(n, "Body"))
+        AppendFlowChainFromOutput(bodyOut->id, body);
+    if (HasError) { delete funcDecl; return nullptr; }
+
+    if (!body->children.empty())
+    {
+        Node* lastStmt = body->children.back();
+        body->children.pop_back();
+
+        Node* ret = MakeNode(Token::Return);
+        ret->children.push_back(lastStmt);
+        body->children.push_back(ret);
+    }
+
+    funcDecl->children.push_back(body);
+    return funcDecl;
 }
 

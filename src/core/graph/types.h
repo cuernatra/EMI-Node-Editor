@@ -34,6 +34,7 @@ enum class NodeType
     While,       ///< While loop
     Variable,    ///< Variable get/set
     Function,    ///< Function definition/call
+    CallFunction, ///< Function call ????????????????????????????????????????????
     Output,      ///< Graph output/return value
     Unknown      ///< Uninitialized or invalid type
 };
@@ -58,6 +59,7 @@ inline const char* NodeTypeToString(NodeType t)
         case NodeType::While:      return "While";
         case NodeType::Variable:   return "Variable";
         case NodeType::Function:   return "Function";
+        case NodeType::CallFunction: return "CallFunction";       //????????????????????????????????????
         case NodeType::Output:     return "Debug Print";
         default:                   return "Unknown";
     }
@@ -84,6 +86,7 @@ inline NodeType NodeTypeFromString(const std::string& s)
     if (s == "While")      return NodeType::While;
     if (s == "Variable")   return NodeType::Variable;
     if (s == "Function")   return NodeType::Function;
+    if (s == "CallFunction") return NodeType::CallFunction;      //?????????????????????????????????????????
     if (s == "Output")      return NodeType::Output;      // backward compatibility
     if (s == "Debug Print") return NodeType::Output;
     return NodeType::Unknown;

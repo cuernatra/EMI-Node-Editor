@@ -306,18 +306,37 @@ descriptors_[NodeType::Constant] = {
 
     // ------------------------------------------------------------------
     // Function  —  Call a named function
-    // ------------------------------------------------------------------
+    // ------------------------------------------------------------------          ????????????????????????????
     descriptors_[NodeType::Function] = {
         NodeType::Function,
         "Function",
         {
-            { "In",     PinType::Flow, /*isInput=*/true,  /*isMultiInput=*/true },
-            { "Out",    PinType::Flow, /*isInput=*/false }
+            { "In",   PinType::Flow, /*isInput=*/true  },
+            { "Body", PinType::Flow, /*isInput=*/false },
+            { "Out",  PinType::Flow, /*isInput=*/false }
+        },
+        {
+            { "Name",   PinType::String, "myFunction" },
+            { "Param0", PinType::String, "" }
+        },
+        [](GraphCompiler* gc, const VisualNode& n) { return gc->BuildFunction(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // Function  —  Call a named function
+    // ------------------------------------------------------------------     ???????????????????????????????
+    descriptors_[NodeType::CallFunction] = {
+        NodeType::CallFunction,
+        "Call Function",
+        {
+            { "In",     PinType::Flow, /*isInput=*/true  },
+            { "Out",    PinType::Flow, /*isInput=*/false },
+            { "Result", PinType::Any,  /*isInput=*/false }
         },
         {
             { "Name", PinType::String, "myFunction" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildFunction(n); }
+        [](GraphCompiler* gc, const VisualNode& n) { return gc->BuildCallFunction(n); }
     };
 
     // ------------------------------------------------------------------

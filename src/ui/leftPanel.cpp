@@ -89,6 +89,7 @@ LeftPanel::LeftPanel()
         NodeType::DrawRect,
         NodeType::DrawGrid,
         NodeType::Function,
+        NodeType::CallFunction,     //????????????????
         NodeType::Delay,
         NodeType::Sequence,
         NodeType::Branch,
@@ -156,6 +157,7 @@ void LeftPanel::draw(bool hasStartNode)
             case NodeType::Logic:
             case NodeType::Not:
             case NodeType::DrawGrid:
+            case NodeType::CallFunction:          //??????????????????????????????????
             case NodeType::Function:
                 logicTypes.push_back(makeDefaultItem(t));
                 break;

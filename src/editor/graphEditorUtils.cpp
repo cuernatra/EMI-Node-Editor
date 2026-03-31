@@ -1000,6 +1000,27 @@ bool RefreshVariableNodeTypes(GraphState& state)
         };
     }
 
+    // ???????????????????????????????????????????????????????????????????????????????????????
+    for (const auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Function)
+            continue;
+
+        for (int i = 0; ; ++i)
+        {
+            const std::string paramKey = "Param" + std::to_string(i);
+            const NodeField* paramField = FindField(
+                const_cast<std::vector<NodeField>&>(n.fields), paramKey.c_str());
+            if (!paramField || paramField->value.empty())
+                break;
+
+            definitions[paramField->value] = VariableDef{
+                PinType::Number,
+                "Number"
+            };
+        }
+    }
+
     for (auto& n : nodes)
     {
         if (!n.alive || n.nodeType != NodeType::Variable)
@@ -1634,6 +1655,157 @@ bool SyncLinkTypesAndPruneInvalid(GraphState& state)
             l.type = start->type;
             changed = true;
         }
+    }
+
+    return changed;
+}
+
+bool RefreshCallFunctionNodeLayout(GraphState& state)
+{
+    bool changed = false;
+
+    auto& nodes = state.GetNodes();
+
+    // Kerää kaikki Function-nodet ja niiden parametrit
+    struct FunctionDef
+    {
+        std::vector<std::string> params;
+    };
+    std::unordered_map<std::string, FunctionDef> functionDefs;
+
+    for (const auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Function)
+            continue;
+
+        const NodeField* nameField = FindField(n.fields, "Name");
+        if (!nameField || nameField->value.empty())
+            continue;
+
+        FunctionDef def;
+        for (int i = 0; ; ++i)
+        {
+            const std::string paramKey = "Param" + std::to_string(i);
+            const NodeField* paramField = FindField(const_cast<std::vector<NodeField>&>(n.fields), paramKey.c_str());
+            if (!paramField || paramField->value.empty())
+                break;
+            def.params.push_back(paramField->value);
+        }
+        functionDefs[nameField->value] = def;
+    }
+
+    // Päivitä CallFunction-nodet
+    for (auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::CallFunction)
+            continue;
+
+        const NodeField* nameField = FindField(const_cast<std::vector<NodeField>&>(n.fields), "Name");
+        const std::string funcName = nameField ? nameField->value : "";
+
+        // Varmista In, Out, Result pinit
+        Pin* inPin = FindPinByName(n.inPins, "In");
+        if (!inPin)
+        {
+            n.inPins.insert(n.inPins.begin(), MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id, n.nodeType, "In", PinType::Flow, true));
+            changed = true;
+        }
+
+        Pin* outPin = FindPinByName(n.outPins, "Out");
+        if (!outPin)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id, n.nodeType, "Out", PinType::Flow, false));
+            changed = true;
+        }
+
+        Pin* resultPin = FindPinByName(n.outPins, "Result");
+        if (!resultPin)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id, n.nodeType, "Result", PinType::Any, false));
+            changed = true;
+        }
+
+        // Päivitä parametripinit funktion määrittelystä
+        auto it = functionDefs.find(funcName);
+        if (it != functionDefs.end())
+        {
+            const auto& params = it->second.params;
+
+            // Poista vanhat parametripinit
+            std::vector<std::string> keepPins = { "In" };
+            for (const auto& p : params)
+                keepPins.push_back(p);
+
+            const size_t inBefore = n.inPins.size();
+            RemovePinsByNameExcept(n.inPins, keepPins);
+            if (n.inPins.size() != inBefore)
+                changed = true;
+
+            // Lisää puuttuvat parametripinit
+            for (const auto& paramName : params)
+            {
+                Pin* paramPin = FindPinByName(n.inPins, paramName.c_str());
+                if (!paramPin)
+                {
+                    n.inPins.push_back(MakePin(
+                        static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                        n.id, n.nodeType, paramName, PinType::Any, true));
+                    changed = true;
+                }
+            }
+        }
+    }
+
+    return changed;
+}
+
+//??????????????????????????????????????????????????????????????????????????????????????????????
+bool RefreshFunctionNodeLayout(GraphState& state)
+{
+    bool changed = false;
+    auto& nodes = state.GetNodes();
+
+    for (auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Function)
+            continue;
+
+        // Varmista vain In ja Body pinit — ei parametripineja
+        Pin* inPin = FindPinByName(n.inPins, "In");
+        if (!inPin)
+        {
+            n.inPins.insert(n.inPins.begin(), MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id, n.nodeType, "In", PinType::Flow, true));
+            changed = true;
+        }
+
+        // Poista kaikki muut input-pinit paitsi In
+        const size_t inBefore = n.inPins.size();
+        RemovePinsByNameExcept(n.inPins, { "In" });
+        if (n.inPins.size() != inBefore)
+            changed = true;
+
+        Pin* bodyPin = FindPinByName(n.outPins, "Body");
+        if (!bodyPin)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id, n.nodeType, "Body", PinType::Flow, false));
+            changed = true;
+        }
+
+        // Varmista vain Body output-pinissa
+        const size_t outBefore = n.outPins.size();
+        RemovePinsByNameExcept(n.outPins, { "Body" });
+        if (n.outPins.size() != outBefore)
+            changed = true;
     }
 
     return changed;

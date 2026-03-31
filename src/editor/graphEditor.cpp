@@ -193,7 +193,10 @@ void GraphEditor::DrawNodeCanvas()
     const bool drawRectLayoutChanged = GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
     const bool outputInputTypesChanged = GraphEditorUtils::RefreshOutputNodeInputTypes(m_state);
     const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-    if (variableTypesChanged || loopLayoutChanged || drawRectLayoutChanged || outputInputTypesChanged || linksChanged)
+    const bool callFunctionLayoutChanged = GraphEditorUtils::RefreshCallFunctionNodeLayout(m_state);
+    const bool functionLayoutChanged = GraphEditorUtils::RefreshFunctionNodeLayout(m_state);
+    if (variableTypesChanged || loopLayoutChanged || drawRectLayoutChanged || outputInputTypesChanged || linksChanged
+        || callFunctionLayoutChanged || functionLayoutChanged)
         m_state.MarkDirty();
 
     ed::End();
