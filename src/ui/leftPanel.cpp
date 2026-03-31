@@ -1,6 +1,6 @@
 #include "leftPanel.h"
 #include "../core/registry/nodeRegistry.h"
-#include "../core/graph/link.h"
+#include "dropBar.h"
 #include "imgui.h"
 #include <cstring>
 #include <cstdio>

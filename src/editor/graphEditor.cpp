@@ -5,6 +5,7 @@
 #include "../core/graph/visualNode.h"
 #include "../core/graph/link.h"
 #include "../core/registry/nodeFactory.h"
+#include "../ui/dropBar.h"
 #include "imgui.h"
 #include <algorithm>
 #include <string>
