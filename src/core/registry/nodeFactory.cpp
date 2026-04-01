@@ -70,19 +70,22 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
     const bool isVariable = (type == NodeType::Variable);
     const bool isLoop = (type == NodeType::Loop);
     const bool isDrawGrid = (type == NodeType::DrawGrid);
+    const bool isStructCreate = (type == NodeType::StructCreate);
     if ((!isSequence && !isLoop && pinIds.size() != desc->pins.size()) ||
         (isSequence && pinIds.size() < desc->pins.size()))
     {
         // Backward compatibility for older Variable node saves
         // (legacy Set/Get layouts used different pin counts).
-        if (!isVariable && !(isDrawGrid && pinIds.size() == desc->pins.size() + 1))
+        if (!isVariable
+            && !isStructCreate
+            && !(isDrawGrid && pinIds.size() == desc->pins.size() + 1))
         {
             std::cerr << "CreateNodeFromTypeWithIds: Pin ID count mismatch\n";
             return {};
         }
     }
 
-    assert((isSequence || isVariable || isLoop || (isDrawGrid && pinIds.size() == desc->pins.size() + 1) || pinIds.size() == desc->pins.size()) && "Pin ID count mismatch");
+    assert((isSequence || isVariable || isLoop || isStructCreate || (isDrawGrid && pinIds.size() == desc->pins.size() + 1) || pinIds.size() == desc->pins.size()) && "Pin ID count mismatch");
 
     VisualNode n;
     n.id         = ed::NodeId(nodeId);
@@ -199,6 +202,50 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
             else
                 n.outPins.push_back(p);
             ++pinIndex;
+        }
+
+        for (const FieldDescriptor& fd : desc->fields)
+            n.fields.push_back(MakeNodeField(fd));
+    }
+    else if (isStructCreate && pinIds.size() != desc->pins.size())
+    {
+        // Struct Create has dynamic schema-driven input pins.
+        // Keep all saved pin IDs so links can be restored, then layout refresh
+        // will normalize names/types from loaded schema fields.
+        if (!pinIds.empty())
+        {
+            n.inPins.push_back(MakePin(
+                static_cast<uint32_t>(pinIds[0]),
+                n.id,
+                n.nodeType,
+                "Struct",
+                PinType::String,
+                true
+            ));
+
+            for (size_t i = 1; i + 1 < pinIds.size(); ++i)
+            {
+                n.inPins.push_back(MakePin(
+                    static_cast<uint32_t>(pinIds[i]),
+                    n.id,
+                    n.nodeType,
+                    "Field " + std::to_string(i),
+                    PinType::Any,
+                    true
+                ));
+            }
+
+            if (pinIds.size() >= 2)
+            {
+                n.outPins.push_back(MakePin(
+                    static_cast<uint32_t>(pinIds.back()),
+                    n.id,
+                    n.nodeType,
+                    "Item",
+                    PinType::Array,
+                    false
+                ));
+            }
         }
 
         for (const FieldDescriptor& fd : desc->fields)

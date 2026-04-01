@@ -8,8 +8,143 @@
 #include "../ui/dropBar.h"
 #include "imgui.h"
 #include <algorithm>
+#include <cctype>
 #include <string>
 #include <unordered_map>
+
+namespace
+{
+struct InspectorStructFieldDef
+{
+    std::string name;
+    std::string type;
+};
+
+static std::string TrimCopy(const std::string& s)
+{
+    size_t a = 0;
+    size_t b = s.size();
+    while (a < b && std::isspace(static_cast<unsigned char>(s[a]))) ++a;
+    while (b > a && std::isspace(static_cast<unsigned char>(s[b - 1]))) --b;
+    return s.substr(a, b - a);
+}
+
+static std::vector<std::string> SplitTopLevelArrayItems(const std::string& text)
+{
+    std::string src = TrimCopy(text);
+    if (src.size() >= 2 && src.front() == '[' && src.back() == ']')
+        src = src.substr(1, src.size() - 2);
+
+    std::vector<std::string> out;
+    std::string current;
+    int bracketDepth = 0;
+    bool inQuote = false;
+    char quoteChar = '\0';
+    bool escape = false;
+
+    auto pushCurrent = [&]()
+    {
+        std::string item = TrimCopy(current);
+        if (!item.empty())
+            out.push_back(item);
+        current.clear();
+    };
+
+    for (char ch : src)
+    {
+        if (escape)
+        {
+            current.push_back(ch);
+            escape = false;
+            continue;
+        }
+
+        if (inQuote)
+        {
+            current.push_back(ch);
+            if (ch == '\\')
+                escape = true;
+            else if (ch == quoteChar)
+                inQuote = false;
+            continue;
+        }
+
+        if (ch == '"' || ch == '\'')
+        {
+            inQuote = true;
+            quoteChar = ch;
+            current.push_back(ch);
+            continue;
+        }
+
+        if (ch == '[') ++bracketDepth;
+        else if (ch == ']') bracketDepth = std::max(0, bracketDepth - 1);
+
+        if (ch == ',' && bracketDepth == 0)
+        {
+            pushCurrent();
+            continue;
+        }
+
+        current.push_back(ch);
+    }
+
+    pushCurrent();
+    return out;
+}
+
+static std::vector<InspectorStructFieldDef> ParseStructDefs(const std::string& raw)
+{
+    std::vector<InspectorStructFieldDef> defs;
+    const std::vector<std::string> items = SplitTopLevelArrayItems(raw);
+    for (std::string item : items)
+    {
+        item = TrimCopy(item);
+        if (item.size() >= 2 && ((item.front() == '"' && item.back() == '"') || (item.front() == '\'' && item.back() == '\'')))
+            item = item.substr(1, item.size() - 2);
+
+        const size_t sep = item.find(':');
+        if (sep == std::string::npos)
+            continue;
+
+        InspectorStructFieldDef def;
+        def.name = TrimCopy(item.substr(0, sep));
+        def.type = TrimCopy(item.substr(sep + 1));
+        if (!def.name.empty())
+            defs.push_back(def);
+    }
+    return defs;
+}
+
+static std::string BuildStructDefs(const std::vector<InspectorStructFieldDef>& defs)
+{
+    std::string out = "[";
+    for (size_t i = 0; i < defs.size(); ++i)
+    {
+        if (i != 0)
+            out += ", ";
+        out += "\"" + defs[i].name + ":" + defs[i].type + "\"";
+    }
+    out += "]";
+    return out;
+}
+
+static std::vector<std::string> CollectDefinedStructNames(const GraphState& state)
+{
+    std::vector<std::string> names;
+    for (const auto& node : state.GetNodes())
+    {
+        if (!node.alive || node.nodeType != NodeType::StructDefine)
+            continue;
+
+        const NodeField* nameField = GraphEditorUtils::FindField(node.fields, "Struct Name");
+        const std::string name = (nameField && !nameField->value.empty()) ? nameField->value : "test";
+        if (std::find(names.begin(), names.end(), name) == names.end())
+            names.push_back(name);
+    }
+    return names;
+}
+}
 
 GraphEditor::GraphEditor(ed::EditorContext* ctx, GraphState& state)
     : m_ctx(ctx), m_state(state)
@@ -193,9 +328,10 @@ void GraphEditor::DrawNodeCanvas()
     const bool loopLayoutChanged = GraphEditorUtils::RefreshLoopNodeLayout(m_state);
     const bool forEachLayoutChanged = GraphEditorUtils::RefreshForEachNodeLayout(m_state);
     const bool drawRectLayoutChanged = GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
+    const bool structLayoutChanged = GraphEditorUtils::RefreshStructNodeLayouts(m_state);
     const bool outputInputTypesChanged = GraphEditorUtils::RefreshOutputNodeInputTypes(m_state);
     const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-    if (variableTypesChanged || loopLayoutChanged || forEachLayoutChanged || drawRectLayoutChanged || outputInputTypesChanged || linksChanged)
+    if (variableTypesChanged || loopLayoutChanged || forEachLayoutChanged || drawRectLayoutChanged || structLayoutChanged || outputInputTypesChanged || linksChanged)
         m_state.MarkDirty();
 
     ed::End();
@@ -246,6 +382,14 @@ bool GraphEditor::DrawSpawnNodeMenuContents(const ImVec2& spawnCanvasPos)
             return spawnFromPayloadTitle("Variable:Set");
         if (ImGui::MenuItem("Get Variable"))
             return spawnFromPayloadTitle("Variable:Get");
+        if (ImGui::MenuItem("Struct Define"))
+            return spawnFromPayloadTitle("Struct Define");
+        if (ImGui::MenuItem("Struct Create"))
+            return spawnFromPayloadTitle("Struct Create");
+        if (ImGui::MenuItem("Struct Get Field"))
+            return spawnFromPayloadTitle("Struct Get Field");
+        if (ImGui::MenuItem("Struct Set Field"))
+            return spawnFromPayloadTitle("Struct Set Field");
         ImGui::EndMenu();
     }
 
@@ -280,6 +424,8 @@ bool GraphEditor::DrawSpawnNodeMenuContents(const ImVec2& spawnCanvasPos)
             return spawnFromPayloadTitle("Loop");
         if (ImGui::MenuItem("For Each"))
             return spawnFromPayloadTitle("For Each");
+        if (ImGui::MenuItem("Struct Delete"))
+            return spawnFromPayloadTitle("Struct Delete");
         if (ImGui::MenuItem("Array Get"))
             return spawnFromPayloadTitle("Array Get");
         if (ImGui::MenuItem("Array Add"))
@@ -542,6 +688,224 @@ void GraphEditor::DrawInspectorPanel()
             }
             ImGui::PopID();
         }
+        else if (selectedNode->nodeType == NodeType::StructDefine)
+        {
+            NodeField* nameField = GraphEditorUtils::FindField(selectedNode->fields, "Struct Name");
+            NodeField* defsField = GraphEditorUtils::FindField(selectedNode->fields, "Fields");
+
+            std::vector<InspectorStructFieldDef> defs = ParseStructDefs(defsField ? defsField->value : "[]");
+
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+
+            if (nameField)
+                fieldsChanged |= GraphEditorUtils::DrawInspectorField(*nameField);
+
+            ImGui::Spacing();
+            ImGui::TextUnformatted("STRUCT FIELDS");
+
+            int removeIndex = -1;
+            const char* typeItems[] = { "Number", "Boolean", "String", "Array", "Any" };
+
+            for (int i = 0; i < static_cast<int>(defs.size()); ++i)
+            {
+                ImGui::PushID(i);
+
+                char nameBuf[128] = {};
+                std::snprintf(nameBuf, sizeof(nameBuf), "%s", defs[static_cast<size_t>(i)].name.c_str());
+                ImGui::SetNextItemWidth(180.0f);
+                if (ImGui::InputText("##fieldName", nameBuf, sizeof(nameBuf)))
+                {
+                    defs[static_cast<size_t>(i)].name = TrimCopy(nameBuf);
+                    fieldsChanged = true;
+                }
+
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(120.0f);
+                if (ImGui::BeginCombo("##fieldType", defs[static_cast<size_t>(i)].type.c_str()))
+                {
+                    for (const char* item : typeItems)
+                    {
+                        const bool selected = (defs[static_cast<size_t>(i)].type == item);
+                        if (ImGui::Selectable(item, selected))
+                        {
+                            defs[static_cast<size_t>(i)].type = item;
+                            fieldsChanged = true;
+                        }
+                        if (selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
+                ImGui::SameLine();
+                if (ImGui::SmallButton("Remove") && removeIndex < 0)
+                    removeIndex = i;
+
+                ImGui::PopID();
+            }
+
+            if (removeIndex >= 0)
+            {
+                defs.erase(defs.begin() + removeIndex);
+                fieldsChanged = true;
+            }
+
+            if (ImGui::Button("Add Field"))
+            {
+                defs.push_back({ "field", "Number" });
+                fieldsChanged = true;
+            }
+
+            if (defsField && fieldsChanged)
+                defsField->value = BuildStructDefs(defs);
+
+            ImGui::PopID();
+        }
+        else if (selectedNode->nodeType == NodeType::StructCreate)
+        {
+            NodeField* structNameField = GraphEditorUtils::FindField(selectedNode->fields, "Struct Name");
+            const std::vector<std::string> structNames = CollectDefinedStructNames(m_state);
+
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+
+            if (structNameField)
+            {
+                if (!structNames.empty())
+                {
+                    if (std::find(structNames.begin(), structNames.end(), structNameField->value) == structNames.end())
+                    {
+                        structNameField->value = structNames.front();
+                        fieldsChanged = true;
+                    }
+
+                    if (ImGui::BeginCombo("Struct", structNameField->value.c_str()))
+                    {
+                        for (const std::string& name : structNames)
+                        {
+                            const bool selected = (structNameField->value == name);
+                            if (ImGui::Selectable(name.c_str(), selected))
+                            {
+                                structNameField->value = name;
+                                fieldsChanged = true;
+                            }
+                            if (selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+                }
+                else
+                {
+                    GraphEditorUtils::DrawInspectorReadOnlyField(*structNameField);
+                }
+            }
+
+            for (NodeField& field : selectedNode->fields)
+            {
+                if (field.name == "Struct Name" || field.name == "Schema Fields")
+                    continue;
+
+                if (isInputPinConnectedByName(field.name.c_str()))
+                {
+                    GraphEditorUtils::DrawInspectorReadOnlyField(field);
+                    continue;
+                }
+
+                fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
+            }
+
+            ImGui::PopID();
+        }
+        else if (selectedNode->nodeType == NodeType::StructGetField
+              || selectedNode->nodeType == NodeType::StructSetField)
+        {
+            NodeField* fieldField = GraphEditorUtils::FindField(selectedNode->fields, "Field");
+            NodeField* structNameField = GraphEditorUtils::FindField(selectedNode->fields, "Struct Name");
+            const NodeField* schemaField = GraphEditorUtils::FindField(selectedNode->fields, "Schema Fields");
+            const std::vector<std::string> structNames = CollectDefinedStructNames(m_state);
+
+            std::vector<std::string> fieldNames;
+            if (schemaField)
+            {
+                for (const auto& def : ParseStructDefs(schemaField->value))
+                    fieldNames.push_back(def.name);
+            }
+
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+            for (NodeField& field : selectedNode->fields)
+            {
+                if (field.name == "Schema Fields")
+                    continue;
+
+                if (field.name == "Struct Name" && structNameField)
+                {
+                    if (!structNames.empty())
+                    {
+                        if (std::find(structNames.begin(), structNames.end(), structNameField->value) == structNames.end())
+                        {
+                            structNameField->value = structNames.front();
+                            fieldsChanged = true;
+                        }
+
+                        if (ImGui::BeginCombo("Struct", structNameField->value.c_str()))
+                        {
+                            for (const std::string& name : structNames)
+                            {
+                                const bool selected = (structNameField->value == name);
+                                if (ImGui::Selectable(name.c_str(), selected))
+                                {
+                                    structNameField->value = name;
+                                    fieldsChanged = true;
+                                }
+                                if (selected)
+                                    ImGui::SetItemDefaultFocus();
+                            }
+                            ImGui::EndCombo();
+                        }
+                    }
+                    else
+                    {
+                        GraphEditorUtils::DrawInspectorReadOnlyField(field);
+                    }
+                    continue;
+                }
+
+                if (field.name == "Field" && !fieldNames.empty())
+                {
+                    if (std::find(fieldNames.begin(), fieldNames.end(), field.value) == fieldNames.end())
+                    {
+                        field.value = fieldNames.front();
+                        fieldsChanged = true;
+                    }
+
+                    if (ImGui::BeginCombo("Field", field.value.c_str()))
+                    {
+                        for (const std::string& name : fieldNames)
+                        {
+                            const bool selected = (field.value == name);
+                            if (ImGui::Selectable(name.c_str(), selected))
+                            {
+                                field.value = name;
+                                fieldsChanged = true;
+                            }
+                            if (selected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+                    continue;
+                }
+
+                if (isInputPinConnectedByName(field.name.c_str()))
+                {
+                    GraphEditorUtils::DrawInspectorReadOnlyField(field);
+                    continue;
+                }
+
+                fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
+            }
+            ImGui::PopID();
+        }
         else if (selectedNode->nodeType == NodeType::Loop)
         {
             auto isInputPinConnected = [&](const char* pinName) -> bool
@@ -683,6 +1047,7 @@ void GraphEditor::DrawInspectorPanel()
         GraphEditorUtils::RefreshForEachNodeLayout(m_state);
         GraphEditorUtils::RefreshLoopNodeLayout(m_state);
         GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
+        GraphEditorUtils::RefreshStructNodeLayouts(m_state);
         GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
         m_state.MarkDirty();
     }
@@ -871,8 +1236,9 @@ void GraphEditor::CreateNewLink()
         const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
         const bool loopLayoutChanged = GraphEditorUtils::RefreshLoopNodeLayout(m_state);
         const bool drawRectLayoutChanged = GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
+        const bool structLayoutChanged = GraphEditorUtils::RefreshStructNodeLayouts(m_state);
         const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-        if (variableTypesChanged || loopLayoutChanged || drawRectLayoutChanged || linksChanged)
+        if (variableTypesChanged || loopLayoutChanged || drawRectLayoutChanged || structLayoutChanged || linksChanged)
             m_state.MarkDirty();
     }
 }
@@ -892,8 +1258,9 @@ void GraphEditor::DeleteNodes(ed::NodeId nodeId)
         const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
         const bool loopLayoutChanged = GraphEditorUtils::RefreshLoopNodeLayout(m_state);
         const bool drawRectLayoutChanged = GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
+        const bool structLayoutChanged = GraphEditorUtils::RefreshStructNodeLayouts(m_state);
         const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-        if (variableTypesChanged || loopLayoutChanged || drawRectLayoutChanged || linksChanged)
+        if (variableTypesChanged || loopLayoutChanged || drawRectLayoutChanged || structLayoutChanged || linksChanged)
             m_state.MarkDirty();
     }
 }
