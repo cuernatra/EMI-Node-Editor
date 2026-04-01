@@ -1184,6 +1184,53 @@ Node* GraphCompiler::BuildForEach(const VisualNode& n)
     return loop;
 }
 
+Node* GraphCompiler::BuildArrayGetAt(const VisualNode& n)
+{
+    const Pin* arrayPin = GetInputPinByName(n, "Array");
+    const Pin* indexPin = GetInputPinByName(n, "Index");
+    if (!arrayPin || !indexPin)
+    {
+        Error("Array Get node needs Array and Index inputs");
+        return nullptr;
+    }
+
+    Node* arrayExpr = nullptr;
+    if (const PinSource* arraySrc = resolver_.Resolve(arrayPin->id))
+        arrayExpr = BuildNode(*arraySrc->node, arraySrc->pinIdx);
+    else
+    {
+        const std::string* arrayText = GetField(n, "Array");
+        arrayExpr = BuildArrayLiteralNode(arrayText ? *arrayText : "[]");
+    }
+
+    Node* indexExpr = nullptr;
+    if (const PinSource* indexSrc = resolver_.Resolve(indexPin->id))
+        indexExpr = BuildNode(*indexSrc->node, indexSrc->pinIdx);
+    else
+    {
+        const std::string* indexText = GetField(n, "Index");
+        double indexValue = 0.0;
+        if (indexText)
+        {
+            try { indexValue = std::stod(*indexText); }
+            catch (...) { indexValue = 0.0; }
+        }
+        indexExpr = MakeNumberNode(indexValue);
+    }
+
+    if (HasError || !arrayExpr || !indexExpr)
+    {
+        delete arrayExpr;
+        delete indexExpr;
+        return nullptr;
+    }
+
+    Node* indexer = MakeNode(Token::Indexer);
+    indexer->children.push_back(arrayExpr);
+    indexer->children.push_back(indexExpr);
+    return indexer;
+}
+
 Node* GraphCompiler::BuildArrayAddAt(const VisualNode& n)
 {
     const Pin* arrayPin = GetInputPinByName(n, "Array");

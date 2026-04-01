@@ -513,7 +513,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const bool isDrawRectNode = (n.nodeType == NodeType::DrawRect);
     const bool isDrawGridNode = (n.nodeType == NodeType::DrawGrid);
     const bool isArrayIndexNode =
-        (n.nodeType == NodeType::ArrayAddAt || n.nodeType == NodeType::ArrayRemoveAt);
+        (n.nodeType == NodeType::ArrayGetAt
+         || n.nodeType == NodeType::ArrayAddAt
+         || n.nodeType == NodeType::ArrayRemoveAt);
     bool drawNodeColorTextChanged = false;
 
     bool drewDeferredDefaultPin = false;

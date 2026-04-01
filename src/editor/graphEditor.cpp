@@ -280,6 +280,8 @@ bool GraphEditor::DrawSpawnNodeMenuContents(const ImVec2& spawnCanvasPos)
             return spawnFromPayloadTitle("Loop");
         if (ImGui::MenuItem("For Each"))
             return spawnFromPayloadTitle("For Each");
+        if (ImGui::MenuItem("Array Get"))
+            return spawnFromPayloadTitle("Array Get");
         if (ImGui::MenuItem("Array Add"))
             return spawnFromPayloadTitle("Array Add");
         if (ImGui::MenuItem("Array Remove"))
@@ -523,7 +525,8 @@ void GraphEditor::DrawInspectorPanel()
             }
             ImGui::PopID();
         }
-        else if (selectedNode->nodeType == NodeType::ArrayAddAt
+        else if (selectedNode->nodeType == NodeType::ArrayGetAt
+              || selectedNode->nodeType == NodeType::ArrayAddAt
               || selectedNode->nodeType == NodeType::ArrayRemoveAt)
         {
             ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
