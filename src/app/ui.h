@@ -109,8 +109,15 @@ private:
     /// Last single-selected node id used to detect selection transitions
     uintptr_t m_lastInspectorNodeId = 0;
 
-    bool m_showFilesystemWindow = false;
-    bool m_showSettingsWindow = false;
+    /// Toggles a floating settings overlay window.
+    bool m_showSettingsOverlay = false;
+
+    /// Monotonic counter used to give settings windows unique ids when reopened.
+    uint32_t m_settingsWindowGeneration = 0;
+
+    /// If true, settings window gets keyboard focus when opened this frame.
+    bool m_forceSettingsFocus = false;
+
     bool m_previewEnabled = false;
 };
 
