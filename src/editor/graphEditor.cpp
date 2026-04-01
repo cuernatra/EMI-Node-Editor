@@ -472,22 +472,12 @@ void GraphEditor::DrawInspectorPanel()
 {
     ImGui::Text("INSPECTOR PANEL");
     ImGui::Separator();
-
-    const int selectedCount = ed::GetSelectedObjectCount();
-    if (selectedCount <= 0)
-    {
+    
+    uintptr_t selectedNodeRawId = 0;
+    if (!TryGetSingleSelectedNodeId(selectedNodeRawId))
         return;
-    }
 
-    std::vector<ed::NodeId> selectedNodes(static_cast<size_t>(selectedCount));
-    const int selectedNodeCount = ed::GetSelectedNodes(selectedNodes.data(), selectedCount);
-    if (selectedNodeCount <= 0)
-    {
-        return;
-    }
-
-    const ed::NodeId selectedNodeId = selectedNodes.front();
-
+    const ed::NodeId selectedNodeId(selectedNodeRawId);
     VisualNode* selectedNode = nullptr;
     for (auto& node : m_state.GetNodes())
     {
@@ -502,9 +492,7 @@ void GraphEditor::DrawInspectorPanel()
     }
 
     if (!selectedNode)
-    {
         return;
-    }
 
     const ImVec2 nodePos = ed::GetNodePosition(selectedNode->id);
 
@@ -635,6 +623,10 @@ void GraphEditor::DrawInspectorPanel()
                     }
                 }
 
+                if (typeField)
+                {
+                    GraphEditorUtils::DrawInspectorReadOnlyField(*typeField);
+                }
             }
             else
             {
