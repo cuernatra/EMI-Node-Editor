@@ -25,6 +25,8 @@ static const char* NodeTypeToSaveToken(NodeType t)
         return "DrawGrid";
     if (t == NodeType::ForEach)
         return "ForEach";
+    if (t == NodeType::ArrayGetAt)
+        return "ArrayGetAt";
     if (t == NodeType::ArrayAddAt)
         return "ArrayAddAt";
     if (t == NodeType::ArrayRemoveAt)

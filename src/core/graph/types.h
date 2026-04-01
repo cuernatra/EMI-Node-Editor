@@ -31,6 +31,7 @@ enum class NodeType
     Branch,      ///< Conditional branching (if/else)
     Loop,        ///< Iteration (for/while loops)
     ForEach,     ///< Iterate over array elements
+    ArrayGetAt,  ///< Read value from array by index
     ArrayAddAt,  ///< Insert value to array at index
     ArrayRemoveAt, ///< Remove value from array at index
     While,       ///< While loop
@@ -57,6 +58,7 @@ inline const char* NodeTypeToString(NodeType t)
         case NodeType::Branch:     return "Branch";
         case NodeType::Loop:       return "Loop";
         case NodeType::ForEach:    return "For Each";
+        case NodeType::ArrayGetAt: return "Array Get";
         case NodeType::ArrayAddAt: return "Array Add";
         case NodeType::ArrayRemoveAt: return "Array Remove";
         case NodeType::While:      return "While";
@@ -85,6 +87,8 @@ inline NodeType NodeTypeFromString(const std::string& s)
     if (s == "Loop")       return NodeType::Loop;
     if (s == "ForEach")    return NodeType::ForEach;
     if (s == "For Each")   return NodeType::ForEach;
+    if (s == "ArrayGetAt") return NodeType::ArrayGetAt;
+    if (s == "Array Get")  return NodeType::ArrayGetAt;
     if (s == "ArrayAddAt") return NodeType::ArrayAddAt;
     if (s == "Array Add")  return NodeType::ArrayAddAt;
     if (s == "ArrayRemoveAt") return NodeType::ArrayRemoveAt;

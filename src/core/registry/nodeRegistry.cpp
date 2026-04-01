@@ -268,6 +268,25 @@ descriptors_[NodeType::Constant] = {
     };
 
     // ------------------------------------------------------------------
+    // Array Get  —  array + index -> value
+    // Reads one value from array by zero-based index.
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::ArrayGetAt] = {
+        NodeType::ArrayGetAt,
+        "Array Get",
+        {
+            { "Array", PinType::Array,  /*isInput=*/true  },
+            { "Index", PinType::Number, /*isInput=*/true  },
+            { "Value", PinType::Any,    /*isInput=*/false }
+        },
+        {
+            { "Array", PinType::Array, "[]" },
+            { "Index", PinType::Number, "0" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayGetAt(n); }
+    };
+
+    // ------------------------------------------------------------------
     // Array Add  —  Flow in + array + index + value -> Flow out
     // Inserts Value at Index (UE5 style "Insert").
     // ------------------------------------------------------------------

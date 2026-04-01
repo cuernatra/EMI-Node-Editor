@@ -94,6 +94,7 @@ LeftPanel::LeftPanel()
         NodeType::Branch,
         NodeType::Loop,
         NodeType::ForEach,
+        NodeType::ArrayGetAt,
         NodeType::ArrayAddAt,
         NodeType::ArrayRemoveAt,
         NodeType::While,
@@ -168,6 +169,7 @@ void LeftPanel::draw(bool hasStartNode)
             case NodeType::Branch:
             case NodeType::Loop:
             case NodeType::ForEach:
+            case NodeType::ArrayGetAt:
             case NodeType::ArrayAddAt:
             case NodeType::ArrayRemoveAt:
             case NodeType::While:

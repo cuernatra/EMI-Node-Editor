@@ -95,6 +95,7 @@ public:
     Node* BuildBranch    (const VisualNode& n);   ///< Builds AST for Branch nodes
     Node* BuildLoop      (const VisualNode& n);   ///< Builds AST for Loop nodes
     Node* BuildForEach   (const VisualNode& n);   ///< Builds AST for For Each nodes
+    Node* BuildArrayGetAt(const VisualNode& n);   ///< Builds AST for Array Get node
     Node* BuildArrayAddAt(const VisualNode& n);   ///< Builds AST for Array Add node
     Node* BuildArrayRemoveAt(const VisualNode& n);///< Builds AST for Array Remove node
     Node* BuildWhile     (const VisualNode& n);   ///< Builds AST for While nodes
