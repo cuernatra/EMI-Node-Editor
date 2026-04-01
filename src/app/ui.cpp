@@ -11,7 +11,12 @@ Ui::Ui()
         m_consolePanel.addLogText("Filesystem");
     });
     m_topPanel.setSettingsCallback([this]() {
-        m_consolePanel.addLogText("Settings");
+        m_showSettingsOverlay = !m_showSettingsOverlay;
+        if (m_showSettingsOverlay)
+        {
+            ++m_settingsWindowGeneration;
+            m_forceSettingsFocus = true;
+        }
     });
     m_topPanel.setPreviewCallback([this](bool enabled) {
         m_previewEnabled = enabled;
@@ -283,6 +288,101 @@ void Ui::draw()
     // This keeps legacy actions (e.g. Delete selected node/link) working even
     // when the overlay currently has keyboard focus.
     m_mainEditor.handleSharedShortcuts();
+
+    if (m_showSettingsOverlay)
+    {
+        ImGuiStyle& style = ImGui::GetStyle();
+        const float prevAlpha = style.Alpha;
+        style.Alpha = 1.0f;
+
+        const ImVec2 display = ImGui::GetIO().DisplaySize;
+        const float windowPadding = 20.0f;
+        const float minTopY = elementSizes::topBarHeight + 8.0f;
+        const float maxSettingsWidth = std::max(120.0f, display.x - windowPadding * 2.0f);
+        const float maxSettingsHeight = std::max(120.0f, display.y - minTopY - windowPadding);
+        const ImVec2 settingsSize(
+            std::clamp(display.x * 0.90f, 200.0f, maxSettingsWidth),
+            std::clamp(display.y * 0.90f, 200.0f, maxSettingsHeight)
+        );
+        const ImVec2 settingsPos(
+            std::max(windowPadding, display.x - settingsSize.x - windowPadding),
+            std::max(minTopY, display.y - settingsSize.y - windowPadding)
+        );
+
+        ImGui::SetNextWindowPos(settingsPos, ImGuiCond_Appearing);
+        ImGui::SetNextWindowSize(settingsSize, ImGuiCond_Appearing);
+        ImGui::SetNextWindowBgAlpha(0.70f);
+        if (m_forceSettingsFocus)
+            ImGui::SetNextWindowFocus();
+        m_forceSettingsFocus = false;
+
+        const ImVec4 overlayBg(0.04f, 0.04f, 0.06f, 0.70f);
+        const ImVec4 overlayBorder(0.35f, 0.35f, 0.35f, 0.95f);
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, overlayBg);
+        ImGui::PushStyleColor(ImGuiCol_Border, overlayBorder);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+
+        char settingsWindowName[96];
+        std::snprintf(
+            settingsWindowName,
+            sizeof(settingsWindowName),
+            "Settings##SETTINGS_OVERLAY_WINDOW_%u",
+            static_cast<unsigned>(m_settingsWindowGeneration)
+        );
+
+        if (!ImGui::Begin(settingsWindowName, &m_showSettingsOverlay, ImGuiWindowFlags_NoSavedSettings))
+        {
+            ImGui::End();
+        }
+        else
+        {
+            ImGui::TextUnformatted("Settings");
+            ImGui::Separator();
+
+            ImGui::TextUnformatted("Grid Colors");
+            ImVec4 gridBgColor(
+                Settings::gridBgColorR,
+                Settings::gridBgColorG,
+                Settings::gridBgColorB,
+                Settings::gridBgColorA
+            );
+            if (ImGui::ColorEdit4("Grid background", reinterpret_cast<float*>(&gridBgColor)))
+            {
+                Settings::gridBgColorR = gridBgColor.x;
+                Settings::gridBgColorG = gridBgColor.y;
+                Settings::gridBgColorB = gridBgColor.z;
+                Settings::gridBgColorA = gridBgColor.w;
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::TextUnformatted("Grid Line Colors");
+
+            ImVec4 gridLineColor(
+                Settings::gridLineColorR,
+                Settings::gridLineColorG,
+                Settings::gridLineColorB,
+                Settings::gridLineColorA
+            );
+            if (ImGui::ColorEdit4("Grid lines", reinterpret_cast<float*>(&gridLineColor)))
+            {
+                Settings::gridLineColorR = gridLineColor.x;
+                Settings::gridLineColorG = gridLineColor.y;
+                Settings::gridLineColorB = gridLineColor.z;
+                Settings::gridLineColorA = gridLineColor.w;
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::TextDisabled("Values are saved to settings.json on app exit.");
+            ImGui::End();
+        }
+
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(2);
+        style.Alpha = prevAlpha;
+    }
 
     m_mainEditor.syncNodePositionsForPreview();
     m_graphPreviewPanel.update(m_mainEditor.getGraphState());
