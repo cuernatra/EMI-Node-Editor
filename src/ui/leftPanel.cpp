@@ -82,6 +82,7 @@ LeftPanel::LeftPanel()
         NodeType::Start,
         NodeType::Constant,
         NodeType::Variable,
+        NodeType::ArrayGetAt,
         NodeType::Operator,
         NodeType::Comparison,
         NodeType::Logic,
@@ -94,7 +95,6 @@ LeftPanel::LeftPanel()
         NodeType::Branch,
         NodeType::Loop,
         NodeType::ForEach,
-        NodeType::ArrayGetAt,
         NodeType::ArrayAddAt,
         NodeType::ArrayRemoveAt,
         NodeType::While,
@@ -134,6 +134,7 @@ void LeftPanel::draw(bool hasStartNode)
                 break;
 
             case NodeType::Constant:
+            case NodeType::ArrayGetAt:
                 dataTypes.push_back(makeDefaultItem(t));
                 break;
 
@@ -169,7 +170,6 @@ void LeftPanel::draw(bool hasStartNode)
             case NodeType::Branch:
             case NodeType::Loop:
             case NodeType::ForEach:
-            case NodeType::ArrayGetAt:
             case NodeType::ArrayAddAt:
             case NodeType::ArrayRemoveAt:
             case NodeType::While:

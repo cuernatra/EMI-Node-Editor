@@ -316,48 +316,35 @@ static void DrawReadOnlyField(const NodeField& field)
     ImGui::TextDisabled("%s", field.value.c_str());
 }
 
-static void DrawReadOnlyArrayFieldCollapsed(const NodeField& field)
+static void DrawReadOnlyArrayFieldPreview(const NodeField& field, int previewCount = 3)
 {
     const std::vector<std::string> items = ParseArrayItemsForNodeView(field.value);
-    ImGui::PushID(field.name.c_str());
 
-    ImGuiID stateId = ImGui::GetID("##arrayOpenState");
-    bool& open = s_nodeArrayOpenState[stateId];
-
-    if (ImGui::ArrowButton("##arrayArrow", open ? ImGuiDir_Down : ImGuiDir_Right))
-        open = !open;
-
+    ImGui::TextUnformatted(field.name.c_str());
     ImGui::SameLine();
-    const std::string label = field.name + " [" + std::to_string(items.size()) + "]";
-    ImGui::TextUnformatted(label.c_str());
 
-    if (open)
+    std::string preview = "[";
+    const int visible = std::min(static_cast<int>(items.size()), std::max(previewCount, 0));
+    for (int i = 0; i < visible; ++i)
     {
-        ImGui::Indent(14.0f);
-        if (items.empty())
-        {
-            ImGui::TextDisabled("(empty)");
-        }
-        else
-        {
-            for (size_t i = 0; i < items.size(); ++i)
-            {
-                const std::string token = TrimArrayToken(items[i]);
-                if (token.size() >= 2 && token.front() == '[' && token.back() == ']')
-                {
-                    const std::vector<std::string> nested = ParseArrayItemsForNodeView(token);
-                    ImGui::TextDisabled("%d: Array [%d]", static_cast<int>(i), static_cast<int>(nested.size()));
-                }
-                else
-                {
-                    ImGui::TextDisabled("%d: %s", static_cast<int>(i), token.c_str());
-                }
-            }
-        }
-        ImGui::Unindent(14.0f);
+        if (i > 0)
+            preview += ", ";
+
+        std::string token = TrimArrayToken(items[static_cast<size_t>(i)]);
+        if (token.size() > 12)
+            token = token.substr(0, 12) + "...";
+        preview += token;
     }
 
-    ImGui::PopID();
+    if (static_cast<int>(items.size()) > visible)
+    {
+        if (visible > 0)
+            preview += ", ";
+        preview += "...";
+    }
+    preview += "]";
+
+    ImGui::TextDisabled("%s [%d] %s", field.name.c_str(), static_cast<int>(items.size()), preview.c_str());
 }
 
 float MeasureFieldWidth(const NodeField& field)
@@ -516,6 +503,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         (n.nodeType == NodeType::ArrayGetAt
          || n.nodeType == NodeType::ArrayAddAt
          || n.nodeType == NodeType::ArrayRemoveAt);
+    const bool hasArrayInputFieldNode = (isForEachNode || isArrayIndexNode);
     bool drawNodeColorTextChanged = false;
 
     bool drewDeferredDefaultPin = false;
@@ -804,6 +792,16 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 const bool pinConnected = isInputPinConnected(field.name.c_str());
                 if (pinConnected)
                     DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
+            if (hasArrayInputFieldNode && field.name == "Array")
+            {
+                const bool pinConnected = isInputPinConnected("Array");
+                if (pinConnected)
+                    DrawReadOnlyArrayFieldPreview(field, 3);
                 else
                     changed |= DrawField(field);
                 continue;
