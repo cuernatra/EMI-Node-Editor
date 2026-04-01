@@ -28,7 +28,20 @@ void printLn(Variable& out, Variable* args, size_t argc) {
 
 void delay(Variable&, Variable* args, size_t argc) {
 	if (argc > 0) {
-		std::this_thread::sleep_for(std::chrono::milliseconds((size_t)toNumber(args[0])));
+		auto totalMs = static_cast<size_t>(toNumber(args[0]));
+		constexpr size_t kChunkMs = 10;
+		size_t elapsed = 0;
+
+		while (elapsed < totalMs) {
+			if (IsRuntimeInterruptRequested()) {
+				break;
+			}
+
+			const size_t remaining = totalMs - elapsed;
+			const size_t currentChunk = (remaining < kChunkMs) ? remaining : kChunkMs;
+			std::this_thread::sleep_for(std::chrono::milliseconds(currentChunk));
+			elapsed += currentChunk;
+		}
 	}
 }
 
@@ -104,8 +117,21 @@ void arrayRemoveIdx(Variable&, Variable* args, size_t argc) {
 	if (argc == 2 && args[0].getType() == VariableType::Array) {
 		auto& data = args[0].as<Array>()->data();
 		auto idx = toNumber(args[1]);
-		if (idx < data.size())
+		if (idx >= 0.0 && idx < static_cast<double>(data.size()))
 			data.erase(data.begin() + static_cast<size_t>(idx));
+	}
+}
+
+void arrayInsertIdx(Variable&, Variable* args, size_t argc) {
+	if (argc == 3 && args[0].getType() == VariableType::Array) {
+		auto& data = args[0].as<Array>()->data();
+		auto idxNumber = toNumber(args[1]);
+		size_t idx = 0;
+		if (idxNumber > 0.0)
+			idx = static_cast<size_t>(idxNumber);
+		if (idx > data.size())
+			idx = data.size();
+		data.insert(data.begin() + idx, args[2]);
 	}
 }
 
@@ -225,6 +251,7 @@ SymbolTable IntrinsicFunctions = { {
 	AddFunction("Array.Pop", arrayPop,					VariableType::Undefined, { {"array", VariableType::Array } }),
 	AddFunction("Array.Remove", arrayRemove,			VariableType::Undefined, { {"array", VariableType::Array }, { "value", VariableType::Undefined } }),
 	AddFunction("Array.RemoveIndex", arrayRemoveIdx,	VariableType::Undefined, { {"array", VariableType::Array }, { "index", VariableType::Number } }),
+	AddFunction("Array.Insert", arrayInsertIdx,		VariableType::Undefined, { {"array", VariableType::Array }, { "index", VariableType::Number }, { "value", VariableType::Undefined } }),
 	AddFunction("Array.Clear", arrayClear,				VariableType::Undefined, { {"array", VariableType::Array } } ),
 	AddFunction("Array.Find", arrayFind,				VariableType::Number,	 { {"array", VariableType::Array } }, true),
 	

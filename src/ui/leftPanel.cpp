@@ -1,6 +1,6 @@
 #include "leftPanel.h"
 #include "../core/registry/nodeRegistry.h"
-#include "../core/graph/link.h"
+#include "dropBar.h"
 #include "imgui.h"
 #include <cstring>
 #include <cstdio>
@@ -82,6 +82,7 @@ LeftPanel::LeftPanel()
         NodeType::Start,
         NodeType::Constant,
         NodeType::Variable,
+        NodeType::ArrayGetAt,
         NodeType::Operator,
         NodeType::Comparison,
         NodeType::Logic,
@@ -93,6 +94,9 @@ LeftPanel::LeftPanel()
         NodeType::Sequence,
         NodeType::Branch,
         NodeType::Loop,
+        NodeType::ForEach,
+        NodeType::ArrayAddAt,
+        NodeType::ArrayRemoveAt,
         NodeType::While,
         NodeType::Output
     };
@@ -130,6 +134,7 @@ void LeftPanel::draw(bool hasStartNode)
                 break;
 
             case NodeType::Constant:
+            case NodeType::ArrayGetAt:
                 dataTypes.push_back(makeDefaultItem(t));
                 break;
 
@@ -164,6 +169,9 @@ void LeftPanel::draw(bool hasStartNode)
             case NodeType::Sequence:
             case NodeType::Branch:
             case NodeType::Loop:
+            case NodeType::ForEach:
+            case NodeType::ArrayAddAt:
+            case NodeType::ArrayRemoveAt:
             case NodeType::While:
             case NodeType::Output:
                 flowTypes.push_back(makeDefaultItem(t));

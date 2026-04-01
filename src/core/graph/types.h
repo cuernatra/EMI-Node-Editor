@@ -30,6 +30,10 @@ enum class NodeType
     Sequence,    ///< Flow sequence splitter (In -> Then 0..N)
     Branch,      ///< Conditional branching (if/else)
     Loop,        ///< Iteration (for/while loops)
+    ForEach,     ///< Iterate over array elements
+    ArrayGetAt,  ///< Read value from array by index
+    ArrayAddAt,  ///< Insert value to array at index
+    ArrayRemoveAt, ///< Remove value from array at index
     While,       ///< While loop
     Variable,    ///< Variable get/set
     Function,    ///< Function definition/call
@@ -53,6 +57,10 @@ inline const char* NodeTypeToString(NodeType t)
         case NodeType::Sequence:   return "Sequence";
         case NodeType::Branch:     return "Branch";
         case NodeType::Loop:       return "Loop";
+        case NodeType::ForEach:    return "For Each";
+        case NodeType::ArrayGetAt: return "Array Get";
+        case NodeType::ArrayAddAt: return "Array Add";
+        case NodeType::ArrayRemoveAt: return "Array Remove";
         case NodeType::While:      return "While";
         case NodeType::Variable:   return "Variable";
         case NodeType::Function:   return "Function";
@@ -77,6 +85,14 @@ inline NodeType NodeTypeFromString(const std::string& s)
     if (s == "Sequence")   return NodeType::Sequence;
     if (s == "Branch")     return NodeType::Branch;
     if (s == "Loop")       return NodeType::Loop;
+    if (s == "ForEach")    return NodeType::ForEach;
+    if (s == "For Each")   return NodeType::ForEach;
+    if (s == "ArrayGetAt") return NodeType::ArrayGetAt;
+    if (s == "Array Get")  return NodeType::ArrayGetAt;
+    if (s == "ArrayAddAt") return NodeType::ArrayAddAt;
+    if (s == "Array Add")  return NodeType::ArrayAddAt;
+    if (s == "ArrayRemoveAt") return NodeType::ArrayRemoveAt;
+    if (s == "Array Remove")  return NodeType::ArrayRemoveAt;
     if (s == "While")      return NodeType::While;
     if (s == "Variable")   return NodeType::Variable;
     if (s == "Function")   return NodeType::Function;

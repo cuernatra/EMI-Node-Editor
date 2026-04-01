@@ -5,6 +5,7 @@
 #include "../core/graph/visualNode.h"
 #include "../core/graph/link.h"
 #include "../core/registry/nodeFactory.h"
+#include "../ui/dropBar.h"
 #include "imgui.h"
 #include <algorithm>
 #include <string>
@@ -24,7 +25,6 @@ void GraphEditor::Draw()
     ed::SetCurrentEditor(m_ctx);
 
     DrawNodeCanvas();
-    DrawContextMenus();
 
     ed::SetCurrentEditor(nullptr);
 }
@@ -151,6 +151,23 @@ void GraphEditor::DrawNodeCanvas()
         CreateNewLink();
     ed::EndCreate();
 
+    // Open spawn popup at cursor when right-clicking empty node-space background.
+    ed::Suspend();
+    const bool canvasHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup);
+    const bool rightClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
+    const bool overNode = ed::GetHoveredNode().Get() != 0;
+    const bool overLink = ed::GetHoveredLink().Get() != 0;
+    const bool overPin = ed::GetHoveredPin().Get() != 0;
+    if (canvasHovered && rightClicked && !overNode && !overLink && !overPin)
+    {
+        m_spawnPopupScreenPos = ImGui::GetMousePos();
+        m_spawnPopupCanvasPos = GraphEditorUtils::SnapToNodeGrid(ed::ScreenToCanvas(m_spawnPopupScreenPos));
+        m_openSpawnPopupRequested = true;
+    }
+    ed::Resume();
+
+    DrawContextMenus();
+
     // UX rule:
     // If user clicks the same already-selected single node again,
     // deselect it (so inspector closes instead of becoming dim/stacked).
@@ -174,10 +191,11 @@ void GraphEditor::DrawNodeCanvas()
 
     const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
     const bool loopLayoutChanged = GraphEditorUtils::RefreshLoopNodeLayout(m_state);
+    const bool forEachLayoutChanged = GraphEditorUtils::RefreshForEachNodeLayout(m_state);
     const bool drawRectLayoutChanged = GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
     const bool outputInputTypesChanged = GraphEditorUtils::RefreshOutputNodeInputTypes(m_state);
     const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-    if (variableTypesChanged || loopLayoutChanged || drawRectLayoutChanged || outputInputTypesChanged || linksChanged)
+    if (variableTypesChanged || loopLayoutChanged || forEachLayoutChanged || drawRectLayoutChanged || outputInputTypesChanged || linksChanged)
         m_state.MarkDirty();
 
     ed::End();
@@ -185,9 +203,123 @@ void GraphEditor::DrawNodeCanvas()
 
 
 
+bool GraphEditor::DrawSpawnNodeMenuContents(const ImVec2& spawnCanvasPos)
+{
+    auto spawnFromPayloadTitle = [&](const char* payloadTitle) -> bool
+    {
+        NodeType type = NodeType::Unknown;
+        std::string variableVariant;
+        GraphEditorUtils::ParseSpawnPayloadTitle(payloadTitle, type, variableVariant);
+        if (type == NodeType::Unknown)
+            return false;
+
+        if (type == NodeType::Start && m_state.HasNodeType(NodeType::Start))
+            return false;
+
+        VisualNode newNode = CreateNodeFromType(type, m_state.GetIdGen(), spawnCanvasPos);
+
+        if (type == NodeType::Variable && !variableVariant.empty())
+        {
+            if (NodeField* variant = GraphEditorUtils::FindField(newNode.fields, "Variant"))
+                variant->value = (variableVariant == "Get") ? "Get" : "Set";
+        }
+
+        m_state.AddNode(newNode);
+        m_state.MarkDirty();
+        return true;
+    };
+
+    const bool hasStartNode = m_state.HasNodeType(NodeType::Start);
+
+    if (ImGui::BeginMenu("Events"))
+    {
+        if (ImGui::MenuItem("Start", nullptr, false, !hasStartNode))
+            return spawnFromPayloadTitle("Start");
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Data"))
+    {
+        if (ImGui::MenuItem("Constant"))
+            return spawnFromPayloadTitle("Constant");
+        if (ImGui::MenuItem("Set Variable"))
+            return spawnFromPayloadTitle("Variable:Set");
+        if (ImGui::MenuItem("Get Variable"))
+            return spawnFromPayloadTitle("Variable:Get");
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Logic"))
+    {
+        if (ImGui::MenuItem("Operator"))
+            return spawnFromPayloadTitle("Operator");
+        if (ImGui::MenuItem("Comparison"))
+            return spawnFromPayloadTitle("Comparison");
+        if (ImGui::MenuItem("Logic"))
+            return spawnFromPayloadTitle("Logic");
+        if (ImGui::MenuItem("Not"))
+            return spawnFromPayloadTitle("Not");
+        if (ImGui::MenuItem("Draw Grid"))
+            return spawnFromPayloadTitle("Draw Grid");
+        if (ImGui::MenuItem("Function"))
+            return spawnFromPayloadTitle("Function");
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Flow"))
+    {
+        if (ImGui::MenuItem("Delay"))
+            return spawnFromPayloadTitle("Delay");
+        if (ImGui::MenuItem("Draw Rect"))
+            return spawnFromPayloadTitle("Draw Rect");
+        if (ImGui::MenuItem("Sequence"))
+            return spawnFromPayloadTitle("Sequence");
+        if (ImGui::MenuItem("Branch"))
+            return spawnFromPayloadTitle("Branch");
+        if (ImGui::MenuItem("Loop"))
+            return spawnFromPayloadTitle("Loop");
+        if (ImGui::MenuItem("For Each"))
+            return spawnFromPayloadTitle("For Each");
+        if (ImGui::MenuItem("Array Get"))
+            return spawnFromPayloadTitle("Array Get");
+        if (ImGui::MenuItem("Array Add"))
+            return spawnFromPayloadTitle("Array Add");
+        if (ImGui::MenuItem("Array Remove"))
+            return spawnFromPayloadTitle("Array Remove");
+        if (ImGui::MenuItem("While"))
+            return spawnFromPayloadTitle("While");
+        if (ImGui::MenuItem("Debug Print"))
+            return spawnFromPayloadTitle("Output");
+        ImGui::EndMenu();
+    }
+
+    return false;
+}
+
+
 void GraphEditor::DrawContextMenus()
 {
-    // Placeholder for future context menu logic
+    ed::Suspend();
+
+    if (m_openSpawnPopupRequested)
+    {
+        ImGui::SetNextWindowPos(m_spawnPopupScreenPos, ImGuiCond_Appearing);
+        ImGui::OpenPopup("##node_space_spawn_popup");
+        m_openSpawnPopupRequested = false;
+    }
+
+    if (ImGui::BeginPopup("##node_space_spawn_popup"))
+    {
+        ImGui::TextUnformatted("Create Node");
+        ImGui::Separator();
+
+        if (DrawSpawnNodeMenuContents(m_spawnPopupCanvasPos))
+            ImGui::CloseCurrentPopup();
+
+        ImGui::EndPopup();
+    }
+
+    ed::Resume();
 }
 
 void GraphEditor::DrawInspectorPanel()
@@ -228,6 +360,23 @@ void GraphEditor::DrawInspectorPanel()
     ImGui::Spacing();
 
     bool fieldsChanged = false;
+
+    auto isInputPinConnectedByName = [&](const char* pinName) -> bool
+    {
+        if (!selectedNode || !pinName)
+            return false;
+
+        Pin* targetPin = GraphEditorUtils::FindPinByName(selectedNode->inPins, pinName);
+        if (!targetPin || targetPin->type == PinType::Flow)
+            return false;
+
+        for (const Link& l : m_state.GetLinks())
+        {
+            if (l.alive && l.endPinId == targetPin->id)
+                return true;
+        }
+        return false;
+    };
     if (selectedNode->fields.empty())
     {
         ImGui::TextUnformatted("No values.");
@@ -340,7 +489,8 @@ void GraphEditor::DrawInspectorPanel()
                     if (&field == variantField)
                         continue;
 
-                    if (field.name == "Default" && defaultConnected)
+                    if ((field.name == "Default" && defaultConnected)
+                        || isInputPinConnectedByName(field.name.c_str()))
                     {
                         GraphEditorUtils::DrawInspectorReadOnlyField(field);
                         continue;
@@ -350,6 +500,38 @@ void GraphEditor::DrawInspectorPanel()
                 }
             }
 
+            ImGui::PopID();
+        }
+        else if (selectedNode->nodeType == NodeType::ForEach)
+        {
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+            for (NodeField& field : selectedNode->fields)
+            {
+                if (isInputPinConnectedByName(field.name.c_str()))
+                {
+                    GraphEditorUtils::DrawInspectorReadOnlyField(field);
+                    continue;
+                }
+
+                fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
+            }
+            ImGui::PopID();
+        }
+        else if (selectedNode->nodeType == NodeType::ArrayGetAt
+              || selectedNode->nodeType == NodeType::ArrayAddAt
+              || selectedNode->nodeType == NodeType::ArrayRemoveAt)
+        {
+            ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+            for (NodeField& field : selectedNode->fields)
+            {
+                if (isInputPinConnectedByName(field.name.c_str()))
+                {
+                    GraphEditorUtils::DrawInspectorReadOnlyField(field);
+                    continue;
+                }
+
+                fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
+            }
             ImGui::PopID();
         }
         else if (selectedNode->nodeType == NodeType::Loop)
@@ -490,6 +672,7 @@ void GraphEditor::DrawInspectorPanel()
         GraphSerializer::ApplyConstantTypeFromFields(*selectedNode, /*resetValueOnTypeChange=*/true);
 
         GraphEditorUtils::RefreshVariableNodeTypes(m_state);
+        GraphEditorUtils::RefreshForEachNodeLayout(m_state);
         GraphEditorUtils::RefreshLoopNodeLayout(m_state);
         GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
         GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
@@ -583,6 +766,31 @@ void GraphEditor::CreateNewLink()
     const Pin* endPin   = m_state.FindPin(endPinId);
 
     if (!startPin || !endPin || !Pin::CanConnect(*startPin, *endPin))
+    {
+        ed::RejectNewItem();
+        return;
+    }
+
+    // Safety rule:
+    // For Each "Array" input must receive Array-compatible data.
+    // Allow:
+    // - Array (explicit)
+    // - Any only from For Each "Element" output (nested array iteration wiring)
+    // Reject all other Any/non-array sources to avoid runtime crashes.
+    const Pin* outPinPreview = !startPin->isInput ? startPin : endPin;
+    const Pin* inPinPreview  = startPin->isInput ? startPin : endPin;
+    const bool isNestedForEachElementSource =
+        outPinPreview
+        && outPinPreview->type == PinType::Any
+        && outPinPreview->parentNodeType == NodeType::ForEach
+        && outPinPreview->name == "Element";
+
+    if (inPinPreview
+        && inPinPreview->parentNodeType == NodeType::ForEach
+        && inPinPreview->name == "Array"
+        && outPinPreview
+        && outPinPreview->type != PinType::Array
+        && !isNestedForEachElementSource)
     {
         ed::RejectNewItem();
         return;

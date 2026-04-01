@@ -23,6 +23,14 @@ static const char* NodeTypeToSaveToken(NodeType t)
         return "DrawRect";
     if (t == NodeType::DrawGrid)
         return "DrawGrid";
+    if (t == NodeType::ForEach)
+        return "ForEach";
+    if (t == NodeType::ArrayGetAt)
+        return "ArrayGetAt";
+    if (t == NodeType::ArrayAddAt)
+        return "ArrayAddAt";
+    if (t == NodeType::ArrayRemoveAt)
+        return "ArrayRemoveAt";
     if (t == NodeType::Output)
         return "Output";
     return NodeTypeToString(t);
@@ -148,8 +156,9 @@ void GraphSerializer::Save(const GraphState& state, const char* path)
         out << " " << n.fields.size();
         for (const NodeField& f : n.fields)
         {
+            const std::string encodedName = EncodeFieldValue(f.name);
             const std::string encoded = EncodeFieldValue(f.value);
-            out << " " << f.name << "=" << encoded;
+            out << " " << encodedName << "=" << encoded;
         }
 
         ImVec2 pos = ed::GetNodePosition(n.id);
@@ -381,7 +390,7 @@ void GraphSerializer::Load(GraphState& state, const char* path)
                 auto eq = pair.find('=');
                 if (eq != std::string::npos)
                 {
-                    std::string name = pair.substr(0, eq);
+                    std::string name = DecodeFieldValue(pair.substr(0, eq));
                     std::string val  = DecodeFieldValue(pair.substr(eq + 1));
                     fieldValues.push_back({ name, val });
                 }

@@ -28,6 +28,7 @@ void DrawInspectorReadOnlyField(const NodeField& field);
 bool RefreshVariableNodeTypes(GraphState& state);
 bool RefreshOutputNodeInputTypes(GraphState& state);
 bool RefreshLoopNodeLayout(GraphState& state);
+bool RefreshForEachNodeLayout(GraphState& state);
 bool RefreshDrawRectNodeLayout(GraphState& state);
 bool SyncLinkTypesAndPruneInvalid(GraphState& state);
 void DisconnectNonAnyLinksForPins(GraphState& state, const std::vector<ed::PinId>& pinIds);
