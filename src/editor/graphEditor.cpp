@@ -479,7 +479,7 @@ void GraphEditor::DrawInspectorPanel()
 
                 if (typeField)
                 {
-                    DrawInspectorReadOnlyField(*typeField);
+                    GraphEditorUtils::DrawInspectorReadOnlyField(*typeField);
                 }
             }
             else
