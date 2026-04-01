@@ -3,6 +3,9 @@
 #include <stdexcept>
 #include <cassert>
 #include <cmath>
+#include <algorithm>
+#include <cctype>
+#include <cstdlib>
 
 
 // Helpers
@@ -100,6 +103,100 @@ static PinType VariableTypeFromString(const std::string& typeName)
     return PinType::Number;
 }
 
+static std::string TrimCopy(const std::string& s)
+{
+    size_t a = 0;
+    size_t b = s.size();
+    while (a < b && std::isspace(static_cast<unsigned char>(s[a]))) ++a;
+    while (b > a && std::isspace(static_cast<unsigned char>(s[b - 1]))) --b;
+    return s.substr(a, b - a);
+}
+
+static bool TryParseDoubleExact(const std::string& s, double& out)
+{
+    if (s.empty())
+        return false;
+
+    char* end = nullptr;
+    const double v = std::strtod(s.c_str(), &end);
+    if (end && *end == '\0')
+    {
+        out = v;
+        return true;
+    }
+
+    return false;
+}
+
+static std::vector<std::string> SplitArrayItemsTopLevel(const std::string& text)
+{
+    std::vector<std::string> out;
+    std::string current;
+    current.reserve(text.size());
+
+    int bracketDepth = 0;
+    int parenDepth = 0;
+    int braceDepth = 0;
+    bool inQuote = false;
+    char quoteChar = '\0';
+    bool escape = false;
+
+    auto pushCurrent = [&]() {
+        out.push_back(TrimCopy(current));
+        current.clear();
+    };
+
+    for (char ch : text)
+    {
+        if (escape)
+        {
+            current.push_back(ch);
+            escape = false;
+            continue;
+        }
+
+        if (inQuote)
+        {
+            current.push_back(ch);
+            if (ch == '\\')
+            {
+                escape = true;
+            }
+            else if (ch == quoteChar)
+            {
+                inQuote = false;
+            }
+            continue;
+        }
+
+        if (ch == '"' || ch == '\'')
+        {
+            inQuote = true;
+            quoteChar = ch;
+            current.push_back(ch);
+            continue;
+        }
+
+        if (ch == '[') ++bracketDepth;
+        else if (ch == ']') bracketDepth = std::max(0, bracketDepth - 1);
+        else if (ch == '(') ++parenDepth;
+        else if (ch == ')') parenDepth = std::max(0, parenDepth - 1);
+        else if (ch == '{') ++braceDepth;
+        else if (ch == '}') braceDepth = std::max(0, braceDepth - 1);
+
+        if (ch == ',' && bracketDepth == 0 && parenDepth == 0 && braceDepth == 0)
+        {
+            pushCurrent();
+            continue;
+        }
+
+        current.push_back(ch);
+    }
+
+    pushCurrent();
+    return out;
+}
+
 bool GraphCompiler::NodeRequiresFlow(const VisualNode& n) const
 {
     bool hasFlowIn = false;
@@ -148,6 +245,16 @@ std::string GraphCompiler::LoopStartVarName(const VisualNode& n) const
 std::string GraphCompiler::LoopEndVarName(const VisualNode& n) const
 {
     return "__loop_end_i_" + std::to_string(static_cast<unsigned long long>(static_cast<uintptr_t>(n.id.Get())));
+}
+
+std::string GraphCompiler::ForEachIterVarName(const VisualNode& n) const
+{
+    return "__foreach_it_" + std::to_string(static_cast<unsigned long long>(static_cast<uintptr_t>(n.id.Get())));
+}
+
+std::string GraphCompiler::ForEachElementVarName(const VisualNode& n) const
+{
+    return "__foreach_elem_" + std::to_string(static_cast<unsigned long long>(static_cast<uintptr_t>(n.id.Get())));
 }
 
 void GraphCompiler::CollectFlowReachableFromOutput(ed::PinId flowOutputPinId)
@@ -249,7 +356,27 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
             Node* forNode = BuildLoop(n);
             if (HasError || !forNode) { delete forNode; return; }
 
-            Node* bodyScope = (forNode->children.size() > 3) ? forNode->children[3] : nullptr;
+            Node* bodyScope = nullptr;
+            if (forNode->type == Token::For)
+            {
+                bodyScope = (forNode->children.size() > 3) ? forNode->children[3] : nullptr;
+            }
+            else if (forNode->type == Token::Scope)
+            {
+                // Loop builder currently returns a prelude scope that contains
+                // start/end temporary declarations and the actual For node as
+                // its last child. Body flow must be appended inside that inner
+                // For body scope so it executes on every iteration.
+                for (auto it = forNode->children.rbegin(); it != forNode->children.rend(); ++it)
+                {
+                    Node* child = *it;
+                    if (!child || child->type != Token::For)
+                        continue;
+
+                    bodyScope = (child->children.size() > 3) ? child->children[3] : nullptr;
+                    break;
+                }
+            }
 
             if (const Pin* bodyOut = GetOutputPinByName(n, "Body"))
             {
@@ -295,6 +422,36 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
             return;
         }
 
+        case NodeType::ForEach:
+        {
+            Node* forNode = BuildForEach(n);
+            if (HasError || !forNode) { delete forNode; return; }
+
+            Node* bodyScope = (forNode->children.size() > 1) ? forNode->children[1] : nullptr;
+
+            if (const Pin* bodyOut = GetOutputPinByName(n, "Body"))
+            {
+                const uintptr_t forEachKey = static_cast<uintptr_t>(n.id.Get());
+                activeForEachBodyNodeIds_.insert(forEachKey);
+                struct ScopedErase {
+                    std::unordered_set<uintptr_t>& set;
+                    uintptr_t key;
+                    ~ScopedErase() { set.erase(key); }
+                } forEachGuard{ activeForEachBodyNodeIds_, forEachKey };
+
+                AppendFlowChainFromOutput(bodyOut->id, bodyScope);
+            }
+            if (HasError) { delete forNode; return; }
+
+            targetScope->children.push_back(forNode);
+
+            if (const Pin* completedOut = GetOutputPinByName(n, "Completed"))
+                AppendFlowChainFromOutput(completedOut->id, targetScope);
+            if (HasError) return;
+
+            return;
+        }
+
         default:
             break;
     }
@@ -330,6 +487,7 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
     nodes_ = &nodes;
     activeNodeBuilds_.clear();
     activeLoopBodyNodeIds_.clear();
+    activeForEachBodyNodeIds_.clear();
     flowReachableNodes_.clear();
     activeFlowOutputs_.clear();
     visitedFlowOutputs_.clear();
@@ -524,6 +682,18 @@ Node* GraphCompiler::BuildNode(const VisualNode& n, int outPinIdx)
         }
     }
 
+    // ForEach exposes current element while body executes, and last value otherwise.
+    if (n.nodeType == NodeType::ForEach
+        && outPinIdx >= 0
+        && outPinIdx < static_cast<int>(n.outPins.size()))
+    {
+        const Pin& requestedOutPin = n.outPins[outPinIdx];
+        if (requestedOutPin.type != PinType::Flow && requestedOutPin.name == "Element")
+        {
+            return MakeIdNode(ForEachElementVarName(n));
+        }
+    }
+
     const NodeDescriptor* descriptor = NodeRegistry::Get().Find(n.nodeType);
     if (descriptor && descriptor->compile)
         return descriptor->compile(this, n);
@@ -558,8 +728,11 @@ Node* GraphCompiler::BuildConstant(const VisualNode& n)
         catch (...) { return MakeNumberNode(0.0); }
     }
 
-    if (valueType == "String" || valueType == "Array")
+    if (valueType == "String")
         return MakeStringNode(value);
+
+    if (valueType == "Array")
+        return BuildArrayLiteralNode(value);
 
     // Backward compatibility for old/incomplete data without Type field.
     try { return MakeNumberNode(std::stod(value)); }
@@ -716,8 +889,29 @@ Node* GraphCompiler::BuildDelay(const VisualNode& n)
     Node* params = MakeNode(Token::CallParams);
     if (const Pin* durationPin = GetInputPinByName(n, "Duration"))
     {
-        params->children.push_back(BuildExpr(*durationPin));
-        if (HasError) { delete call; return nullptr; }
+        const PinSource* durationSrc = resolver_.Resolve(durationPin->id);
+        if (durationSrc)
+        {
+            params->children.push_back(BuildNode(*durationSrc->node, durationSrc->pinIdx));
+            if (HasError) { delete call; return nullptr; }
+        }
+        else
+        {
+            const std::string* durationStr = GetField(n, "Duration");
+            double durationMs = 1000.0;
+            if (durationStr)
+            {
+                try
+                {
+                    durationMs = std::stod(*durationStr);
+                }
+                catch (...)
+                {
+                    durationMs = 1000.0;
+                }
+            }
+            params->children.push_back(MakeNumberNode(durationMs));
+        }
     }
     else
     {
@@ -884,6 +1078,263 @@ Node* GraphCompiler::BuildLoop(const VisualNode& n)
     return prelude;
 }
 
+Node* GraphCompiler::BuildArrayLiteralNode(const std::string& text) const
+{
+    std::string s = TrimCopy(text);
+    if (s.empty())
+        return MakeNode(Token::Array);
+
+    if (s.front() == '[' && s.back() == ']')
+        s = s.substr(1, s.size() - 2);
+
+    Node* arr = MakeNode(Token::Array);
+    const std::vector<std::string> items = SplitArrayItemsTopLevel(s);
+    for (const std::string& raw : items)
+    {
+        const std::string item = TrimCopy(raw);
+        if (item.empty())
+            continue;
+
+        if ((item.front() == '"' && item.back() == '"') ||
+            (item.front() == '\'' && item.back() == '\''))
+        {
+            arr->children.push_back(MakeStringNode(item.substr(1, item.size() - 2)));
+            continue;
+        }
+
+        if (item == "true" || item == "True")
+        {
+            arr->children.push_back(MakeBoolNode(true));
+            continue;
+        }
+
+        if (item == "false" || item == "False")
+        {
+            arr->children.push_back(MakeBoolNode(false));
+            continue;
+        }
+
+        if (item == "null" || item == "Null")
+        {
+            arr->children.push_back(MakeNode(Token::Null));
+            continue;
+        }
+
+        if (item.front() == '[' && item.back() == ']')
+        {
+            arr->children.push_back(BuildArrayLiteralNode(item));
+            continue;
+        }
+
+        double numeric = 0.0;
+        if (TryParseDoubleExact(item, numeric))
+        {
+            arr->children.push_back(MakeNumberNode(numeric));
+            continue;
+        }
+
+        // Fallback to plain string token.
+        arr->children.push_back(MakeStringNode(item));
+    }
+
+    return arr;
+}
+
+Node* GraphCompiler::BuildForEach(const VisualNode& n)
+{
+    const Pin* arrayPin = GetInputPinByName(n, "Array");
+    if (!arrayPin)
+    {
+        Error("For Each node needs Array input");
+        return nullptr;
+    }
+
+    Node* arrayExpr = nullptr;
+    if (const PinSource* arraySrc = resolver_.Resolve(arrayPin->id))
+    {
+        arrayExpr = BuildNode(*arraySrc->node, arraySrc->pinIdx);
+    }
+    else
+    {
+        const std::string* arrayText = GetField(n, "Array");
+        arrayExpr = BuildArrayLiteralNode(arrayText ? *arrayText : "[]");
+    }
+
+    if (HasError || !arrayExpr)
+    {
+        delete arrayExpr;
+        return nullptr;
+    }
+
+    Node* loop = MakeNode(Token::For);
+    loop->data = ForEachElementVarName(n);
+
+    // EMI range-for shape:
+    //   For(data=<varName>) with 3 children:
+    //     [0] iterable expression
+    //     [1] body scope
+    //     [2] completed/else scope
+    Node* bodyScope = MakeNode(Token::Scope);
+    Node* completedScope = MakeNode(Token::Scope);
+
+    loop->children.push_back(arrayExpr);
+    loop->children.push_back(bodyScope);
+    loop->children.push_back(completedScope);
+
+    return loop;
+}
+
+Node* GraphCompiler::BuildArrayGetAt(const VisualNode& n)
+{
+    const Pin* arrayPin = GetInputPinByName(n, "Array");
+    const Pin* indexPin = GetInputPinByName(n, "Index");
+    if (!arrayPin || !indexPin)
+    {
+        Error("Array Get node needs Array and Index inputs");
+        return nullptr;
+    }
+
+    Node* arrayExpr = nullptr;
+    if (const PinSource* arraySrc = resolver_.Resolve(arrayPin->id))
+        arrayExpr = BuildNode(*arraySrc->node, arraySrc->pinIdx);
+    else
+    {
+        const std::string* arrayText = GetField(n, "Array");
+        arrayExpr = BuildArrayLiteralNode(arrayText ? *arrayText : "[]");
+    }
+
+    Node* indexExpr = nullptr;
+    if (const PinSource* indexSrc = resolver_.Resolve(indexPin->id))
+        indexExpr = BuildNode(*indexSrc->node, indexSrc->pinIdx);
+    else
+    {
+        const std::string* indexText = GetField(n, "Index");
+        double indexValue = 0.0;
+        if (indexText)
+        {
+            try { indexValue = std::stod(*indexText); }
+            catch (...) { indexValue = 0.0; }
+        }
+        indexExpr = MakeNumberNode(indexValue);
+    }
+
+    if (HasError || !arrayExpr || !indexExpr)
+    {
+        delete arrayExpr;
+        delete indexExpr;
+        return nullptr;
+    }
+
+    Node* indexer = MakeNode(Token::Indexer);
+    indexer->children.push_back(arrayExpr);
+    indexer->children.push_back(indexExpr);
+    return indexer;
+}
+
+Node* GraphCompiler::BuildArrayAddAt(const VisualNode& n)
+{
+    const Pin* arrayPin = GetInputPinByName(n, "Array");
+    const Pin* indexPin = GetInputPinByName(n, "Index");
+    const Pin* valuePin = GetInputPinByName(n, "Value");
+    if (!arrayPin || !indexPin || !valuePin)
+    {
+        Error("Array Add node needs Array, Index and Value inputs");
+        return nullptr;
+    }
+
+    Node* arrayExpr = nullptr;
+    if (const PinSource* arraySrc = resolver_.Resolve(arrayPin->id))
+        arrayExpr = BuildNode(*arraySrc->node, arraySrc->pinIdx);
+    else
+    {
+        const std::string* arrayText = GetField(n, "Array");
+        arrayExpr = BuildArrayLiteralNode(arrayText ? *arrayText : "[]");
+    }
+
+    Node* indexExpr = nullptr;
+    if (const PinSource* indexSrc = resolver_.Resolve(indexPin->id))
+        indexExpr = BuildNode(*indexSrc->node, indexSrc->pinIdx);
+    else
+    {
+        const std::string* indexText = GetField(n, "Index");
+        double indexValue = 0.0;
+        if (indexText)
+        {
+            try { indexValue = std::stod(*indexText); }
+            catch (...) { indexValue = 0.0; }
+        }
+        indexExpr = MakeNumberNode(indexValue);
+    }
+
+    Node* valueExpr = BuildExpr(*valuePin);
+    if (HasError || !arrayExpr || !indexExpr || !valueExpr)
+    {
+        delete arrayExpr;
+        delete indexExpr;
+        delete valueExpr;
+        return nullptr;
+    }
+
+    Node* call = MakeNode(Token::FunctionCall);
+    call->children.push_back(MakeIdNode("Array.Insert"));
+    Node* params = MakeNode(Token::CallParams);
+    params->children.push_back(arrayExpr);
+    params->children.push_back(indexExpr);
+    params->children.push_back(valueExpr);
+    call->children.push_back(params);
+    return call;
+}
+
+Node* GraphCompiler::BuildArrayRemoveAt(const VisualNode& n)
+{
+    const Pin* arrayPin = GetInputPinByName(n, "Array");
+    const Pin* indexPin = GetInputPinByName(n, "Index");
+    if (!arrayPin || !indexPin)
+    {
+        Error("Array Remove node needs Array and Index inputs");
+        return nullptr;
+    }
+
+    Node* arrayExpr = nullptr;
+    if (const PinSource* arraySrc = resolver_.Resolve(arrayPin->id))
+        arrayExpr = BuildNode(*arraySrc->node, arraySrc->pinIdx);
+    else
+    {
+        const std::string* arrayText = GetField(n, "Array");
+        arrayExpr = BuildArrayLiteralNode(arrayText ? *arrayText : "[]");
+    }
+
+    Node* indexExpr = nullptr;
+    if (const PinSource* indexSrc = resolver_.Resolve(indexPin->id))
+        indexExpr = BuildNode(*indexSrc->node, indexSrc->pinIdx);
+    else
+    {
+        const std::string* indexText = GetField(n, "Index");
+        double indexValue = 0.0;
+        if (indexText)
+        {
+            try { indexValue = std::stod(*indexText); }
+            catch (...) { indexValue = 0.0; }
+        }
+        indexExpr = MakeNumberNode(indexValue);
+    }
+
+    if (HasError || !arrayExpr || !indexExpr)
+    {
+        delete arrayExpr;
+        delete indexExpr;
+        return nullptr;
+    }
+
+    Node* call = MakeNode(Token::FunctionCall);
+    call->children.push_back(MakeIdNode("Array.RemoveIndex"));
+    Node* params = MakeNode(Token::CallParams);
+    params->children.push_back(arrayExpr);
+    params->children.push_back(indexExpr);
+    call->children.push_back(params);
+    return call;
+}
+
 Node* GraphCompiler::BuildVariable(const VisualNode& n)
 {
     const std::string* nameStr = GetField(n, "Name");
@@ -933,13 +1384,17 @@ Node* GraphCompiler::BuildVariable(const VisualNode& n)
             break;
         }
         case PinType::String:
-        case PinType::Array:
             rhs = MakeStringNode(defaultValue);
             break;
+        case PinType::Array:
+            rhs = BuildArrayLiteralNode(defaultValue);
+            break;
         case PinType::Number:
-        default:
             try { rhs = MakeNumberNode(std::stod(defaultValue)); }
             catch (...) { rhs = MakeNumberNode(0.0); }
+            break;
+        default:
+            rhs = MakeNode(Token::Null);
             break;
     }
 
@@ -988,11 +1443,54 @@ Node* GraphCompiler::BuildOutput(const VisualNode& n)
     const Pin* valuePin = GetInputPinByName(n, "Value");
     if (valuePin)
     {
+        Node* valueExpr = nullptr;
+
+        const PinSource* valueSrc = resolver_.Resolve(valuePin->id);
+        if (valueSrc)
+        {
+            valueExpr = BuildNode(*valueSrc->node, valueSrc->pinIdx);
+            if (HasError) { delete scope; return nullptr; }
+        }
+        else
+        {
+            // QoL fallback:
+            // If Debug Print value is unconnected but this node is executed from
+            // a ForEach Body flow, default to that ForEach's current Element value.
+            const Pin* flowIn = GetInputPinByName(n, "In");
+            if (!flowIn)
+                flowIn = GetInputPinByName(n, "Flow");
+
+            if (flowIn)
+            {
+                const FlowTarget* flowSrc = resolver_.ResolveFlow(flowIn->id);
+                if (flowSrc && flowSrc->node && flowSrc->node->nodeType == NodeType::ForEach)
+                {
+                    int elementOutIdx = -1;
+                    for (int i = 0; i < static_cast<int>(flowSrc->node->outPins.size()); ++i)
+                    {
+                        const Pin& outPin = flowSrc->node->outPins[static_cast<size_t>(i)];
+                        if (outPin.type != PinType::Flow && outPin.name == "Element")
+                        {
+                            elementOutIdx = i;
+                            break;
+                        }
+                    }
+
+                    if (elementOutIdx >= 0)
+                        valueExpr = BuildNode(*flowSrc->node, elementOutIdx);
+                    if (HasError) { delete scope; return nullptr; }
+                }
+            }
+
+            if (!valueExpr)
+                valueExpr = BuildExpr(*valuePin);
+            if (HasError) { delete scope; return nullptr; }
+        }
+
         Node* printValue = MakeNode(Token::FunctionCall);
         printValue->children.push_back(MakeIdNode("println"));
         Node* valueParams = MakeNode(Token::CallParams);
-        valueParams->children.push_back(BuildExpr(*valuePin));
-        if (HasError) { delete scope; return nullptr; }
+        valueParams->children.push_back(valueExpr);
         printValue->children.push_back(valueParams);
         scope->children.push_back(printValue);
     }

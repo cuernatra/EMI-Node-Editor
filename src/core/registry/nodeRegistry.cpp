@@ -248,6 +248,86 @@ descriptors_[NodeType::Constant] = {
     };
 
     // ------------------------------------------------------------------
+    // For Each  —  Flow in + array -> Body flow + element output
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::ForEach] = {
+        NodeType::ForEach,
+        "For Each",
+        {
+            { "In",        PinType::Flow,  /*isInput=*/true  },
+            { "Array",     PinType::Array, /*isInput=*/true  },
+            { "Body",      PinType::Flow,  /*isInput=*/false },
+            { "Completed", PinType::Flow,  /*isInput=*/false },
+            { "Element",   PinType::Any,   /*isInput=*/false }
+        },
+        {
+            { "Element Type", PinType::String, "Any" },
+            { "Array", PinType::Array, "[]" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildForEach(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // Array Get  —  array + index -> value
+    // Reads one value from array by zero-based index.
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::ArrayGetAt] = {
+        NodeType::ArrayGetAt,
+        "Array Get",
+        {
+            { "Array", PinType::Array,  /*isInput=*/true  },
+            { "Index", PinType::Number, /*isInput=*/true  },
+            { "Value", PinType::Any,    /*isInput=*/false }
+        },
+        {
+            { "Array", PinType::Array, "[]" },
+            { "Index", PinType::Number, "0" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayGetAt(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // Array Add  —  Flow in + array + index + value -> Flow out
+    // Inserts Value at Index (UE5 style "Insert").
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::ArrayAddAt] = {
+        NodeType::ArrayAddAt,
+        "Array Add",
+        {
+            { "In",    PinType::Flow,   /*isInput=*/true  },
+            { "Array", PinType::Array,  /*isInput=*/true  },
+            { "Index", PinType::Number, /*isInput=*/true  },
+            { "Value", PinType::Any,    /*isInput=*/true  },
+            { "Out",   PinType::Flow,   /*isInput=*/false }
+        },
+        {
+            { "Array", PinType::Array, "[]" },
+            { "Index", PinType::Number, "0" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayAddAt(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // Array Remove  —  Flow in + array + index -> Flow out
+    // Removes item at Index.
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::ArrayRemoveAt] = {
+        NodeType::ArrayRemoveAt,
+        "Array Remove",
+        {
+            { "In",    PinType::Flow,   /*isInput=*/true  },
+            { "Array", PinType::Array,  /*isInput=*/true  },
+            { "Index", PinType::Number, /*isInput=*/true  },
+            { "Out",   PinType::Flow,   /*isInput=*/false }
+        },
+        {
+            { "Array", PinType::Array, "[]" },
+            { "Index", PinType::Number, "0" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayRemoveAt(n); }
+    };
+
+    // ------------------------------------------------------------------
     // While  —  Flow in + condition -> Body flow + Completed flow
     // ------------------------------------------------------------------
     descriptors_[NodeType::While] = {

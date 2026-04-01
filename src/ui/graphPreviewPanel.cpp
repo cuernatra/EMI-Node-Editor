@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <functional>
 #include <limits>
+#include <unordered_map>
 #include <unordered_set>
 
 #if defined(_WIN32)
@@ -244,6 +245,7 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
     std::function<double(const VisualNode&, const Pin&)> evalPin;
     std::function<double(const VisualNode&, const char*)> evalNamedInput;
     std::unordered_set<uintptr_t> activeEvalPins;
+    std::unordered_map<uintptr_t, double> activeLoopIndices;
 
     evalNamedInput = [&](const VisualNode& node, const char* name) -> double
     {
@@ -282,6 +284,19 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
 
             switch (srcNode->nodeType)
             {
+                case NodeType::Loop:
+                {
+                    const Pin* srcPin = state.FindPin(link.startPinId);
+                    if (srcPin && srcPin->name == "Index")
+                    {
+                        const uintptr_t loopId = static_cast<uintptr_t>(srcNode->id.Get());
+                        const auto it = activeLoopIndices.find(loopId);
+                        if (it != activeLoopIndices.end())
+                            return it->second;
+                    }
+                    return 0.0;
+                }
+
                 case NodeType::Constant:
                 {
                     const NodeField* valueField = FindField(*srcNode, "Value");
@@ -399,6 +414,33 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
         if (targetNode->nodeType == NodeType::Delay)
         {
             timeCursor += static_cast<long long>(std::llround(std::max(0.0, evalNamedInput(*targetNode, "Duration"))));
+        }
+        else if (targetNode->nodeType == NodeType::Loop)
+        {
+            const int start = static_cast<int>(std::llround(evalNamedInput(*targetNode, "Start")));
+            const int count = std::max(0, static_cast<int>(std::llround(evalNamedInput(*targetNode, "Count"))));
+
+            const Pin* bodyOut = FindOutputPin(*targetNode, "Body");
+            const Pin* completedOut = FindOutputPin(*targetNode, "Completed");
+
+            const uintptr_t loopId = static_cast<uintptr_t>(targetNode->id.Get());
+            long long loopCursor = timeCursor;
+
+            if (bodyOut)
+            {
+                for (int i = 0; i < count; ++i)
+                {
+                    activeLoopIndices[loopId] = static_cast<double>(start + i);
+                    appendFlowChain(bodyOut->id, loopCursor, depth + 1, activeGrid);
+                }
+            }
+
+            activeLoopIndices.erase(loopId);
+
+            timeCursor = loopCursor;
+            if (completedOut)
+                appendFlowChain(completedOut->id, timeCursor, depth + 1, activeGrid);
+            return;
         }
         else if (targetNode->nodeType == NodeType::Sequence)
         {

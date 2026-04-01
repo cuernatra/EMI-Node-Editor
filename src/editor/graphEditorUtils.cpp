@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <cctype>
 #include <string>
 #include <unordered_map>
 
@@ -30,8 +31,193 @@ bool ParseInspectorBool(const std::string& s)
     return s == "1" || s == "true" || s == "True";
 }
 
+std::string TrimCopy(const std::string& s)
+{
+    size_t a = 0;
+    size_t b = s.size();
+    while (a < b && std::isspace(static_cast<unsigned char>(s[a]))) ++a;
+    while (b > a && std::isspace(static_cast<unsigned char>(s[b - 1]))) --b;
+    return s.substr(a, b - a);
+}
+
+std::vector<std::string> ParseArrayItems(const std::string& text)
+{
+    std::string src = TrimCopy(text);
+    if (src.size() >= 2 && src.front() == '[' && src.back() == ']')
+        src = src.substr(1, src.size() - 2);
+
+    std::vector<std::string> out;
+    std::string current;
+    current.reserve(src.size());
+
+    int bracketDepth = 0;
+    int parenDepth = 0;
+    int braceDepth = 0;
+    bool inQuote = false;
+    char quoteChar = '\0';
+    bool escape = false;
+
+    auto pushCurrent = [&]() {
+        std::string item = TrimCopy(current);
+        if (!item.empty())
+            out.push_back(item);
+        current.clear();
+    };
+
+    for (char ch : src)
+    {
+        if (escape)
+        {
+            current.push_back(ch);
+            escape = false;
+            continue;
+        }
+
+        if (inQuote)
+        {
+            current.push_back(ch);
+            if (ch == '\\')
+                escape = true;
+            else if (ch == quoteChar)
+                inQuote = false;
+            continue;
+        }
+
+        if (ch == '"' || ch == '\'')
+        {
+            inQuote = true;
+            quoteChar = ch;
+            current.push_back(ch);
+            continue;
+        }
+
+        if (ch == '[') ++bracketDepth;
+        else if (ch == ']') bracketDepth = std::max(0, bracketDepth - 1);
+        else if (ch == '(') ++parenDepth;
+        else if (ch == ')') parenDepth = std::max(0, parenDepth - 1);
+        else if (ch == '{') ++braceDepth;
+        else if (ch == '}') braceDepth = std::max(0, braceDepth - 1);
+
+        if (ch == ',' && bracketDepth == 0 && parenDepth == 0 && braceDepth == 0)
+        {
+            pushCurrent();
+            continue;
+        }
+
+        current.push_back(ch);
+    }
+
+    pushCurrent();
+    return out;
+}
+
+std::string BuildArrayString(const std::vector<std::string>& items)
+{
+    std::string out = "[";
+    for (size_t i = 0; i < items.size(); ++i)
+    {
+        if (i != 0)
+            out += ", ";
+        out += TrimCopy(items[i]);
+    }
+    out += "]";
+    return out;
+}
+
+static std::unordered_map<ImGuiID, bool> s_arrayItemOpenState;
+
+bool TryParseDouble(const std::string& s, double& out);
+bool ParseBoolLoose(const std::string& s);
+
+enum class ArrayItemType
+{
+    Number,
+    Boolean,
+    String,
+    Null,
+    Array
+};
+
+ArrayItemType DetectArrayItemType(const std::string& raw)
+{
+    const std::string v = TrimCopy(raw);
+    if (v == "null" || v == "Null")
+        return ArrayItemType::Null;
+    if (v == "true" || v == "True" || v == "false" || v == "False")
+        return ArrayItemType::Boolean;
+    if (v.size() >= 2 && ((v.front() == '"' && v.back() == '"') || (v.front() == '\'' && v.back() == '\'')))
+        return ArrayItemType::String;
+    if (v.size() >= 2 && v.front() == '[' && v.back() == ']')
+        return ArrayItemType::Array;
+
+    double number = 0.0;
+    if (TryParseDouble(v, number))
+        return ArrayItemType::Number;
+
+    return ArrayItemType::String;
+}
+
+const char* ArrayItemTypeToLabel(ArrayItemType t)
+{
+    switch (t)
+    {
+        case ArrayItemType::Number:  return "Number";
+        case ArrayItemType::Boolean: return "Boolean";
+        case ArrayItemType::String:  return "String";
+        case ArrayItemType::Null:    return "Null";
+        case ArrayItemType::Array:   return "Array";
+        default:                     return "String";
+    }
+}
+
+std::string ArrayItemPayload(const std::string& raw, ArrayItemType type)
+{
+    std::string v = TrimCopy(raw);
+    if (type == ArrayItemType::String)
+    {
+        if (v.size() >= 2 && ((v.front() == '"' && v.back() == '"') || (v.front() == '\'' && v.back() == '\'')))
+            return v.substr(1, v.size() - 2);
+        return v;
+    }
+    if (type == ArrayItemType::Null)
+        return "";
+    return v;
+}
+
+std::string BuildArrayItemFromPayload(ArrayItemType type, const std::string& payload)
+{
+    switch (type)
+    {
+        case ArrayItemType::Number:
+        {
+            double v = 0.0;
+            if (TryParseDouble(payload, v))
+                return std::to_string(v);
+            return "0.0";
+        }
+        case ArrayItemType::Boolean:
+            return ParseBoolLoose(payload) ? "true" : "false";
+        case ArrayItemType::String:
+            return "\"" + payload + "\"";
+        case ArrayItemType::Null:
+            return "null";
+        case ArrayItemType::Array:
+        {
+            const std::string trimmed = TrimCopy(payload);
+            if (trimmed.empty())
+                return "[]";
+            if (trimmed.front() == '[' && trimmed.back() == ']')
+                return trimmed;
+            return "[" + trimmed + "]";
+        }
+        default:
+            return payload;
+    }
+}
+
 PinType VariableTypeFromString(const std::string& typeName)
 {
+    if (typeName == "Any")     return PinType::Any;
     if (typeName == "Boolean") return PinType::Boolean;
     if (typeName == "String")  return PinType::String;
     if (typeName == "Array")   return PinType::Array;
@@ -113,6 +299,7 @@ const char* VariableTypeToString(PinType type)
 {
     switch (type)
     {
+        case PinType::Any:     return "Any";
         case PinType::Boolean: return "Boolean";
         case PinType::String:  return "String";
         case PinType::Array:   return "Array";
@@ -212,12 +399,24 @@ bool DrawInspectorField(NodeField& field)
     bool changed = false;
     ImGui::PushID(field.name.c_str());
 
+    auto beginInspectorRow = [&](const char* label)
+    {
+        const float rowStartX = ImGui::GetCursorPosX();
+        constexpr float kLabelColumnWidth = 90.0f;
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(label);
+        ImGui::SameLine(rowStartX + kLabelColumnWidth);
+        ImGui::SetNextItemWidth(-1.0f);
+    };
+
     switch (field.valueType)
     {
         case PinType::Number:
         {
+            beginInspectorRow(field.name.c_str());
             float v = ParseInspectorFloat(field.value);
-            if (ImGui::InputFloat(field.name.c_str(), &v, 0.0f, 0.0f, "%.3f"))
+            if (ImGui::InputFloat("##value", &v, 0.0f, 0.0f, "%.3f"))
             {
                 field.value = std::to_string(v);
                 changed = true;
@@ -227,8 +426,9 @@ bool DrawInspectorField(NodeField& field)
 
         case PinType::Boolean:
         {
+            beginInspectorRow(field.name.c_str());
             bool v = ParseInspectorBool(field.value);
-            if (ImGui::Checkbox(field.name.c_str(), &v))
+            if (ImGui::Checkbox("##value", &v))
             {
                 field.value = v ? "true" : "false";
                 changed = true;
@@ -241,7 +441,8 @@ bool DrawInspectorField(NodeField& field)
             if (field.name == "Op")
             {
                 const char* items[] = { "+", "-", "*", "/", "==", "!=", "<", "<=", ">", ">=", "AND", "OR" };
-                if (ImGui::BeginCombo("Op", field.value.c_str()))
+                beginInspectorRow(field.name.c_str());
+                if (ImGui::BeginCombo("##op", field.value.c_str()))
                 {
                     for (const char* item : items)
                     {
@@ -260,7 +461,28 @@ bool DrawInspectorField(NodeField& field)
             else if (field.name == "Type")
             {
                 const char* items[] = { "Number", "Boolean", "String", "Array" };
-                if (ImGui::BeginCombo("Type", field.value.c_str()))
+                beginInspectorRow(field.name.c_str());
+                if (ImGui::BeginCombo("##type", field.value.c_str()))
+                {
+                    for (const char* item : items)
+                    {
+                        const bool isSelected = (field.value == item);
+                        if (ImGui::Selectable(item, isSelected))
+                        {
+                            field.value = item;
+                            changed = true;
+                        }
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+            }
+            else if (field.name == "Element Type")
+            {
+                const char* items[] = { "Any", "Number", "Boolean", "String", "Array" };
+                beginInspectorRow(field.name.c_str());
+                if (ImGui::BeginCombo("##elementType", field.value.c_str()))
                 {
                     for (const char* item : items)
                     {
@@ -278,9 +500,10 @@ bool DrawInspectorField(NodeField& field)
             }
             else
             {
+                beginInspectorRow(field.name.c_str());
                 char buf[128] = {};
                 std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
-                if (ImGui::InputText(field.name.c_str(), buf, sizeof(buf)))
+                if (ImGui::InputText("##value", buf, sizeof(buf)))
                 {
                     field.value = buf;
                     changed = true;
@@ -291,11 +514,292 @@ bool DrawInspectorField(NodeField& field)
 
         case PinType::Array:
         {
-            char buf[128] = {};
-            std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
-            if (ImGui::InputText(field.name.c_str(), buf, sizeof(buf)))
+            std::vector<std::string> items = ParseArrayItems(field.value);
+            bool localChanged = false;
+            int removeIndex = -1;
+
+            ImGui::TextUnformatted(field.name.c_str());
+            ImGui::SameLine();
+            ImGui::TextDisabled("[%d]", static_cast<int>(items.size()));
+
+            // Bulk type switch for all elements in this specific array field.
+            ImGui::SameLine();
+            const bool hasItems = !items.empty();
+            const ArrayItemType firstType = hasItems
+                ? DetectArrayItemType(items.front())
+                : ArrayItemType::Null;
+            bool mixedTypes = false;
+            for (size_t i = 1; i < items.size(); ++i)
             {
-                field.value = buf;
+                if (DetectArrayItemType(items[i]) != firstType)
+                {
+                    mixedTypes = true;
+                    break;
+                }
+            }
+
+            const char* bulkPreview = hasItems
+                ? (mixedTypes ? "Mixed" : ArrayItemTypeToLabel(firstType))
+                : "(empty)";
+
+            ImGui::SetNextItemWidth(120.0f);
+            if (ImGui::BeginCombo("##allItemType", bulkPreview))
+            {
+                const ArrayItemType allTypes[] = {
+                    ArrayItemType::Number,
+                    ArrayItemType::Boolean,
+                    ArrayItemType::String,
+                    ArrayItemType::Array,
+                    ArrayItemType::Null
+                };
+
+                for (ArrayItemType t : allTypes)
+                {
+                    const bool selected = hasItems && !mixedTypes && (firstType == t);
+                    if (ImGui::Selectable(ArrayItemTypeToLabel(t), selected) && hasItems)
+                    {
+                        for (size_t i = 0; i < items.size(); ++i)
+                        {
+                            const ArrayItemType currentType = DetectArrayItemType(items[i]);
+                            const std::string payload = ArrayItemPayload(items[i], currentType);
+                            items[i] = BuildArrayItemFromPayload(t, payload);
+                        }
+                        localChanged = true;
+                    }
+                    if (selected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+
+            ImGui::Indent(10.0f);
+            for (int i = 0; i < static_cast<int>(items.size()); ++i)
+            {
+                ImGui::PushID(i);
+                ImGui::TextDisabled("%d", i);
+                ImGui::SameLine();
+
+                ArrayItemType itemType = DetectArrayItemType(items[static_cast<size_t>(i)]);
+                std::string payload = ArrayItemPayload(items[static_cast<size_t>(i)], itemType);
+                std::vector<std::string> nestedItemsPreview;
+                bool nestedOpen = false;
+                ImGuiID nestedId = 0;
+                if (itemType == ArrayItemType::Array)
+                {
+                    nestedItemsPreview = ParseArrayItems(items[static_cast<size_t>(i)]);
+                    nestedId = ImGui::GetID("##nestedOpen");
+                    nestedOpen = s_arrayItemOpenState[nestedId];
+                }
+
+                // Value editor first (wider), type selector second.
+                ImGui::PushItemWidth(-150.0f);
+                if (itemType == ArrayItemType::Boolean)
+                {
+                    bool b = ParseBoolLoose(payload);
+                    if (ImGui::Checkbox("##itemBool", &b))
+                    {
+                        items[static_cast<size_t>(i)] = b ? "true" : "false";
+                        localChanged = true;
+                    }
+                }
+                else if (itemType == ArrayItemType::Null)
+                {
+                    ImGui::TextDisabled("null");
+                }
+                else if (itemType == ArrayItemType::Array)
+                {
+                    if (ImGui::ArrowButton("##nestedArrow", nestedOpen ? ImGuiDir_Down : ImGuiDir_Right))
+                    {
+                        nestedOpen = !nestedOpen;
+                        s_arrayItemOpenState[nestedId] = nestedOpen;
+                    }
+                    ImGui::SameLine();
+                    ImGui::TextDisabled("Array [%d]", static_cast<int>(nestedItemsPreview.size()));
+                }
+                else
+                {
+                    char buf[192] = {};
+                    std::strncpy(buf, payload.c_str(), sizeof(buf) - 1);
+                    const char* itemWidgetId =
+                        (itemType == ArrayItemType::Array) ? "##itemArray" :
+                        (itemType == ArrayItemType::Number) ? "##itemNumber" :
+                        "##itemString";
+
+                    if (ImGui::InputText(itemWidgetId, buf, sizeof(buf)))
+                    {
+                        payload = buf;
+                        items[static_cast<size_t>(i)] = BuildArrayItemFromPayload(itemType, payload);
+                        localChanged = true;
+                    }
+                }
+                ImGui::PopItemWidth();
+
+                ImGui::SameLine();
+
+                ImGui::SetNextItemWidth(96.0f);
+                if (ImGui::BeginCombo("##itemType", ArrayItemTypeToLabel(itemType)))
+                {
+                    const ArrayItemType allTypes[] = {
+                        ArrayItemType::Number,
+                        ArrayItemType::Boolean,
+                        ArrayItemType::String,
+                        ArrayItemType::Array,
+                        ArrayItemType::Null
+                    };
+
+                    for (ArrayItemType t : allTypes)
+                    {
+                        const bool selected = (itemType == t);
+                        if (ImGui::Selectable(ArrayItemTypeToLabel(t), selected))
+                        {
+                            itemType = t;
+                            items[static_cast<size_t>(i)] = BuildArrayItemFromPayload(itemType, payload);
+                            localChanged = true;
+                        }
+                        if (selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+
+                    ImGui::EndCombo();
+                }
+
+                ImGui::SameLine();
+                if (ImGui::SmallButton("-") && removeIndex < 0)
+                    removeIndex = i;
+
+                if (itemType == ArrayItemType::Array && nestedOpen)
+                {
+                    std::vector<std::string> nestedItems = ParseArrayItems(items[static_cast<size_t>(i)]);
+                    bool nestedChanged = false;
+                    int nestedRemove = -1;
+
+                    ImGui::Indent(16.0f);
+                    for (int ni = 0; ni < static_cast<int>(nestedItems.size()); ++ni)
+                    {
+                        ImGui::PushID(ni);
+                        ImGui::TextDisabled("%d.%d", i, ni);
+                        ImGui::SameLine();
+
+                        ArrayItemType nestedType = DetectArrayItemType(nestedItems[static_cast<size_t>(ni)]);
+                        std::string nestedPayload = ArrayItemPayload(nestedItems[static_cast<size_t>(ni)], nestedType);
+
+                        ImGui::PushItemWidth(-150.0f);
+                        if (nestedType == ArrayItemType::Boolean)
+                        {
+                            bool b = ParseBoolLoose(nestedPayload);
+                            if (ImGui::Checkbox("##nestedBool", &b))
+                            {
+                                nestedItems[static_cast<size_t>(ni)] = b ? "true" : "false";
+                                nestedChanged = true;
+                            }
+                        }
+                        else if (nestedType == ArrayItemType::Null)
+                        {
+                            ImGui::TextDisabled("null");
+                        }
+                        else if (nestedType == ArrayItemType::Array)
+                        {
+                            const std::vector<std::string> nestedNested = ParseArrayItems(nestedItems[static_cast<size_t>(ni)]);
+                            ImGui::TextDisabled("Array [%d]", static_cast<int>(nestedNested.size()));
+                        }
+                        else
+                        {
+                            char nbuf[192] = {};
+                            std::strncpy(nbuf, nestedPayload.c_str(), sizeof(nbuf) - 1);
+                            const char* nestedWidgetId =
+                                (nestedType == ArrayItemType::Number) ? "##nestedNumber" :
+                                "##nestedString";
+
+                            if (ImGui::InputText(nestedWidgetId, nbuf, sizeof(nbuf)))
+                            {
+                                nestedPayload = nbuf;
+                                nestedItems[static_cast<size_t>(ni)] = BuildArrayItemFromPayload(nestedType, nestedPayload);
+                                nestedChanged = true;
+                            }
+                        }
+                        ImGui::PopItemWidth();
+
+                        ImGui::SameLine();
+                        ImGui::SetNextItemWidth(96.0f);
+                        if (ImGui::BeginCombo("##nestedType", ArrayItemTypeToLabel(nestedType)))
+                        {
+                            const ArrayItemType allTypes[] = {
+                                ArrayItemType::Number,
+                                ArrayItemType::Boolean,
+                                ArrayItemType::String,
+                                ArrayItemType::Array,
+                                ArrayItemType::Null
+                            };
+
+                            for (ArrayItemType t : allTypes)
+                            {
+                                const bool selected = (nestedType == t);
+                                if (ImGui::Selectable(ArrayItemTypeToLabel(t), selected))
+                                {
+                                    nestedType = t;
+                                    nestedItems[static_cast<size_t>(ni)] = BuildArrayItemFromPayload(nestedType, nestedPayload);
+                                    nestedChanged = true;
+                                }
+                                if (selected)
+                                    ImGui::SetItemDefaultFocus();
+                            }
+                            ImGui::EndCombo();
+                        }
+
+                        ImGui::SameLine();
+                        if (ImGui::SmallButton("-##nestedRemove") && nestedRemove < 0)
+                            nestedRemove = ni;
+
+                        ImGui::PopID();
+                    }
+
+                    if (nestedRemove >= 0)
+                    {
+                        nestedItems.erase(nestedItems.begin() + nestedRemove);
+                        nestedChanged = true;
+                    }
+
+                    if (ImGui::SmallButton("+ Add nested"))
+                    {
+                        const ArrayItemType nextNestedType = nestedItems.empty()
+                            ? ArrayItemType::Null
+                            : DetectArrayItemType(nestedItems.back());
+                        nestedItems.push_back(BuildArrayItemFromPayload(nextNestedType, ""));
+                        nestedChanged = true;
+                    }
+
+                    ImGui::Unindent(16.0f);
+
+                    if (nestedChanged)
+                    {
+                        items[static_cast<size_t>(i)] = BuildArrayString(nestedItems);
+                        localChanged = true;
+                    }
+                }
+                ImGui::PopID();
+            }
+
+            if (removeIndex >= 0)
+            {
+                items.erase(items.begin() + removeIndex);
+                localChanged = true;
+            }
+
+            if (ImGui::SmallButton("+ Add element"))
+            {
+                // First element starts as null; subsequent elements inherit previous element type.
+                const ArrayItemType nextType = items.empty()
+                    ? ArrayItemType::Null
+                    : DetectArrayItemType(items.back());
+                items.push_back(BuildArrayItemFromPayload(nextType, ""));
+                localChanged = true;
+            }
+
+            ImGui::Unindent(10.0f);
+
+            if (localChanged)
+            {
+                field.value = BuildArrayString(items);
                 changed = true;
             }
             break;
@@ -312,9 +816,17 @@ bool DrawInspectorField(NodeField& field)
 
 void DrawInspectorReadOnlyField(const NodeField& field)
 {
+    const float rowStartX = ImGui::GetCursorPosX();
+    constexpr float kLabelColumnWidth = 90.0f;
+
+    ImGui::AlignTextToFramePadding();
     ImGui::TextUnformatted(field.name.c_str());
-    ImGui::SameLine();
-    ImGui::TextDisabled("%s", field.value.c_str());
+    ImGui::SameLine(rowStartX + kLabelColumnWidth);
+
+    ImGui::SetNextItemWidth(-1.0f);
+    char buf[256] = {};
+    std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
+    ImGui::InputText("##readonly", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
 }
 
 bool RefreshVariableNodeTypes(GraphState& state)
@@ -824,6 +1336,182 @@ bool RefreshLoopNodeLayout(GraphState& state)
             const std::string before = countField->value;
             NormalizeValueForPinType(PinType::Number, countField->value);
             if (countField->value != before)
+                changed = true;
+        }
+    }
+
+    return changed;
+}
+
+bool RefreshForEachNodeLayout(GraphState& state)
+{
+    bool changed = false;
+
+    auto& nodes = state.GetNodes();
+
+    for (auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::ForEach)
+            continue;
+
+        if (n.title != "For Each")
+        {
+            n.title = "For Each";
+            changed = true;
+        }
+
+        const size_t inBefore = n.inPins.size();
+        RemovePinsByNameExcept(n.inPins, { "In", "Array" });
+        if (n.inPins.size() != inBefore)
+            changed = true;
+
+        const size_t outBefore = n.outPins.size();
+        RemovePinsByNameExcept(n.outPins, { "Body", "Completed", "Element" });
+        if (n.outPins.size() != outBefore)
+            changed = true;
+
+        Pin* inPin = FindPinByName(n.inPins, "In");
+        if (!inPin)
+        {
+            n.inPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "In",
+                PinType::Flow,
+                true
+            ));
+            inPin = &n.inPins.back();
+            changed = true;
+        }
+        else if (inPin->type != PinType::Flow)
+        {
+            inPin->type = PinType::Flow;
+            changed = true;
+        }
+
+        Pin* arrayPin = FindPinByName(n.inPins, "Array");
+        if (!arrayPin)
+        {
+            n.inPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "Array",
+                PinType::Array,
+                true
+            ));
+            arrayPin = &n.inPins.back();
+            changed = true;
+        }
+        else if (arrayPin->type != PinType::Array)
+        {
+            arrayPin->type = PinType::Array;
+            changed = true;
+        }
+
+        Pin* bodyPin = FindPinByName(n.outPins, "Body");
+        if (!bodyPin)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "Body",
+                PinType::Flow,
+                false
+            ));
+            bodyPin = &n.outPins.back();
+            changed = true;
+        }
+        else if (bodyPin->type != PinType::Flow)
+        {
+            bodyPin->type = PinType::Flow;
+            changed = true;
+        }
+
+        Pin* completedPin = FindPinByName(n.outPins, "Completed");
+        if (!completedPin)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "Completed",
+                PinType::Flow,
+                false
+            ));
+            completedPin = &n.outPins.back();
+            changed = true;
+        }
+        else if (completedPin->type != PinType::Flow)
+        {
+            completedPin->type = PinType::Flow;
+            changed = true;
+        }
+
+        Pin* elementPin = FindPinByName(n.outPins, "Element");
+        NodeField* elementTypeField = FindField(n.fields, "Element Type");
+        if (!elementTypeField)
+        {
+            n.fields.push_back(NodeField{ "Element Type", PinType::String, "Any" });
+            elementTypeField = &n.fields.back();
+            changed = true;
+        }
+        else
+        {
+            if (elementTypeField->valueType != PinType::String)
+            {
+                elementTypeField->valueType = PinType::String;
+                changed = true;
+            }
+
+            const PinType parsedType = VariableTypeFromString(elementTypeField->value);
+            const std::string normalized = VariableTypeToString(parsedType);
+            if (elementTypeField->value != normalized)
+            {
+                elementTypeField->value = normalized;
+                changed = true;
+            }
+        }
+
+        const PinType elementType = VariableTypeFromString(elementTypeField ? elementTypeField->value : "Any");
+        if (!elementPin)
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                "Element",
+                elementType,
+                false
+            ));
+            elementPin = &n.outPins.back();
+            changed = true;
+        }
+        else if (elementPin->type != elementType)
+        {
+            elementPin->type = elementType;
+            changed = true;
+        }
+
+        NodeField* arrayField = FindField(n.fields, "Array");
+        if (!arrayField)
+        {
+            n.fields.push_back(NodeField{ "Array", PinType::Array, "[]" });
+            changed = true;
+        }
+        else
+        {
+            if (arrayField->valueType != PinType::Array)
+            {
+                arrayField->valueType = PinType::Array;
+                changed = true;
+            }
+
+            const std::string before = arrayField->value;
+            NormalizeValueForPinType(PinType::Array, arrayField->value);
+            if (arrayField->value != before)
                 changed = true;
         }
     }

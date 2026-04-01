@@ -94,6 +94,10 @@ public:
     Node* BuildSequence  (const VisualNode& n);   ///< Builds AST for Sequence nodes
     Node* BuildBranch    (const VisualNode& n);   ///< Builds AST for Branch nodes
     Node* BuildLoop      (const VisualNode& n);   ///< Builds AST for Loop nodes
+    Node* BuildForEach   (const VisualNode& n);   ///< Builds AST for For Each nodes
+    Node* BuildArrayGetAt(const VisualNode& n);   ///< Builds AST for Array Get node
+    Node* BuildArrayAddAt(const VisualNode& n);   ///< Builds AST for Array Add node
+    Node* BuildArrayRemoveAt(const VisualNode& n);///< Builds AST for Array Remove node
     Node* BuildWhile     (const VisualNode& n);   ///< Builds AST for While nodes
     Node* BuildVariable  (const VisualNode& n);   ///< Builds AST for Variable nodes
     Node* BuildOutput    (const VisualNode& n);   ///< Builds AST for Output nodes
@@ -117,12 +121,15 @@ private:
     std::string LoopLastIndexVarName(const VisualNode& n) const;
     std::string LoopStartVarName(const VisualNode& n) const;
     std::string LoopEndVarName(const VisualNode& n) const;
+    std::string ForEachIterVarName(const VisualNode& n) const;
+    std::string ForEachElementVarName(const VisualNode& n) const;
 
     Node* MakeNode(Token t)                    const;  ///< Creates a bare AST node with the given token type
     Node* MakeNumberNode(double v)             const;  ///< Creates an AST numeric literal node
     Node* MakeBoolNode(bool v)                 const;  ///< Creates an AST boolean literal node
     Node* MakeStringNode(const std::string& s) const;  ///< Creates an AST string literal node
     Node* MakeIdNode(const std::string& name)  const;  ///< Creates an AST identifier node
+    Node* BuildArrayLiteralNode(const std::string& text) const; ///< Parses "[a, b, ...]" text into AST array literal
 
     const std::string* GetField(const VisualNode& n, const std::string& name) const;  ///< Retrieves a field value from a visual node's data
     const Pin* GetInputPinByName(const VisualNode& n, const char* name) const;        ///< Finds an input pin by name
@@ -137,6 +144,7 @@ private:
     // Tracks nodes currently being built to detect recursive cycles.
     std::unordered_set<uintptr_t> activeNodeBuilds_;
     std::unordered_set<uintptr_t> activeLoopBodyNodeIds_;
+    std::unordered_set<uintptr_t> activeForEachBodyNodeIds_;
     std::unordered_set<uintptr_t> flowReachableNodes_;
     std::unordered_set<uintptr_t> activeFlowOutputs_;
     std::unordered_set<uintptr_t> visitedFlowOutputs_;
