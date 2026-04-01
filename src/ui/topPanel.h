@@ -33,6 +33,7 @@ public:
 private:
     /// Height of the toolbar in pixels
     float m_height;
+
     std::function<void()> m_filesystemCallback;
     std::function<void()> m_settingsCallback;
     std::function<void(bool)> m_previewCallback;
