@@ -13,8 +13,10 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 add_executable(tests
-    test_placeholder.cpp
-    ../src/editor/graphState.cpp
+    test_graph_state.cpp
+    test_settings_placeholder.cpp
+    test_serializer_placeholder.cpp
+    ../src/editor/graph/graphState.cpp
     ../src/editor/settings.cpp
 )
 
