@@ -5,9 +5,9 @@
 
 #pragma once
 
-#include "graphState.h"
-#include "graphEditor.h"
-#include "graphCompilation.h"
+#include "graph/graphState.h"
+#include "graph/graphEditor.h"
+#include "graph/graphCompilation.h"
 #include <memory>
 #include <cstdint>
 #include <functional>

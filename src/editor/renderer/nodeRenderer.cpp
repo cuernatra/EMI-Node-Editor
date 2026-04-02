@@ -1,10 +1,14 @@
-#include "visualNode.h"
-#include "../registry/fieldWidget.h"
-#include "editor/graphSerializer.h"
-#include "editor/renderer/pinRenderer.h"
+#include "nodeRenderer.h"
+
+#include "fieldWidgetRenderer.h"
+#include "pinRenderer.h"
+
 #include "app/constants.h"
+#include "editor/graph/graphSerializer.h"
+
 #include "imgui.h"
 #include "imgui_node_editor.h"
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -12,6 +16,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <unordered_map>
+#include <utility>
+
+namespace ed = ax::NodeEditor;
 
 namespace
 {
@@ -387,7 +394,6 @@ void DrawPin(const Pin& pin, float contentWidth, const std::vector<Link>* allLin
     const ImVec2      iconSize(14.0f, 14.0f);
     const PinIconType iconType = GetPinTypeIcon(pin.type);
 
-    // Fill icon only when this pin has at least one live link.
     bool iconFilled = false;
     if (allLinks)
     {
@@ -400,7 +406,6 @@ void DrawPin(const Pin& pin, float contentWidth, const std::vector<Link>* allLin
         }
     }
 
-    // Draw icon at current cursor and advance layout by icon size.
     auto drawIcon = [&]() -> std::pair<ImVec2, ImVec2>
     {
         const ImVec2 tl = ImGui::GetCursorScreenPos();
@@ -415,7 +420,6 @@ void DrawPin(const Pin& pin, float contentWidth, const std::vector<Link>* allLin
 
     if (pin.isInput)
     {
-        // Input row layout: [icon][gap][label], pivot at left edge.
         auto [tl, br] = drawIcon();
         const ImVec2 leftEdge(tl.x, (tl.y + br.y) * 0.5f);
         ed::PinPivotRect(leftEdge, leftEdge);
@@ -425,7 +429,6 @@ void DrawPin(const Pin& pin, float contentWidth, const std::vector<Link>* allLin
     }
     else
     {
-        // Output row layout: [label][gap][icon], right-aligned to contentWidth.
         const float   gap       = 6.0f;
         const float   textWidth = ImGui::CalcTextSize(pin.name.c_str()).x;
         const ImVec2  rowStart  = ImGui::GetCursorPos();
@@ -1066,4 +1069,6 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     ed::EndNode();
     return changed;
 }
+
+
 

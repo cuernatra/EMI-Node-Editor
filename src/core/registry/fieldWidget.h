@@ -22,12 +22,6 @@ struct NodeField
 };
 
 /**
- * @brief Render ImGui widget for field editing (modifies field in-place)
- * @return true if value changed this frame
- */
-bool DrawField(NodeField& field);
-
-/**
  * @brief Create runtime field from template descriptor (per-node instance from shared template)
  * 
  * Needed because descriptor is shared by all nodes of same type; each spawned node

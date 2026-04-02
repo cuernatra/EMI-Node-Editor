@@ -1,8 +1,8 @@
 #include "graphSerializer.h"
 #include "graphState.h"
-#include "../core/graph/visualNode.h"
-#include "../core/graph/link.h"
-#include "../core/registry/nodeFactory.h"
+#include "core/graph/visualNode.h"
+#include "core/graph/link.h"
+#include "core/registry/nodeFactory.h"
 #include "imgui_node_editor.h"
 #include <fstream>
 #include <algorithm>

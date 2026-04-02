@@ -1,11 +1,12 @@
-#include "ui.h"
-#include "../ui/theme.h"
+#include "editorLayout.h"
+
+#include "ui/theme.h"
 #include <imgui-SFML.h>
 #include <algorithm>
 #include <cstdio>
 #include <EMI/EMI.h>
 
-Ui::Ui()
+EditorLayout::EditorLayout()
 {
     m_topPanel.setFilesystemCallback([this]() {
         m_consolePanel.addLogText("Filesystem");
@@ -54,11 +55,11 @@ Ui::Ui()
     m_consolePanel.addLog("Console initialized. Welcome to EMI Visual Programming Tool!");
 }
 
-Ui::~Ui()
+EditorLayout::~EditorLayout()
 {
 }
 
-void Ui::draw()
+void EditorLayout::draw()
 {   
     bool drawInspectorOverlay = false;
     ImVec2 inspectorPos(0.0f, 0.0f);
@@ -388,7 +389,7 @@ void Ui::draw()
     m_graphPreviewPanel.update(m_mainEditor.getGraphState());
 }
 
-void Ui::DrawSplitter(float totalWidth, float thickness, float minLeft, float minRight)
+void EditorLayout::DrawSplitter(float totalWidth, float thickness, float minLeft, float minRight)
 {   
     ImGui::InvisibleButton(
         "splitter",
@@ -414,7 +415,7 @@ void Ui::DrawSplitter(float totalWidth, float thickness, float minLeft, float mi
     }
 }
 
-void Ui::DrawConsoleSplitter(float width, float thickness, float minMain, float minConsole, float availableHeight)
+void EditorLayout::DrawConsoleSplitter(float width, float thickness, float minMain, float minConsole, float availableHeight)
 {
     ImGui::InvisibleButton("console_splitter", ImVec2(width, thickness));
 

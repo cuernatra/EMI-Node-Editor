@@ -5,7 +5,7 @@
 #ifndef CONSOLEPANEL_H
 #define CONSOLEPANEL_H
 
-#include "../app/constants.h"
+#include "app/constants.h"
 #include <cstddef>
 #include <deque>
 #include <string>

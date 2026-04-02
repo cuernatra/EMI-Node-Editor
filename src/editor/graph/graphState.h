@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "../core/graph/visualNode.h"
-#include "../core/graph/link.h"
-#include "../core/graph/idGen.h"
+#include "core/graph/visualNode.h"
+#include "core/graph/link.h"
+#include "core/graph/idGen.h"
 #include <vector>
 #include <string>
 

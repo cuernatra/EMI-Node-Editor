@@ -1,12 +1,14 @@
 #include "leftPanel.h"
-#include "../core/registry/nodeRegistry.h"
-#include "dropBar.h"
+#include "core/registry/nodeRegistry.h"
+#include "editor/spawnPayload.h"
 #include "imgui.h"
+#include <algorithm>
 #include <cstring>
 #include <cstdio>
 #include <string>
+#include <unordered_set>
 #include <vector>
-#include "nodePreview.h"
+#include "editor/widgets/nodePreview.h"
 
 namespace
 {
@@ -134,9 +136,40 @@ LeftPanel::LeftPanel()
         NodeType::Output
     };
 
+    std::unordered_set<NodeType> added;
+    added.reserve(allDescriptors.size());
+
     for (NodeType t : preferredOrder)
+    {
         if (allDescriptors.find(t) != allDescriptors.end())
+        {
             m_nodeTypes.push_back(t);
+            added.insert(t);
+        }
+    }
+
+    // Append any other registered node types not explicitly ordered above.
+    // These will land in the "More" section unless later classified.
+    std::vector<NodeType> remaining;
+    remaining.reserve(allDescriptors.size());
+    for (const auto& kv : allDescriptors)
+    {
+        const NodeType t = kv.first;
+        if (added.find(t) == added.end())
+            remaining.push_back(t);
+    }
+
+    std::sort(remaining.begin(), remaining.end(), [&](NodeType a, NodeType b) {
+        const NodeDescriptor* da = registry.Find(a);
+        const NodeDescriptor* db = registry.Find(b);
+        const std::string& la = da ? da->label : std::string();
+        const std::string& lb = db ? db->label : std::string();
+        if (la != lb)
+            return la < lb;
+        return static_cast<int>(a) < static_cast<int>(b);
+    });
+
+    m_nodeTypes.insert(m_nodeTypes.end(), remaining.begin(), remaining.end());
 }
 
 void LeftPanel::draw(bool hasStartNode)
@@ -151,6 +184,7 @@ void LeftPanel::draw(bool hasStartNode)
     std::vector<PaletteItem> structFlowTypes;
     std::vector<PaletteItem> logicTypes;
     std::vector<PaletteItem> flowTypes;
+    std::vector<PaletteItem> moreTypes;
 
     auto makeDefaultItem = [&](NodeType t) -> PaletteItem
     {
@@ -228,7 +262,7 @@ void LeftPanel::draw(bool hasStartNode)
                 break;
 
             default:
-                logicTypes.push_back(makeDefaultItem(t));
+                moreTypes.push_back(makeDefaultItem(t));
                 break;
         }
     }
@@ -245,4 +279,5 @@ void LeftPanel::draw(bool hasStartNode)
 
     DrawSection("Logic", logicTypes);
     DrawSection("Flow", flowTypes);
+    DrawSection("More", moreTypes);
 }

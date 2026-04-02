@@ -2,12 +2,11 @@
 #include "graphState.h"
 #include "graphSerializer.h"
 #include "graphEditorUtils.h"
-#include "../core/graph/visualNode.h"
-#include "../core/graph/link.h"
-#include "renderer/linkRenderer.h"
-#include "../core/registry/nodeFactory.h"
-#include "../ui/dropBar.h"
-#include "../ui/inspectorPanel.h"
+#include "editor/renderer/nodeRenderer.h"
+#include "editor/renderer/linkRenderer.h"
+#include "core/registry/nodeFactory.h"
+#include "editor/spawnPayload.h"
+#include "editor/panels/inspectorPanel.h"
 #include "imgui.h"
 #include <algorithm>
 #include <cctype>

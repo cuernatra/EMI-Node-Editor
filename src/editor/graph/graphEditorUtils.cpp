@@ -1,6 +1,6 @@
 #include "graphEditorUtils.h"
 #include "graphSerializer.h"
-#include "../core/graph/link.h"
+#include "core/graph/link.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
