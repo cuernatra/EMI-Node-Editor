@@ -50,17 +50,19 @@ jobs:
       - name: Run cppcheck
         run: |
           mkdir -p $BUILD_DIR/cppcheck
+          set -o pipefail
           cppcheck \
             --project=$BUILD_DIR/compile_commands.json \
-            --file-filter='(\/src\/|\/tests\/)' \
+            -iEMI-Script \
+            -idependencies \
+            -ibuild \
             --error-exitcode=1 \
             --inline-suppr \
             --suppress=missingIncludeSystem \
             --suppress=missingInclude \
             --suppress=unmatchedSuppression \
             --template=gcc \
-            --output-file=$BUILD_DIR/cppcheck/report.txt \
-            --cppcheck-build-dir=$BUILD_DIR/cppcheck
+            --cppcheck-build-dir=$BUILD_DIR/cppcheck 2>&1 | tee $BUILD_DIR/cppcheck/report.txt
 
       - name: Upload cppcheck report
         if: always()
