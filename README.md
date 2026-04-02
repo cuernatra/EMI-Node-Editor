@@ -1,6 +1,8 @@
 # AO_Emi-Visual-Programming-Tool
 
-[![CI](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/ci.yml)
+[![Build](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/build.yml)
+[![Static Analysis](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/static-analysis.yml/badge.svg?branch=main)](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/static-analysis.yml)
+[![Tests](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/tests.yml)
 
 COMP.SE.610/620
 
@@ -33,6 +35,21 @@ Make sure CMake is installed.
    ```
 
 Generated executable can be found in the build directory.
+
+## Testing
+
+Configure with tests enabled:
+
+```bash
+cmake -S . -B build -DBUILD_TESTS=ON
+```
+
+Build and run tests:
+
+```bash
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
 
 ## Documentation
 
