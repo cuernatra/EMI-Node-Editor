@@ -41,8 +41,6 @@ namespace appConstants
 namespace elementSizes
 {
     const float topBarHeight = appConstants::windowheight / 20;    ///< Height of top toolbar (36px)
-    const float dropBarHeight = appConstants::windowheight / 10;   ///< Height of drag-drop items (72px)
-    const float dropBarWidth = appConstants::windowheight / 10;    ///< Width of drag-drop items (72px)
 }
 
 /**
@@ -64,17 +62,6 @@ namespace layoutConstants
     const float minMainEditorHeight = 80.0f;                 ///< Minimum height for main editor area
     const float minConsoleHeight = 60.0f;                    ///< Minimum height for console area
     const float inspectorPaddingX = 8.0f;                    ///< Horizontal inset of overlay inspector
-}
-
-/**
- * @namespace elementLocations
- * @brief Fixed positions for UI elements
- * 
- * Defines absolute positions for UI components that don't use layout managers.
- */
-namespace elementLocations
-{
-    const Position dropBarLocation_A = {10.0f, 50.0f};  ///< Position of first drop bar item
 }
 
 /**

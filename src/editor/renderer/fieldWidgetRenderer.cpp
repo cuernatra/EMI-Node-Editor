@@ -1,7 +1,9 @@
-#include "fieldWidget.h"
+#include "fieldWidgetRenderer.h"
+
 #include "imgui.h"
 #include "imgui_node_editor.h"
-#include "../../ui/theme.h"
+#include "ui/theme.h"
+
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
@@ -315,12 +317,9 @@ static bool OpPopupCombo(const char* id, std::string& value, const char** items,
 
     ed::Suspend();
 
-    // Keep popup behavior consistent with other node dropbars:
-    // anchor popup to click/mouse position so nested array dropdowns
-    // open in the correct place inside node-editor suspended rendering.
     ImGui::SetNextWindowPos({ImGui::GetMousePos().x, ImGui::GetMousePos().y}, ImGuiCond_Appearing);
     ImGui::SetNextWindowSizeConstraints(ImVec2(40.0f, 0.0f), ImVec2(10000.0f, 10000.0f));
-    
+
     if (ImGui::BeginPopup("##popup",
         ImGuiWindowFlags_NoMove |
         ImGuiWindowFlags_NoResize |

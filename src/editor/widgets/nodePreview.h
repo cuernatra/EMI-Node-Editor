@@ -10,7 +10,7 @@
 #ifndef NODE_PREVIEW_H
 #define NODE_PREVIEW_H
 
-#include "../core/graph/types.h"
+#include "core/graph/types.h"
 
 /**
  * @brief Renders a small preview of a node type

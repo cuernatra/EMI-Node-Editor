@@ -1,6 +1,6 @@
 #include "graphCompilation.h"
 #include "graphState.h"
-#include "../core/compiler/graphCompiler.h"
+#include "core/compiler/graphCompiler.h"
 #include "VM.h"
 #include "Parser/Node.h"
 #include <iostream>

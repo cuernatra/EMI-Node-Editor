@@ -1,8 +1,8 @@
 #include "nodePreview.h"
-#include "../core/registry/nodeRegistry.h"
-#include "../core/graph/pin.h"
+#include "core/registry/nodeRegistry.h"
+#include "core/graph/pin.h"
 #include "imgui.h"
-#include "../app/constants.h"
+#include "app/constants.h"
 #include <string>
 
 void NodePreview::Draw(NodeType nodeType, const char* titleOverride)

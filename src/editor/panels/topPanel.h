@@ -6,7 +6,7 @@
 #ifndef TOPPANEL_H
 #define TOPPANEL_H
 
-#include "../app/constants.h"
+#include "app/constants.h"
 #include <vector>
 #include <functional>
 

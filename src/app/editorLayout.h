@@ -1,5 +1,5 @@
 /**
- * @file ui.h
+ * @file editorLayout.h
  * @brief Main UI compositor that manages the editor layout
  * 
  * Coordinates the top toolbar, left node palette panel, main editor canvas,
@@ -8,16 +8,16 @@
  * @author Atte Perkiö
  */
 
-#ifndef UI_H
-#define UI_H
+#ifndef EDITOR_LAYOUT_H
+#define EDITOR_LAYOUT_H
 
-#include "../editor/mainEditor.h"
-#include "../ui/leftPanel.h"
-#include "../ui/topPanel.h"
-#include "../ui/consolePanel.h"
-#include "../ui/consoleEmiLogger.h"
-#include "../ui/graphPreviewPanel.h"
-#include "../editor/settings.h"
+#include "editor/mainEditor.h"
+#include "editor/panels/leftPanel.h"
+#include "editor/panels/topPanel.h"
+#include "editor/panels/consolePanel.h"
+#include "editor/panels/consoleEmiLogger.h"
+#include "editor/panels/graphPreviewPanel.h"
+#include "editor/settings.h"
 #include <cstdint>
 #include <memory>
 
@@ -35,15 +35,15 @@
  * 
  * @author Atte Perkiö
  */
-class Ui
+class EditorLayout
 {
 public:
     /**
      * @brief Initialize the UI compositor
      */
-    Ui();
+    EditorLayout();
 
-    ~Ui();
+    ~EditorLayout();
     
     /**
      * @brief Draw the complete UI hierarchy

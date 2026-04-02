@@ -1,10 +1,10 @@
 #include "inspectorPanel.h"
 
-#include "theme.h"
+#include "ui/theme.h"
 
-#include "../editor/graphState.h"
-#include "../editor/graphSerializer.h"
-#include "../editor/graphEditorUtils.h"
+#include "editor/graph/graphState.h"
+#include "editor/graph/graphSerializer.h"
+#include "editor/graph/graphEditorUtils.h"
 
 #include "imgui.h"
 #include "imgui_node_editor.h"

@@ -1,28 +1,28 @@
 add_executable(emi-editor
   main.cpp
   app/app.cpp
-  app/ui.cpp
-  ui/leftPanel.cpp
-  ui/topPanel.cpp
-  ui/consolePanel.cpp
-  ui/consoleEmiLogger.cpp
-  ui/graphPreviewPanel.cpp
-  ui/inspectorPanel.cpp
-  ui/dropBar.cpp
-  ui/nodePreview.cpp
+  app/editorLayout.cpp
   editor/mainEditor.cpp
-  editor/graphEditor.cpp
-  editor/graphEditorUtils.cpp
-  editor/graphCompilation.cpp
-  editor/graphState.cpp
-  editor/graphSerializer.cpp
+  editor/graph/graphEditor.cpp
+  editor/graph/graphEditorUtils.cpp
+  editor/graph/graphCompilation.cpp
+  editor/graph/graphState.cpp
+  editor/graph/graphSerializer.cpp
+
+  editor/panels/leftPanel.cpp
+  editor/panels/topPanel.cpp
+  editor/panels/consolePanel.cpp
+  editor/panels/consoleEmiLogger.cpp
+  editor/panels/graphPreviewPanel.cpp
+  editor/panels/inspectorPanel.cpp
+  editor/widgets/nodePreview.cpp
   editor/settings.cpp
   editor/renderer/pinRenderer.cpp
   editor/renderer/linkRenderer.cpp
-  core/graph/visualNode.cpp
+  editor/renderer/nodeRenderer.cpp
+  editor/renderer/fieldWidgetRenderer.cpp
   core/graph/pin.cpp
   core/graph/link.cpp
-  core/registry/fieldWidget.cpp
   core/registry/nodeFactory.cpp
   core/registry/nodeRegistry.cpp
   core/compiler/graphCompiler.cpp

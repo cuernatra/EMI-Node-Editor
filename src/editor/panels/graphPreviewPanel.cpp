@@ -1,6 +1,6 @@
 #include "graphPreviewPanel.h"
-#include "theme.h"
-#include "../core/graph/types.h"
+#include "ui/theme.h"
+#include "core/graph/types.h"
 #include <SFML/Graphics/RectangleShape.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/Window/Event.hpp>

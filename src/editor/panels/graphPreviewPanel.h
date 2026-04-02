@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../editor/graphState.h"
+#include "editor/graph/graphState.h"
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/VertexArray.hpp>

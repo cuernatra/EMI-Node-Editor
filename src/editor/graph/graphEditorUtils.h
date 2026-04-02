@@ -8,7 +8,7 @@
  * not direct canvas drawing.
  */
 #include "graphState.h"
-#include "../core/graph/visualNode.h"
+#include "core/graph/visualNode.h"
 #include "imgui.h"
 #include <string>
 #include <vector>

@@ -2,7 +2,7 @@
 #include <imgui.h>
 #include <cstdarg>
 #include <ctime>
-#include "../editor/settings.h"
+#include "editor/settings.h"
 
 std::string ConsolePanel::makeTimestampPrefix() const
 {
