@@ -11,49 +11,6 @@
 
 namespace ed = ax::NodeEditor;
 
-// Serialization helpers for pin types
-static const char* PinTypeToString(PinType t);
-static PinType PinTypeFromString(const std::string& s);
-
-static const char* NodeTypeToSaveToken(NodeType t)
-{
-    // Keep graph file format stable and single-token for parser safety.
-    // UI label for NodeType::Output is "Debug Print", but save token remains "Output".
-    if (t == NodeType::DrawRect)
-        return "DrawRect";
-    if (t == NodeType::DrawGrid)
-        return "DrawGrid";
-    if (t == NodeType::ForEach)
-        return "ForEach";
-    if (t == NodeType::ArrayGetAt)
-        return "ArrayGetAt";
-    if (t == NodeType::ArrayAddAt)
-        return "ArrayAddAt";
-    if (t == NodeType::ArrayRemoveAt)
-        return "ArrayRemoveAt";
-    if (t == NodeType::GridNodeSchema)
-        return "GridNodeSchema";
-    if (t == NodeType::GridNodeCreate)
-        return "GridNodeCreate";
-    if (t == NodeType::GridNodeUpdate)
-        return "GridNodeUpdate";
-    if (t == NodeType::GridNodeDelete)
-        return "GridNodeDelete";
-    if (t == NodeType::StructDefine)
-        return "StructDefine";
-    if (t == NodeType::StructCreate)
-        return "StructCreate";
-    if (t == NodeType::StructGetField)
-        return "StructGetField";
-    if (t == NodeType::StructSetField)
-        return "StructSetField";
-    if (t == NodeType::StructDelete)
-        return "StructDelete";
-    if (t == NodeType::Output)
-        return "Output";
-    return NodeTypeToString(t);
-}
-
 static std::string EncodeFieldValue(const std::string& value)
 {
     static constexpr char kHex[] = "0123456789ABCDEF";
@@ -346,31 +303,6 @@ void GraphSerializer::Load(GraphState& state, const char* path)
             int         pinCount;
             in >> nid >> nodeTypeStr;
 
-            // Backward compatibility for accidental multi-token save formats:
-            //   node <id> Debug Print <pinCount> ...
-            //   node <id> Draw Grid <pinCount> ...
-            //   node <id> Draw Rect <pinCount> ...
-            if (nodeTypeStr == "Debug")
-            {
-                std::string maybePrint;
-                in >> maybePrint;
-                if (maybePrint == "Print")
-                    nodeTypeStr = "Debug Print";
-                else
-                    nodeTypeStr = maybePrint;
-            }
-            else if (nodeTypeStr == "Draw")
-            {
-                std::string maybeKind;
-                in >> maybeKind;
-                if (maybeKind == "Grid")
-                    nodeTypeStr = "Draw Grid";
-                else if (maybeKind == "Rect")
-                    nodeTypeStr = "Draw Rect";
-                else
-                    nodeTypeStr = maybeKind;
-            }
-
             in >> pinCount;
 
             NodeType nodeType = NodeTypeFromString(nodeTypeStr);
@@ -471,31 +403,4 @@ void GraphSerializer::Load(GraphState& state, const char* path)
 
     state.GetIdGen().SetNext(maxId + 1);
     state.ClearDirty();
-}
-
-// ---- Serialization helpers ----
-
-static const char* PinTypeToString(PinType t)
-{
-    switch (t)
-    {
-        case PinType::Number:   return "Number";
-        case PinType::Boolean:  return "Boolean";
-        case PinType::String:   return "String";
-        case PinType::Array:    return "Array";
-        case PinType::Function: return "Function";
-        case PinType::Flow:     return "Flow";
-        default:                return "Any";
-    }
-}
-
-static PinType PinTypeFromString(const std::string& s)
-{
-    if (s == "Number")   return PinType::Number;
-    if (s == "Boolean")  return PinType::Boolean;
-    if (s == "String")   return PinType::String;
-    if (s == "Array")    return PinType::Array;
-    if (s == "Function") return PinType::Function;
-    if (s == "Flow")     return PinType::Flow;
-    return PinType::Any;
 }

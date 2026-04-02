@@ -7,6 +7,7 @@
 #include "imgui_node_editor.h"
 #include "types.h"
 #include <string>
+#include <string_view>
  
 
 namespace ed = ax::NodeEditor;
@@ -32,5 +33,11 @@ struct Pin
 Pin MakePin(uint32_t id, ed::NodeId parentNodeId, NodeType parentNodeType,
             std::string name, PinType type, bool isInput,
             bool isMultiInput = false);
+
+/** @brief Stable, single-token string for serialization/logging. */
+const char* PinTypeToString(PinType t);
+
+/** @brief Parse PinType from a string token (unknown -> Any). */
+PinType PinTypeFromString(std::string_view s);
 
 #endif // PIN_H
