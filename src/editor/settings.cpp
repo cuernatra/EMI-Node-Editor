@@ -23,6 +23,17 @@ void Load()
         consolePanelHeight = s.value("consolePanelHeight", consolePanelHeight);
         consolePanelIsMinimized = s.value("consolePanelIsMinimized", consolePanelIsMinimized);
 
+        // Graph canvas colors
+        gridBgColorR = s.value("gridBgColorR", gridBgColorR);
+        gridBgColorG = s.value("gridBgColorG", gridBgColorG);
+        gridBgColorB = s.value("gridBgColorB", gridBgColorB);
+        gridBgColorA = s.value("gridBgColorA", gridBgColorA);
+
+        gridLineColorR = s.value("gridLineColorR", gridLineColorR);
+        gridLineColorG = s.value("gridLineColorG", gridLineColorG);
+        gridLineColorB = s.value("gridLineColorB", gridLineColorB);
+        gridLineColorA = s.value("gridLineColorA", gridLineColorA);
+
         // Add new settings here:
         // myNewSetting = s.value("myNewSetting", myNewSetting);
     }
@@ -40,6 +51,17 @@ void Save()
     s["leftPanelWidth"] = leftPanelWidth;
     s["consolePanelHeight"] = consolePanelHeight;
     s["consolePanelIsMinimized"] = consolePanelIsMinimized;
+
+    // Graph canvas colors
+    s["gridBgColorR"] = gridBgColorR;
+    s["gridBgColorG"] = gridBgColorG;
+    s["gridBgColorB"] = gridBgColorB;
+    s["gridBgColorA"] = gridBgColorA;
+
+    s["gridLineColorR"] = gridLineColorR;
+    s["gridLineColorG"] = gridLineColorG;
+    s["gridLineColorB"] = gridLineColorB;
+    s["gridLineColorA"] = gridLineColorA;
 
     // Add new settings here:
     // s["myNewSetting"] = myNewSetting;

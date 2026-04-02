@@ -25,6 +25,30 @@ static const char* NodeTypeToSaveToken(NodeType t)
         return "DrawGrid";
     if (t == NodeType::ForEach)
         return "ForEach";
+    if (t == NodeType::ArrayGetAt)
+        return "ArrayGetAt";
+    if (t == NodeType::ArrayAddAt)
+        return "ArrayAddAt";
+    if (t == NodeType::ArrayRemoveAt)
+        return "ArrayRemoveAt";
+    if (t == NodeType::GridNodeSchema)
+        return "GridNodeSchema";
+    if (t == NodeType::GridNodeCreate)
+        return "GridNodeCreate";
+    if (t == NodeType::GridNodeUpdate)
+        return "GridNodeUpdate";
+    if (t == NodeType::GridNodeDelete)
+        return "GridNodeDelete";
+    if (t == NodeType::StructDefine)
+        return "StructDefine";
+    if (t == NodeType::StructCreate)
+        return "StructCreate";
+    if (t == NodeType::StructGetField)
+        return "StructGetField";
+    if (t == NodeType::StructSetField)
+        return "StructSetField";
+    if (t == NodeType::StructDelete)
+        return "StructDelete";
     if (t == NodeType::Output)
         return "Output";
     return NodeTypeToString(t);
@@ -400,14 +424,22 @@ void GraphSerializer::Load(GraphState& state, const char* path)
             // Apply loaded field values
             for (auto& [name, val] : fieldValues)
             {
+                bool applied = false;
                 for (NodeField& f : n.fields)
                 {
                     if (f.name == name)
                     {
                         f.value = val;
+                        applied = true;
                         break;
                     }
                 }
+
+                // Struct Create has schema-driven dynamic fields that may not exist
+                // yet at this stage. Preserve unknown fields so layout refresh can
+                // re-type/rebind them without losing saved values on reload.
+                if (!applied && n.nodeType == NodeType::StructCreate)
+                    n.fields.push_back(NodeField{ name, PinType::Any, val });
             }
 
             ApplyConstantTypeFromFields(n);

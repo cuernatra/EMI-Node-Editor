@@ -95,6 +95,18 @@ public:
     Node* BuildBranch    (const VisualNode& n);   ///< Builds AST for Branch nodes
     Node* BuildLoop      (const VisualNode& n);   ///< Builds AST for Loop nodes
     Node* BuildForEach   (const VisualNode& n);   ///< Builds AST for For Each nodes
+    Node* BuildArrayGetAt(const VisualNode& n);   ///< Builds AST for Array Get node
+    Node* BuildArrayAddAt(const VisualNode& n);   ///< Builds AST for Array Add node
+    Node* BuildArrayRemoveAt(const VisualNode& n);///< Builds AST for Array Remove node
+    Node* BuildGridNodeSchema(const VisualNode& n); ///< Builds AST for Grid Node Schema (default struct template)
+    Node* BuildGridNodeCreate(const VisualNode& n); ///< Builds AST for Grid Node Create (new instance)
+    Node* BuildGridNodeUpdate(const VisualNode& n); ///< Builds AST for Grid Node Update (updated instance)
+    Node* BuildGridNodeDelete(const VisualNode& n); ///< Builds AST for Grid Node Delete (remove instance from array)
+    Node* BuildStructDefine(const VisualNode& n);   ///< Builds AST for named struct schema definition
+    Node* BuildStructCreate(const VisualNode& n);   ///< Builds AST for named struct instance creation
+    Node* BuildStructGetField(const VisualNode& n); ///< Builds AST for reading one field from struct
+    Node* BuildStructSetField(const VisualNode& n); ///< Builds AST for updating one field in struct
+    Node* BuildStructDelete(const VisualNode& n);   ///< Builds AST for removing struct from array by Id input
     Node* BuildWhile     (const VisualNode& n);   ///< Builds AST for While nodes
     Node* BuildVariable  (const VisualNode& n);   ///< Builds AST for Variable nodes
     Node* BuildOutput    (const VisualNode& n);   ///< Builds AST for Output nodes

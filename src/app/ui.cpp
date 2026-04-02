@@ -2,6 +2,7 @@
 #include "../ui/theme.h"
 #include <imgui-SFML.h>
 #include <algorithm>
+#include <cfloat>
 #include <cstdio>
 #include <EMI/EMI.h>
 
@@ -11,7 +12,13 @@ Ui::Ui()
         m_consolePanel.addLogText("Filesystem");
     });
     m_topPanel.setSettingsCallback([this]() {
-        m_consolePanel.addLogText("Settings");
+        m_showSettingsOverlay = !m_showSettingsOverlay;
+        if (m_showSettingsOverlay)
+        {
+            ++m_settingsWindowGeneration;
+            m_forceSettingsFocus = true;
+            m_consolePanel.addLogText("Settings opened.");
+        }
     });
     m_topPanel.setPreviewCallback([this](bool enabled) {
         m_previewEnabled = enabled;
@@ -283,6 +290,155 @@ void Ui::draw()
     // This keeps legacy actions (e.g. Delete selected node/link) working even
     // when the overlay currently has keyboard focus.
     m_mainEditor.handleSharedShortcuts();
+
+    if (m_showSettingsOverlay)
+    {
+        ImGuiStyle& style = ImGui::GetStyle();
+        const float prevAlpha = style.Alpha;
+        style.Alpha = 1.0f;
+
+        const ImVec2 display = ImGui::GetIO().DisplaySize;
+        const float windowPadding = 20.0f;
+        const float minTopY = elementSizes::topBarHeight + 8.0f;
+        const float maxSettingsWidth = std::max(120.0f, display.x - windowPadding * 2.0f);
+        const float maxSettingsHeight = std::max(120.0f, display.y - minTopY - windowPadding);
+        const ImVec2 settingsSize(
+            std::clamp(display.x * 0.90f, 200.0f, maxSettingsWidth),
+            std::clamp(display.y * 0.90f, 200.0f, maxSettingsHeight)
+        );
+        const ImVec2 settingsPos(
+            std::max(windowPadding, display.x - settingsSize.x - windowPadding),
+            std::max(minTopY, display.y - settingsSize.y - windowPadding)
+        );
+
+        ImGui::SetNextWindowPos(settingsPos, ImGuiCond_Appearing);
+        ImGui::SetNextWindowSize(settingsSize, ImGuiCond_Appearing);
+        ImGui::SetNextWindowBgAlpha(0.70f);
+        if (m_forceSettingsFocus)
+            ImGui::SetNextWindowFocus();
+        m_forceSettingsFocus = false;
+
+        const ImVec4 overlayBg(0.04f, 0.04f, 0.06f, 0.70f);
+        const ImVec4 overlayBorder(0.35f, 0.35f, 0.35f, 0.95f);
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, overlayBg);
+        ImGui::PushStyleColor(ImGuiCol_Border, overlayBorder);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+
+        char settingsWindowName[96];
+        std::snprintf(
+            settingsWindowName,
+            sizeof(settingsWindowName),
+            "Settings##SETTINGS_OVERLAY_WINDOW_%u",
+            static_cast<unsigned>(m_settingsWindowGeneration)
+        );
+
+        if (!ImGui::Begin(settingsWindowName, &m_showSettingsOverlay, ImGuiWindowFlags_NoSavedSettings))
+        {
+            ImGui::End();
+        }
+        else
+        {
+            const auto drawColorChannelSlider = [](const char* id, const char* label, float& value) -> bool
+            {
+                ImGui::PushID(id);
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextUnformatted(label);
+                ImGui::SameLine();
+
+                ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 1.0f, 0.85f));
+                ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 10.0f));
+                ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 16.0f);
+                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+
+                ImGui::SetNextItemWidth(-FLT_MIN);
+                bool changed = ImGui::SliderFloat("##slider", &value, 0.0f, 1.0f, "%.2f");
+
+                const ImVec2 min = ImGui::GetItemRectMin();
+                const ImVec2 max = ImGui::GetItemRectMax();
+                const float t = std::clamp(value, 0.0f, 1.0f);
+                const float x = min.x + (max.x - min.x) * t;
+
+                ImDrawList* drawList = ImGui::GetWindowDrawList();
+                drawList->AddLine(ImVec2(x, min.y + 2.0f), ImVec2(x, max.y - 2.0f), IM_COL32(255, 255, 255, 235), 2.0f);
+
+                ImGui::PopStyleVar(3);
+                ImGui::PopStyleColor(6);
+                ImGui::PopID();
+                return changed;
+            };
+
+            ImGui::TextUnformatted("Settings");
+            ImGui::Separator();
+
+            ImGui::TextUnformatted("Grid Colors");
+            ImVec4 gridBgColor(
+                Settings::gridBgColorR,
+                Settings::gridBgColorG,
+                Settings::gridBgColorB,
+                Settings::gridBgColorA
+            );
+            ImGui::ColorButton("##grid_bg_preview", gridBgColor, ImGuiColorEditFlags_NoTooltip, ImVec2(46.0f, 22.0f));
+            ImGui::SameLine();
+            ImGui::TextUnformatted("Grid background");
+
+            bool gridBgChanged = false;
+            gridBgChanged |= drawColorChannelSlider("grid_bg_r", "RED", gridBgColor.x);
+            gridBgChanged |= drawColorChannelSlider("grid_bg_g", "GREEN", gridBgColor.y);
+            gridBgChanged |= drawColorChannelSlider("grid_bg_b", "BLUE", gridBgColor.z);
+            gridBgChanged |= drawColorChannelSlider("grid_bg_a", "ALPHA", gridBgColor.w);
+
+            if (gridBgChanged)
+            {
+                Settings::gridBgColorR = gridBgColor.x;
+                Settings::gridBgColorG = gridBgColor.y;
+                Settings::gridBgColorB = gridBgColor.z;
+                Settings::gridBgColorA = gridBgColor.w;
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::TextUnformatted("Grid Line Colors");
+
+            ImVec4 gridLineColor(
+                Settings::gridLineColorR,
+                Settings::gridLineColorG,
+                Settings::gridLineColorB,
+                Settings::gridLineColorA
+            );
+            ImGui::ColorButton("##grid_line_preview", gridLineColor, ImGuiColorEditFlags_NoTooltip, ImVec2(46.0f, 22.0f));
+            ImGui::SameLine();
+            ImGui::TextUnformatted("Grid lines");
+
+            bool gridLineChanged = false;
+            gridLineChanged |= drawColorChannelSlider("grid_line_r", "RED", gridLineColor.x);
+            gridLineChanged |= drawColorChannelSlider("grid_line_g", "GREEN", gridLineColor.y);
+            gridLineChanged |= drawColorChannelSlider("grid_line_b", "BLUE", gridLineColor.z);
+            gridLineChanged |= drawColorChannelSlider("grid_line_a", "ALPHA", gridLineColor.w);
+
+            if (gridLineChanged)
+            {
+                Settings::gridLineColorR = gridLineColor.x;
+                Settings::gridLineColorG = gridLineColor.y;
+                Settings::gridLineColorB = gridLineColor.z;
+                Settings::gridLineColorA = gridLineColor.w;
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::TextDisabled("Values are saved to settings.json on app exit.");
+            ImGui::End();
+        }
+
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(2);
+        style.Alpha = prevAlpha;
+    }
 
     m_mainEditor.syncNodePositionsForPreview();
     m_graphPreviewPanel.update(m_mainEditor.getGraphState());

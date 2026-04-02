@@ -12,6 +12,11 @@
 
 namespace ed = ax::NodeEditor;
 
+namespace
+{
+constexpr float kCompactFieldWidth = 78.0f;
+}
+
 static float ParseFloat(const std::string& s)
 {
     if (s.empty())
@@ -355,7 +360,7 @@ bool DrawField(NodeField& field)
         {
             ImGui::Text("%s", field.name.c_str());
             ImGui::SameLine();
-            ImGui::PushItemWidth(100.0f);
+            ImGui::PushItemWidth(kCompactFieldWidth);
 
             float v = ParseFloat(field.value);
 
@@ -421,7 +426,7 @@ bool DrawField(NodeField& field)
             {
                 ImGui::Text("%s", field.name.c_str());
                 ImGui::SameLine();
-                ImGui::PushItemWidth(100.0f);
+                ImGui::PushItemWidth(kCompactFieldWidth);
 
                 char buf[128] = {};
                 std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
@@ -553,7 +558,12 @@ bool DrawField(NodeField& field)
                                 {
                                     char nbuf[128] = {};
                                     std::strncpy(nbuf, nestedPayload.c_str(), sizeof(nbuf) - 1);
-                                    if (ImGui::InputText("##nestedValue", nbuf, sizeof(nbuf)))
+
+                                    ImGui::PushItemWidth(kCompactFieldWidth);
+                                    const bool nestedEdited = ImGui::InputText("##nestedValue", nbuf, sizeof(nbuf));
+                                    ImGui::PopItemWidth();
+
+                                    if (nestedEdited)
                                     {
                                         nestedItems[static_cast<size_t>(ni)] = BuildArrayItemFromPayload(nestedType, nbuf);
                                         nestedChanged = true;
@@ -595,7 +605,12 @@ bool DrawField(NodeField& field)
                     {
                         char buf[128] = {};
                         std::strncpy(buf, payload.c_str(), sizeof(buf) - 1);
-                        if (ImGui::InputText("##itemValue", buf, sizeof(buf)))
+
+                        ImGui::PushItemWidth(kCompactFieldWidth);
+                        const bool itemEdited = ImGui::InputText("##itemValue", buf, sizeof(buf));
+                        ImGui::PopItemWidth();
+
+                        if (itemEdited)
                         {
                             items[static_cast<size_t>(i)] = BuildArrayItemFromPayload(itemType, buf);
                             localChanged = true;

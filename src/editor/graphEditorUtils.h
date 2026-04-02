@@ -30,6 +30,7 @@ bool RefreshOutputNodeInputTypes(GraphState& state);
 bool RefreshLoopNodeLayout(GraphState& state);
 bool RefreshForEachNodeLayout(GraphState& state);
 bool RefreshDrawRectNodeLayout(GraphState& state);
+bool RefreshStructNodeLayouts(GraphState& state);
 bool SyncLinkTypesAndPruneInvalid(GraphState& state);
 bool RefreshCallFunctionNodeLayout(GraphState& state);
 bool RefreshFunctionNodeLayout(GraphState& state);

@@ -2,8 +2,7 @@
 #define LINK_H
 
 #include "imgui_node_editor.h"
-#include "pin.h"
-#include <string>
+#include "types.h"
 #include <vector>
 
 namespace ed = ax::NodeEditor;
@@ -35,45 +34,10 @@ struct Link
     
     /// Whether this link is active (false marks it for deletion)
     bool alive = true;
-
-    /**
-     * @brief Get the visual color for this link based on its data type
-     * @return RGBA color vector for rendering the connection wire
-     * 
-     * The color is determined by the link's PinType, matching the colors
-     * used for pins to create a consistent visual language.
-     */
-    ImVec4 GetColor() const
-    {
-        // Reuse pin color logic via a temporary pin.
-        Pin temp;
-        temp.type = type;
-        return temp.GetTypeColor();
-    }
 };
 
 // ---------------------------------------------------------------------------
-// NodeSpawnPayload
-// ---------------------------------------------------------------------------
-
-/**
- * @brief Drag-and-drop payload for spawning new nodes
- * 
- * Carries information when dragging from a panel or pin to create a new node.
- * Contains the node type to spawn and the originating pin type to enable
- * automatic connection to compatible pins.
- */
-struct NodeSpawnPayload
-{
-    /// Node type name/identifier (e.g., "Add", "Multiply", "Output")
-    char title[32]   = {};
-    
-    /// Type of the pin that initiated the spawn (for auto-wiring)
-    PinType pinType  = PinType::Any;
-};
-
-// ---------------------------------------------------------------------------
-// Link utilities  
+// Link utilities
 // ---------------------------------------------------------------------------
 
 /**
@@ -90,14 +54,5 @@ struct NodeSpawnPayload
  */
 bool WouldCreateCycle(const std::vector<Link>& links,
                       ed::PinId startPin, ed::PinId endPin);
-
-/**
- * @brief Render all active links in the node editor
- * @param links Vector of links to draw
- * 
- * Must be called within an ed::Begin() / ed::End() block.
- * Only draws links marked as alive=true. 
- */
-void DrawLinks(const std::vector<Link>& links);
 
 #endif // LINK_H

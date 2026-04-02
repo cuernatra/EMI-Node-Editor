@@ -6,7 +6,7 @@
 #include "imgui.h"
 #include "../core/registry/nodeFactory.h"
 #include "imgui_node_editor.h"
-#include "../core/graph/pin.h"
+#include "renderer/pinRenderer.h"
 #include "settings.h"
 #include "../ui/theme.h"
 #include <chrono>
@@ -176,6 +176,23 @@ void MainEditor::draw()
     
 
     ImGui::Separator();
+
+    ed::SetCurrentEditor(m_editorContext);
+    ed::Style& style = ed::GetStyle();
+    style.Colors[ed::StyleColor_Bg] = ImVec4(
+        Settings::gridBgColorR,
+        Settings::gridBgColorG,
+        Settings::gridBgColorB,
+        Settings::gridBgColorA
+    );
+    style.Colors[ed::StyleColor_Grid] = ImVec4(
+        Settings::gridLineColorR,
+        Settings::gridLineColorG,
+        Settings::gridLineColorB,
+        Settings::gridLineColorA
+    );
+    ed::SetCurrentEditor(nullptr);
+
     // Draw the node editor canvas
     m_graphEditor->Draw();
 

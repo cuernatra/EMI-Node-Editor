@@ -222,7 +222,13 @@ void App::loadFont()
         if (!std::filesystem::exists(candidate))
             continue;
 
-        uiFonts::terminal = io.Fonts->AddFontFromFileTTF(candidate, fontConstants::fontSize, &config);
+        static const ImWchar terminalGlyphRanges[] = {
+            0x0020, 0x00FF,  // Basic Latin + Latin-1 Supplement (default)
+            0x2500, 0x257F,  // Box Drawing          ─ │ ┌ ┐ └ ┘ ├ ┤ ┬ ┴ ┼ ...
+            0,
+        };
+        
+        uiFonts::terminal = io.Fonts->AddFontFromFileTTF(candidate, fontConstants::fontSize, &config, terminalGlyphRanges);
         if (uiFonts::terminal)
             break;
     }

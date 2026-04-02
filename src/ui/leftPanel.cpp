@@ -1,6 +1,6 @@
 #include "leftPanel.h"
 #include "../core/registry/nodeRegistry.h"
-#include "../core/graph/link.h"
+#include "dropBar.h"
 #include "imgui.h"
 #include <cstring>
 #include <cstdio>
@@ -70,6 +70,34 @@ void DrawSection(const char* title, const std::vector<PaletteItem>& items)
         }
     }
 }
+
+void DrawStructSubSection(const char* title, const std::vector<PaletteItem>& items)
+{
+    if (items.empty())
+        return;
+
+    if (ImGui::TreeNodeEx(title, ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        const float leftBarWidth = ImGui::GetContentRegionAvail().x;
+
+        size_t col = 0;
+        size_t idx = 0;
+        for (const PaletteItem& item : items)
+        {
+            DrawNodeItem(item);
+            col++;
+            idx++;
+            if (idx < items.size()
+                && (nodePreviewConstants::fixedWidth + nodePreviewConstants::padding)
+                   * (col + 1) < leftBarWidth)
+                ImGui::SameLine();
+            else
+                col = 0;
+        }
+
+        ImGui::TreePop();
+    }
+}
 }
 
 LeftPanel::LeftPanel()
@@ -82,6 +110,11 @@ LeftPanel::LeftPanel()
         NodeType::Start,
         NodeType::Constant,
         NodeType::Variable,
+        NodeType::StructDefine,
+        NodeType::StructCreate,
+        NodeType::StructGetField,
+        NodeType::StructSetField,
+        NodeType::ArrayGetAt,
         NodeType::Operator,
         NodeType::Comparison,
         NodeType::Logic,
@@ -95,6 +128,9 @@ LeftPanel::LeftPanel()
         NodeType::Branch,
         NodeType::Loop,
         NodeType::ForEach,
+        NodeType::StructDelete,
+        NodeType::ArrayAddAt,
+        NodeType::ArrayRemoveAt,
         NodeType::While,
         NodeType::Output
     };
@@ -111,6 +147,9 @@ void LeftPanel::draw(bool hasStartNode)
 
     std::vector<PaletteItem> eventTypes;
     std::vector<PaletteItem> dataTypes;
+    std::vector<PaletteItem> structSchemaTypes;
+    std::vector<PaletteItem> structValueTypes;
+    std::vector<PaletteItem> structFlowTypes;
     std::vector<PaletteItem> logicTypes;
     std::vector<PaletteItem> flowTypes;
 
@@ -132,7 +171,18 @@ void LeftPanel::draw(bool hasStartNode)
                 break;
 
             case NodeType::Constant:
+            case NodeType::ArrayGetAt:
                 dataTypes.push_back(makeDefaultItem(t));
+                break;
+
+            case NodeType::StructDefine:
+                structSchemaTypes.push_back(makeDefaultItem(t));
+                break;
+
+            case NodeType::StructCreate:
+            case NodeType::StructGetField:
+            case NodeType::StructSetField:
+                structValueTypes.push_back(makeDefaultItem(t));
                 break;
 
             case NodeType::Variable:
@@ -168,9 +218,15 @@ void LeftPanel::draw(bool hasStartNode)
             case NodeType::Branch:
             case NodeType::Loop:
             case NodeType::ForEach:
+            case NodeType::ArrayAddAt:
+            case NodeType::ArrayRemoveAt:
             case NodeType::While:
             case NodeType::Output:
                 flowTypes.push_back(makeDefaultItem(t));
+                break;
+
+            case NodeType::StructDelete:
+                structFlowTypes.push_back(makeDefaultItem(t));
                 break;
 
             default:
@@ -181,6 +237,14 @@ void LeftPanel::draw(bool hasStartNode)
 
     DrawSection("Events", eventTypes);
     DrawSection("Data", dataTypes);
+
+    if (ImGui::CollapsingHeader("Structs", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        DrawStructSubSection("Schema", structSchemaTypes);
+        DrawStructSubSection("Values", structValueTypes);
+        DrawStructSubSection("Flow", structFlowTypes);
+    }
+
     DrawSection("Logic", logicTypes);
     DrawSection("Flow", flowTypes);
 }

@@ -1,6 +1,7 @@
 #include "visualNode.h"
 #include "../registry/fieldWidget.h"
 #include "editor/graphSerializer.h"
+#include "editor/renderer/pinRenderer.h"
 #include "app/constants.h"
 #include "imgui.h"
 #include "imgui_node_editor.h"
@@ -316,54 +317,41 @@ static void DrawReadOnlyField(const NodeField& field)
     ImGui::TextDisabled("%s", field.value.c_str());
 }
 
-static void DrawReadOnlyArrayFieldCollapsed(const NodeField& field)
+static void DrawReadOnlyArrayFieldPreview(const NodeField& field, int previewCount = 3)
 {
     const std::vector<std::string> items = ParseArrayItemsForNodeView(field.value);
-    ImGui::PushID(field.name.c_str());
 
-    ImGuiID stateId = ImGui::GetID("##arrayOpenState");
-    bool& open = s_nodeArrayOpenState[stateId];
-
-    if (ImGui::ArrowButton("##arrayArrow", open ? ImGuiDir_Down : ImGuiDir_Right))
-        open = !open;
-
+    ImGui::TextUnformatted(field.name.c_str());
     ImGui::SameLine();
-    const std::string label = field.name + " [" + std::to_string(items.size()) + "]";
-    ImGui::TextUnformatted(label.c_str());
 
-    if (open)
+    std::string preview = "[";
+    const int visible = std::min(static_cast<int>(items.size()), std::max(previewCount, 0));
+    for (int i = 0; i < visible; ++i)
     {
-        ImGui::Indent(14.0f);
-        if (items.empty())
-        {
-            ImGui::TextDisabled("(empty)");
-        }
-        else
-        {
-            for (size_t i = 0; i < items.size(); ++i)
-            {
-                const std::string token = TrimArrayToken(items[i]);
-                if (token.size() >= 2 && token.front() == '[' && token.back() == ']')
-                {
-                    const std::vector<std::string> nested = ParseArrayItemsForNodeView(token);
-                    ImGui::TextDisabled("%d: Array [%d]", static_cast<int>(i), static_cast<int>(nested.size()));
-                }
-                else
-                {
-                    ImGui::TextDisabled("%d: %s", static_cast<int>(i), token.c_str());
-                }
-            }
-        }
-        ImGui::Unindent(14.0f);
+        if (i > 0)
+            preview += ", ";
+
+        std::string token = TrimArrayToken(items[static_cast<size_t>(i)]);
+        if (token.size() > 12)
+            token = token.substr(0, 12) + "...";
+        preview += token;
     }
 
-    ImGui::PopID();
+    if (static_cast<int>(items.size()) > visible)
+    {
+        if (visible > 0)
+            preview += ", ";
+        preview += "...";
+    }
+    preview += "]";
+
+    ImGui::TextDisabled("%s [%d] %s", field.name.c_str(), static_cast<int>(items.size()), preview.c_str());
 }
 
 float MeasureFieldWidth(const NodeField& field)
 {
     const float labelWidth  = ImGui::CalcTextSize(field.name.c_str()).x;
-    const float widgetWidth = 110.0f;
+    const float widgetWidth = 82.0f;
     const float spacing     = ImGui::GetStyle().ItemSpacing.x;
     return labelWidth + spacing + widgetWidth;
 }
@@ -393,7 +381,7 @@ float MeasureNodeContentWidth(const VisualNode& n)
 
 void DrawPin(const Pin& pin, float contentWidth, const std::vector<Link>* allLinks)
 {
-    const ImVec4      colorF    = pin.GetTypeColor();
+    const ImVec4      colorF    = GetPinTypeColor(pin.type);
     const ImU32       iconColor = ImGui::ColorConvertFloat4ToU32(colorF);
     const ImU32       innerColor = ImGui::GetColorU32(colors::background);
     const ImVec2      iconSize(14.0f, 14.0f);
@@ -513,6 +501,16 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const bool isDrawRectNode = (n.nodeType == NodeType::DrawRect);
     const bool isDrawGridNode = (n.nodeType == NodeType::DrawGrid);
     const bool isCallFunction = (n.nodeType == NodeType::CallFunction); //???????????????????????????
+    const bool isStructDefineNode = (n.nodeType == NodeType::StructDefine);
+    const bool isStructCreateNode = (n.nodeType == NodeType::StructCreate);
+    const bool isStructGetNode = (n.nodeType == NodeType::StructGetField);
+    const bool isStructSetNode = (n.nodeType == NodeType::StructSetField);
+    const bool isStructDeleteNode = (n.nodeType == NodeType::StructDelete);
+    const bool isArrayIndexNode =
+        (n.nodeType == NodeType::ArrayGetAt
+         || n.nodeType == NodeType::ArrayAddAt
+         || n.nodeType == NodeType::ArrayRemoveAt);
+    const bool hasArrayInputFieldNode = (isForEachNode || isArrayIndexNode);
     bool drawNodeColorTextChanged = false;
     bool drewDeferredDefaultPin = false;
     bool drewDeferredStartPin = false;
@@ -524,6 +522,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     bool drewDeferredYPin = false;
     bool drewDeferredWPin = false;
     bool drewDeferredHPin = false;
+    bool drewDeferredIndexPin = false;
 
     auto drawDeferredPinByName = [&](const char* pinName)
     {
@@ -538,18 +537,18 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     };
 
     auto shouldDeferInputPin = [&](const Pin& pin) -> bool
-        {
-            if (isSetVariable && pin.name == "Default")
-                return true;
+    {
+        if (isSetVariable && pin.name == "Default")
+            return true;
 
-            if (isLoopNode && (pin.name == "Start" || pin.name == "Count"))
-                return true;
+        if (isLoopNode && (pin.name == "Start" || pin.name == "Count"))
+            return true;
 
-            if (isBinaryDefaultNode && (pin.name == "A" || pin.name == "B"))
-                return true;
+        if (isBinaryDefaultNode && (pin.name == "A" || pin.name == "B"))
+            return true;
 
-            if (isUnaryDefaultNode && pin.name == "A")
-                return true;
+        if (isUnaryDefaultNode && pin.name == "A")
+            return true;
 
         if (isDelayNode && pin.name == "Duration")
             return true;
@@ -558,12 +557,24 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             (pin.name == "X" || pin.name == "Y" || pin.name == "W" || pin.name == "H"))
             return true;
 
-            if (isDrawGridNode &&
-                (pin.name == "X" || pin.name == "Y" || pin.name == "W" || pin.name == "H"))
-                return true;
+        if (isDrawGridNode &&
+            (pin.name == "X" || pin.name == "Y" || pin.name == "W" || pin.name == "H"))
+            return true;
 
-            return false;
-        };
+        if (isStructCreateNode && pin.name != "Struct")
+            return true;
+
+        if ((isStructGetNode || isStructSetNode) && pin.name == "Item")
+            return true;
+
+        if (isStructDeleteNode && pin.name == "Id")
+            return true;
+
+        if (isArrayIndexNode && pin.name == "Index")
+            return true;
+
+        return false;
+    };
 
     for (const Pin& pin : n.inPins)
     {
@@ -817,6 +828,29 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 continue;
             }
 
+            if (hasArrayInputFieldNode && field.name == "Array")
+            {
+                const bool pinConnected = isInputPinConnected("Array");
+                if (pinConnected)
+                    DrawReadOnlyArrayFieldPreview(field, 3);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
+            if (isArrayIndexNode && field.name == "Index")
+            {
+                drawDeferredPinByName("Index");
+                drewDeferredIndexPin = true;
+
+                const bool pinConnected = isInputPinConnected(field.name.c_str());
+                if (pinConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
             if (isDrawRectNode &&
                 (field.name == "X" || field.name == "Y" || field.name == "W" || field.name == "H"))
             {
@@ -916,12 +950,98 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
                 continue;
             }
-        
-        changed |= DrawField(field);
+
+            if (isStructCreateNode && field.name == "Schema Fields")
+                continue;
+
+            if ((isStructGetNode || isStructSetNode) && field.name == "Schema Fields")
+                continue;
+
+            if (isStructDefineNode && field.name == "Fields")
+            {
+                const std::vector<std::string> items = ParseArrayItemsForNodeView(field.value);
+                ImGui::TextUnformatted("Fields");
+                ImGui::SameLine();
+                ImGui::TextDisabled("[%d]", static_cast<int>(items.size()));
+                continue;
+            }
+
+            if (isStructCreateNode && field.name != "Struct Name")
+            {
+                drawDeferredPinByName(field.name.c_str());
+                const bool pinConnected = isInputPinConnected(field.name.c_str());
+                if (pinConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
+            if ((isStructGetNode || isStructSetNode) && field.name == "Field")
+            {
+                std::vector<std::string> selectableFields;
+                if (const NodeField* schemaField = FindFieldByName(n, "Schema Fields"))
+                {
+                    const std::vector<std::string> defs = ParseArrayItemsForNodeView(schemaField->value);
+                    for (std::string raw : defs)
+                    {
+                        raw = TrimArrayToken(raw);
+                        if (raw.size() >= 2 &&
+                            ((raw.front() == '"' && raw.back() == '"') ||
+                             (raw.front() == '\'' && raw.back() == '\'')))
+                        {
+                            raw = raw.substr(1, raw.size() - 2);
+                        }
+
+                        const size_t sep = raw.find(':');
+                        const std::string name = TrimArrayToken(
+                            (sep == std::string::npos) ? raw : raw.substr(0, sep)
+                        );
+
+                        if (!name.empty() &&
+                            std::find(selectableFields.begin(), selectableFields.end(), name) == selectableFields.end())
+                        {
+                            selectableFields.push_back(name);
+                        }
+                    }
+                }
+
+                if (!selectableFields.empty())
+                {
+                    if (std::find(selectableFields.begin(), selectableFields.end(), field.value) == selectableFields.end())
+                    {
+                        field.value = selectableFields.front();
+                        changed = true;
+                    }
+
+                    ImGui::TextUnformatted("Field");
+                    ImGui::SameLine();
+                    changed |= NodePopupComboDynamic("##StructFieldDropBar", field.value, selectableFields, 110.0f);
+                }
+                else
+                {
+                    changed |= DrawField(field);
+                }
+                continue;
+            }
+
+            if (isStructDeleteNode && field.name == "Id")
+            {
+                drawDeferredPinByName("Id");
+                drewDeferredIndexPin = true;
+                const bool pinConnected = isInputPinConnected("Id");
+                if (pinConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
+            changed |= DrawField(field);
+        }
+        ImGui::PopID();
+        ImGui::Spacing();
     }
-    ImGui::PopID();
-    ImGui::Spacing();
-}
 
     if (isSetVariable && !drewDeferredDefaultPin)
         drawDeferredPinByName("Default");
@@ -947,6 +1067,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
     if (isDelayNode && !drewDeferredDurationPin)
         drawDeferredPinByName("Duration");
+
+    if (isArrayIndexNode && !drewDeferredIndexPin)
+        drawDeferredPinByName("Index");
 
     if (isDrawRectNode)
     {
