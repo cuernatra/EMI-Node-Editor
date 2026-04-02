@@ -1666,7 +1666,7 @@ bool RefreshCallFunctionNodeLayout(GraphState& state)
 
     auto& nodes = state.GetNodes();
 
-    // Kerää kaikki Function-nodet ja niiden parametrit
+    // Kerää kaikki Function-nodet ja niiden parametrit!?????????????????????
     struct FunctionDef
     {
         std::vector<std::string> params;
@@ -1759,6 +1759,13 @@ bool RefreshCallFunctionNodeLayout(GraphState& state)
                     changed = true;
                 }
             }
+        }
+        // Päivitä Result-pinin tyyppi — käytä jo olemassa olevaa resultPin-muuttujaa
+        resultPin = FindPinByName(n.outPins, "Result");
+        if (resultPin && resultPin->type != PinType::Number)
+        {
+            resultPin->type = PinType::Number;
+            changed = true;
         }
     }
 
