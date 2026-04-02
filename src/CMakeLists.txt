@@ -17,6 +17,8 @@ add_executable(emi-editor
   editor/graphState.cpp
   editor/graphSerializer.cpp
   editor/settings.cpp
+  editor/renderer/pinRenderer.cpp
+  editor/renderer/linkRenderer.cpp
   core/graph/visualNode.cpp
   core/graph/pin.cpp
   core/graph/link.cpp
