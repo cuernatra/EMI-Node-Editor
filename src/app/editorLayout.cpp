@@ -388,10 +388,10 @@ void EditorLayout::draw()
             ImGui::TextUnformatted("Grid background");
 
             bool gridBgChanged = false;
-            gridBgChanged |= drawColorChannelSlider("grid_bg_r", "RED", gridBgColor.x);
-            gridBgChanged |= drawColorChannelSlider("grid_bg_g", "GREEN", gridBgColor.y);
-            gridBgChanged |= drawColorChannelSlider("grid_bg_b", "BLUE", gridBgColor.z);
-            gridBgChanged |= drawColorChannelSlider("grid_bg_a", "ALPHA", gridBgColor.w);
+            gridBgChanged |= drawColorChannelSlider("grid_bg_r", "R", gridBgColor.x);
+            gridBgChanged |= drawColorChannelSlider("grid_bg_g", "G", gridBgColor.y);
+            gridBgChanged |= drawColorChannelSlider("grid_bg_b", "B", gridBgColor.z);
+            gridBgChanged |= drawColorChannelSlider("grid_bg_a", "A", gridBgColor.w);
 
             if (gridBgChanged)
             {
@@ -416,10 +416,10 @@ void EditorLayout::draw()
             ImGui::TextUnformatted("Grid lines");
 
             bool gridLineChanged = false;
-            gridLineChanged |= drawColorChannelSlider("grid_line_r", "RED", gridLineColor.x);
-            gridLineChanged |= drawColorChannelSlider("grid_line_g", "GREEN", gridLineColor.y);
-            gridLineChanged |= drawColorChannelSlider("grid_line_b", "BLUE", gridLineColor.z);
-            gridLineChanged |= drawColorChannelSlider("grid_line_a", "ALPHA", gridLineColor.w);
+            gridLineChanged |= drawColorChannelSlider("grid_line_r", "R", gridLineColor.x);
+            gridLineChanged |= drawColorChannelSlider("grid_line_g", "G", gridLineColor.y);
+            gridLineChanged |= drawColorChannelSlider("grid_line_b", "B", gridLineColor.z);
+            gridLineChanged |= drawColorChannelSlider("grid_line_a", "A", gridLineColor.w);
 
             if (gridLineChanged)
             {
