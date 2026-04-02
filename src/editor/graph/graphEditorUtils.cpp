@@ -103,9 +103,6 @@ std::string BuildArrayString(const std::vector<std::string>& items)
     return out;
 }
 
-PinType VariableTypeFromString(const std::string& typeName);
-const char* VariableTypeToString(PinType type);
-
 struct StructFieldDef
 {
     std::string name;
@@ -129,7 +126,7 @@ std::vector<StructFieldDef> ParseStructFieldDefs(const std::string& text)
         StructFieldDef def;
         def.name = TrimCopy(item.substr(0, sep));
         const std::string typeName = TrimCopy(item.substr(sep + 1));
-        def.type = VariableTypeFromString(typeName);
+        def.type = ValuePinTypeFromString(typeName, PinType::Number);
         if (!def.name.empty())
             defs.push_back(def);
     }
@@ -141,7 +138,7 @@ std::string BuildStructFieldDefsString(const std::vector<StructFieldDef>& defs)
     std::vector<std::string> items;
     items.reserve(defs.size());
     for (const StructFieldDef& def : defs)
-        items.push_back(std::string("\"") + def.name + ":" + VariableTypeToString(def.type) + "\"");
+        items.push_back(std::string("\"") + def.name + ":" + ValuePinTypeToString(def.type) + "\"");
     return BuildArrayString(items);
 }
 
@@ -164,15 +161,6 @@ NodeField* EnsureField(std::vector<NodeField>& fields, const std::string& name, 
 
 bool TryParseDouble(const std::string& s, double& out);
 bool ParseBoolLoose(const std::string& s);
-
-PinType VariableTypeFromString(const std::string& typeName)
-{
-    if (typeName == "Any")     return PinType::Any;
-    if (typeName == "Boolean") return PinType::Boolean;
-    if (typeName == "String")  return PinType::String;
-    if (typeName == "Array")   return PinType::Array;
-    return PinType::Number;
-}
 
 bool TryParseDouble(const std::string& s, double& out)
 {
@@ -242,19 +230,6 @@ void NormalizeValueForPinType(PinType t, std::string& value)
         case PinType::String:
         default:
             break;
-    }
-}
-
-const char* VariableTypeToString(PinType type)
-{
-    switch (type)
-    {
-        case PinType::Any:     return "Any";
-        case PinType::Boolean: return "Boolean";
-        case PinType::String:  return "String";
-        case PinType::Array:   return "Array";
-        case PinType::Number:
-        default:               return "Number";
     }
 }
 
@@ -461,7 +436,7 @@ bool RefreshVariableNodeTypes(GraphState& state)
             changed = true;
         }
 
-        PinType resolvedType = VariableTypeFromString(typeField ? typeField->value : "Number");
+        PinType resolvedType = ValuePinTypeFromString(typeField ? typeField->value : "Number", PinType::Number);
         if (setPin)
         {
             if (const Pin* source = FindIncomingPinSource(state, links, *setPin))
@@ -471,7 +446,7 @@ bool RefreshVariableNodeTypes(GraphState& state)
             }
         }
 
-        const char* resolvedTypeName = VariableTypeToString(resolvedType);
+        const char* resolvedTypeName = ValuePinTypeToString(resolvedType);
         if (typeField && typeField->value != resolvedTypeName)
         {
             typeField->value = resolvedTypeName;
@@ -558,9 +533,9 @@ bool RefreshVariableNodeTypes(GraphState& state)
             const auto it = definitions.find(resolvedName);
             const PinType getType = (it != definitions.end())
                 ? it->second.type
-                : VariableTypeFromString(typeField ? typeField->value : "Number");
+                : ValuePinTypeFromString(typeField ? typeField->value : "Number", PinType::Number);
 
-            const char* getTypeName = VariableTypeToString(getType);
+            const char* getTypeName = ValuePinTypeToString(getType);
             if (typeField && typeField->value != getTypeName)
             {
                 typeField->value = getTypeName;
@@ -981,8 +956,8 @@ bool RefreshForEachNodeLayout(GraphState& state)
                 changed = true;
             }
 
-            const PinType parsedType = VariableTypeFromString(elementTypeField->value);
-            const std::string normalized = VariableTypeToString(parsedType);
+            const PinType parsedType = ValuePinTypeFromString(elementTypeField->value, PinType::Number);
+            const std::string normalized = ValuePinTypeToString(parsedType);
             if (elementTypeField->value != normalized)
             {
                 elementTypeField->value = normalized;
@@ -990,7 +965,7 @@ bool RefreshForEachNodeLayout(GraphState& state)
             }
         }
 
-        const PinType elementType = VariableTypeFromString(elementTypeField ? elementTypeField->value : "Any");
+        const PinType elementType = ValuePinTypeFromString(elementTypeField ? elementTypeField->value : "Any", PinType::Number);
         if (!elementPin)
         {
             n.outPins.push_back(MakePin(

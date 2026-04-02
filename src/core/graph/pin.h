@@ -40,4 +40,26 @@ const char* PinTypeToString(PinType t);
 /** @brief Parse PinType from a string token (unknown -> Any). */
 PinType PinTypeFromString(std::string_view s);
 
+/**
+ * @brief True if PinType is a value type (not Flow/Function).
+ *
+ * Value types are those that can be stored in NodeField and edited in the inspector.
+ */
+bool IsValuePinType(PinType t);
+
+/**
+ * @brief Parse a value pin type token.
+ *
+ * Unlike PinTypeFromString, this never returns Flow/Function.
+ * Unknown/non-value tokens return fallback (default Number).
+ */
+PinType ValuePinTypeFromString(std::string_view s, PinType fallback = PinType::Number);
+
+/**
+ * @brief Convert a value pin type to a stable token.
+ *
+ * Non-value types return "Number".
+ */
+const char* ValuePinTypeToString(PinType t);
+
 #endif // PIN_H

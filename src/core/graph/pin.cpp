@@ -56,3 +56,29 @@ PinType PinTypeFromString(std::string_view s)
     if (s == "Flow")     return PinType::Flow;
     return PinType::Any;
 }
+
+bool IsValuePinType(PinType t)
+{
+    switch (t)
+    {
+        case PinType::Any:
+        case PinType::Number:
+        case PinType::Boolean:
+        case PinType::String:
+        case PinType::Array:
+            return true;
+        default:
+            return false;
+    }
+}
+
+PinType ValuePinTypeFromString(std::string_view s, PinType fallback)
+{
+    const PinType parsed = PinTypeFromString(s);
+    return IsValuePinType(parsed) ? parsed : fallback;
+}
+
+const char* ValuePinTypeToString(PinType t)
+{
+    return IsValuePinType(t) ? PinTypeToString(t) : "Number";
+}
