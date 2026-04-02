@@ -1,5 +1,8 @@
 name: Static Analysis
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 on:
   push:
     branches: [ '**' ]
@@ -10,23 +13,49 @@ jobs:
   cppcheck:
     runs-on: ubuntu-latest
 
+    env:
+      BUILD_DIR: build
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install cppcheck
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cppcheck
+          sudo apt-get install -y \
+            ninja-build \
+            libsfml-dev libxrandr-dev libxcursor-dev libudev-dev \
+            libfreetype-dev libopenal-dev libflac-dev libvorbis-dev \
+            libgl1-mesa-dev libegl1-mesa-dev \
+            cppcheck
+
+      - name: Cache CMake dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: ${{ runner.os }}-deps-${{ hashFiles('dependencies/**/CMakeLists.txt', 'tests/CMakeLists.txt') }}
+
+      - name: Configure (generate compile_commands.json)
+        run: |
+          cmake -S . -B $BUILD_DIR \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DBUILD_TESTS=OFF \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
       - name: Run cppcheck
         run: |
           cppcheck \
-            --enable=warning,style,performance,portability \
+            --project=$BUILD_DIR/compile_commands.json \
+            --enable=warning,performance,portability \
             --error-exitcode=1 \
             --inline-suppr \
             --suppress=missingIncludeSystem \
-            -Isrc \
-            src tests
+            --suppress=missingInclude \
+            --suppress=unmatchedSuppression \
+            --template=gcc \
+            --cppcheck-build-dir=$BUILD_DIR/cppcheck
