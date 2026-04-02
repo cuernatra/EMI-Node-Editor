@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cfloat>
 #include <cmath>
 #include <cctype>
 #include <cstdio>
@@ -553,8 +554,10 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
     ed::BeginNode(n.id);
 
-    const float headerHeight = 22.0f;
+    const float headerHeight = 30.0f;
     const float headerPaddingX = 6.0f;
+    const float headerInsetX = 12.0f;
+    const float headerInsetY = 4.0f;
     const float headerWidth = contentWidth + headerPaddingX * 2.0f;
     const ImVec2 headerMin = ImGui::GetCursorScreenPos();
     const uint64_t nodeKey = static_cast<uint64_t>(n.id.Get());
@@ -569,17 +572,23 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     if (auto it = s_nodeWidthCache.find(nodeKey); it != s_nodeWidthCache.end() && it->second > 0.0f)
         headerDrawWidth = it->second;
     const ImVec2 headerDrawMax(headerDrawMin.x + headerDrawWidth, headerMin.y + headerHeight);
+    const ImVec2 headerColorMin(headerDrawMin.x + headerInsetX, headerDrawMin.y + headerInsetY);
+    const ImVec2 headerColorMax(headerDrawMax.x - headerInsetX, headerDrawMax.y - headerInsetY);
 
     ImDrawList* drawList = ImGui::GetWindowDrawList();
     drawList->AddRectFilled(
-        headerDrawMin,
-        headerDrawMax,
+        headerColorMin,
+        headerColorMax,
         ImGui::GetColorU32(GetNodeCategoryHeaderColor(n.nodeType)),
         4.0f
     );
 
-    ImGui::SetCursorScreenPos(ImVec2(headerMin.x + headerPaddingX, headerMin.y + 3.0f));
-    ImGui::TextUnformatted(n.title.c_str());
+    ImFont* titleFont = ImGui::GetFont();
+    const float titleFontSize = ImGui::GetFontSize() + 3.0f;
+    const ImVec2 titleSize = titleFont->CalcTextSizeA(titleFontSize, FLT_MAX, 0.0f, n.title.c_str());
+    const float titleX = headerColorMin.x + std::max(0.0f, (headerColorMax.x - headerColorMin.x - titleSize.x) * 0.5f);
+    const float titleY = headerColorMin.y + std::max(0.0f, (headerColorMax.y - headerColorMin.y - titleSize.y) * 0.5f);
+    drawList->AddText(titleFont, titleFontSize, ImVec2(titleX, titleY), ImGui::GetColorU32(colors::textPrimary), n.title.c_str());
     ImGui::SetCursorScreenPos(ImVec2(headerMin.x, headerMin.y + headerHeight));
     // Reserve horizontal space so node width matches measured content width.
     ImGui::Dummy(ImVec2(headerWidth, 0.0f));
