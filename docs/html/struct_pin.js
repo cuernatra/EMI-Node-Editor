@@ -1,6 +1,5 @@
 var struct_pin =
 [
-    [ "GetTypeColor", "struct_pin.html#a26c41408bfd48ef7d63090c12704c624", null ],
     [ "id", "struct_pin.html#abf098e5bfe6a2cd7c291cda39d43f560", null ],
     [ "isInput", "struct_pin.html#a0d52138d3494be795aa9a11e3d937b54", null ],
     [ "isMultiInput", "struct_pin.html#a94d6edab5a5ebe8175d9f26a4f3d97ce", null ],

@@ -32,3 +32,13 @@ Make sure CMake is installed.
 
 Generated executable can be found in the build directory.
 
+## Documentation
+
+Generate the HTML docs:
+
+```bash
+doxygen Doxyfile
+```
+
+Then open `docs/index.html` (redirects to `docs/html/index.html`).
+

@@ -25,6 +25,17 @@
 var NAVTREE =
 [
   [ "AO Emi Visual Programming Tool", "index.html", [
+    [ "AO_Emi-Visual-Programming-Tool", "index.html", "index" ],
+    [ "AO_Emi file guide (developer)", "md_file__guide.html", [
+      [ "Principles", "md_file__guide.html#autotoc_md4", null ],
+      [ "High-level architecture", "md_file__guide.html#autotoc_md5", null ],
+      [ "How to add a new node (short checklist)", "md_file__guide.html#autotoc_md6", null ],
+      [ "Compiler + AST overview (conceptual)", "md_file__guide.html#autotoc_md7", [
+        [ "What “compile” means here", "md_file__guide.html#autotoc_md8", null ],
+        [ "What is an AST?", "md_file__guide.html#autotoc_md9", null ],
+        [ "Pipeline (end-to-end)", "md_file__guide.html#autotoc_md10", null ]
+      ] ]
+    ] ],
     [ "Namespaces", "namespaces.html", [
       [ "Namespace List", "namespaces.html", "namespaces_dup" ],
       [ "Namespace Members", "namespacemembers.html", [
@@ -36,10 +47,12 @@ var NAVTREE =
     [ "Classes", "annotated.html", [
       [ "Class List", "annotated.html", "annotated_dup" ],
       [ "Class Index", "classes.html", null ],
+      [ "Class Hierarchy", "hierarchy.html", "hierarchy" ],
       [ "Class Members", "functions.html", [
-        [ "All", "functions.html", null ],
+        [ "All", "functions.html", "functions_dup" ],
         [ "Functions", "functions_func.html", null ],
-        [ "Variables", "functions_vars.html", null ]
+        [ "Variables", "functions_vars.html", null ],
+        [ "Typedefs", "functions_type.html", null ]
       ] ]
     ] ],
     [ "Files", "files.html", [
@@ -57,7 +70,8 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"struct_node_descriptor.html#ad7afdde1cefb67479899b9d23b592957"
+"link_8cpp.html",
+"struct_position.html#af684446cbf0f6d53386686283da6dcc6"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';

@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['dropbar_2ecpp_0',['dropBar.cpp',['../drop_bar_8cpp.html',1,'']]],
-  ['dropbar_2eh_1',['dropBar.h',['../drop_bar_8h.html',1,'']]]
+  ['editorlayout_2ecpp_0',['editorLayout.cpp',['../editor_layout_8cpp.html',1,'']]],
+  ['editorlayout_2eh_1',['editorLayout.h',['../editor_layout_8h.html',1,'']]]
 ];

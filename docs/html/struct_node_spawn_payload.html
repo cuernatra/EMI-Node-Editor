@@ -92,21 +92,21 @@ $(function(){initNavTree('struct_node_spawn_payload.html','','struct_node_spawn_
 </div><!--header-->
 <div class="contents">
 
-<p>Drag-and-drop payload for spawning new nodes.  
+<p>Drag-and-drop payload for spawning new nodes from the palette.  
  <a href="#details">More...</a></p>
 
-<p><code>#include &lt;<a class="el" href="link_8h_source.html">link.h</a>&gt;</code></p>
+<p><code>#include &lt;<a class="el" href="spawn_payload_8h_source.html">spawnPayload.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a9900b825121636c878aa46ff4bf26282" id="r_a9900b825121636c878aa46ff4bf26282"><td class="memItemLeft">char&#160;</td><td class="memItemRight"><a class="el" href="#a9900b825121636c878aa46ff4bf26282">title</a> [32] = {}</td></tr>
-<tr class="memdesc:a9900b825121636c878aa46ff4bf26282"><td class="mdescLeft">&#160;</td><td class="mdescRight">Node type name/identifier (e.g., "Add", "Multiply", "Output").  <br /></td></tr>
+<tr class="memdesc:a9900b825121636c878aa46ff4bf26282"><td class="mdescLeft">&#160;</td><td class="mdescRight">Node type name (e.g. "For Each" or "Variable:Set").  <br /></td></tr>
 <tr class="memitem:abe7741d8feae8ba41786492fa00fb22d" id="r_abe7741d8feae8ba41786492fa00fb22d"><td class="memItemLeft"><a class="el" href="types_8h.html#ab5c1a71b52ceb31763d6d32416abf3e5">PinType</a>&#160;</td><td class="memItemRight"><a class="el" href="#abe7741d8feae8ba41786492fa00fb22d">pinType</a> = <a class="el" href="types_8h.html#ab5c1a71b52ceb31763d6d32416abf3e5aed36a1ef76a59ee3f15180e0441188ad">PinType::Any</a></td></tr>
-<tr class="memdesc:abe7741d8feae8ba41786492fa00fb22d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of the pin that initiated the spawn (for auto-wiring).  <br /></td></tr>
+<tr class="memdesc:abe7741d8feae8ba41786492fa00fb22d"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="struct_pin.html" title="Pin types, styles, and helpers for the graph editor.">Pin</a> type that initiated the drag (for auto-wiring).  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Drag-and-drop payload for spawning new nodes. </p>
-<p>Carries information when dragging from a panel or pin to create a new node. Contains the node type to spawn and the originating pin type to enable automatic connection to compatible pins. </p>
+<div class="textblock"><p>Drag-and-drop payload for spawning new nodes from the palette. </p>
+<p>Passed via ImGui drag-and-drop ("SPAWN_NODE") from the node palette to the graph editor canvas. </p>
 </div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="abe7741d8feae8ba41786492fa00fb22d" name="abe7741d8feae8ba41786492fa00fb22d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abe7741d8feae8ba41786492fa00fb22d">&#9670;&#160;</a></span>pinType</h2>
@@ -120,7 +120,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Type of the pin that initiated the spawn (for auto-wiring). </p>
+<p><a class="el" href="struct_pin.html" title="Pin types, styles, and helpers for the graph editor.">Pin</a> type that initiated the drag (for auto-wiring). </p>
 
 </div>
 </div>
@@ -136,12 +136,12 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Node type name/identifier (e.g., "Add", "Multiply", "Output"). </p>
+<p>Node type name (e.g. "For Each" or "Variable:Set"). </p>
 
 </div>
 </div>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li>src/core/graph/<a class="el" href="link_8h_source.html">link.h</a></li>
+<li>src/editor/<a class="el" href="spawn_payload_8h_source.html">spawnPayload.h</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

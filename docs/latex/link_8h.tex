@@ -1,44 +1,24 @@
 \doxysection{src/\+core/\+graph/\+link.h File Reference}
 \hypertarget{link_8h}{}\label{link_8h}\index{src/core/graph/link.h@{src/core/graph/link.h}}
 {\ttfamily \+\#include "{}imgui\+\_\+node\+\_\+editor.\+h"{}}\newline
-{\ttfamily \+\#include "{}pin.\+h"{}}\newline
-{\ttfamily \+\#include $<$string$>$}\newline
+{\ttfamily \+\#include "{}types.\+h"{}}\newline
 {\ttfamily \+\#include $<$vector$>$}\newline
 \doxysubsubsection*{Classes}
 \begin{DoxyCompactItemize}
 \item 
 struct \doxymbox{\hyperlink{struct_link}{Link}}
-\begin{DoxyCompactList}\small\item\em Represents a connection (edge) between two pins in the node graph. \end{DoxyCompactList}\item 
-struct \doxymbox{\hyperlink{struct_node_spawn_payload}{Node\+Spawn\+Payload}}
-\begin{DoxyCompactList}\small\item\em Drag-\/and-\/drop payload for spawning new nodes. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Represents a connection (edge) between two pins in the node graph. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsubsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
 bool \doxymbox{\hyperlink{link_8h_aec9e764993b90a81c6e24c3c34639491}{Would\+Create\+Cycle}} (const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \&links, ed::\+\+Pin\+Id start\+Pin, ed::\+\+Pin\+Id end\+Pin)
-\begin{DoxyCompactList}\small\item\em Check if adding a link would create a cycle in the graph. \end{DoxyCompactList}\item 
-void \doxymbox{\hyperlink{link_8h_a7bfa959fa0c3c1ca221ef0fd0aefd1b6}{Draw\+Links}} (const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \&links)
-\begin{DoxyCompactList}\small\item\em Render all active links in the node editor. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Check if adding a link would create a cycle in the graph. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \label{doc-func-members}
 \Hypertarget{link_8h_doc-func-members}
 \doxysubsection{Function Documentation}
-\Hypertarget{link_8h_a7bfa959fa0c3c1ca221ef0fd0aefd1b6}\index{link.h@{link.h}!DrawLinks@{DrawLinks}}
-\index{DrawLinks@{DrawLinks}!link.h@{link.h}}
-\doxysubsubsection{\texorpdfstring{DrawLinks()}{DrawLinks()}}
-{\footnotesize\ttfamily \label{link_8h_a7bfa959fa0c3c1ca221ef0fd0aefd1b6} 
-void Draw\+Links (\begin{DoxyParamCaption}\item[{const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \&}]{links}{}\end{DoxyParamCaption})}
-
-
-
-Render all active links in the node editor. 
-
-
-\begin{DoxyParams}{Parameters}
-{\em links} & Vector of links to draw\\
-\hline
-\end{DoxyParams}
-Must be called within an ed::\+\+Begin() /\+ ed::\+\+End() block. Only draws links marked as alive=true. \Hypertarget{link_8h_aec9e764993b90a81c6e24c3c34639491}\index{link.h@{link.h}!WouldCreateCycle@{WouldCreateCycle}}
+\Hypertarget{link_8h_aec9e764993b90a81c6e24c3c34639491}\index{link.h@{link.h}!WouldCreateCycle@{WouldCreateCycle}}
 \index{WouldCreateCycle@{WouldCreateCycle}!link.h@{link.h}}
 \doxysubsubsection{\texorpdfstring{WouldCreateCycle()}{WouldCreateCycle()}}
 {\footnotesize\ttfamily \label{link_8h_aec9e764993b90a81c6e24c3c34639491} 

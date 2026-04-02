@@ -138,7 +138,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Fully initialized <a class="el" href="struct_visual_node.html" title="Runtime instance of a node in the visual graph.">VisualNode</a></dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Fully initialized <a class="el" href="struct_visual_node.html" title="Visual node data and rendering entry points.">VisualNode</a></dd></dl>
 <p>Looks up the descriptor for the given <a class="el" href="types_8h.html#acac9cbaeea226ed297804c012dc12b16">NodeType</a>, creates all pins and fields as specified, and assigns fresh IDs from the generator.</p>
 <p>Used when spawning new nodes from the palette or context menu. </p>
 
@@ -178,12 +178,12 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">type</td><td>The type of node to create </td></tr>
     <tr><td class="paramname">nodeId</td><td>The node ID to assign </td></tr>
-    <tr><td class="paramname">pinIds</td><td><a class="el" href="struct_pin.html" title="Connection point on a node.">Pin</a> IDs in descriptor order (all inputs, then all outputs) </td></tr>
+    <tr><td class="paramname">pinIds</td><td><a class="el" href="struct_pin.html" title="Pin types, styles, and helpers for the graph editor.">Pin</a> IDs in descriptor order (all inputs, then all outputs) </td></tr>
     <tr><td class="paramname">pos</td><td>Initial position on the canvas </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Fully initialized <a class="el" href="struct_visual_node.html" title="Runtime instance of a node in the visual graph.">VisualNode</a></dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Fully initialized <a class="el" href="struct_visual_node.html" title="Visual node data and rendering entry points.">VisualNode</a></dd></dl>
 <p>Used when loading nodes from disk where IDs are already known. The pinIds vector must match the descriptor's pin order exactly: first all input pins, then all output pins.</p>
 <dl class="section warning"><dt>Warning</dt><dd>pinIds.size() must match the total pin count in the descriptor </dd></dl>
 

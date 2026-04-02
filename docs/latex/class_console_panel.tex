@@ -18,6 +18,8 @@ void \doxymbox{\hyperlink{class_console_panel_a4ad9d12426b3421af8a745d9524830f1}
 \begin{DoxyCompactList}\small\item\em Render the console panel (called every frame). \end{DoxyCompactList}\item 
 void \doxymbox{\hyperlink{class_console_panel_af2b0f8ade02b8cd72b7ce474005fe1b6}{add\+Log}} (const char \texorpdfstring{$\ast$}{*}fmt,...) IM\+\_\+\+FMTARGS(2)
 \begin{DoxyCompactList}\small\item\em Add a log message to the console. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_console_panel_a37987d141da90523ed515cf610c16e68}{add\+Log\+Text}} (const std::\+string \&message)
+\begin{DoxyCompactList}\small\item\em Add a preformatted message to the console (thread-\/safe). \end{DoxyCompactList}\item 
 void \doxymbox{\hyperlink{class_console_panel_a80f7d3b6308ba71e65149887f78d73f1}{clear}} ()
 \begin{DoxyCompactList}\small\item\em Clear all log messages. \end{DoxyCompactList}\item 
 float \doxymbox{\hyperlink{class_console_panel_abfc8fcfc4ebe8a993663d8b8ea9b55f1}{get\+Height}} () const
@@ -62,6 +64,16 @@ void Console\+Panel::\+add\+Log (\begin{DoxyParamCaption}\item[{const char \texo
 
 
 Add a log message to the console. 
+
+\Hypertarget{class_console_panel_a37987d141da90523ed515cf610c16e68}\index{ConsolePanel@{ConsolePanel}!addLogText@{addLogText}}
+\index{addLogText@{addLogText}!ConsolePanel@{ConsolePanel}}
+\doxysubsubsection{\texorpdfstring{addLogText()}{addLogText()}}
+{\footnotesize\ttfamily \label{class_console_panel_a37987d141da90523ed515cf610c16e68} 
+void Console\+Panel::\+add\+Log\+Text (\begin{DoxyParamCaption}\item[{const std::\+string \&}]{message}{}\end{DoxyParamCaption})}
+
+
+
+Add a preformatted message to the console (thread-\/safe). 
 
 \Hypertarget{class_console_panel_a80f7d3b6308ba71e65149887f78d73f1}\index{ConsolePanel@{ConsolePanel}!clear@{clear}}
 \index{clear@{clear}!ConsolePanel@{ConsolePanel}}
@@ -127,5 +139,5 @@ Toggle between minimized and expanded states.
 
 The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
 \item 
-src/\+ui/\+\doxymbox{\hyperlink{console_panel_8h}{console\+Panel.\+h}}\item 
-src/\+ui/\+\doxymbox{\hyperlink{console_panel_8cpp}{console\+Panel.\+cpp}}\end{DoxyCompactItemize}
+src/\+editor/\+panels/\+\doxymbox{\hyperlink{console_panel_8h}{console\+Panel.\+h}}\item 
+src/\+editor/\+panels/\+\doxymbox{\hyperlink{console_panel_8cpp}{console\+Panel.\+cpp}}\end{DoxyCompactItemize}

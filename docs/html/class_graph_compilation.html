@@ -99,7 +99,12 @@ $(function(){initNavTree('class_graph_compilation.html','','class_graph_compilat
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:CompileResult" id="r_CompileResult"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_graph_compilation_1_1_compile_result.html">CompileResult</a></td></tr>
 <tr class="memitem:Impl" id="r_Impl"><td class="memItemLeft">class &#160;</td><td class="memItemRight"><a class="el" href="class_graph_compilation_1_1_impl.html">Impl</a></td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-pub-types" class="groupheader"><a id="pub-types" name="pub-types"></a>
+Public Types</h2></td></tr>
+<tr class="memitem:a324c4147aa8131940e2947bcf98fcddb" id="r_a324c4147aa8131940e2947bcf98fcddb"><td class="memItemLeft">using&#160;</td><td class="memItemRight"><a class="el" href="#a324c4147aa8131940e2947bcf98fcddb">LogSink</a> = std::function&lt;void(const std::string&amp;)&gt;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -109,12 +114,35 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:ab6f68b1953f32f0c014ca31154766212"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clean up the EMI environment.  <br /></td></tr>
 <tr class="memitem:aa7763cac7b10802fc7799ac16a4d8d85" id="r_aa7763cac7b10802fc7799ac16a4d8d85"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#aa7763cac7b10802fc7799ac16a4d8d85">CompileGraph</a> (<a class="el" href="class_graph_state.html">GraphState</a> &amp;state, bool resultOnly=false)</td></tr>
 <tr class="memdesc:aa7763cac7b10802fc7799ac16a4d8d85"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compile and execute the graph.  <br /></td></tr>
+<tr class="memitem:a7d840e79a0729f16fccd99b813105d92" id="r_a7d840e79a0729f16fccd99b813105d92"><td class="memItemLeft"><a class="el" href="struct_graph_compilation_1_1_compile_result.html">CompileResult</a>&#160;</td><td class="memItemRight"><a class="el" href="#a7d840e79a0729f16fccd99b813105d92">CompileGraphSnapshot</a> (const std::vector&lt; <a class="el" href="struct_visual_node.html">VisualNode</a> &gt; &amp;nodes, const std::vector&lt; <a class="el" href="struct_link.html">Link</a> &gt; &amp;links, bool resultOnly=false)</td></tr>
+<tr class="memdesc:a7d840e79a0729f16fccd99b813105d92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compile and execute from immutable graph snapshots (thread-friendly API).  <br /></td></tr>
+<tr class="memitem:af01d1ab4ead1608843949f61827e9a22" id="r_af01d1ab4ead1608843949f61827e9a22"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af01d1ab4ead1608843949f61827e9a22">SetLogSink</a> (<a class="el" href="#a324c4147aa8131940e2947bcf98fcddb">LogSink</a> sink)</td></tr>
+<tr class="memdesc:af01d1ab4ead1608843949f61827e9a22"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set optional sink for forwarding compile status messages to external UI.  <br /></td></tr>
+<tr class="memitem:a725f67bc8d05cf7d83bcc51e63095a73" id="r_a725f67bc8d05cf7d83bcc51e63095a73"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a725f67bc8d05cf7d83bcc51e63095a73">RequestForceStop</a> ()</td></tr>
+<tr class="memdesc:a725f67bc8d05cf7d83bcc51e63095a73"><td class="mdescLeft">&#160;</td><td class="mdescRight">Request force-stop for currently running compile/execute operation.  <br /></td></tr>
+<tr class="memitem:a4485484414bc5de403ae797618b380b9" id="r_a4485484414bc5de403ae797618b380b9"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a4485484414bc5de403ae797618b380b9">ClearForceStopRequest</a> ()</td></tr>
+<tr class="memdesc:a4485484414bc5de403ae797618b380b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear any previously requested force-stop state before a new compile run.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>High-level graph compilation and execution interface. </p>
 <p>Manages the EMI-Script VM environment and provides a simple compilation interface for the editor. Validates the graph, compiles to AST, and prepares for EMI's internal ASTWalker compilation.</p>
 <p>Currently creates and prints the AST. Future integration will use EMI's Parser::ParseAST() and internal execution APIs. </p>
-</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+</div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
+<a id="a324c4147aa8131940e2947bcf98fcddb" name="a324c4147aa8131940e2947bcf98fcddb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a324c4147aa8131940e2947bcf98fcddb">&#9670;&#160;</a></span>LogSink</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#a324c4147aa8131940e2947bcf98fcddb">GraphCompilation::LogSink</a> = std::function&lt;void(const std::string&amp;)&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad67417a841a4d11e37ede3e794f4bae9" name="ad67417a841a4d11e37ede3e794f4bae9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad67417a841a4d11e37ede3e794f4bae9">&#9670;&#160;</a></span>GraphCompilation()</h2>
 
@@ -167,6 +195,25 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="a4485484414bc5de403ae797618b380b9" name="a4485484414bc5de403ae797618b380b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4485484414bc5de403ae797618b380b9">&#9670;&#160;</a></span>ClearForceStopRequest()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void GraphCompilation::ClearForceStopRequest </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Clear any previously requested force-stop state before a new compile run. </p>
+
+</div>
+</div>
 <a id="aa7763cac7b10802fc7799ac16a4d8d85" name="aa7763cac7b10802fc7799ac16a4d8d85"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa7763cac7b10802fc7799ac16a4d8d85">&#9670;&#160;</a></span>CompileGraph()</h2>
 
@@ -187,7 +234,6 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Compile and execute the graph. </p>
-<p>Compiles and executes a visual graph.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">state</td><td>The graph state to compile and execute; updated with results</td></tr>
@@ -201,21 +247,79 @@ Public Member Functions</h2></td></tr>
 <li>TODO: Extract and execute the <b>graph</b> function</li>
 <li>TODO: Retrieve return value and update state</li>
 </ol>
-<p>Currently creates and prints AST for debugging. Future integration will use EMI's internal compilation and execution APIs. All compilation and runtime errors are caught and stored in the graph state for display to the user.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">state</td><td>The graph state containing nodes and links to compile. </td></tr>
-    <tr><td class="paramname">resultOnly</td><td>If true, suppress debug output; if false, enable debug logging.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section author"><dt>Author</dt><dd>Jenny </dd></dl>
+<p>Currently creates and prints AST for debugging. Future integration will use EMI's internal compilation and execution APIs. All compilation and runtime errors are caught and stored in the graph state for display to the user. </p>
+
+</div>
+</div>
+<a id="a7d840e79a0729f16fccd99b813105d92" name="a7d840e79a0729f16fccd99b813105d92"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d840e79a0729f16fccd99b813105d92">&#9670;&#160;</a></span>CompileGraphSnapshot()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="struct_graph_compilation_1_1_compile_result.html">GraphCompilation::CompileResult</a> GraphCompilation::CompileGraphSnapshot </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_visual_node.html">VisualNode</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>nodes</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_link.html">Link</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>links</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>resultOnly</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Compile and execute from immutable graph snapshots (thread-friendly API). </p>
+
+</div>
+</div>
+<a id="a725f67bc8d05cf7d83bcc51e63095a73" name="a725f67bc8d05cf7d83bcc51e63095a73"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a725f67bc8d05cf7d83bcc51e63095a73">&#9670;&#160;</a></span>RequestForceStop()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void GraphCompilation::RequestForceStop </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Request force-stop for currently running compile/execute operation. </p>
+
+</div>
+</div>
+<a id="af01d1ab4ead1608843949f61827e9a22" name="af01d1ab4ead1608843949f61827e9a22"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af01d1ab4ead1608843949f61827e9a22">&#9670;&#160;</a></span>SetLogSink()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void GraphCompilation::SetLogSink </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="#a324c4147aa8131940e2947bcf98fcddb">LogSink</a></td>          <td class="paramname"><span class="paramname"><em>sink</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Set optional sink for forwarding compile status messages to external UI. </p>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>src/editor/<a class="el" href="graph_compilation_8h_source.html">graphCompilation.h</a></li>
-<li>src/editor/<a class="el" href="graph_compilation_8cpp.html">graphCompilation.cpp</a></li>
+<li>src/editor/graph/<a class="el" href="graph_compilation_8h_source.html">graphCompilation.h</a></li>
+<li>src/editor/graph/<a class="el" href="graph_compilation_8cpp.html">graphCompilation.cpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

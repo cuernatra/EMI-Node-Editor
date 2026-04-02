@@ -103,6 +103,11 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aeaf6b38379b8161922040ccffc598893"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize the top panel.  <br /></td></tr>
 <tr class="memitem:a6e00cd530583e2b628778600cd3bcfca" id="r_a6e00cd530583e2b628778600cd3bcfca"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6e00cd530583e2b628778600cd3bcfca">draw</a> ()</td></tr>
 <tr class="memdesc:a6e00cd530583e2b628778600cd3bcfca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render the top panel (called every frame).  <br /></td></tr>
+<tr class="memitem:a5711a31ee0cc3c652970977700588402" id="r_a5711a31ee0cc3c652970977700588402"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a5711a31ee0cc3c652970977700588402">setFilesystemCallback</a> (std::function&lt; void()&gt; cb)</td></tr>
+<tr class="memitem:a31baddb4651a075e2d05080de172bad3" id="r_a31baddb4651a075e2d05080de172bad3"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a31baddb4651a075e2d05080de172bad3">setSettingsCallback</a> (std::function&lt; void()&gt; cb)</td></tr>
+<tr class="memitem:a6ba7e79a893ed25a10706a44155d5504" id="r_a6ba7e79a893ed25a10706a44155d5504"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a6ba7e79a893ed25a10706a44155d5504">setPreviewCallback</a> (std::function&lt; void(bool)&gt; cb)</td></tr>
+<tr class="memitem:a1b14a58fb218b6e3825f19e712924d2a" id="r_a1b14a58fb218b6e3825f19e712924d2a"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a1b14a58fb218b6e3825f19e712924d2a">isPreviewEnabled</a> () const</td></tr>
+<tr class="memdesc:a1b14a58fb218b6e3825f19e712924d2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether preview-on-compile mode is enabled.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Top toolbar panel for the editor Displays application title and status information. </p>
@@ -147,9 +152,87 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a1b14a58fb218b6e3825f19e712924d2a" name="a1b14a58fb218b6e3825f19e712924d2a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b14a58fb218b6e3825f19e712924d2a">&#9670;&#160;</a></span>isPreviewEnabled()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool TopPanel::isPreviewEnabled </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Whether preview-on-compile mode is enabled. </p>
+
+</div>
+</div>
+<a id="a5711a31ee0cc3c652970977700588402" name="a5711a31ee0cc3c652970977700588402"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5711a31ee0cc3c652970977700588402">&#9670;&#160;</a></span>setFilesystemCallback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TopPanel::setFilesystemCallback </td>
+          <td>(</td>
+          <td class="paramtype">std::function&lt; void()&gt;</td>          <td class="paramname"><span class="paramname"><em>cb</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6ba7e79a893ed25a10706a44155d5504" name="a6ba7e79a893ed25a10706a44155d5504"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ba7e79a893ed25a10706a44155d5504">&#9670;&#160;</a></span>setPreviewCallback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TopPanel::setPreviewCallback </td>
+          <td>(</td>
+          <td class="paramtype">std::function&lt; void(bool)&gt;</td>          <td class="paramname"><span class="paramname"><em>cb</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a31baddb4651a075e2d05080de172bad3" name="a31baddb4651a075e2d05080de172bad3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a31baddb4651a075e2d05080de172bad3">&#9670;&#160;</a></span>setSettingsCallback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void TopPanel::setSettingsCallback </td>
+          <td>(</td>
+          <td class="paramtype">std::function&lt; void()&gt;</td>          <td class="paramname"><span class="paramname"><em>cb</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>src/ui/<a class="el" href="top_panel_8h_source.html">topPanel.h</a></li>
-<li>src/ui/<a class="el" href="top_panel_8cpp.html">topPanel.cpp</a></li>
+<li>src/editor/panels/<a class="el" href="top_panel_8h_source.html">topPanel.h</a></li>
+<li>src/editor/panels/<a class="el" href="top_panel_8cpp.html">topPanel.cpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

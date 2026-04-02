@@ -2,23 +2,18 @@
 \hypertarget{struct_pin}{}\label{struct_pin}\index{Pin@{Pin}}
 
 
-Connection point on a node.  
+\doxylink{struct_pin}{Pin} types, styles, and helpers for the graph editor.  
 
 
 
 
 {\ttfamily \+\#include $<$pin.\+h$>$}
 
-\doxysubsubsection*{Public Member Functions}
-\begin{DoxyCompactItemize}
-\item 
-Im\+Vec4 \doxymbox{\hyperlink{struct_pin_a26c41408bfd48ef7d63090c12704c624}{Get\+Type\+Color}} () const
-\begin{DoxyCompactList}\small\item\em Get the color for this pin based on its type. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsubsection*{Static Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-static bool \doxymbox{\hyperlink{struct_pin_a7f757c3efb0553ad54ebcba9b985ac5a}{Can\+Connect}} (const \doxymbox{\hyperlink{struct_pin}{Pin}} \&output, const \doxymbox{\hyperlink{struct_pin}{Pin}} \&input)
-\begin{DoxyCompactList}\small\item\em Check if two pins can be connected. \end{DoxyCompactList}\end{DoxyCompactItemize}
+static bool \doxymbox{\hyperlink{struct_pin_a20e41b97ece51ba409c4bef65eb73e7f}{Can\+Connect}} (const \doxymbox{\hyperlink{struct_pin}{Pin}} \&output, const \doxymbox{\hyperlink{struct_pin}{Pin}} \&input)
+\begin{DoxyCompactList}\small\item\em Returns true if output can connect to input. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsubsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
@@ -39,50 +34,23 @@ bool \doxymbox{\hyperlink{struct_pin_a94d6edab5a5ebe8175d9f26a4f3d97ce}{is\+Mult
 
 
 \doxysubsection{Detailed Description}
-Connection point on a node. 
+\doxylink{struct_pin}{Pin} types, styles, and helpers for the graph editor. 
 
-Represents an input or output pin on a visual node. Pins have a data type, direction (input/\+output), and can be connected via links. The visual appearance (color) is determined by the pin\textquotesingle{}s type. 
+Connection point on a node. 
 
 \label{doc-func-members}
 \Hypertarget{struct_pin_doc-func-members}
 \doxysubsection{Member Function Documentation}
-\Hypertarget{struct_pin_a7f757c3efb0553ad54ebcba9b985ac5a}\index{Pin@{Pin}!CanConnect@{CanConnect}}
+\Hypertarget{struct_pin_a20e41b97ece51ba409c4bef65eb73e7f}\index{Pin@{Pin}!CanConnect@{CanConnect}}
 \index{CanConnect@{CanConnect}!Pin@{Pin}}
 \doxysubsubsection{\texorpdfstring{CanConnect()}{CanConnect()}}
-{\footnotesize\ttfamily \label{struct_pin_a7f757c3efb0553ad54ebcba9b985ac5a} 
-bool Pin::\+\+Can\+Connect (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_pin}{Pin}} \&}]{output}{, }\item[{const \doxymbox{\hyperlink{struct_pin}{Pin}} \&}]{input}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [static]}}
+{\footnotesize\ttfamily \label{struct_pin_a20e41b97ece51ba409c4bef65eb73e7f} 
+bool Pin::\+\+Can\+Connect (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_pin}{Pin}} \&}]{output}{, }\item[{const \doxymbox{\hyperlink{struct_pin}{Pin}} \&}]{input}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
 
 
 
-Check if two pins can be connected. 
+Returns true if output can connect to input. 
 
-
-\begin{DoxyParams}{Parameters}
-{\em output} & The source (output) pin \\
-\hline
-{\em input} & The destination (input) pin \\
-\hline
-\end{DoxyParams}
-\begin{DoxyReturn}{Returns}
-true if a valid connection can be made
-\end{DoxyReturn}
-Validates:\+
-\begin{DoxyItemize}
-\item Direction:\+ output must be output pin, input must be input pin
-\item Type:\+ Types must match, or one side must be \doxylink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5aed36a1ef76a59ee3f15180e0441188ad}{Pin\+Type::\+\+Any} 
-\end{DoxyItemize}\Hypertarget{struct_pin_a26c41408bfd48ef7d63090c12704c624}\index{Pin@{Pin}!GetTypeColor@{GetTypeColor}}
-\index{GetTypeColor@{GetTypeColor}!Pin@{Pin}}
-\doxysubsubsection{\texorpdfstring{GetTypeColor()}{GetTypeColor()}}
-{\footnotesize\ttfamily \label{struct_pin_a26c41408bfd48ef7d63090c12704c624} 
-Im\+Vec4 Pin::\+\+Get\+Type\+Color (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
-
-
-
-Get the color for this pin based on its type. 
-
-\begin{DoxyReturn}{Returns}
-RGBA color vector for rendering 
-\end{DoxyReturn}
 
 
 \label{doc-variable-members}
@@ -160,6 +128,7 @@ Data type this pin accepts/\+produces.
 
 
 
-The documentation for this struct was generated from the following file:\+\begin{DoxyCompactItemize}
+The documentation for this struct was generated from the following files:\+\begin{DoxyCompactItemize}
 \item 
-src/\+core/\+graph/\+\doxymbox{\hyperlink{pin_8h}{pin.\+h}}\end{DoxyCompactItemize}
+src/\+core/\+graph/\+\doxymbox{\hyperlink{pin_8h}{pin.\+h}}\item 
+src/\+core/\+graph/\+\doxymbox{\hyperlink{pin_8cpp}{pin.\+cpp}}\end{DoxyCompactItemize}

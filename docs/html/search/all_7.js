@@ -13,5 +13,9 @@ var searchData=
   ['hasselectednode_10',['hasSelectedNode',['../class_main_editor.html#ad953c97636608880521e658f297c8608',1,'MainEditor']]],
   ['hasstartnode_11',['hasStartNode',['../class_main_editor.html#a5ec6a61a975c35f4932f72243df75f3c',1,'MainEditor']]],
   ['hasvariables_12',['hasVariables',['../class_main_editor.html#ad781360cb6f2bda877c02cb902cdd215',1,'MainEditor']]],
-  ['headerheight_13',['headerHeight',['../namespacenode_preview_constants.html#a164f31e22084ad2d19a0db3d8f88167c',1,'nodePreviewConstants']]]
+  ['headerheight_13',['headerHeight',['../namespacenode_preview_constants.html#a164f31e22084ad2d19a0db3d8f88167c',1,'nodePreviewConstants']]],
+  ['here_14',['What “compile” means here',['../md_file__guide.html#autotoc_md8',1,'']]],
+  ['high_20level_20architecture_15',['High-level architecture',['../md_file__guide.html#autotoc_md5',1,'']]],
+  ['horizontalsplitterwidth_16',['horizontalSplitterWidth',['../namespacelayout_constants.html#a20b98a370fc8e9b12c8f92ae54c25dce',1,'layoutConstants']]],
+  ['how_20to_20add_20a_20new_20node_20short_20checklist_17',['How to add a new node (short checklist)',['../md_file__guide.html#autotoc_md6',1,'']]]
 ];

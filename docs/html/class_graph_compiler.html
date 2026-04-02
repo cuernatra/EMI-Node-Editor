@@ -113,12 +113,48 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:af287d2081952036c345ced174fd30ffb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for Comparison nodes.  <br /></td></tr>
 <tr class="memitem:a4c4d0375b2a24f88a3d6983bbaf0da95" id="r_a4c4d0375b2a24f88a3d6983bbaf0da95"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a4c4d0375b2a24f88a3d6983bbaf0da95">BuildLogic</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
 <tr class="memdesc:a4c4d0375b2a24f88a3d6983bbaf0da95"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for Logic nodes.  <br /></td></tr>
+<tr class="memitem:a0f629ca36119a2afb753ab39afb75f92" id="r_a0f629ca36119a2afb753ab39afb75f92"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a0f629ca36119a2afb753ab39afb75f92">BuildNot</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a0f629ca36119a2afb753ab39afb75f92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for Not nodes.  <br /></td></tr>
+<tr class="memitem:afbeb321186fab85a873c04128d560582" id="r_afbeb321186fab85a873c04128d560582"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#afbeb321186fab85a873c04128d560582">BuildDrawRect</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:afbeb321186fab85a873c04128d560582"><td class="mdescLeft">&#160;</td><td class="mdescRight">Preview-only node, compiles to no-op scope.  <br /></td></tr>
+<tr class="memitem:a2913d02ae1418c0c6b06062b4da70765" id="r_a2913d02ae1418c0c6b06062b4da70765"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a2913d02ae1418c0c6b06062b4da70765">BuildDrawGrid</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a2913d02ae1418c0c6b06062b4da70765"><td class="mdescLeft">&#160;</td><td class="mdescRight">Preview-only node, compiles to no-op scope.  <br /></td></tr>
+<tr class="memitem:a9f17ea226c95c80982df857aef32060a" id="r_a9f17ea226c95c80982df857aef32060a"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a9f17ea226c95c80982df857aef32060a">BuildDelay</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a9f17ea226c95c80982df857aef32060a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flow utility node, compiles to no-op scope.  <br /></td></tr>
 <tr class="memitem:addfbcbdf43a361666d684ccdd45929d5" id="r_addfbcbdf43a361666d684ccdd45929d5"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#addfbcbdf43a361666d684ccdd45929d5">BuildSequence</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
 <tr class="memdesc:addfbcbdf43a361666d684ccdd45929d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for Sequence nodes.  <br /></td></tr>
 <tr class="memitem:a4b3f330c3cc8489db89c5b554c9db0b4" id="r_a4b3f330c3cc8489db89c5b554c9db0b4"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a4b3f330c3cc8489db89c5b554c9db0b4">BuildBranch</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
 <tr class="memdesc:a4b3f330c3cc8489db89c5b554c9db0b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for Branch nodes.  <br /></td></tr>
 <tr class="memitem:a995fe91faa2608fe6a6375484fc53346" id="r_a995fe91faa2608fe6a6375484fc53346"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a995fe91faa2608fe6a6375484fc53346">BuildLoop</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
 <tr class="memdesc:a995fe91faa2608fe6a6375484fc53346"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for Loop nodes.  <br /></td></tr>
+<tr class="memitem:a0b42a5113efa11b4b3d674873cc5bca4" id="r_a0b42a5113efa11b4b3d674873cc5bca4"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a0b42a5113efa11b4b3d674873cc5bca4">BuildForEach</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a0b42a5113efa11b4b3d674873cc5bca4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for For Each nodes.  <br /></td></tr>
+<tr class="memitem:a10abe43683bffc702624f1f3f8908bbe" id="r_a10abe43683bffc702624f1f3f8908bbe"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a10abe43683bffc702624f1f3f8908bbe">BuildArrayGetAt</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a10abe43683bffc702624f1f3f8908bbe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for Array Get node.  <br /></td></tr>
+<tr class="memitem:a405fa18849afb55397022c5f2eb480d8" id="r_a405fa18849afb55397022c5f2eb480d8"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a405fa18849afb55397022c5f2eb480d8">BuildArrayAddAt</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a405fa18849afb55397022c5f2eb480d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for Array Add node.  <br /></td></tr>
+<tr class="memitem:a3f99602ae6489ad7cbae192935ddeca6" id="r_a3f99602ae6489ad7cbae192935ddeca6"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a3f99602ae6489ad7cbae192935ddeca6">BuildArrayRemoveAt</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a3f99602ae6489ad7cbae192935ddeca6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for Array Remove node.  <br /></td></tr>
+<tr class="memitem:a0374435d97af9d4f49d636d8b4d9880b" id="r_a0374435d97af9d4f49d636d8b4d9880b"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a0374435d97af9d4f49d636d8b4d9880b">BuildGridNodeSchema</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a0374435d97af9d4f49d636d8b4d9880b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for Grid Node Schema (default struct template).  <br /></td></tr>
+<tr class="memitem:a4b0c3caf47240e2243edec2568777ea9" id="r_a4b0c3caf47240e2243edec2568777ea9"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a4b0c3caf47240e2243edec2568777ea9">BuildGridNodeCreate</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a4b0c3caf47240e2243edec2568777ea9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for Grid Node Create (new instance).  <br /></td></tr>
+<tr class="memitem:a16a86779ee2bf6917147780ce223c9d4" id="r_a16a86779ee2bf6917147780ce223c9d4"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a16a86779ee2bf6917147780ce223c9d4">BuildGridNodeUpdate</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a16a86779ee2bf6917147780ce223c9d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for Grid Node Update (updated instance).  <br /></td></tr>
+<tr class="memitem:afa61a498c66c0012f18ff92ad089c69f" id="r_afa61a498c66c0012f18ff92ad089c69f"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#afa61a498c66c0012f18ff92ad089c69f">BuildGridNodeDelete</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:afa61a498c66c0012f18ff92ad089c69f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for Grid Node Delete (remove instance from array).  <br /></td></tr>
+<tr class="memitem:a9c29b15d69d34e043c925517355f20d0" id="r_a9c29b15d69d34e043c925517355f20d0"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a9c29b15d69d34e043c925517355f20d0">BuildStructDefine</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a9c29b15d69d34e043c925517355f20d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for named struct schema definition.  <br /></td></tr>
+<tr class="memitem:a61872fb27dbca511b51fae0ebc83187f" id="r_a61872fb27dbca511b51fae0ebc83187f"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a61872fb27dbca511b51fae0ebc83187f">BuildStructCreate</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a61872fb27dbca511b51fae0ebc83187f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for named struct instance creation.  <br /></td></tr>
+<tr class="memitem:a958b716efaf3b51617f31f5edd18d559" id="r_a958b716efaf3b51617f31f5edd18d559"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a958b716efaf3b51617f31f5edd18d559">BuildStructGetField</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a958b716efaf3b51617f31f5edd18d559"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for reading one field from struct.  <br /></td></tr>
+<tr class="memitem:ab3950e31a0c1103c064d072dd69f81fc" id="r_ab3950e31a0c1103c064d072dd69f81fc"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#ab3950e31a0c1103c064d072dd69f81fc">BuildStructSetField</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:ab3950e31a0c1103c064d072dd69f81fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for updating one field in struct.  <br /></td></tr>
+<tr class="memitem:a2559f1f890496d96649631489b39d3cb" id="r_a2559f1f890496d96649631489b39d3cb"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a2559f1f890496d96649631489b39d3cb">BuildStructDelete</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a2559f1f890496d96649631489b39d3cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for removing struct from array by Id input.  <br /></td></tr>
+<tr class="memitem:a6c5bb9847487133b39afb8e85a7c3cbf" id="r_a6c5bb9847487133b39afb8e85a7c3cbf"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a6c5bb9847487133b39afb8e85a7c3cbf">BuildWhile</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
+<tr class="memdesc:a6c5bb9847487133b39afb8e85a7c3cbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for While nodes.  <br /></td></tr>
 <tr class="memitem:a60c9fdb74ac1a8da64e348adf37f8e9d" id="r_a60c9fdb74ac1a8da64e348adf37f8e9d"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#a60c9fdb74ac1a8da64e348adf37f8e9d">BuildVariable</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
 <tr class="memdesc:a60c9fdb74ac1a8da64e348adf37f8e9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Builds AST for Variable nodes.  <br /></td></tr>
 <tr class="memitem:ad9cbe389f5d30d9f2a80734a8ae053f3" id="r_ad9cbe389f5d30d9f2a80734a8ae053f3"><td class="memItemLeft">Node *&#160;</td><td class="memItemRight"><a class="el" href="#ad9cbe389f5d30d9f2a80734a8ae053f3">BuildOutput</a> (const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
@@ -142,6 +178,63 @@ Static Public Attributes</h2></td></tr>
 <p>The generated AST is wrapped in a function named kGraphFunctionName so that future EMI integration can execute the graph and recover its return value.</p>
 <dl class="section author"><dt>Author</dt><dd>Jenny </dd></dl>
 </div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="a405fa18849afb55397022c5f2eb480d8" name="a405fa18849afb55397022c5f2eb480d8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a405fa18849afb55397022c5f2eb480d8">&#9670;&#160;</a></span>BuildArrayAddAt()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildArrayAddAt </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for Array Add node. </p>
+
+</div>
+</div>
+<a id="a10abe43683bffc702624f1f3f8908bbe" name="a10abe43683bffc702624f1f3f8908bbe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a10abe43683bffc702624f1f3f8908bbe">&#9670;&#160;</a></span>BuildArrayGetAt()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildArrayGetAt </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for Array Get node. </p>
+
+</div>
+</div>
+<a id="a3f99602ae6489ad7cbae192935ddeca6" name="a3f99602ae6489ad7cbae192935ddeca6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f99602ae6489ad7cbae192935ddeca6">&#9670;&#160;</a></span>BuildArrayRemoveAt()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildArrayRemoveAt </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for Array Remove node. </p>
+
+</div>
+</div>
 <a id="a4b3f330c3cc8489db89c5b554c9db0b4" name="a4b3f330c3cc8489db89c5b554c9db0b4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4b3f330c3cc8489db89c5b554c9db0b4">&#9670;&#160;</a></span>BuildBranch()</h2>
 
@@ -199,6 +292,82 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a9f17ea226c95c80982df857aef32060a" name="a9f17ea226c95c80982df857aef32060a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f17ea226c95c80982df857aef32060a">&#9670;&#160;</a></span>BuildDelay()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildDelay </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Flow utility node, compiles to no-op scope. </p>
+
+</div>
+</div>
+<a id="a2913d02ae1418c0c6b06062b4da70765" name="a2913d02ae1418c0c6b06062b4da70765"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2913d02ae1418c0c6b06062b4da70765">&#9670;&#160;</a></span>BuildDrawGrid()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildDrawGrid </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Preview-only node, compiles to no-op scope. </p>
+
+</div>
+</div>
+<a id="afbeb321186fab85a873c04128d560582" name="afbeb321186fab85a873c04128d560582"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afbeb321186fab85a873c04128d560582">&#9670;&#160;</a></span>BuildDrawRect()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildDrawRect </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Preview-only node, compiles to no-op scope. </p>
+
+</div>
+</div>
+<a id="a0b42a5113efa11b4b3d674873cc5bca4" name="a0b42a5113efa11b4b3d674873cc5bca4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0b42a5113efa11b4b3d674873cc5bca4">&#9670;&#160;</a></span>BuildForEach()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildForEach </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for For Each nodes. </p>
+
+</div>
+</div>
 <a id="a640f18e76a4d19f2ce726a22adc20c25" name="a640f18e76a4d19f2ce726a22adc20c25"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a640f18e76a4d19f2ce726a22adc20c25">&#9670;&#160;</a></span>BuildFunction()</h2>
 
@@ -215,6 +384,82 @@ Static Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Builds AST for Function nodes. </p>
+
+</div>
+</div>
+<a id="a4b0c3caf47240e2243edec2568777ea9" name="a4b0c3caf47240e2243edec2568777ea9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b0c3caf47240e2243edec2568777ea9">&#9670;&#160;</a></span>BuildGridNodeCreate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildGridNodeCreate </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for Grid Node Create (new instance). </p>
+
+</div>
+</div>
+<a id="afa61a498c66c0012f18ff92ad089c69f" name="afa61a498c66c0012f18ff92ad089c69f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa61a498c66c0012f18ff92ad089c69f">&#9670;&#160;</a></span>BuildGridNodeDelete()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildGridNodeDelete </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for Grid Node Delete (remove instance from array). </p>
+
+</div>
+</div>
+<a id="a0374435d97af9d4f49d636d8b4d9880b" name="a0374435d97af9d4f49d636d8b4d9880b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0374435d97af9d4f49d636d8b4d9880b">&#9670;&#160;</a></span>BuildGridNodeSchema()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildGridNodeSchema </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for Grid Node Schema (default struct template). </p>
+
+</div>
+</div>
+<a id="a16a86779ee2bf6917147780ce223c9d4" name="a16a86779ee2bf6917147780ce223c9d4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a16a86779ee2bf6917147780ce223c9d4">&#9670;&#160;</a></span>BuildGridNodeUpdate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildGridNodeUpdate </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for Grid Node Update (updated instance). </p>
 
 </div>
 </div>
@@ -253,6 +498,25 @@ Static Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Builds AST for Loop nodes. </p>
+
+</div>
+</div>
+<a id="a0f629ca36119a2afb753ab39afb75f92" name="a0f629ca36119a2afb753ab39afb75f92"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0f629ca36119a2afb753ab39afb75f92">&#9670;&#160;</a></span>BuildNot()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildNot </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for Not nodes. </p>
 
 </div>
 </div>
@@ -332,6 +596,101 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a61872fb27dbca511b51fae0ebc83187f" name="a61872fb27dbca511b51fae0ebc83187f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a61872fb27dbca511b51fae0ebc83187f">&#9670;&#160;</a></span>BuildStructCreate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildStructCreate </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for named struct instance creation. </p>
+
+</div>
+</div>
+<a id="a9c29b15d69d34e043c925517355f20d0" name="a9c29b15d69d34e043c925517355f20d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c29b15d69d34e043c925517355f20d0">&#9670;&#160;</a></span>BuildStructDefine()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildStructDefine </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for named struct schema definition. </p>
+
+</div>
+</div>
+<a id="a2559f1f890496d96649631489b39d3cb" name="a2559f1f890496d96649631489b39d3cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2559f1f890496d96649631489b39d3cb">&#9670;&#160;</a></span>BuildStructDelete()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildStructDelete </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for removing struct from array by Id input. </p>
+
+</div>
+</div>
+<a id="a958b716efaf3b51617f31f5edd18d559" name="a958b716efaf3b51617f31f5edd18d559"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a958b716efaf3b51617f31f5edd18d559">&#9670;&#160;</a></span>BuildStructGetField()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildStructGetField </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for reading one field from struct. </p>
+
+</div>
+</div>
+<a id="ab3950e31a0c1103c064d072dd69f81fc" name="ab3950e31a0c1103c064d072dd69f81fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab3950e31a0c1103c064d072dd69f81fc">&#9670;&#160;</a></span>BuildStructSetField()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildStructSetField </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for updating one field in struct. </p>
+
+</div>
+</div>
 <a id="a60c9fdb74ac1a8da64e348adf37f8e9d" name="a60c9fdb74ac1a8da64e348adf37f8e9d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a60c9fdb74ac1a8da64e348adf37f8e9d">&#9670;&#160;</a></span>BuildVariable()</h2>
 
@@ -348,6 +707,25 @@ Static Public Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Builds AST for Variable nodes. </p>
+
+</div>
+</div>
+<a id="a6c5bb9847487133b39afb8e85a7c3cbf" name="a6c5bb9847487133b39afb8e85a7c3cbf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c5bb9847487133b39afb8e85a7c3cbf">&#9670;&#160;</a></span>BuildWhile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Node * GraphCompiler::BuildWhile </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Builds AST for While nodes. </p>
 
 </div>
 </div>

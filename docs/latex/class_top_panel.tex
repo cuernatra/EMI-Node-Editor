@@ -15,7 +15,15 @@ Top toolbar panel for the editor Displays application title and status informati
 \doxymbox{\hyperlink{class_top_panel_aeaf6b38379b8161922040ccffc598893}{Top\+Panel}} ()
 \begin{DoxyCompactList}\small\item\em Initialize the top panel. \end{DoxyCompactList}\item 
 void \doxymbox{\hyperlink{class_top_panel_a6e00cd530583e2b628778600cd3bcfca}{draw}} ()
-\begin{DoxyCompactList}\small\item\em Render the top panel (called every frame). \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Render the top panel (called every frame). \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_top_panel_a5711a31ee0cc3c652970977700588402}{set\+Filesystem\+Callback}} (std::\+function$<$ void()$>$ cb)
+\item 
+void \doxymbox{\hyperlink{class_top_panel_a31baddb4651a075e2d05080de172bad3}{set\+Settings\+Callback}} (std::\+function$<$ void()$>$ cb)
+\item 
+void \doxymbox{\hyperlink{class_top_panel_a6ba7e79a893ed25a10706a44155d5504}{set\+Preview\+Callback}} (std::\+function$<$ void(bool)$>$ cb)
+\item 
+bool \doxymbox{\hyperlink{class_top_panel_a1b14a58fb218b6e3825f19e712924d2a}{is\+Preview\+Enabled}} () const
+\begin{DoxyCompactList}\small\item\em Whether preview-\/on-\/compile mode is enabled. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \doxysubsection{Detailed Description}
@@ -51,9 +59,37 @@ void Top\+Panel::\+draw (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
 
 Render the top panel (called every frame). 
 
+\Hypertarget{class_top_panel_a1b14a58fb218b6e3825f19e712924d2a}\index{TopPanel@{TopPanel}!isPreviewEnabled@{isPreviewEnabled}}
+\index{isPreviewEnabled@{isPreviewEnabled}!TopPanel@{TopPanel}}
+\doxysubsubsection{\texorpdfstring{isPreviewEnabled()}{isPreviewEnabled()}}
+{\footnotesize\ttfamily \label{class_top_panel_a1b14a58fb218b6e3825f19e712924d2a} 
+bool Top\+Panel::\+is\+Preview\+Enabled (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Whether preview-\/on-\/compile mode is enabled. 
+
+\Hypertarget{class_top_panel_a5711a31ee0cc3c652970977700588402}\index{TopPanel@{TopPanel}!setFilesystemCallback@{setFilesystemCallback}}
+\index{setFilesystemCallback@{setFilesystemCallback}!TopPanel@{TopPanel}}
+\doxysubsubsection{\texorpdfstring{setFilesystemCallback()}{setFilesystemCallback()}}
+{\footnotesize\ttfamily \label{class_top_panel_a5711a31ee0cc3c652970977700588402} 
+void Top\+Panel::\+set\+Filesystem\+Callback (\begin{DoxyParamCaption}\item[{std::\+function$<$ void()$>$}]{cb}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_top_panel_a6ba7e79a893ed25a10706a44155d5504}\index{TopPanel@{TopPanel}!setPreviewCallback@{setPreviewCallback}}
+\index{setPreviewCallback@{setPreviewCallback}!TopPanel@{TopPanel}}
+\doxysubsubsection{\texorpdfstring{setPreviewCallback()}{setPreviewCallback()}}
+{\footnotesize\ttfamily \label{class_top_panel_a6ba7e79a893ed25a10706a44155d5504} 
+void Top\+Panel::\+set\+Preview\+Callback (\begin{DoxyParamCaption}\item[{std::\+function$<$ void(bool)$>$}]{cb}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_top_panel_a31baddb4651a075e2d05080de172bad3}\index{TopPanel@{TopPanel}!setSettingsCallback@{setSettingsCallback}}
+\index{setSettingsCallback@{setSettingsCallback}!TopPanel@{TopPanel}}
+\doxysubsubsection{\texorpdfstring{setSettingsCallback()}{setSettingsCallback()}}
+{\footnotesize\ttfamily \label{class_top_panel_a31baddb4651a075e2d05080de172bad3} 
+void Top\+Panel::\+set\+Settings\+Callback (\begin{DoxyParamCaption}\item[{std::\+function$<$ void()$>$}]{cb}{}\end{DoxyParamCaption})}
+
 
 
 The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
 \item 
-src/\+ui/\+\doxymbox{\hyperlink{top_panel_8h}{top\+Panel.\+h}}\item 
-src/\+ui/\+\doxymbox{\hyperlink{top_panel_8cpp}{top\+Panel.\+cpp}}\end{DoxyCompactItemize}
+src/\+editor/\+panels/\+\doxymbox{\hyperlink{top_panel_8h}{top\+Panel.\+h}}\item 
+src/\+editor/\+panels/\+\doxymbox{\hyperlink{top_panel_8cpp}{top\+Panel.\+cpp}}\end{DoxyCompactItemize}

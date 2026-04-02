@@ -26,12 +26,48 @@ Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_af287d
 \begin{DoxyCompactList}\small\item\em Builds AST for Comparison nodes. \end{DoxyCompactList}\item 
 Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a4c4d0375b2a24f88a3d6983bbaf0da95}{Build\+Logic}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
 \begin{DoxyCompactList}\small\item\em Builds AST for Logic nodes. \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a0f629ca36119a2afb753ab39afb75f92}{Build\+Not}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for Not nodes. \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_afbeb321186fab85a873c04128d560582}{Build\+Draw\+Rect}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Preview-\/only node, compiles to no-\/op scope. \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a2913d02ae1418c0c6b06062b4da70765}{Build\+Draw\+Grid}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Preview-\/only node, compiles to no-\/op scope. \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a9f17ea226c95c80982df857aef32060a}{Build\+Delay}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Flow utility node, compiles to no-\/op scope. \end{DoxyCompactList}\item 
 Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_addfbcbdf43a361666d684ccdd45929d5}{Build\+Sequence}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
 \begin{DoxyCompactList}\small\item\em Builds AST for Sequence nodes. \end{DoxyCompactList}\item 
 Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a4b3f330c3cc8489db89c5b554c9db0b4}{Build\+Branch}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
 \begin{DoxyCompactList}\small\item\em Builds AST for Branch nodes. \end{DoxyCompactList}\item 
 Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a995fe91faa2608fe6a6375484fc53346}{Build\+Loop}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
 \begin{DoxyCompactList}\small\item\em Builds AST for Loop nodes. \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a0b42a5113efa11b4b3d674873cc5bca4}{Build\+For\+Each}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for For Each nodes. \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a10abe43683bffc702624f1f3f8908bbe}{Build\+Array\+Get\+At}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for Array Get node. \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a405fa18849afb55397022c5f2eb480d8}{Build\+Array\+Add\+At}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for Array Add node. \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a3f99602ae6489ad7cbae192935ddeca6}{Build\+Array\+Remove\+At}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for Array Remove node. \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a0374435d97af9d4f49d636d8b4d9880b}{Build\+Grid\+Node\+Schema}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for Grid Node Schema (default struct template). \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a4b0c3caf47240e2243edec2568777ea9}{Build\+Grid\+Node\+Create}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for Grid Node Create (new instance). \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a16a86779ee2bf6917147780ce223c9d4}{Build\+Grid\+Node\+Update}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for Grid Node Update (updated instance). \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_afa61a498c66c0012f18ff92ad089c69f}{Build\+Grid\+Node\+Delete}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for Grid Node Delete (remove instance from array). \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a9c29b15d69d34e043c925517355f20d0}{Build\+Struct\+Define}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for named struct schema definition. \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a61872fb27dbca511b51fae0ebc83187f}{Build\+Struct\+Create}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for named struct instance creation. \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a958b716efaf3b51617f31f5edd18d559}{Build\+Struct\+Get\+Field}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for reading one field from struct. \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_ab3950e31a0c1103c064d072dd69f81fc}{Build\+Struct\+Set\+Field}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for updating one field in struct. \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a2559f1f890496d96649631489b39d3cb}{Build\+Struct\+Delete}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for removing struct from array by Id input. \end{DoxyCompactList}\item 
+Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a6c5bb9847487133b39afb8e85a7c3cbf}{Build\+While}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Builds AST for While nodes. \end{DoxyCompactList}\item 
 Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_a60c9fdb74ac1a8da64e348adf37f8e9d}{Build\+Variable}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
 \begin{DoxyCompactList}\small\item\em Builds AST for Variable nodes. \end{DoxyCompactList}\item 
 Node \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_compiler_ad9cbe389f5d30d9f2a80734a8ae053f3}{Build\+Output}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
@@ -65,6 +101,36 @@ Jenny
 \label{doc-func-members}
 \Hypertarget{class_graph_compiler_doc-func-members}
 \doxysubsection{Member Function Documentation}
+\Hypertarget{class_graph_compiler_a405fa18849afb55397022c5f2eb480d8}\index{GraphCompiler@{GraphCompiler}!BuildArrayAddAt@{BuildArrayAddAt}}
+\index{BuildArrayAddAt@{BuildArrayAddAt}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildArrayAddAt()}{BuildArrayAddAt()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a405fa18849afb55397022c5f2eb480d8} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Array\+Add\+At (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for Array Add node. 
+
+\Hypertarget{class_graph_compiler_a10abe43683bffc702624f1f3f8908bbe}\index{GraphCompiler@{GraphCompiler}!BuildArrayGetAt@{BuildArrayGetAt}}
+\index{BuildArrayGetAt@{BuildArrayGetAt}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildArrayGetAt()}{BuildArrayGetAt()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a10abe43683bffc702624f1f3f8908bbe} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Array\+Get\+At (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for Array Get node. 
+
+\Hypertarget{class_graph_compiler_a3f99602ae6489ad7cbae192935ddeca6}\index{GraphCompiler@{GraphCompiler}!BuildArrayRemoveAt@{BuildArrayRemoveAt}}
+\index{BuildArrayRemoveAt@{BuildArrayRemoveAt}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildArrayRemoveAt()}{BuildArrayRemoveAt()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a3f99602ae6489ad7cbae192935ddeca6} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Array\+Remove\+At (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for Array Remove node. 
+
 \Hypertarget{class_graph_compiler_a4b3f330c3cc8489db89c5b554c9db0b4}\index{GraphCompiler@{GraphCompiler}!BuildBranch@{BuildBranch}}
 \index{BuildBranch@{BuildBranch}!GraphCompiler@{GraphCompiler}}
 \doxysubsubsection{\texorpdfstring{BuildBranch()}{BuildBranch()}}
@@ -95,6 +161,46 @@ Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Constant (\begin{Dox
 
 Builds AST for Constant nodes. 
 
+\Hypertarget{class_graph_compiler_a9f17ea226c95c80982df857aef32060a}\index{GraphCompiler@{GraphCompiler}!BuildDelay@{BuildDelay}}
+\index{BuildDelay@{BuildDelay}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildDelay()}{BuildDelay()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a9f17ea226c95c80982df857aef32060a} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Delay (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Flow utility node, compiles to no-\/op scope. 
+
+\Hypertarget{class_graph_compiler_a2913d02ae1418c0c6b06062b4da70765}\index{GraphCompiler@{GraphCompiler}!BuildDrawGrid@{BuildDrawGrid}}
+\index{BuildDrawGrid@{BuildDrawGrid}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildDrawGrid()}{BuildDrawGrid()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a2913d02ae1418c0c6b06062b4da70765} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Draw\+Grid (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Preview-\/only node, compiles to no-\/op scope. 
+
+\Hypertarget{class_graph_compiler_afbeb321186fab85a873c04128d560582}\index{GraphCompiler@{GraphCompiler}!BuildDrawRect@{BuildDrawRect}}
+\index{BuildDrawRect@{BuildDrawRect}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildDrawRect()}{BuildDrawRect()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_afbeb321186fab85a873c04128d560582} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Draw\+Rect (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Preview-\/only node, compiles to no-\/op scope. 
+
+\Hypertarget{class_graph_compiler_a0b42a5113efa11b4b3d674873cc5bca4}\index{GraphCompiler@{GraphCompiler}!BuildForEach@{BuildForEach}}
+\index{BuildForEach@{BuildForEach}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildForEach()}{BuildForEach()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a0b42a5113efa11b4b3d674873cc5bca4} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+For\+Each (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for For Each nodes. 
+
 \Hypertarget{class_graph_compiler_a640f18e76a4d19f2ce726a22adc20c25}\index{GraphCompiler@{GraphCompiler}!BuildFunction@{BuildFunction}}
 \index{BuildFunction@{BuildFunction}!GraphCompiler@{GraphCompiler}}
 \doxysubsubsection{\texorpdfstring{BuildFunction()}{BuildFunction()}}
@@ -104,6 +210,46 @@ Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Function (\begin{Dox
 
 
 Builds AST for Function nodes. 
+
+\Hypertarget{class_graph_compiler_a4b0c3caf47240e2243edec2568777ea9}\index{GraphCompiler@{GraphCompiler}!BuildGridNodeCreate@{BuildGridNodeCreate}}
+\index{BuildGridNodeCreate@{BuildGridNodeCreate}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildGridNodeCreate()}{BuildGridNodeCreate()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a4b0c3caf47240e2243edec2568777ea9} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Grid\+Node\+Create (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for Grid Node Create (new instance). 
+
+\Hypertarget{class_graph_compiler_afa61a498c66c0012f18ff92ad089c69f}\index{GraphCompiler@{GraphCompiler}!BuildGridNodeDelete@{BuildGridNodeDelete}}
+\index{BuildGridNodeDelete@{BuildGridNodeDelete}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildGridNodeDelete()}{BuildGridNodeDelete()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_afa61a498c66c0012f18ff92ad089c69f} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Grid\+Node\+Delete (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for Grid Node Delete (remove instance from array). 
+
+\Hypertarget{class_graph_compiler_a0374435d97af9d4f49d636d8b4d9880b}\index{GraphCompiler@{GraphCompiler}!BuildGridNodeSchema@{BuildGridNodeSchema}}
+\index{BuildGridNodeSchema@{BuildGridNodeSchema}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildGridNodeSchema()}{BuildGridNodeSchema()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a0374435d97af9d4f49d636d8b4d9880b} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Grid\+Node\+Schema (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for Grid Node Schema (default struct template). 
+
+\Hypertarget{class_graph_compiler_a16a86779ee2bf6917147780ce223c9d4}\index{GraphCompiler@{GraphCompiler}!BuildGridNodeUpdate@{BuildGridNodeUpdate}}
+\index{BuildGridNodeUpdate@{BuildGridNodeUpdate}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildGridNodeUpdate()}{BuildGridNodeUpdate()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a16a86779ee2bf6917147780ce223c9d4} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Grid\+Node\+Update (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for Grid Node Update (updated instance). 
 
 \Hypertarget{class_graph_compiler_a4c4d0375b2a24f88a3d6983bbaf0da95}\index{GraphCompiler@{GraphCompiler}!BuildLogic@{BuildLogic}}
 \index{BuildLogic@{BuildLogic}!GraphCompiler@{GraphCompiler}}
@@ -124,6 +270,16 @@ Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Loop (\begin{DoxyPar
 
 
 Builds AST for Loop nodes. 
+
+\Hypertarget{class_graph_compiler_a0f629ca36119a2afb753ab39afb75f92}\index{GraphCompiler@{GraphCompiler}!BuildNot@{BuildNot}}
+\index{BuildNot@{BuildNot}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildNot()}{BuildNot()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a0f629ca36119a2afb753ab39afb75f92} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Not (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for Not nodes. 
 
 \Hypertarget{class_graph_compiler_ac6d07478a8bf1e15418d70261741be13}\index{GraphCompiler@{GraphCompiler}!BuildOperator@{BuildOperator}}
 \index{BuildOperator@{BuildOperator}!GraphCompiler@{GraphCompiler}}
@@ -165,6 +321,56 @@ Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Start (\begin{DoxyPa
 
 Builds AST for Start event nodes. 
 
+\Hypertarget{class_graph_compiler_a61872fb27dbca511b51fae0ebc83187f}\index{GraphCompiler@{GraphCompiler}!BuildStructCreate@{BuildStructCreate}}
+\index{BuildStructCreate@{BuildStructCreate}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildStructCreate()}{BuildStructCreate()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a61872fb27dbca511b51fae0ebc83187f} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Struct\+Create (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for named struct instance creation. 
+
+\Hypertarget{class_graph_compiler_a9c29b15d69d34e043c925517355f20d0}\index{GraphCompiler@{GraphCompiler}!BuildStructDefine@{BuildStructDefine}}
+\index{BuildStructDefine@{BuildStructDefine}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildStructDefine()}{BuildStructDefine()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a9c29b15d69d34e043c925517355f20d0} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Struct\+Define (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for named struct schema definition. 
+
+\Hypertarget{class_graph_compiler_a2559f1f890496d96649631489b39d3cb}\index{GraphCompiler@{GraphCompiler}!BuildStructDelete@{BuildStructDelete}}
+\index{BuildStructDelete@{BuildStructDelete}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildStructDelete()}{BuildStructDelete()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a2559f1f890496d96649631489b39d3cb} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Struct\+Delete (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for removing struct from array by Id input. 
+
+\Hypertarget{class_graph_compiler_a958b716efaf3b51617f31f5edd18d559}\index{GraphCompiler@{GraphCompiler}!BuildStructGetField@{BuildStructGetField}}
+\index{BuildStructGetField@{BuildStructGetField}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildStructGetField()}{BuildStructGetField()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a958b716efaf3b51617f31f5edd18d559} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Struct\+Get\+Field (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for reading one field from struct. 
+
+\Hypertarget{class_graph_compiler_ab3950e31a0c1103c064d072dd69f81fc}\index{GraphCompiler@{GraphCompiler}!BuildStructSetField@{BuildStructSetField}}
+\index{BuildStructSetField@{BuildStructSetField}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildStructSetField()}{BuildStructSetField()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_ab3950e31a0c1103c064d072dd69f81fc} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Struct\+Set\+Field (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for updating one field in struct. 
+
 \Hypertarget{class_graph_compiler_a60c9fdb74ac1a8da64e348adf37f8e9d}\index{GraphCompiler@{GraphCompiler}!BuildVariable@{BuildVariable}}
 \index{BuildVariable@{BuildVariable}!GraphCompiler@{GraphCompiler}}
 \doxysubsubsection{\texorpdfstring{BuildVariable()}{BuildVariable()}}
@@ -174,6 +380,16 @@ Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+Variable (\begin{Dox
 
 
 Builds AST for Variable nodes. 
+
+\Hypertarget{class_graph_compiler_a6c5bb9847487133b39afb8e85a7c3cbf}\index{GraphCompiler@{GraphCompiler}!BuildWhile@{BuildWhile}}
+\index{BuildWhile@{BuildWhile}!GraphCompiler@{GraphCompiler}}
+\doxysubsubsection{\texorpdfstring{BuildWhile()}{BuildWhile()}}
+{\footnotesize\ttfamily \label{class_graph_compiler_a6c5bb9847487133b39afb8e85a7c3cbf} 
+Node \texorpdfstring{$\ast$}{*} Graph\+Compiler::\+\+Build\+While (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Builds AST for While nodes. 
 
 \Hypertarget{class_graph_compiler_affec03f550bdd81315f99b76ad822757}\index{GraphCompiler@{GraphCompiler}!Compile@{Compile}}
 \index{Compile@{Compile}!GraphCompiler@{GraphCompiler}}

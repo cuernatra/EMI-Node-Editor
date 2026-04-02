@@ -91,39 +91,28 @@ $(function(){initNavTree('pin_8h.html','',''); });
   <div class="headertitle"><div class="title">pin.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-
-<p><a class="el" href="struct_pin.html" title="Connection point on a node.">Pin</a> definitions for the visual graph.  
-<a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;imgui_node_editor.h&quot;</code><br />
-<code>#include &quot;imgui.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="types_8h_source.html">types.h</a>&quot;</code><br />
 <code>#include &lt;string&gt;</code><br />
-<code>#include &lt;functional&gt;</code><br />
 </div>
 <p><a href="pin_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:Pin" id="r_Pin"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_pin.html">Pin</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Connection point on a node.  <a href="struct_pin.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="struct_pin.html" title="Pin types, styles, and helpers for the graph editor.">Pin</a> types, styles, and helpers for the graph editor.  <a href="struct_pin.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a3d6872f70ad9dacbe28311c031ff49d6" id="r_a3d6872f70ad9dacbe28311c031ff49d6"><td class="memItemLeft"><a class="el" href="struct_pin.html">Pin</a>&#160;</td><td class="memItemRight"><a class="el" href="#a3d6872f70ad9dacbe28311c031ff49d6">MakePin</a> (uint32_t id, ed::NodeId parentNodeId, <a class="el" href="types_8h.html#acac9cbaeea226ed297804c012dc12b16">NodeType</a> parentNodeType, std::string name, <a class="el" href="types_8h.html#ab5c1a71b52ceb31763d6d32416abf3e5">PinType</a> type, bool isInput, bool isMultiInput=false)</td></tr>
-<tr class="memdesc:a3d6872f70ad9dacbe28311c031ff49d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a fully initialized pin.  <br /></td></tr>
+<tr class="memdesc:a3d6872f70ad9dacbe28311c031ff49d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates and returns a pin instance.  <br /></td></tr>
 </table>
-<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p><a class="el" href="struct_pin.html" title="Connection point on a node.">Pin</a> definitions for the visual graph. </p>
-<p>Defines the data structures for pins (node connection points) and helper functions for type compatibility and pin creation. </p>
-</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="a3d6872f70ad9dacbe28311c031ff49d6" name="a3d6872f70ad9dacbe28311c031ff49d6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3d6872f70ad9dacbe28311c031ff49d6">&#9670;&#160;</a></span>MakePin()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="struct_pin.html">Pin</a> MakePin </td>
@@ -161,27 +150,9 @@ Functions</h2></td></tr>
           <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>isMultiInput</em></span><span class="paramdefsep"> = </span><span class="paramdefval">false</span>&#160;)</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
-<p>Create a fully initialized pin. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">id</td><td>Unique numeric ID </td></tr>
-    <tr><td class="paramname">parentNodeId</td><td>ID of the node that owns this pin </td></tr>
-    <tr><td class="paramname">parentNodeType</td><td>Type of the owning node </td></tr>
-    <tr><td class="paramname">name</td><td>Display label for the pin </td></tr>
-    <tr><td class="paramname">type</td><td>Data type this pin handles </td></tr>
-    <tr><td class="paramname">isInput</td><td>true for input pin, false for output pin </td></tr>
-    <tr><td class="paramname">isMultiInput</td><td>Whether this input accepts multiple connections </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Fully initialized <a class="el" href="struct_pin.html" title="Connection point on a node.">Pin</a> struct </dd></dl>
+<p>Creates and returns a pin instance. </p>
 
 </div>
 </div>

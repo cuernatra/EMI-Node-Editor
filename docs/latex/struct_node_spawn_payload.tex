@@ -2,26 +2,26 @@
 \hypertarget{struct_node_spawn_payload}{}\label{struct_node_spawn_payload}\index{NodeSpawnPayload@{NodeSpawnPayload}}
 
 
-Drag-\/and-\/drop payload for spawning new nodes.  
+Drag-\/and-\/drop payload for spawning new nodes from the palette.  
 
 
 
 
-{\ttfamily \+\#include $<$link.\+h$>$}
+{\ttfamily \+\#include $<$spawn\+Payload.\+h$>$}
 
 \doxysubsubsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
 char \doxymbox{\hyperlink{struct_node_spawn_payload_a9900b825121636c878aa46ff4bf26282}{title}} \+[32]\+ = \{\}
-\begin{DoxyCompactList}\small\item\em Node type name/\+identifier (e.\+g., "{}\+Add"{}, "{}\+Multiply"{}, "{}\+Output"{}). \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Node type name (e.\+g. "{}\+For Each"{} or "{}\+Variable:\+\+Set"{}). \end{DoxyCompactList}\item 
 \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{Pin\+Type}} \doxymbox{\hyperlink{struct_node_spawn_payload_abe7741d8feae8ba41786492fa00fb22d}{pin\+Type}} = \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5aed36a1ef76a59ee3f15180e0441188ad}{Pin\+Type::\+\+Any}}
-\begin{DoxyCompactList}\small\item\em Type of the pin that initiated the spawn (for auto-\/wiring). \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em \doxylink{struct_pin}{Pin} type that initiated the drag (for auto-\/wiring). \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \doxysubsection{Detailed Description}
-Drag-\/and-\/drop payload for spawning new nodes. 
+Drag-\/and-\/drop payload for spawning new nodes from the palette. 
 
-Carries information when dragging from a panel or pin to create a new node. Contains the node type to spawn and the originating pin type to enable automatic connection to compatible pins. 
+Passed via Im\+Gui drag-\/and-\/drop ("{}\+SPAWN\+\_\+\+NODE"{}) from the node palette to the graph editor canvas. 
 
 \label{doc-variable-members}
 \Hypertarget{struct_node_spawn_payload_doc-variable-members}
@@ -34,7 +34,7 @@ Carries information when dragging from a panel or pin to create a new node. Cont
 
 
 
-Type of the pin that initiated the spawn (for auto-\/wiring). 
+\doxylink{struct_pin}{Pin} type that initiated the drag (for auto-\/wiring). 
 
 \Hypertarget{struct_node_spawn_payload_a9900b825121636c878aa46ff4bf26282}\index{NodeSpawnPayload@{NodeSpawnPayload}!title@{title}}
 \index{title@{title}!NodeSpawnPayload@{NodeSpawnPayload}}
@@ -44,10 +44,10 @@ char Node\+Spawn\+Payload::\+title\+[32]\+ = \{\}}
 
 
 
-Node type name/\+identifier (e.\+g., "{}\+Add"{}, "{}\+Multiply"{}, "{}\+Output"{}). 
+Node type name (e.\+g. "{}\+For Each"{} or "{}\+Variable:\+\+Set"{}). 
 
 
 
 The documentation for this struct was generated from the following file:\+\begin{DoxyCompactItemize}
 \item 
-src/\+core/\+graph/\+\doxymbox{\hyperlink{link_8h}{link.\+h}}\end{DoxyCompactItemize}
+src/\+editor/\+\doxymbox{\hyperlink{spawn_payload_8h}{spawn\+Payload.\+h}}\end{DoxyCompactItemize}

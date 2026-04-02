@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.16.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>AO Emi Visual Programming Tool: Main Page</title>
+<title>AO Emi Visual Programming Tool: AO_Emi-Visual-Programming-Tool</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -87,10 +87,36 @@ $(function(){initNavTree('index.html','',''); });
 </div>
 </div>
 
-<div class="header">
-  <div class="headertitle"><div class="title">AO Emi Visual Programming Tool Documentation</div></div>
+<div><div class="header">
+  <div class="headertitle"><div class="title">AO_Emi-Visual-Programming-Tool </div></div>
 </div><!--header-->
 <div class="contents">
+<div class="textblock"><p><a class="anchor" id="md__r_e_a_d_m_e"></a></p>
+<p>COMP.SE.610/620</p>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md1"></a>
+Build instructions</h1>
+<p>Make sure CMake is installed.</p>
+<ol type="1">
+<li><p class="startli">Create build directory:</p>
+<div class="fragment"><div class="line">mkdir build</div>
+</div><!-- fragment --></li>
+<li><p class="startli">Go to build directory:</p>
+<div class="fragment"><div class="line">cd build</div>
+</div><!-- fragment --></li>
+<li><p class="startli">Configure CMake to build dependencies as static libraries:</p>
+<div class="fragment"><div class="line">cmake -DBUILD_SHARED_LIBS=OFF ..</div>
+</div><!-- fragment --></li>
+<li><p class="startli">Build project:</p>
+<div class="fragment"><div class="line">cmake --build .</div>
+</div><!-- fragment --></li>
+</ol>
+<p>Generated executable can be found in the build directory.</p>
+<h1 class="doxsection"><a class="anchor" id="autotoc_md2"></a>
+Documentation</h1>
+<p>Generate the HTML docs:</p>
+<div class="fragment"><div class="line">doxygen Doxyfile</div>
+</div><!-- fragment --><p>Then open <span class="tt">docs/index.html</span> (redirects to <span class="tt">docs/html/index.html</span>). </p>
+</div></div><!-- PageDoc -->
 <a href="doxygen_crawl.html"></a>
 </div><!-- contents -->
 </div><!-- doc-content -->

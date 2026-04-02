@@ -1,7 +1,5 @@
 var searchData=
 [
-  ['removelinksfornode_0',['RemoveLinksForNode',['../class_graph_state.html#a59b6cbbc3425826de32de91b1979b479',1,'GraphState']]],
-  ['resolve_1',['Resolve',['../class_pin_resolver.html#acad91c351bd282d82d963204f3f4f2c5',1,'PinResolver']]],
-  ['resolveflow_2',['ResolveFlow',['../class_pin_resolver.html#a2cafa6aa7e0f9ce9c0d8e76de717fc38',1,'PinResolver']]],
-  ['run_3',['run',['../class_app.html#ae09dc71078b64c56c673b1ad1d25b5d1',1,'App']]]
+  ['open_0',['open',['../class_graph_preview_panel.html#af2ab86cc558ec7d77aa608f1c5547cb1',1,'GraphPreviewPanel']]],
+  ['operator_28_29_1',['operator()',['../structstd_1_1hash_3_01ed_1_1_pin_id_01_4.html#a476d7a741f31822e13a486fe8578fa97',1,'std::hash&lt; ed::PinId &gt;::operator()()'],['../structstd_1_1hash_3_01ed_1_1_node_id_01_4.html#ad1630bb3f37c722a4e8167ff44aa182e',1,'std::hash&lt; ed::NodeId &gt;::operator()()'],['../structstd_1_1hash_3_01_node_type_01_4.html#acd469ace1c9499995a29092500f27537',1,'std::hash&lt; NodeType &gt;::operator()()']]]
 ];

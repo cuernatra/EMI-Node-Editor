@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['operator_0',['Operator',['../types_8h.html#acac9cbaeea226ed297804c012dc12b16ae1b3ec89ead7f83a9245ed5c9cacfdbf',1,'types.h']]],
-  ['output_1',['Output',['../types_8h.html#acac9cbaeea226ed297804c012dc12b16a29c2c02a361c9d7028472e5d92cd4a54',1,'types.h']]]
+  ['logic_0',['Logic',['../types_8h.html#acac9cbaeea226ed297804c012dc12b16a35ba1271dff4019593d3034c929e1bbc',1,'types.h']]],
+  ['loop_1',['Loop',['../types_8h.html#acac9cbaeea226ed297804c012dc12b16a89d7b10cb4238977d2b523dfd9ea7745',1,'types.h']]]
 ];

@@ -2,7 +2,7 @@
 \hypertarget{struct_visual_node}{}\label{struct_visual_node}\index{VisualNode@{VisualNode}}
 
 
-Runtime instance of a node in the visual graph.  
+Visual node data and rendering entry points.  
 
 
 
@@ -33,17 +33,9 @@ bool \doxymbox{\hyperlink{struct_visual_node_ad787dd557c577f39ff55825a2daa9a1d}{
 
 
 \doxysubsection{Detailed Description}
-Runtime instance of a node in the visual graph. 
+Visual node data and rendering entry points. 
 
-Represents a single node on the canvas with:\+
-\begin{DoxyItemize}
-\item Unique ID and type
-\item Collections of input and output pins
-\item Editable fields (for constant values, parameters)
-\item \doxylink{struct_position}{Position} and lifecycle state
-\end{DoxyItemize}
-
-The node\textquotesingle{}s structure (which pins/\+fields it has) is defined by its \doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}\textquotesingle{}s descriptor in the registry. This struct holds the live runtime state. 
+Runtime instance of a graph node. 
 
 \label{doc-variable-members}
 \Hypertarget{struct_visual_node_doc-variable-members}

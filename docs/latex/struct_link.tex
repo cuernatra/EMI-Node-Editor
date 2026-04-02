@@ -9,11 +9,6 @@ Represents a connection (edge) between two pins in the node graph.
 
 {\ttfamily \+\#include $<$link.\+h$>$}
 
-\doxysubsubsection*{Public Member Functions}
-\begin{DoxyCompactItemize}
-\item 
-Im\+Vec4 \doxymbox{\hyperlink{struct_link_a9d1a4f3a1b268766385bbc3c6d828cb9}{Get\+Color}} () const
-\begin{DoxyCompactList}\small\item\em Get the visual color for this link based on its data type. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsubsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
@@ -33,24 +28,6 @@ bool \doxymbox{\hyperlink{struct_link_a6a027a26889af3cacf04579ab49cf2de}{alive}}
 Represents a connection (edge) between two pins in the node graph. 
 
 A \doxylink{struct_link}{Link} connects an output pin to an input pin, with a specific data type that determines the visual appearance of the connection wire. Links can be marked as inactive (alive=false) for deletion. 
-
-\label{doc-func-members}
-\Hypertarget{struct_link_doc-func-members}
-\doxysubsection{Member Function Documentation}
-\Hypertarget{struct_link_a9d1a4f3a1b268766385bbc3c6d828cb9}\index{Link@{Link}!GetColor@{GetColor}}
-\index{GetColor@{GetColor}!Link@{Link}}
-\doxysubsubsection{\texorpdfstring{GetColor()}{GetColor()}}
-{\footnotesize\ttfamily \label{struct_link_a9d1a4f3a1b268766385bbc3c6d828cb9} 
-Im\+Vec4 Link::\+\+Get\+Color (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
-
-
-
-Get the visual color for this link based on its data type. 
-
-\begin{DoxyReturn}{Returns}
-RGBA color vector for rendering the connection wire
-\end{DoxyReturn}
-The color is determined by the link\textquotesingle{}s \doxylink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{Pin\+Type}, matching the colors used for pins to create a consistent visual language. 
 
 \label{doc-variable-members}
 \Hypertarget{struct_link_doc-variable-members}

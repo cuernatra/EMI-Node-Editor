@@ -1,5 +1,5 @@
 \doxysection{graph\+Compilation.\+h}
-\hypertarget{graph_compilation_8h_source}{}\label{graph_compilation_8h_source}\index{src/editor/graphCompilation.h@{src/editor/graphCompilation.h}}
+\hypertarget{graph_compilation_8h_source}{}\label{graph_compilation_8h_source}\index{src/editor/graph/graphCompilation.h@{src/editor/graph/graphCompilation.h}}
 \doxymbox{\hyperlink{graph_compilation_8h}{Go to the documentation of this file.}}
 \begin{DoxyCode}{0}
 \DoxyCodeLine{00001\ }
@@ -7,24 +7,50 @@
 \DoxyCodeLine{00011\ \textcolor{preprocessor}{\#pragma\ once}}
 \DoxyCodeLine{00012\ }
 \DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <memory>}}
-\DoxyCodeLine{00014\ }
-\DoxyCodeLine{00015\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_state}{GraphState}};}
-\DoxyCodeLine{00016\ }
-\DoxyCodeLine{00028\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_compilation_ad67417a841a4d11e37ede3e794f4bae9}{GraphCompilation}}}
-\DoxyCodeLine{00029\ \{}
-\DoxyCodeLine{00030\ \textcolor{keyword}{public}:}
-\DoxyCodeLine{00037\ \ \ \ \ \doxymbox{\hyperlink{class_graph_compilation_ad67417a841a4d11e37ede3e794f4bae9}{GraphCompilation}}();}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <atomic>}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_state}{GraphState}};}
+\DoxyCodeLine{00020\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_visual_node}{VisualNode}};}
+\DoxyCodeLine{00021\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_link}{Link}};}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00034\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_compilation_ad67417a841a4d11e37ede3e794f4bae9}{GraphCompilation}}}
+\DoxyCodeLine{00035\ \{}
+\DoxyCodeLine{00036\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keyword}{using\ }\doxymbox{\hyperlink{class_graph_compilation_a324c4147aa8131940e2947bcf98fcddb}{LogSink}}\ =\ std::function<void(\textcolor{keyword}{const}\ std::string\&)>;}
 \DoxyCodeLine{00038\ }
-\DoxyCodeLine{00042\ \ \ \ \ \doxymbox{\hyperlink{class_graph_compilation_ab6f68b1953f32f0c014ca31154766212}{\string~GraphCompilation}}();}
-\DoxyCodeLine{00043\ }
-\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_compilation_aa7763cac7b10802fc7799ac16a4d8d85}{CompileGraph}}(\doxymbox{\hyperlink{class_graph_state}{GraphState}}\&\ state,\ \textcolor{keywordtype}{bool}\ resultOnly\ =\ \textcolor{keyword}{false});}
-\DoxyCodeLine{00061\ }
-\DoxyCodeLine{00062\ \textcolor{keyword}{private}:}
-\DoxyCodeLine{00063\ \ \ \ \ \textcolor{comment}{//\ Pimpl\ to\ hide\ EMI\ types\ from\ header}}
-\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_compilation_1_1_impl}{Impl}};}
-\DoxyCodeLine{00065\ \ \ \ \ std::unique\_ptr<Impl>\ m\_impl;}
-\DoxyCodeLine{00066\ \};}
-\DoxyCodeLine{00067\ }
-\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_graph_compilation_1_1_compile_result}{CompileResult}}}
+\DoxyCodeLine{00040\ \ \ \ \ \{}
+\DoxyCodeLine{00041\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{struct_graph_compilation_1_1_compile_result_aeef6502a6d9d87093f552ddf62230975}{success}}\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00042\ \ \ \ \ \ \ \ \ std::string\ \doxymbox{\hyperlink{struct_graph_compilation_1_1_compile_result_a163c2203dc10637781a7af6527357b2f}{message}};}
+\DoxyCodeLine{00043\ \ \ \ \ \};}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00051\ \ \ \ \ \doxymbox{\hyperlink{class_graph_compilation_ad67417a841a4d11e37ede3e794f4bae9}{GraphCompilation}}();}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00056\ \ \ \ \ \doxymbox{\hyperlink{class_graph_compilation_ab6f68b1953f32f0c014ca31154766212}{\string~GraphCompilation}}();}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_compilation_aa7763cac7b10802fc7799ac16a4d8d85}{CompileGraph}}(\doxymbox{\hyperlink{class_graph_state}{GraphState}}\&\ state,\ \textcolor{keywordtype}{bool}\ resultOnly\ =\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00077\ \ \ \ \ \doxymbox{\hyperlink{struct_graph_compilation_1_1_compile_result}{CompileResult}}\ \doxymbox{\hyperlink{class_graph_compilation_a7d840e79a0729f16fccd99b813105d92}{CompileGraphSnapshot}}(\textcolor{keyword}{const}\ std::vector<VisualNode>\&\ nodes,}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ std::vector<Link>\&\ links,}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ resultOnly\ =\ \textcolor{keyword}{false});}
+\DoxyCodeLine{00080\ }
+\DoxyCodeLine{00082\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_compilation_af01d1ab4ead1608843949f61827e9a22}{SetLogSink}}(\doxymbox{\hyperlink{class_graph_compilation_a324c4147aa8131940e2947bcf98fcddb}{LogSink}}\ sink);}
+\DoxyCodeLine{00083\ }
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_compilation_a725f67bc8d05cf7d83bcc51e63095a73}{RequestForceStop}}();}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_compilation_a4485484414bc5de403ae797618b380b9}{ClearForceStopRequest}}();}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{comment}{//\ Pimpl\ to\ hide\ EMI\ types\ from\ header}}
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_compilation_1_1_impl}{Impl}};}
+\DoxyCodeLine{00093\ \ \ \ \ std::unique\_ptr<Impl>\ m\_impl;}
+\DoxyCodeLine{00094\ \ \ \ \ \doxymbox{\hyperlink{class_graph_compilation_a324c4147aa8131940e2947bcf98fcddb}{LogSink}}\ m\_logSink;}
+\DoxyCodeLine{00095\ \ \ \ \ std::atomic<bool>\ m\_forceStopRequested\{\ \textcolor{keyword}{false}\ \};}
+\DoxyCodeLine{00096\ \};}
+\DoxyCodeLine{00097\ }
+\DoxyCodeLine{00098\ }
 
 \end{DoxyCode}

@@ -1,16 +1,22 @@
-\doxysection{src/\+editor/\+graph\+Compilation.h File Reference}
-\hypertarget{graph_compilation_8h}{}\label{graph_compilation_8h}\index{src/editor/graphCompilation.h@{src/editor/graphCompilation.h}}
+\doxysection{src/\+editor/\+graph/\+graph\+Compilation.h File Reference}
+\hypertarget{graph_compilation_8h}{}\label{graph_compilation_8h}\index{src/editor/graph/graphCompilation.h@{src/editor/graph/graphCompilation.h}}
 
 
 Graph-\/to-\/code compilation bridge.  
 
 
 {\ttfamily \+\#include $<$memory$>$}\newline
+{\ttfamily \+\#include $<$functional$>$}\newline
+{\ttfamily \+\#include $<$string$>$}\newline
+{\ttfamily \+\#include $<$vector$>$}\newline
+{\ttfamily \+\#include $<$atomic$>$}\newline
 \doxysubsubsection*{Classes}
 \begin{DoxyCompactItemize}
 \item 
 class \doxymbox{\hyperlink{class_graph_compilation}{Graph\+Compilation}}
-\begin{DoxyCompactList}\small\item\em High-\/level graph compilation and execution interface. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em High-\/level graph compilation and execution interface. \end{DoxyCompactList}\item 
+struct \doxymbox{\hyperlink{struct_graph_compilation_1_1_compile_result}{Graph\+Compilation::\+\+Compile\+Result}}
+\end{DoxyCompactItemize}
 
 
 \doxysubsection{Detailed Description}

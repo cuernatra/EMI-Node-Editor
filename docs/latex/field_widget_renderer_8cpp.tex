@@ -1,0 +1,91 @@
+\doxysection{src/\+editor/\+renderer/\+field\+Widget\+Renderer.cpp File Reference}
+\hypertarget{field_widget_renderer_8cpp}{}\label{field_widget_renderer_8cpp}\index{src/editor/renderer/fieldWidgetRenderer.cpp@{src/editor/renderer/fieldWidgetRenderer.cpp}}
+{\ttfamily \+\#include "{}field\+Widget\+Renderer.\+h"{}}\newline
+{\ttfamily \+\#include "{}imgui.\+h"{}}\newline
+{\ttfamily \+\#include "{}imgui\+\_\+node\+\_\+editor.\+h"{}}\newline
+{\ttfamily \+\#include "{}ui/\+theme.\+h"{}}\newline
+{\ttfamily \+\#include $<$cstdlib$>$}\newline
+{\ttfamily \+\#include $<$cstring$>$}\newline
+{\ttfamily \+\#include $<$cctype$>$}\newline
+{\ttfamily \+\#include $<$algorithm$>$}\newline
+{\ttfamily \+\#include $<$array$>$}\newline
+{\ttfamily \+\#include $<$unordered\+\_\+map$>$}\newline
+{\ttfamily \+\#include $<$vector$>$}\newline
+\doxysubsubsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+enum class \doxymbox{\hyperlink{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdb}{Array\+Item\+Type}} \{ \newline
+\doxymbox{\hyperlink{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdbab2ee912b91d69b435159c7c3f6df7f5f}{Number}}
+, \doxymbox{\hyperlink{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdba27226c864bac7454a8504f8edb15d95b}{Boolean}}
+, \doxymbox{\hyperlink{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdba27118326006d3829667a400ad23d5d98}{String}}
+, \doxymbox{\hyperlink{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdbabbb93ef26e3c101ff11cdd21cab08a94}{Null}}
+, \newline
+\doxymbox{\hyperlink{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdba4410ec34d9e6c1a68100ca0ce033fb17}{Array}}
+ \}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{field_widget_renderer_8cpp_a3e62724daf1288eb6428c25008cfbbb3}{Draw\+Field}} (\doxymbox{\hyperlink{struct_node_field}{Node\+Field}} \&field)
+\begin{DoxyCompactList}\small\item\em Render Im\+Gui widget for field editing (modifies field in-\/place). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\label{doc-enum-members}
+\Hypertarget{field_widget_renderer_8cpp_doc-enum-members}
+\doxysubsection{Enumeration Type Documentation}
+\Hypertarget{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdb}\index{fieldWidgetRenderer.cpp@{fieldWidgetRenderer.cpp}!ArrayItemType@{ArrayItemType}}
+\index{ArrayItemType@{ArrayItemType}!fieldWidgetRenderer.cpp@{fieldWidgetRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{ArrayItemType}{ArrayItemType}}
+{\footnotesize\ttfamily \label{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdb} 
+enum class \doxymbox{\hyperlink{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdb}{Array\+Item\+Type}}\hspace{0.3cm}{\ttfamily [strong]}}
+
+\begin{DoxyEnumFields}[2]{Enumerator}
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Number@{Number}!fieldWidgetRenderer.cpp@{fieldWidgetRenderer.cpp}}
+\index{fieldWidgetRenderer.cpp@{fieldWidgetRenderer.cpp}!Number@{Number}}
+}\Hypertarget{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdbab2ee912b91d69b435159c7c3f6df7f5f}\label{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdbab2ee912b91d69b435159c7c3f6df7f5f} 
+Number&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Boolean@{Boolean}!fieldWidgetRenderer.cpp@{fieldWidgetRenderer.cpp}}
+\index{fieldWidgetRenderer.cpp@{fieldWidgetRenderer.cpp}!Boolean@{Boolean}}
+}\Hypertarget{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdba27226c864bac7454a8504f8edb15d95b}\label{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdba27226c864bac7454a8504f8edb15d95b} 
+Boolean&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{String@{String}!fieldWidgetRenderer.cpp@{fieldWidgetRenderer.cpp}}
+\index{fieldWidgetRenderer.cpp@{fieldWidgetRenderer.cpp}!String@{String}}
+}\Hypertarget{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdba27118326006d3829667a400ad23d5d98}\label{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdba27118326006d3829667a400ad23d5d98} 
+String&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Null@{Null}!fieldWidgetRenderer.cpp@{fieldWidgetRenderer.cpp}}
+\index{fieldWidgetRenderer.cpp@{fieldWidgetRenderer.cpp}!Null@{Null}}
+}\Hypertarget{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdbabbb93ef26e3c101ff11cdd21cab08a94}\label{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdbabbb93ef26e3c101ff11cdd21cab08a94} 
+Null&\\
+\hline
+
+\raisebox{\heightof{T}}[0pt][0pt]{\index{Array@{Array}!fieldWidgetRenderer.cpp@{fieldWidgetRenderer.cpp}}
+\index{fieldWidgetRenderer.cpp@{fieldWidgetRenderer.cpp}!Array@{Array}}
+}\Hypertarget{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdba4410ec34d9e6c1a68100ca0ce033fb17}\label{field_widget_renderer_8cpp_a1f996767969031e88ab89987092d5fdba4410ec34d9e6c1a68100ca0ce033fb17} 
+Array&\\
+\hline
+
+\end{DoxyEnumFields}
+
+
+\label{doc-func-members}
+\Hypertarget{field_widget_renderer_8cpp_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{field_widget_renderer_8cpp_a3e62724daf1288eb6428c25008cfbbb3}\index{fieldWidgetRenderer.cpp@{fieldWidgetRenderer.cpp}!DrawField@{DrawField}}
+\index{DrawField@{DrawField}!fieldWidgetRenderer.cpp@{fieldWidgetRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{DrawField()}{DrawField()}}
+{\footnotesize\ttfamily \label{field_widget_renderer_8cpp_a3e62724daf1288eb6428c25008cfbbb3} 
+bool Draw\+Field (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{struct_node_field}{Node\+Field}} \&}]{field}{}\end{DoxyParamCaption})}
+
+
+
+Render Im\+Gui widget for field editing (modifies field in-\/place). 
+
+\begin{DoxyReturn}{Returns}
+true if value changed this frame 
+\end{DoxyReturn}

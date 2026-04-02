@@ -92,7 +92,7 @@ $(function(){initNavTree('struct_visual_node.html','','struct_visual_node-member
 </div><!--header-->
 <div class="contents">
 
-<p>Runtime instance of a node in the visual graph.  
+<p>Visual node data and rendering entry points.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="visual_node_8h_source.html">visualNode.h</a>&gt;</code></p>
@@ -115,14 +115,8 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:ad787dd557c577f39ff55825a2daa9a1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">false marks node for deletion  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Runtime instance of a node in the visual graph. </p>
-<p>Represents a single node on the canvas with:</p><ul>
-<li>Unique ID and type</li>
-<li>Collections of input and output pins</li>
-<li>Editable fields (for constant values, parameters)</li>
-<li><a class="el" href="struct_position.html" title="Simple 2D position structure.">Position</a> and lifecycle state</li>
-</ul>
-<p>The node's structure (which pins/fields it has) is defined by its <a class="el" href="types_8h.html#acac9cbaeea226ed297804c012dc12b16">NodeType</a>'s descriptor in the registry. This struct holds the live runtime state. </p>
+<div class="textblock"><p>Visual node data and rendering entry points. </p>
+<p>Runtime instance of a graph node. </p>
 </div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="ad787dd557c577f39ff55825a2daa9a1d" name="ad787dd557c577f39ff55825a2daa9a1d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad787dd557c577f39ff55825a2daa9a1d">&#9670;&#160;</a></span>alive</h2>

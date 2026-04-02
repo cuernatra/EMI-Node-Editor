@@ -108,7 +108,7 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Node instance creation from registry descriptors. </p>
-<p>Provides factory functions for creating <a class="el" href="struct_visual_node.html" title="Runtime instance of a node in the visual graph.">VisualNode</a> instances from their descriptors. Handles both fresh node creation (with new IDs) and deserialization (with existing IDs). </p>
+<p>Provides factory functions for creating <a class="el" href="struct_visual_node.html" title="Visual node data and rendering entry points.">VisualNode</a> instances from their descriptors. Handles both fresh node creation (with new IDs) and deserialization (with existing IDs). </p>
 </div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
 <a id="ab208acca10ed1531e2ac33a3ca33dd3c" name="ab208acca10ed1531e2ac33a3ca33dd3c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab208acca10ed1531e2ac33a3ca33dd3c">&#9670;&#160;</a></span>CreateNodeFromType()</h2>
@@ -143,7 +143,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Fully initialized <a class="el" href="struct_visual_node.html" title="Runtime instance of a node in the visual graph.">VisualNode</a></dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Fully initialized <a class="el" href="struct_visual_node.html" title="Visual node data and rendering entry points.">VisualNode</a></dd></dl>
 <p>Looks up the descriptor for the given <a class="el" href="types_8h.html#acac9cbaeea226ed297804c012dc12b16">NodeType</a>, creates all pins and fields as specified, and assigns fresh IDs from the generator.</p>
 <p>Used when spawning new nodes from the palette or context menu. </p>
 
@@ -183,12 +183,12 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">type</td><td>The type of node to create </td></tr>
     <tr><td class="paramname">nodeId</td><td>The node ID to assign </td></tr>
-    <tr><td class="paramname">pinIds</td><td><a class="el" href="struct_pin.html" title="Connection point on a node.">Pin</a> IDs in descriptor order (all inputs, then all outputs) </td></tr>
+    <tr><td class="paramname">pinIds</td><td><a class="el" href="struct_pin.html" title="Pin types, styles, and helpers for the graph editor.">Pin</a> IDs in descriptor order (all inputs, then all outputs) </td></tr>
     <tr><td class="paramname">pos</td><td>Initial position on the canvas </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Fully initialized <a class="el" href="struct_visual_node.html" title="Runtime instance of a node in the visual graph.">VisualNode</a></dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Fully initialized <a class="el" href="struct_visual_node.html" title="Visual node data and rendering entry points.">VisualNode</a></dd></dl>
 <p>Used when loading nodes from disk where IDs are already known. The pinIds vector must match the descriptor's pin order exactly: first all input pins, then all output pins.</p>
 <dl class="section warning"><dt>Warning</dt><dd>pinIds.size() must match the total pin count in the descriptor </dd></dl>
 

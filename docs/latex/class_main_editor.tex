@@ -29,7 +29,19 @@ bool \doxymbox{\hyperlink{class_main_editor_ab94c7c1cdc0967339c27332ffe20cedf}{t
 bool \doxymbox{\hyperlink{class_main_editor_a5ec6a61a975c35f4932f72243df75f3c}{has\+Start\+Node}} () const
 \begin{DoxyCompactList}\small\item\em Check whether graph currently contains a Start node. \end{DoxyCompactList}\item 
 bool \doxymbox{\hyperlink{class_main_editor_ad781360cb6f2bda877c02cb902cdd215}{has\+Variables}} () const
-\begin{DoxyCompactList}\small\item\em Check whether graph contains at least one Variable node. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Check whether graph contains at least one Variable node. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_main_editor_a6c3a7ce28d77e634c13090c3c723d057}{set\+Compile\+Log\+Sink}} (std::\+function$<$ void(const std::\+string \&)$>$ sink)
+\begin{DoxyCompactList}\small\item\em Forward compile status messages to an external log sink. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_main_editor_af2788a17ae29411ca035687533c7aed7}{set\+Compile\+Callback}} (std::\+function$<$ void()$>$ cb)
+\begin{DoxyCompactList}\small\item\em Set callback invoked after Compile button runs compilation. \end{DoxyCompactList}\item 
+const \doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \& \doxymbox{\hyperlink{class_main_editor_a07e9c4b57c6f70b9875f844f5189b39f}{get\+Graph\+State}} () const
+\begin{DoxyCompactList}\small\item\em Expose graph state for read-\/only auxiliary views like preview panels. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_main_editor_aadff17fbe48a786dd2adf2b1a7380641}{sync\+Node\+Positions\+For\+Preview}} ()
+\begin{DoxyCompactList}\small\item\em Sync live node positions from node editor so previews can use current layout. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_main_editor_aff3c225e25c6cb7c972d2d7b0216823c}{flush\+Pending\+Compile\+Logs}} ()
+\item 
+void \doxymbox{\hyperlink{class_main_editor_a6b7ca2274fe1d717fb8b5da4930e3ede}{poll\+Async\+Compile\+Result}} ()
+\end{DoxyCompactItemize}
 
 
 \doxysubsection{Detailed Description}
@@ -85,6 +97,22 @@ void Main\+Editor::\+draw\+Inspector\+Panel (\begin{DoxyParamCaption}{}{}\end{Do
 
 Render inspector contents for selected node. 
 
+\Hypertarget{class_main_editor_aff3c225e25c6cb7c972d2d7b0216823c}\index{MainEditor@{MainEditor}!flushPendingCompileLogs@{flushPendingCompileLogs}}
+\index{flushPendingCompileLogs@{flushPendingCompileLogs}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{flushPendingCompileLogs()}{flushPendingCompileLogs()}}
+{\footnotesize\ttfamily \label{class_main_editor_aff3c225e25c6cb7c972d2d7b0216823c} 
+void Main\+Editor::\+flush\+Pending\+Compile\+Logs (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_main_editor_a07e9c4b57c6f70b9875f844f5189b39f}\index{MainEditor@{MainEditor}!getGraphState@{getGraphState}}
+\index{getGraphState@{getGraphState}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{getGraphState()}{getGraphState()}}
+{\footnotesize\ttfamily \label{class_main_editor_a07e9c4b57c6f70b9875f844f5189b39f} 
+const \doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \& Main\+Editor::\+get\+Graph\+State (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Expose graph state for read-\/only auxiliary views like preview panels. 
+
 \Hypertarget{class_main_editor_a287b07e45d42d59b35334a47d4699365}\index{MainEditor@{MainEditor}!handleSharedShortcuts@{handleSharedShortcuts}}
 \index{handleSharedShortcuts@{handleSharedShortcuts}!MainEditor@{MainEditor}}
 \doxysubsubsection{\texorpdfstring{handleSharedShortcuts()}{handleSharedShortcuts()}}
@@ -124,6 +152,42 @@ bool Main\+Editor::\+has\+Variables (\begin{DoxyParamCaption}{}{}\end{DoxyParamC
 
 
 Check whether graph contains at least one Variable node. 
+
+\Hypertarget{class_main_editor_a6b7ca2274fe1d717fb8b5da4930e3ede}\index{MainEditor@{MainEditor}!pollAsyncCompileResult@{pollAsyncCompileResult}}
+\index{pollAsyncCompileResult@{pollAsyncCompileResult}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{pollAsyncCompileResult()}{pollAsyncCompileResult()}}
+{\footnotesize\ttfamily \label{class_main_editor_a6b7ca2274fe1d717fb8b5da4930e3ede} 
+void Main\+Editor::\+poll\+Async\+Compile\+Result (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{class_main_editor_af2788a17ae29411ca035687533c7aed7}\index{MainEditor@{MainEditor}!setCompileCallback@{setCompileCallback}}
+\index{setCompileCallback@{setCompileCallback}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{setCompileCallback()}{setCompileCallback()}}
+{\footnotesize\ttfamily \label{class_main_editor_af2788a17ae29411ca035687533c7aed7} 
+void Main\+Editor::\+set\+Compile\+Callback (\begin{DoxyParamCaption}\item[{std::\+function$<$ void()$>$}]{cb}{}\end{DoxyParamCaption})}
+
+
+
+Set callback invoked after Compile button runs compilation. 
+
+\Hypertarget{class_main_editor_a6c3a7ce28d77e634c13090c3c723d057}\index{MainEditor@{MainEditor}!setCompileLogSink@{setCompileLogSink}}
+\index{setCompileLogSink@{setCompileLogSink}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{setCompileLogSink()}{setCompileLogSink()}}
+{\footnotesize\ttfamily \label{class_main_editor_a6c3a7ce28d77e634c13090c3c723d057} 
+void Main\+Editor::\+set\+Compile\+Log\+Sink (\begin{DoxyParamCaption}\item[{std::\+function$<$ void(const std::\+string \&)$>$}]{sink}{}\end{DoxyParamCaption})}
+
+
+
+Forward compile status messages to an external log sink. 
+
+\Hypertarget{class_main_editor_aadff17fbe48a786dd2adf2b1a7380641}\index{MainEditor@{MainEditor}!syncNodePositionsForPreview@{syncNodePositionsForPreview}}
+\index{syncNodePositionsForPreview@{syncNodePositionsForPreview}!MainEditor@{MainEditor}}
+\doxysubsubsection{\texorpdfstring{syncNodePositionsForPreview()}{syncNodePositionsForPreview()}}
+{\footnotesize\ttfamily \label{class_main_editor_aadff17fbe48a786dd2adf2b1a7380641} 
+void Main\+Editor::\+sync\+Node\+Positions\+For\+Preview (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Sync live node positions from node editor so previews can use current layout. 
 
 \Hypertarget{class_main_editor_ab94c7c1cdc0967339c27332ffe20cedf}\index{MainEditor@{MainEditor}!tryGetSingleSelectedNodeId@{tryGetSingleSelectedNodeId}}
 \index{tryGetSingleSelectedNodeId@{tryGetSingleSelectedNodeId}!MainEditor@{MainEditor}}

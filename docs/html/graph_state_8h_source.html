@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.16.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>AO Emi Visual Programming Tool: src/editor/graphState.h Source File</title>
+<title>AO Emi Visual Programming Tool: src/editor/graph/graphState.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -95,9 +95,9 @@ $(function(){initNavTree('graph_state_8h_source.html','',''); });
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#pragma once</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="visual_node_8h.html">../core/graph/visualNode.h</a>&quot;</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="link_8h.html">../core/graph/link.h</a>&quot;</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &quot;<a class="code" href="id_gen_8h.html">../core/graph/idGen.h</a>&quot;</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="visual_node_8h.html">core/graph/visualNode.h</a>&quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="link_8h.html">core/graph/link.h</a>&quot;</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &quot;<a class="code" href="id_gen_8h.html">core/graph/idGen.h</a>&quot;</span></div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &lt;string&gt;</span></div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
@@ -189,18 +189,18 @@ $(function(){initNavTree('graph_state_8h_source.html','',''); });
 <div class="ttc" id="aid_gen_8h_html"><div class="ttname"><a href="id_gen_8h.html">idGen.h</a></div></div>
 <div class="ttc" id="alink_8h_html"><div class="ttname"><a href="link_8h.html">link.h</a></div></div>
 <div class="ttc" id="astruct_id_gen_html"><div class="ttname"><a href="struct_id_gen.html">IdGen</a></div><div class="ttdoc">Simple ID generator for graph elements.</div><div class="ttdef"><b>Definition</b> idGen.h:18</div></div>
-<div class="ttc" id="astruct_link_html"><div class="ttname"><a href="struct_link.html">Link</a></div><div class="ttdoc">Represents a connection (edge) between two pins in the node graph.</div><div class="ttdef"><b>Definition</b> link.h:23</div></div>
-<div class="ttc" id="astruct_pin_html"><div class="ttname"><a href="struct_pin.html">Pin</a></div><div class="ttdoc">Connection point on a node.</div><div class="ttdef"><b>Definition</b> pin.h:31</div></div>
-<div class="ttc" id="astruct_visual_node_html"><div class="ttname"><a href="struct_visual_node.html">VisualNode</a></div><div class="ttdoc">Runtime instance of a node in the visual graph.</div><div class="ttdef"><b>Definition</b> visualNode.h:36</div></div>
+<div class="ttc" id="astruct_link_html"><div class="ttname"><a href="struct_link.html">Link</a></div><div class="ttdoc">Represents a connection (edge) between two pins in the node graph.</div><div class="ttdef"><b>Definition</b> link.h:22</div></div>
+<div class="ttc" id="astruct_pin_html"><div class="ttname"><a href="struct_pin.html">Pin</a></div><div class="ttdoc">Pin types, styles, and helpers for the graph editor.</div><div class="ttdef"><b>Definition</b> pin.h:18</div></div>
+<div class="ttc" id="astruct_visual_node_html"><div class="ttname"><a href="struct_visual_node.html">VisualNode</a></div><div class="ttdoc">Visual node data and rendering entry points.</div><div class="ttdef"><b>Definition</b> visualNode.h:16</div></div>
 <div class="ttc" id="atypes_8h_html_acac9cbaeea226ed297804c012dc12b16"><div class="ttname"><a href="types_8h.html#acac9cbaeea226ed297804c012dc12b16">NodeType</a></div><div class="ttdeci">NodeType</div><div class="ttdef"><b>Definition</b> types.h:20</div></div>
-<div class="ttc" id="avisual_node_8h_html"><div class="ttname"><a href="visual_node_8h.html">visualNode.h</a></div><div class="ttdoc">Visual node representation for the node graph.</div></div>
+<div class="ttc" id="avisual_node_8h_html"><div class="ttname"><a href="visual_node_8h.html">visualNode.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a href="dir_a31afd56823c6335224242a3eb4525db.html">editor</a></li><li class="navelem"><a href="graph_state_8h.html">graphState.h</a></li>
+    <li class="navelem"><a href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a href="dir_a31afd56823c6335224242a3eb4525db.html">editor</a></li><li class="navelem"><a href="dir_6e40953f6246d8ee989ac475a2739d4e.html">graph</a></li><li class="navelem"><a href="graph_state_8h.html">graphState.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.16.1 </li>
   </ul>
 </div>
