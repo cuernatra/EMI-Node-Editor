@@ -22,9 +22,6 @@ NodeField* FindField(std::vector<NodeField>& fields, const char* name);
 const NodeField* FindField(const std::vector<NodeField>& fields, const char* name);
 Pin* FindPinByName(std::vector<Pin>& pins, const char* name);
 
-bool DrawInspectorField(NodeField& field);
-void DrawInspectorReadOnlyField(const NodeField& field);
-
 bool RefreshVariableNodeTypes(GraphState& state);
 bool RefreshOutputNodeInputTypes(GraphState& state);
 bool RefreshLoopNodeLayout(GraphState& state);

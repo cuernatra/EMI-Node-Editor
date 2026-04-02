@@ -6,6 +6,10 @@
 #include "editor/graph/graphSerializer.h"
 #include "editor/graph/graphEditorUtils.h"
 
+#include "editor/renderer/fieldWidgetRenderer.h"
+
+#include "core/registry/nodeRegistry.h"
+
 #include "imgui.h"
 #include "imgui_node_editor.h"
 
@@ -150,6 +154,86 @@ static std::vector<std::string> CollectDefinedStructNames(const GraphState& stat
 	}
 	return names;
 }
+
+static bool ContainsString(const std::vector<std::string>& list, const std::string& value)
+{
+	return std::find(list.begin(), list.end(), value) != list.end();
+}
+
+static bool DrawInspectorFieldsFromDescriptor(
+	GraphState& state,
+	VisualNode& node,
+	const NodeDescriptor* desc,
+	const std::function<bool(const char*)>& isInputPinConnectedByName,
+	const std::vector<std::string>& skipNames,
+	const std::function<bool(NodeField&)>& overrideDrawer,
+	bool& fieldsChanged)
+{
+	bool drewAny = false;
+	std::vector<std::string> descriptorNames;
+	if (desc)
+	{
+		descriptorNames.reserve(desc->fields.size());
+		for (const FieldDescriptor& fd : desc->fields)
+			descriptorNames.push_back(fd.name);
+	}
+
+	auto shouldSkip = [&](const std::string& name) -> bool
+	{
+		return ContainsString(skipNames, name);
+	};
+
+	auto drawOneField = [&](NodeField& field) -> void
+	{
+		if (shouldSkip(field.name))
+			return;
+
+		if (overrideDrawer)
+		{
+			const bool handled = overrideDrawer(field);
+			if (handled)
+			{
+				drewAny = true;
+				return;
+			}
+		}
+
+		if (isInputPinConnectedByName(field.name.c_str()))
+		{
+			DrawFieldReadOnly(field, FieldWidgetLayout::Inspector);
+			drewAny = true;
+			return;
+		}
+
+		fieldsChanged |= DrawField(field, FieldWidgetLayout::Inspector);
+		drewAny = true;
+	};
+
+	if (desc)
+	{
+		for (const FieldDescriptor& fd : desc->fields)
+		{
+			NodeField* field = GraphEditorUtils::FindField(node.fields, fd.name.c_str());
+			if (!field)
+				continue;
+			drawOneField(*field);
+		}
+	}
+
+	// Draw runtime fields not present in the descriptor (dynamic fields, legacy nodes, etc.)
+	for (NodeField& field : node.fields)
+	{
+		if (shouldSkip(field.name))
+			continue;
+
+		if (ContainsString(descriptorNames, field.name))
+			continue;
+
+		drawOneField(field);
+	}
+
+	return drewAny;
+}
 }
 
 void InspectorPanel::draw(GraphState& state, uintptr_t selectedNodeRawId)
@@ -218,6 +302,7 @@ void InspectorPanel::draw(GraphState& state, uintptr_t selectedNodeRawId)
 			NodeField* variantField = GraphEditorUtils::FindField(selectedNode->fields, "Variant");
 			NodeField* nameField = GraphEditorUtils::FindField(selectedNode->fields, "Name");
 			NodeField* typeField = GraphEditorUtils::FindField(selectedNode->fields, "Type");
+			const NodeDescriptor* desc = NodeRegistry::Get().Find(selectedNode->nodeType);
 
 			const bool isGet = variantField && variantField->value == "Get";
 			bool defaultConnected = false;
@@ -240,12 +325,9 @@ void InspectorPanel::draw(GraphState& state, uintptr_t selectedNodeRawId)
 				}
 			}
 
-			ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
-
+			std::vector<std::string> setVariableNames;
 			if (isGet)
 			{
-				std::vector<std::string> setVariableNames;
-
 				for (const auto& node : state.GetNodes())
 				{
 					if (!node.alive || node.nodeType != NodeType::Variable)
@@ -257,27 +339,36 @@ void InspectorPanel::draw(GraphState& state, uintptr_t selectedNodeRawId)
 
 					const NodeField* nName = GraphEditorUtils::FindField(node.fields, "Name");
 					const std::string varName = nName ? nName->value : "myVar";
-
-					if (std::find(setVariableNames.begin(), setVariableNames.end(), varName) == setVariableNames.end())
+					if (!ContainsString(setVariableNames, varName))
 						setVariableNames.push_back(varName);
 				}
+			}
 
-				if (nameField)
+			ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
+			DrawInspectorFieldsFromDescriptor(
+				state,
+				*selectedNode,
+				desc,
+				isInputPinConnectedByName,
+				/*skipNames=*/{ "Variant" },
+				/*overrideDrawer=*/[&](NodeField& field) -> bool
 				{
-					if (setVariableNames.empty())
+					if (isGet && nameField && &field == nameField)
 					{
-						if (!nameField->value.empty())
+						if (setVariableNames.empty())
 						{
-							nameField->value.clear();
-							fieldsChanged = true;
+							if (!nameField->value.empty())
+							{
+								nameField->value.clear();
+								fieldsChanged = true;
+							}
+							ImGui::TextUnformatted("Variable");
+							ImGui::SameLine();
+							ImGui::TextDisabled("(no Set variables)");
+							return true;
 						}
-						ImGui::TextUnformatted("Variable");
-						ImGui::SameLine();
-						ImGui::TextDisabled("(no Set variables)");
-					}
-					else
-					{
-						if (std::find(setVariableNames.begin(), setVariableNames.end(), nameField->value) == setVariableNames.end())
+
+						if (!ContainsString(setVariableNames, nameField->value))
 						{
 							nameField->value = setVariableNames.front();
 							fieldsChanged = true;
@@ -298,62 +389,47 @@ void InspectorPanel::draw(GraphState& state, uintptr_t selectedNodeRawId)
 							}
 							ImGui::EndCombo();
 						}
+						return true;
 					}
-				}
 
-				if (typeField)
-				{
-					GraphEditorUtils::DrawInspectorReadOnlyField(*typeField);
-				}
-			}
-			else
-			{
-				for (NodeField& field : selectedNode->fields)
-				{
-					if (&field == variantField)
-						continue;
-
-					if ((field.name == "Default" && defaultConnected)
-						|| isInputPinConnectedByName(field.name.c_str()))
+					if (isGet && typeField && &field == typeField)
 					{
-						GraphEditorUtils::DrawInspectorReadOnlyField(field);
-						continue;
+						DrawFieldReadOnly(field, FieldWidgetLayout::Inspector);
+						return true;
 					}
 
-					fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
-				}
-			}
+					if (!isGet)
+					{
+						if ((field.name == "Default" && defaultConnected)
+							|| isInputPinConnectedByName(field.name.c_str()))
+						{
+							DrawFieldReadOnly(field, FieldWidgetLayout::Inspector);
+							return true;
+						}
+					}
 
-			ImGui::PopID();
-		}
-		else if (selectedNode->nodeType == NodeType::ForEach
-			  || selectedNode->nodeType == NodeType::ArrayGetAt
-			  || selectedNode->nodeType == NodeType::ArrayAddAt
-			  || selectedNode->nodeType == NodeType::ArrayRemoveAt)
-		{
-			ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
-			for (NodeField& field : selectedNode->fields)
-			{
-				if (isInputPinConnectedByName(field.name.c_str()))
-				{
-					GraphEditorUtils::DrawInspectorReadOnlyField(field);
-					continue;
-				}
-				fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
-			}
+					return false;
+				},
+				fieldsChanged);
 			ImGui::PopID();
 		}
 		else if (selectedNode->nodeType == NodeType::StructDefine)
 		{
 			NodeField* nameField = GraphEditorUtils::FindField(selectedNode->fields, "Struct Name");
 			NodeField* defsField = GraphEditorUtils::FindField(selectedNode->fields, "Fields");
+			const NodeDescriptor* desc = NodeRegistry::Get().Find(selectedNode->nodeType);
 
 			std::vector<InspectorStructFieldDef> defs = ParseStructDefs(defsField ? defsField->value : "[]");
 
 			ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
-
-			if (nameField)
-				fieldsChanged |= GraphEditorUtils::DrawInspectorField(*nameField);
+			DrawInspectorFieldsFromDescriptor(
+				state,
+				*selectedNode,
+				desc,
+				isInputPinConnectedByName,
+				/*skipNames=*/{ "Fields" },
+				/*overrideDrawer=*/{},
+				fieldsChanged);
 
 			ImGui::Spacing();
 			ImGui::TextColored(colors::accent, "STRUCT FIELDS");
@@ -420,82 +496,24 @@ void InspectorPanel::draw(GraphState& state, uintptr_t selectedNodeRawId)
 		{
 			NodeField* structNameField = GraphEditorUtils::FindField(selectedNode->fields, "Struct Name");
 			const std::vector<std::string> structNames = CollectDefinedStructNames(state);
+			const NodeDescriptor* desc = NodeRegistry::Get().Find(selectedNode->nodeType);
 
 			ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
 
-			if (structNameField)
-			{
-				if (!structNames.empty())
+			DrawInspectorFieldsFromDescriptor(
+				state,
+				*selectedNode,
+				desc,
+				isInputPinConnectedByName,
+				/*skipNames=*/{ "Schema Fields" },
+				/*overrideDrawer=*/[&](NodeField& field) -> bool
 				{
-					if (std::find(structNames.begin(), structNames.end(), structNameField->value) == structNames.end())
-					{
-						structNameField->value = structNames.front();
-						fieldsChanged = true;
-					}
+					if (!structNameField || &field != structNameField)
+						return false;
 
-					if (ImGui::BeginCombo("Struct", structNameField->value.c_str()))
-					{
-						for (const std::string& name : structNames)
-						{
-							const bool selected = (structNameField->value == name);
-							if (ImGui::Selectable(name.c_str(), selected))
-							{
-								structNameField->value = name;
-								fieldsChanged = true;
-							}
-							if (selected)
-								ImGui::SetItemDefaultFocus();
-						}
-						ImGui::EndCombo();
-					}
-				}
-				else
-				{
-					GraphEditorUtils::DrawInspectorReadOnlyField(*structNameField);
-				}
-			}
-
-			for (NodeField& field : selectedNode->fields)
-			{
-				if (field.name == "Struct Name" || field.name == "Schema Fields")
-					continue;
-
-				if (isInputPinConnectedByName(field.name.c_str()))
-				{
-					GraphEditorUtils::DrawInspectorReadOnlyField(field);
-					continue;
-				}
-
-				fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
-			}
-
-			ImGui::PopID();
-		}
-		else if (selectedNode->nodeType == NodeType::StructGetField
-			  || selectedNode->nodeType == NodeType::StructSetField)
-		{
-			NodeField* structNameField = GraphEditorUtils::FindField(selectedNode->fields, "Struct Name");
-			const NodeField* schemaField = GraphEditorUtils::FindField(selectedNode->fields, "Schema Fields");
-			const std::vector<std::string> structNames = CollectDefinedStructNames(state);
-
-			std::vector<std::string> fieldNames;
-			if (schemaField)
-			{
-				for (const auto& def : ParseStructDefs(schemaField->value))
-					fieldNames.push_back(def.name);
-			}
-
-			ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
-			for (NodeField& field : selectedNode->fields)
-			{
-				if (field.name == "Schema Fields")
-					continue;
-
-				if (field.name == "Struct Name" && structNameField)
-				{
 					if (!structNames.empty())
 					{
-						if (std::find(structNames.begin(), structNames.end(), structNameField->value) == structNames.end())
+						if (!ContainsString(structNames, structNameField->value))
 						{
 							structNameField->value = structNames.front();
 							fieldsChanged = true;
@@ -519,85 +537,100 @@ void InspectorPanel::draw(GraphState& state, uintptr_t selectedNodeRawId)
 					}
 					else
 					{
-						GraphEditorUtils::DrawInspectorReadOnlyField(field);
+						DrawFieldReadOnly(*structNameField, FieldWidgetLayout::Inspector);
 					}
-					continue;
-				}
+					return true;
+				},
+				fieldsChanged);
 
-				if (field.name == "Field" && !fieldNames.empty())
-				{
-					if (std::find(fieldNames.begin(), fieldNames.end(), field.value) == fieldNames.end())
-					{
-						field.value = fieldNames.front();
-						fieldsChanged = true;
-					}
-
-					if (ImGui::BeginCombo("Field", field.value.c_str()))
-					{
-						for (const std::string& name : fieldNames)
-						{
-							const bool selected = (field.value == name);
-							if (ImGui::Selectable(name.c_str(), selected))
-							{
-								field.value = name;
-								fieldsChanged = true;
-							}
-							if (selected)
-								ImGui::SetItemDefaultFocus();
-						}
-						ImGui::EndCombo();
-					}
-					continue;
-				}
-
-				if (isInputPinConnectedByName(field.name.c_str()))
-				{
-					GraphEditorUtils::DrawInspectorReadOnlyField(field);
-					continue;
-				}
-
-				fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
-			}
 			ImGui::PopID();
 		}
-		else if (selectedNode->nodeType == NodeType::Loop
-			  || selectedNode->nodeType == NodeType::Operator
-			  || selectedNode->nodeType == NodeType::Comparison
-			  || selectedNode->nodeType == NodeType::Logic
-			  || selectedNode->nodeType == NodeType::Not
-			  || selectedNode->nodeType == NodeType::Delay)
+		else if (selectedNode->nodeType == NodeType::StructGetField
+			  || selectedNode->nodeType == NodeType::StructSetField)
 		{
-			auto isInputPinConnected = [&](const char* pinName) -> bool
-			{
-				Pin* targetPin = GraphEditorUtils::FindPinByName(selectedNode->inPins, pinName);
-				if (!targetPin)
-					return false;
+			NodeField* structNameField = GraphEditorUtils::FindField(selectedNode->fields, "Struct Name");
+			const NodeField* schemaField = GraphEditorUtils::FindField(selectedNode->fields, "Schema Fields");
+			const std::vector<std::string> structNames = CollectDefinedStructNames(state);
+			const NodeDescriptor* desc = NodeRegistry::Get().Find(selectedNode->nodeType);
 
-				for (const Link& l : state.GetLinks())
-				{
-					if (l.alive && l.endPinId == targetPin->id)
-						return true;
-				}
-				return false;
-			};
+			std::vector<std::string> fieldNames;
+			if (schemaField)
+			{
+				for (const auto& def : ParseStructDefs(schemaField->value))
+					fieldNames.push_back(def.name);
+			}
 
 			ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
-			for (NodeField& field : selectedNode->fields)
-			{
-				const bool makeReadOnly =
-					(selectedNode->nodeType == NodeType::Loop && (field.name == "Start" || field.name == "Count") && isInputPinConnected(field.name.c_str())) ||
-					((selectedNode->nodeType == NodeType::Operator || selectedNode->nodeType == NodeType::Comparison || selectedNode->nodeType == NodeType::Logic) && (field.name == "A" || field.name == "B") && isInputPinConnected(field.name.c_str())) ||
-					(selectedNode->nodeType == NodeType::Not && field.name == "A" && isInputPinConnected("A")) ||
-					(selectedNode->nodeType == NodeType::Delay && field.name == "Duration" && isInputPinConnected("Duration"));
-
-				if (makeReadOnly)
+			DrawInspectorFieldsFromDescriptor(
+				state,
+				*selectedNode,
+				desc,
+				isInputPinConnectedByName,
+				/*skipNames=*/{ "Schema Fields" },
+				/*overrideDrawer=*/[&](NodeField& field) -> bool
 				{
-					GraphEditorUtils::DrawInspectorReadOnlyField(field);
-					continue;
-				}
+					if (structNameField && &field == structNameField)
+					{
+						if (!structNames.empty())
+						{
+							if (!ContainsString(structNames, structNameField->value))
+							{
+								structNameField->value = structNames.front();
+								fieldsChanged = true;
+							}
 
-				fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
-			}
+							if (ImGui::BeginCombo("Struct", structNameField->value.c_str()))
+							{
+								for (const std::string& name : structNames)
+								{
+									const bool selected = (structNameField->value == name);
+									if (ImGui::Selectable(name.c_str(), selected))
+									{
+										structNameField->value = name;
+										fieldsChanged = true;
+									}
+									if (selected)
+										ImGui::SetItemDefaultFocus();
+								}
+								ImGui::EndCombo();
+							}
+						}
+						else
+						{
+							DrawFieldReadOnly(field, FieldWidgetLayout::Inspector);
+						}
+						return true;
+					}
+
+					if (field.name == "Field" && !fieldNames.empty())
+					{
+						if (!ContainsString(fieldNames, field.value))
+						{
+							field.value = fieldNames.front();
+							fieldsChanged = true;
+						}
+
+						if (ImGui::BeginCombo("Field", field.value.c_str()))
+						{
+							for (const std::string& name : fieldNames)
+							{
+								const bool selected = (field.value == name);
+								if (ImGui::Selectable(name.c_str(), selected))
+								{
+									field.value = name;
+									fieldsChanged = true;
+								}
+								if (selected)
+									ImGui::SetItemDefaultFocus();
+							}
+							ImGui::EndCombo();
+						}
+						return true;
+					}
+
+					return false;
+				},
+				fieldsChanged);
 			ImGui::PopID();
 		}
 		else if (selectedNode->nodeType == NodeType::While)
@@ -606,9 +639,18 @@ void InspectorPanel::draw(GraphState& state, uintptr_t selectedNodeRawId)
 		}
 		else
 		{
+			const NodeDescriptor* desc = NodeRegistry::Get().Find(selectedNode->nodeType);
 			ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
-			for (NodeField& field : selectedNode->fields)
-				fieldsChanged |= GraphEditorUtils::DrawInspectorField(field);
+			const bool drewAny = DrawInspectorFieldsFromDescriptor(
+				state,
+				*selectedNode,
+				desc,
+				isInputPinConnectedByName,
+				/*skipNames=*/{},
+				/*overrideDrawer=*/{},
+				fieldsChanged);
+			if (!drewAny)
+				ImGui::TextColored(colors::textSecondary, "No values.");
 			ImGui::PopID();
 		}
 	}

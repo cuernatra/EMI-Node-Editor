@@ -17,6 +17,16 @@ namespace ed = ax::NodeEditor;
 namespace
 {
 constexpr float kCompactFieldWidth = 78.0f;
+constexpr float kInspectorLabelColumnWidth = 90.0f;
+}
+
+static void BeginInspectorRow(const char* label)
+{
+    const float rowStartX = ImGui::GetCursorPosX();
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(label);
+    ImGui::SameLine(rowStartX + kInspectorLabelColumnWidth);
+    ImGui::SetNextItemWidth(-1.0f);
 }
 
 static float ParseFloat(const std::string& s)
@@ -349,6 +359,25 @@ static bool OpPopupCombo(const char* id, std::string& value, const char** items,
 
 bool DrawField(NodeField& field)
 {
+	return DrawField(field, FieldWidgetLayout::Compact);
+}
+
+void DrawFieldReadOnly(const NodeField& field, FieldWidgetLayout layout)
+{
+	if (layout == FieldWidgetLayout::Inspector)
+	{
+		BeginInspectorRow(field.name.c_str());
+		char buf[256] = {};
+		std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
+		ImGui::InputText("##readonly", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+		return;
+	}
+
+	ImGui::LabelText(field.name.c_str(), "%s", field.value.c_str());
+}
+
+bool DrawField(NodeField& field, FieldWidgetLayout layout)
+{
     bool changed = false;
 
     ImGui::PushID(field.name.c_str());
@@ -357,6 +386,20 @@ bool DrawField(NodeField& field)
     {
         case PinType::Number:
         {
+            if (layout == FieldWidgetLayout::Inspector)
+            {
+                BeginInspectorRow(field.name.c_str());
+
+                float v = ParseFloat(field.value);
+                if (ImGui::InputFloat("##value", &v, 0.0f, 0.0f, "%.3f"))
+                {
+                    field.value = std::to_string(v);
+                    changed = true;
+                }
+                HandleShortcutToggle("##value");
+                break;
+            }
+
             ImGui::Text("%s", field.name.c_str());
             ImGui::SameLine();
             ImGui::PushItemWidth(kCompactFieldWidth);
@@ -378,6 +421,18 @@ bool DrawField(NodeField& field)
         {
             bool v = ParseBool(field.value);
 
+            if (layout == FieldWidgetLayout::Inspector)
+            {
+                BeginInspectorRow(field.name.c_str());
+                if (ImGui::Checkbox("##value", &v))
+                {
+                    field.value = v ? "true" : "false";
+                    changed = true;
+                }
+                HandleShortcutToggle("##value");
+                break;
+            }
+
             if (ImGui::Checkbox(field.name.c_str(), &v))
             {
                 field.value = v ? "true" : "false";
@@ -392,37 +447,137 @@ bool DrawField(NodeField& field)
         {
             if (field.name == "Op")
             {
-                static const char* kArith[] = { "+", "-", "*", "/", nullptr };
-                static const char* kCmp[]   = { "==", "!=", "<", "<=", ">", ">=", nullptr };
-                static const char* kLogic[] = { "AND", "OR", nullptr };
-
-                const char** items = kArith;
-
-                if (field.value == "==" || field.value == "!=" ||
-                    field.value == "<"  || field.value == "<=" ||
-                    field.value == ">"  || field.value == ">=")
+                if (layout == FieldWidgetLayout::Inspector)
                 {
-                    items = kCmp;
-                }
-                else if (field.value == "AND" || field.value == "OR")
-                {
-                    items = kLogic;
-                }
+                    static const char* kItems[] = {
+                        "+", "-", "*", "/",
+                        "==", "!=", "<", "<=", ">", ">=",
+                        "AND", "OR",
+                        nullptr
+                    };
 
-                if (OpPopupCombo("##OpCombo", field.value, items, 100.0f))
-                    changed = true;
+                    BeginInspectorRow(field.name.c_str());
+                    if (ImGui::BeginCombo("##op", field.value.c_str()))
+                    {
+                        for (int i = 0; kItems[i]; ++i)
+                        {
+                            const bool isSelected = (field.value == kItems[i]);
+                            if (ImGui::Selectable(kItems[i], isSelected))
+                            {
+                                field.value = kItems[i];
+                                changed = true;
+                            }
+                            if (isSelected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+                    HandleShortcutToggle("##op");
+                }
+                else
+                {
+                    static const char* kArith[] = { "+", "-", "*", "/", nullptr };
+                    static const char* kCmp[]   = { "==", "!=", "<", "<=", ">", ">=", nullptr };
+                    static const char* kLogic[] = { "AND", "OR", nullptr };
+
+                    const char** items = kArith;
+
+                    if (field.value == "==" || field.value == "!=" ||
+                        field.value == "<"  || field.value == "<=" ||
+                        field.value == ">"  || field.value == ">=")
+                    {
+                        items = kCmp;
+                    }
+                    else if (field.value == "AND" || field.value == "OR")
+                    {
+                        items = kLogic;
+                    }
+
+                    if (OpPopupCombo("##OpCombo", field.value, items, 100.0f))
+                        changed = true;
+                }
             }
             else if (field.name == "Type")
             {
-                static const char* kTypes[] = {
-                    "Number", "Boolean", "String", "Array", nullptr
-                };
+                if (layout == FieldWidgetLayout::Inspector)
+                {
+                    static const char* kItems[] = { "Number", "Boolean", "String", "Array", nullptr };
 
-                if (OpPopupCombo("##TypeCombo", field.value, kTypes, 100.0f))
-                    changed = true;
+                    BeginInspectorRow(field.name.c_str());
+                    if (ImGui::BeginCombo("##type", field.value.c_str()))
+                    {
+                        for (int i = 0; kItems[i]; ++i)
+                        {
+                            const bool isSelected = (field.value == kItems[i]);
+                            if (ImGui::Selectable(kItems[i], isSelected))
+                            {
+                                field.value = kItems[i];
+                                changed = true;
+                            }
+                            if (isSelected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+                    HandleShortcutToggle("##type");
+                }
+                else
+                {
+                    static const char* kTypes[] = {
+                        "Number", "Boolean", "String", "Array", nullptr
+                    };
+
+                    if (OpPopupCombo("##TypeCombo", field.value, kTypes, 100.0f))
+                        changed = true;
+                }
+            }
+            else if (field.name == "Element Type")
+            {
+                static const char* kItems[] = { "Any", "Number", "Boolean", "String", "Array", nullptr };
+
+                if (layout == FieldWidgetLayout::Inspector)
+                {
+                    BeginInspectorRow(field.name.c_str());
+                    if (ImGui::BeginCombo("##elementType", field.value.c_str()))
+                    {
+                        for (int i = 0; kItems[i]; ++i)
+                        {
+                            const bool isSelected = (field.value == kItems[i]);
+                            if (ImGui::Selectable(kItems[i], isSelected))
+                            {
+                                field.value = kItems[i];
+                                changed = true;
+                            }
+                            if (isSelected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+                    HandleShortcutToggle("##elementType");
+                }
+                else
+                {
+                    if (OpPopupCombo("##ElementTypeCombo", field.value, kItems, 100.0f))
+                        changed = true;
+                }
             }
             else
             {
+                if (layout == FieldWidgetLayout::Inspector)
+                {
+                    BeginInspectorRow(field.name.c_str());
+
+                    char buf[128] = {};
+                    std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
+                    if (ImGui::InputText("##value", buf, sizeof(buf)))
+                    {
+                        field.value = buf;
+                        changed = true;
+                    }
+                    HandleShortcutToggle("##value");
+                    break;
+                }
+
                 ImGui::Text("%s", field.name.c_str());
                 ImGui::SameLine();
                 ImGui::PushItemWidth(kCompactFieldWidth);
