@@ -426,17 +426,23 @@ bool SyncNodeToDescriptor(GraphState& state, VisualNode& node, const NodeDescrip
             continue;
         }
 
-        if (f->valueType != fd.valueType)
+        // Do not force dynamic Any fields back to descriptor defaults every frame.
+        // This is critical for nodes like Constant where runtime/UI resolves the
+        // effective value type from a separate type selector.
+        if (fd.valueType != PinType::Any && f->valueType != fd.valueType)
         {
             f->valueType = fd.valueType;
             f->value = fd.defaultValue;
             changed = true;
         }
 
-        const std::string before = f->value;
-        NormalizeValueForPinType(fd.valueType, f->value);
-        if (f->value != before)
-            changed = true;
+        if (fd.valueType != PinType::Any)
+        {
+            const std::string before = f->value;
+            NormalizeValueForPinType(fd.valueType, f->value);
+            if (f->value != before)
+                changed = true;
+        }
     }
 
     const DescriptorSyncMode mode = DescriptorSyncModeForNodeType(node.nodeType);
@@ -616,12 +622,28 @@ bool RefreshVariableNodeTypes(GraphState& state)
         if (defaultField)
         {
             const bool typeChanged = (defaultField->valueType != resolvedType);
+            // On file load, descriptor bootstrap may leave Variable Default field
+            // temporarily as String metadata even when logical variable type is
+            // Number/Boolean/Array. Treat that as metadata repair, not a user
+            // type-change, so persisted value is preserved.
+            const bool metadataRepairOnly =
+                typeChanged && (defaultField->valueType == PinType::String);
             defaultField->valueType = resolvedType;
 
             if (typeChanged)
             {
-                defaultField->value = DefaultValueForPinType(resolvedType);
-                changed = true;
+                if (metadataRepairOnly)
+                {
+                    const std::string before = defaultField->value;
+                    NormalizeValueForPinType(resolvedType, defaultField->value);
+                    if (defaultField->value != before)
+                        changed = true;
+                }
+                else
+                {
+                    defaultField->value = DefaultValueForPinType(resolvedType);
+                    changed = true;
+                }
             }
             else
             {
