@@ -28,12 +28,13 @@ descriptors_[NodeType::Constant] = {
     NodeType::Constant,
     "Constant",
     {
-        { "Value", PinType::Number, /*isInput=*/false }
+        // Dynamic value type (Number/Boolean/String/Array) is resolved from Type field.
+        { "Value", PinType::Any, /*isInput=*/false }
     },
     {
         // Keep Type first so changing type updates Value widget/reset immediately.
         { "Type",  PinType::String, "Number" },
-        { "Value", PinType::Number, "0.0" }
+        { "Value", PinType::Any, "0.0" }
     },
     [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildConstant(n); }
 };
@@ -327,6 +328,22 @@ descriptors_[NodeType::Constant] = {
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayRemoveAt(n); }
     };
 
+    // ------------------------------------------------------------------
+    // Array Length  —  array -> item count (Number)
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::ArrayLength] = {
+        NodeType::ArrayLength,
+        "Array Length",
+        {
+            { "Array",  PinType::Array,  /*isInput=*/true  },
+            { "Length", PinType::Number, /*isInput=*/false }
+        },
+        {
+            { "Array", PinType::Array, "[]" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayLength(n); }
+    };
+
 
     // ------------------------------------------------------------------
     // Struct Define  — named compact schema, custom fields stored in array text
@@ -389,8 +406,7 @@ descriptors_[NodeType::Constant] = {
         {
             { "In",    PinType::Flow, /*isInput=*/true  },
             { "Default", PinType::Any,  /*isInput=*/true  },
-            { "Out",   PinType::Flow, /*isInput=*/false },
-            { "Value", PinType::Any,  /*isInput=*/false }
+            { "Out",   PinType::Flow, /*isInput=*/false }
         },
         {
             { "Variant", PinType::String, "Set" },

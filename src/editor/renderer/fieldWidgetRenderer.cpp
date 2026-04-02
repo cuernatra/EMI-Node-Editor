@@ -806,7 +806,38 @@ bool DrawField(NodeField& field, FieldWidgetLayout layout)
 
         default:
         {
-            ImGui::LabelText(field.name.c_str(), "%s", field.value.c_str());
+            if (layout == FieldWidgetLayout::Inspector)
+            {
+                BeginInspectorRow(field.name.c_str());
+
+                char buf[128] = {};
+                std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
+                if (ImGui::InputText("##value", buf, sizeof(buf)))
+                {
+                    field.value = buf;
+                    changed = true;
+                }
+                HandleShortcutToggle("##value");
+                break;
+            }
+
+            // Fallback for PinType::Any and unknown types:
+            // keep compact row layout (label + editor) instead of LabelText,
+            // which can push the value to the far right and make nodes look wider.
+            ImGui::Text("%s", field.name.c_str());
+            ImGui::SameLine();
+            ImGui::PushItemWidth(kCompactFieldWidth);
+
+            char buf[128] = {};
+            std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
+            if (ImGui::InputText("##value", buf, sizeof(buf)))
+            {
+                field.value = buf;
+                changed = true;
+            }
+            HandleShortcutToggle("##value");
+
+            ImGui::PopItemWidth();
             break;
         }
     }

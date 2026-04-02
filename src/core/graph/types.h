@@ -36,6 +36,7 @@ enum class NodeType
     ArrayGetAt,  ///< Read value from array by index
     ArrayAddAt,  ///< Insert value to array at index
     ArrayRemoveAt, ///< Remove value from array at index
+    ArrayLength, ///< Number of items in array
     GridNodeSchema, ///< Legacy/removed
     GridNodeCreate, ///< Legacy/removed
     GridNodeUpdate, ///< Legacy/removed
@@ -72,6 +73,7 @@ inline const char* NodeTypeToString(NodeType t)
         case NodeType::ArrayGetAt: return "Array Get";
         case NodeType::ArrayAddAt: return "Array Add";
         case NodeType::ArrayRemoveAt: return "Array Remove";
+        case NodeType::ArrayLength: return "Array Length";
         case NodeType::GridNodeSchema: return "Grid Node Schema";
         case NodeType::GridNodeCreate: return "Grid Node Create";
         case NodeType::GridNodeUpdate: return "Grid Node Update";
@@ -130,6 +132,8 @@ inline NodeType NodeTypeFromString(const std::string& s)
     if (norm == "ArrayGet")      return NodeType::ArrayGetAt;
     if (norm == "ArrayAdd")      return NodeType::ArrayAddAt;
     if (norm == "ArrayRemove")   return NodeType::ArrayRemoveAt;
+    if (norm == "ArrayLength")   return NodeType::ArrayLength;
+    if (norm == "ArrayCount")    return NodeType::ArrayLength;
 
     if (norm == "GridNodeSchema") return NodeType::Unknown;
     if (norm == "GridNodeCreate") return NodeType::Unknown;

@@ -1335,6 +1335,38 @@ Node* GraphCompiler::BuildArrayRemoveAt(const VisualNode& n)
     return call;
 }
 
+Node* GraphCompiler::BuildArrayLength(const VisualNode& n)
+{
+    const Pin* arrayPin = GetInputPinByName(n, "Array");
+    if (!arrayPin)
+    {
+        Error("Array Length node needs Array input");
+        return nullptr;
+    }
+
+    Node* arrayExpr = nullptr;
+    if (const PinSource* arraySrc = resolver_.Resolve(arrayPin->id))
+        arrayExpr = BuildNode(*arraySrc->node, arraySrc->pinIdx);
+    else
+    {
+        const std::string* arrayText = GetField(n, "Array");
+        arrayExpr = BuildArrayLiteralNode(arrayText ? *arrayText : "[]");
+    }
+
+    if (HasError || !arrayExpr)
+    {
+        delete arrayExpr;
+        return nullptr;
+    }
+
+    Node* call = MakeNode(Token::FunctionCall);
+    call->children.push_back(MakeIdNode("Array.Size"));
+    Node* params = MakeNode(Token::CallParams);
+    params->children.push_back(arrayExpr);
+    call->children.push_back(params);
+    return call;
+}
+
 Node* GraphCompiler::BuildGridNodeSchema(const VisualNode& n)
 {
     auto fieldOr = [&](const char* name, const std::string& fallback) -> std::string
@@ -1591,6 +1623,14 @@ Node* GraphCompiler::BuildStructGetField(const VisualNode& n)
     if (!fieldName)
         return MakeNode(Token::Null);
 
+    const Pin* itemPin = GetInputPinByName(n, "Item");
+    const Pin* idPin = GetInputPinByName(n, "Id");
+    if (!itemPin || !idPin)
+    {
+        Error("Struct Get Field needs Item and Id inputs");
+        return nullptr;
+    }
+
     int index = -1;
     if (schemaText)
     {
@@ -1609,14 +1649,43 @@ Node* GraphCompiler::BuildStructGetField(const VisualNode& n)
         }
     }
 
-    const Pin* itemPin = GetInputPinByName(n, "Item");
-    if (!itemPin || index < 0)
+    if (index < 0)
         return MakeNode(Token::Null);
 
     Node* itemExpr = BuildExpr(*itemPin);
+    Node* idExpr = nullptr;
+    if (const PinSource* idSrc = resolver_.Resolve(idPin->id))
+        idExpr = BuildNode(*idSrc->node, idSrc->pinIdx);
+    else
+    {
+        const std::string* idText = GetField(n, "Id");
+        if (!idText)
+        {
+            Error("Struct Get Field is missing required Id field");
+            delete itemExpr;
+            return nullptr;
+        }
+
+        double idValue = 0.0;
+        try { idValue = std::stod(*idText); }
+        catch (...) { idValue = 0.0; }
+        idExpr = MakeNumberNode(idValue);
+    }
+
+    if (HasError || !itemExpr || !idExpr)
+    {
+        delete itemExpr;
+        delete idExpr;
+        return nullptr;
+    }
+
+    Node* itemByIdIndexer = MakeNode(Token::Indexer);
+    itemByIdIndexer->children.push_back(itemExpr);
+    itemByIdIndexer->children.push_back(idExpr);
+
     Node* idxExpr = MakeNumberNode(static_cast<double>(index));
     Node* indexer = MakeNode(Token::Indexer);
-    indexer->children.push_back(itemExpr);
+    indexer->children.push_back(itemByIdIndexer);
     indexer->children.push_back(idxExpr);
     return indexer;
 }
@@ -1646,24 +1715,71 @@ Node* GraphCompiler::BuildStructSetField(const VisualNode& n)
 
     const Pin* itemPin = GetInputPinByName(n, "Item");
     const Pin* valuePin = GetInputPinByName(n, "Value");
-    if (!itemPin || !valuePin)
-        return MakeNode(Token::Null);
+    const Pin* idPin = GetInputPinByName(n, "Id");
+    if (!itemPin || !valuePin || !idPin)
+    {
+        Error("Struct Set Field needs Item, Id and Value inputs");
+        return nullptr;
+    }
+
+    auto buildIdExpr = [&]() -> Node*
+    {
+        if (const PinSource* idSrc = resolver_.Resolve(idPin->id))
+            return BuildNode(*idSrc->node, idSrc->pinIdx);
+
+        const std::string* idText = GetField(n, "Id");
+        if (!idText)
+        {
+            Error("Struct Set Field is missing required Id field");
+            return nullptr;
+        }
+
+        double idValue = 0.0;
+        try { idValue = std::stod(*idText); }
+        catch (...) { idValue = 0.0; }
+        return MakeNumberNode(idValue);
+    };
+
+    auto buildItemByIdExpr = [&]() -> Node*
+    {
+        Node* itemExpr = BuildExpr(*itemPin);
+        Node* idExpr = buildIdExpr();
+        if (HasError || !itemExpr || !idExpr)
+        {
+            delete itemExpr;
+            delete idExpr;
+            return nullptr;
+        }
+
+        Node* indexer = MakeNode(Token::Indexer);
+        indexer->children.push_back(itemExpr);
+        indexer->children.push_back(idExpr);
+        return indexer;
+    };
 
     // Rebuild whole array by reading each slot and replacing requested field.
     Node* arr = MakeNode(Token::Array);
-    Node* itemExpr = BuildExpr(*itemPin);
-    if (HasError || !itemExpr) { delete arr; delete itemExpr; return nullptr; }
+    Node* itemByIdExpr = buildItemByIdExpr();
+    if (HasError || !itemByIdExpr) { delete arr; delete itemByIdExpr; return nullptr; }
 
     for (int i = 0; i < static_cast<int>(defs.size()); ++i)
     {
         if (i == index)
         {
             arr->children.push_back(BuildExpr(*valuePin));
-            if (HasError) { delete arr; delete itemExpr; return nullptr; }
+            if (HasError) { delete arr; delete itemByIdExpr; return nullptr; }
             continue;
         }
         Node* indexer = MakeNode(Token::Indexer);
-        indexer->children.push_back(MakeIdNode("__struct_tmp"));
+        Node* sourceStruct = buildItemByIdExpr();
+        if (HasError || !sourceStruct)
+        {
+            delete indexer;
+            delete arr;
+            delete itemByIdExpr;
+            return nullptr;
+        }
+        indexer->children.push_back(sourceStruct);
         indexer->children.push_back(MakeNumberNode(static_cast<double>(i)));
         arr->children.push_back(indexer);
     }
@@ -1672,13 +1788,13 @@ Node* GraphCompiler::BuildStructSetField(const VisualNode& n)
     if (defs.empty())
     {
         delete arr;
-        return itemExpr;
+        return itemByIdExpr;
     }
 
     // Wrap as Array.Copy-like temp-less approximation not available -> return rebuilt array using tmp variable pattern omitted.
     // Current fallback: if connected item is plain array literal/expr, returned array references __struct_tmp indexes,
     // so instead use original item expression only when schema unavailable. For schema path, prefer direct rebuild only if item is array literal.
-    delete itemExpr;
+    delete itemByIdExpr;
     return arr;
 }
 
