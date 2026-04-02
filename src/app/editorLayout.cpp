@@ -3,6 +3,7 @@
 #include "ui/theme.h"
 #include <imgui-SFML.h>
 #include <algorithm>
+#include <cfloat>
 #include <cstdio>
 #include <EMI/EMI.h>
 
@@ -17,6 +18,7 @@ EditorLayout::EditorLayout()
         {
             ++m_settingsWindowGeneration;
             m_forceSettingsFocus = true;
+            m_consolePanel.addLogText("Settings opened.");
         }
     });
     m_topPanel.setPreviewCallback([this](bool enabled) {
@@ -338,6 +340,40 @@ void EditorLayout::draw()
         }
         else
         {
+            const auto drawColorChannelSlider = [](const char* id, const char* label, float& value) -> bool
+            {
+                ImGui::PushID(id);
+                ImGui::AlignTextToFramePadding();
+                ImGui::TextUnformatted(label);
+                ImGui::SameLine();
+
+                ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 1.0f, 0.85f));
+                ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 10.0f));
+                ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 16.0f);
+                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
+
+                ImGui::SetNextItemWidth(-FLT_MIN);
+                bool changed = ImGui::SliderFloat("##slider", &value, 0.0f, 1.0f, "%.2f");
+
+                const ImVec2 min = ImGui::GetItemRectMin();
+                const ImVec2 max = ImGui::GetItemRectMax();
+                const float t = std::clamp(value, 0.0f, 1.0f);
+                const float x = min.x + (max.x - min.x) * t;
+
+                ImDrawList* drawList = ImGui::GetWindowDrawList();
+                drawList->AddLine(ImVec2(x, min.y + 2.0f), ImVec2(x, max.y - 2.0f), IM_COL32(255, 255, 255, 235), 2.0f);
+
+                ImGui::PopStyleVar(3);
+                ImGui::PopStyleColor(6);
+                ImGui::PopID();
+                return changed;
+            };
+
             ImGui::TextUnformatted("Settings");
             ImGui::Separator();
 
@@ -348,7 +384,17 @@ void EditorLayout::draw()
                 Settings::gridBgColorB,
                 Settings::gridBgColorA
             );
-            if (ImGui::ColorEdit4("Grid background", reinterpret_cast<float*>(&gridBgColor)))
+            ImGui::ColorButton("##grid_bg_preview", gridBgColor, ImGuiColorEditFlags_NoTooltip, ImVec2(46.0f, 22.0f));
+            ImGui::SameLine();
+            ImGui::TextUnformatted("Grid background");
+
+            bool gridBgChanged = false;
+            gridBgChanged |= drawColorChannelSlider("grid_bg_r", "RED", gridBgColor.x);
+            gridBgChanged |= drawColorChannelSlider("grid_bg_g", "GREEN", gridBgColor.y);
+            gridBgChanged |= drawColorChannelSlider("grid_bg_b", "BLUE", gridBgColor.z);
+            gridBgChanged |= drawColorChannelSlider("grid_bg_a", "ALPHA", gridBgColor.w);
+
+            if (gridBgChanged)
             {
                 Settings::gridBgColorR = gridBgColor.x;
                 Settings::gridBgColorG = gridBgColor.y;
@@ -366,7 +412,17 @@ void EditorLayout::draw()
                 Settings::gridLineColorB,
                 Settings::gridLineColorA
             );
-            if (ImGui::ColorEdit4("Grid lines", reinterpret_cast<float*>(&gridLineColor)))
+            ImGui::ColorButton("##grid_line_preview", gridLineColor, ImGuiColorEditFlags_NoTooltip, ImVec2(46.0f, 22.0f));
+            ImGui::SameLine();
+            ImGui::TextUnformatted("Grid lines");
+
+            bool gridLineChanged = false;
+            gridLineChanged |= drawColorChannelSlider("grid_line_r", "RED", gridLineColor.x);
+            gridLineChanged |= drawColorChannelSlider("grid_line_g", "GREEN", gridLineColor.y);
+            gridLineChanged |= drawColorChannelSlider("grid_line_b", "BLUE", gridLineColor.z);
+            gridLineChanged |= drawColorChannelSlider("grid_line_a", "ALPHA", gridLineColor.w);
+
+            if (gridLineChanged)
             {
                 Settings::gridLineColorR = gridLineColor.x;
                 Settings::gridLineColorG = gridLineColor.y;
