@@ -75,30 +75,8 @@ void DrawSection(const char* title, const std::vector<PaletteItem>& items)
 
 void DrawStructSubSection(const char* title, const std::vector<PaletteItem>& items)
 {
-    if (items.empty())
-        return;
-
-    if (ImGui::TreeNodeEx(title, ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        const float leftBarWidth = ImGui::GetContentRegionAvail().x;
-
-        size_t col = 0;
-        size_t idx = 0;
-        for (const PaletteItem& item : items)
-        {
-            DrawNodeItem(item);
-            col++;
-            idx++;
-            if (idx < items.size()
-                && (nodePreviewConstants::fixedWidth + nodePreviewConstants::padding)
-                   * (col + 1) < leftBarWidth)
-                ImGui::SameLine();
-            else
-                col = 0;
-        }
-
-        ImGui::TreePop();
-    }
+    // Kept for compatibility with older call sites; currently unused.
+    DrawSection(title, items);
 }
 }
 
@@ -115,6 +93,7 @@ LeftPanel::LeftPanel()
         NodeType::StructDefine,
         NodeType::StructCreate,
         NodeType::ArrayGetAt,
+        NodeType::ArrayLength,
         NodeType::Operator,
         NodeType::Comparison,
         NodeType::Logic,
@@ -202,6 +181,7 @@ void LeftPanel::draw(bool hasStartNode)
 
             case NodeType::Constant:
             case NodeType::ArrayGetAt:
+            case NodeType::ArrayLength:
                 dataTypes.push_back(makeDefaultItem(t));
                 break;
 
@@ -263,9 +243,31 @@ void LeftPanel::draw(bool hasStartNode)
 
     if (ImGui::CollapsingHeader("Structs", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        DrawStructSubSection("Schema", structSchemaTypes);
-        DrawStructSubSection("Values", structValueTypes);
-        DrawStructSubSection("Flow", structFlowTypes);
+        std::vector<PaletteItem> structItems;
+        structItems.reserve(structSchemaTypes.size() + structValueTypes.size() + structFlowTypes.size());
+        structItems.insert(structItems.end(), structSchemaTypes.begin(), structSchemaTypes.end());
+        structItems.insert(structItems.end(), structValueTypes.begin(), structValueTypes.end());
+        structItems.insert(structItems.end(), structFlowTypes.begin(), structFlowTypes.end());
+
+        const float leftBarWidth = ImGui::GetContentRegionAvail().x;
+        size_t col = 0;
+        size_t idx = 0;
+        for (const PaletteItem& item : structItems)
+        {
+            DrawNodeItem(item);
+            col++;
+            idx++;
+            if (idx < structItems.size()
+                && (nodePreviewConstants::fixedWidth + nodePreviewConstants::padding)
+                   * (col + 1) < leftBarWidth)
+            {
+                ImGui::SameLine();
+            }
+            else
+            {
+                col = 0;
+            }
+        }
     }
 
     DrawSection("Logic", logicTypes);

@@ -98,6 +98,7 @@ public:
     Node* BuildArrayGetAt(const VisualNode& n);   ///< Builds AST for Array Get node
     Node* BuildArrayAddAt(const VisualNode& n);   ///< Builds AST for Array Add node
     Node* BuildArrayRemoveAt(const VisualNode& n);///< Builds AST for Array Remove node
+    Node* BuildArrayLength(const VisualNode& n);  ///< Builds AST for Array Length node
     Node* BuildGridNodeSchema(const VisualNode& n); ///< Builds AST for Grid Node Schema (default struct template)
     Node* BuildGridNodeCreate(const VisualNode& n); ///< Builds AST for Grid Node Create (new instance)
     Node* BuildGridNodeUpdate(const VisualNode& n); ///< Builds AST for Grid Node Update (updated instance)

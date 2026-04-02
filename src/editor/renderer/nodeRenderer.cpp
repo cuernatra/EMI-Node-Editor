@@ -355,11 +355,19 @@ static void DrawReadOnlyArrayFieldPreview(const NodeField& field, int previewCou
     ImGui::TextDisabled("%s [%d] %s", field.name.c_str(), static_cast<int>(items.size()), preview.c_str());
 }
 
-float MeasureFieldWidth(const NodeField& field)
+float MeasureFieldWidth(const VisualNode& node, const NodeField& field)
 {
     const float labelWidth  = ImGui::CalcTextSize(field.name.c_str()).x;
-    const float widgetWidth = 82.0f;
-    const float spacing     = ImGui::GetStyle().ItemSpacing.x;
+    float widgetWidth = 82.0f;
+    float spacing = ImGui::GetStyle().ItemSpacing.x;
+
+    // Keep Constant node compact in graph view.
+    if (node.nodeType == NodeType::Constant && field.name == "Type")
+    {
+        widgetWidth = 84.0f;
+        spacing = 4.0f; // tighten only the label->dropbar gap
+    }
+
     return labelWidth + spacing + widgetWidth;
 }
 
@@ -380,7 +388,7 @@ float MeasureNodeContentWidth(const VisualNode& n)
     for (const NodeField& field : n.fields)
     {
         if (field.name == "Variant") continue;
-        maxWidth = std::max(maxWidth, MeasureFieldWidth(field));
+        maxWidth = std::max(maxWidth, MeasureFieldWidth(n, field));
     }
 
     return maxWidth;
@@ -465,6 +473,8 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
 bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* allNodes, const std::vector<Link>* allLinks)
 {
+    const bool compactConstantFrame = (n.nodeType == NodeType::Constant);
+
     if (!n.positioned)
     {
         ed::SetNodePosition(n.id, n.initialPos);
@@ -472,6 +482,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     }
 
      const float contentWidth = MeasureNodeContentWidth(n);
+
+    if (compactConstantFrame)
+        ed::PushStyleVar(ed::StyleVar_NodePadding, ImVec4(4.0f, 8.0f, 4.0f, 8.0f));
 
     ed::BeginNode(n.id);
 
@@ -512,7 +525,8 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         (n.nodeType == NodeType::ArrayGetAt
          || n.nodeType == NodeType::ArrayAddAt
          || n.nodeType == NodeType::ArrayRemoveAt);
-    const bool hasArrayInputFieldNode = (isForEachNode || isArrayIndexNode);
+    const bool isArrayLengthNode = (n.nodeType == NodeType::ArrayLength);
+    const bool hasArrayInputFieldNode = (isForEachNode || isArrayIndexNode || isArrayLengthNode);
     bool drawNodeColorTextChanged = false;
 
     bool drewDeferredDefaultPin = false;
@@ -707,8 +721,13 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 };
 
                 ImGui::TextUnformatted("Type");
-                ImGui::SameLine();
-                changed |= NodePopupComboDynamic("##TypeDropBar", field.value, kTypeItems, 110.0f);
+                if (isConstantNode)
+                    ImGui::SameLine(0.0f, 4.0f);
+                else
+                    ImGui::SameLine();
+
+                const float typeDropWidth = isConstantNode ? 84.0f : 110.0f;
+                changed |= NodePopupComboDynamic("##TypeDropBar", field.value, kTypeItems, typeDropWidth);
                 continue;
             }
 
@@ -1067,8 +1086,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         DrawPin(pin, contentWidth, allLinks);
 
     ed::EndNode();
+
+    if (compactConstantFrame)
+        ed::PopStyleVar();
+
     return changed;
 }
-
-
-
