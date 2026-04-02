@@ -49,6 +49,7 @@ jobs:
 
       - name: Run cppcheck
         run: |
+          mkdir -p $BUILD_DIR/cppcheck
           cppcheck \
             --project=$BUILD_DIR/compile_commands.json \
             --error-exitcode=1 \
