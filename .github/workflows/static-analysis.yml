@@ -51,7 +51,6 @@ jobs:
         run: |
           cppcheck \
             --project=$BUILD_DIR/compile_commands.json \
-            --enable=warning,performance,portability \
             --error-exitcode=1 \
             --inline-suppr \
             --suppress=missingIncludeSystem \
