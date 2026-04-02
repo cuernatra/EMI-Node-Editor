@@ -1438,6 +1438,36 @@ Node* GraphCompiler::BuildFunction(const VisualNode& n)
     funcDecl->children.push_back(params);
 
     Node* body = MakeNode(Token::Scope);
+
+    // Deklaroi loop last index muuttujat funktion bodyyn
+    if (nodes_)
+    {
+        for (const VisualNode& loopNode : *nodes_)
+        {
+            if (!loopNode.alive || loopNode.nodeType != NodeType::Loop)
+                continue;
+
+            double startVal = 0.0;
+            const Pin* startPin = GetInputPinByName(loopNode, "Start");
+            const bool startConnected = (startPin && resolver_.Resolve(startPin->id));
+            if (!startConnected)
+            {
+                const std::string* startStr = GetField(loopNode, "Start");
+                if (startStr)
+                {
+                    try { startVal = std::stod(*startStr); }
+                    catch (...) { startVal = 0.0; }
+                }
+            }
+
+            Node* loopLastDecl = MakeNode(Token::VarDeclare);
+            loopLastDecl->data = LoopLastIndexVarName(loopNode);
+            loopLastDecl->children.push_back(MakeNode(Token::TypeNumber));
+            loopLastDecl->children.push_back(MakeNumberNode(std::round(startVal)));
+            body->children.push_back(loopLastDecl);
+        }
+    }
+
     if (const Pin* bodyOut = GetOutputPinByName(n, "Body"))
         AppendFlowChainFromOutput(bodyOut->id, body);
     if (HasError) { delete funcDecl; return nullptr; }
