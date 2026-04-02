@@ -6,7 +6,7 @@
 #include "imgui.h"
 #include "../core/registry/nodeFactory.h"
 #include "imgui_node_editor.h"
-#include "../core/graph/pin.h"
+#include "renderer/pinRenderer.h"
 #include "settings.h"
 #include "../ui/theme.h"
 #include <chrono>

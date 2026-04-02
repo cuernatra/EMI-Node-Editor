@@ -27,6 +27,11 @@ void NodePreview::Draw(NodeType nodeType, const char* titleOverride)
     const bool isVariableGetPreview = (nodeType == NodeType::Variable && override == "Get Variable");
     const bool isDrawRectPreview = (nodeType == NodeType::DrawRect);
     const bool isDrawGridPreview = (nodeType == NodeType::DrawGrid);
+    const bool isStructDefinePreview = (nodeType == NodeType::StructDefine);
+    const bool isStructCreatePreview = (nodeType == NodeType::StructCreate);
+    const bool isStructGetPreview = (nodeType == NodeType::StructGetField);
+    const bool isStructSetPreview = (nodeType == NodeType::StructSetField);
+    const bool isStructDeletePreview = (nodeType == NodeType::StructDelete);
 
     auto keepPin = [&](const PinDescriptor& pd) -> bool
     {
@@ -35,6 +40,21 @@ void NodePreview::Draw(NodeType nodeType, const char* titleOverride)
 
         if (isDrawGridPreview)
             return (pd.name == "In" || pd.name == "W" || pd.name == "H" || pd.name == "Out");
+
+        if (isStructDefinePreview)
+            return (!pd.isInput && pd.name == "Schema");
+
+        if (isStructCreatePreview)
+            return (pd.name == "Struct" || pd.name == "Item");
+
+        if (isStructGetPreview)
+            return (pd.name == "Item" || pd.name == "Value");
+
+        if (isStructSetPreview)
+            return (pd.name == "Item" || pd.name == "Value" || pd.name == "Out");
+
+        if (isStructDeletePreview)
+            return (pd.name == "In" || pd.name == "Array" || pd.name == "Out");
 
         if (!isVariableSetPreview && !isVariableGetPreview)
             return true;
@@ -62,6 +82,18 @@ void NodePreview::Draw(NodeType nodeType, const char* titleOverride)
 
         if (isDrawGridPreview)
             return (fd.name == "W" || fd.name == "H");
+
+        if (isStructDefinePreview)
+            return (fd.name == "Struct Name" || fd.name == "Fields");
+
+        if (isStructCreatePreview)
+            return (fd.name == "Struct Name");
+
+        if (isStructGetPreview || isStructSetPreview)
+            return (fd.name == "Struct Name" || fd.name == "Field");
+
+        if (isStructDeletePreview)
+            return (fd.name == "Id");
 
         return true;
     };
