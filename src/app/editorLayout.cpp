@@ -1,6 +1,7 @@
 #include "editorLayout.h"
 
 #include "ui/theme.h"
+#include "editor/nodeColorCategories.h"
 #include <imgui-SFML.h>
 #include <algorithm>
 #include <cfloat>
@@ -374,60 +375,117 @@ void EditorLayout::draw()
                 return changed;
             };
 
+            const auto drawColorEditorBlock = [&](const char* baseId, const char* label, ImVec4& color) -> bool
+            {
+                ImGui::PushID(baseId);
+
+                ImGui::ColorButton("##preview", color, ImGuiColorEditFlags_NoTooltip, ImVec2(46.0f, 22.0f));
+                ImGui::SameLine();
+                ImGui::TextUnformatted(label);
+
+                bool changed = false;
+                changed |= drawColorChannelSlider("r", "RED", color.x);
+                changed |= drawColorChannelSlider("g", "GREEN", color.y);
+                changed |= drawColorChannelSlider("b", "BLUE", color.z);
+                changed |= drawColorChannelSlider("a", "ALPHA", color.w);
+
+                ImGui::PopID();
+                return changed;
+            };
+
+            const auto drawNodeCategoryColorSection = [&](const char* title, const char* id, ImVec4& color) -> bool
+            {
+                bool changed = false;
+                if (ImGui::CollapsingHeader(title))
+                    changed |= drawColorEditorBlock(id, "Header color", color);
+                return changed;
+            };
+
             ImGui::TextUnformatted("Settings");
             ImGui::Separator();
 
-            ImGui::TextUnformatted("Grid Colors");
-            ImVec4 gridBgColor(
-                Settings::gridBgColorR,
-                Settings::gridBgColorG,
-                Settings::gridBgColorB,
-                Settings::gridBgColorA
-            );
-            ImGui::ColorButton("##grid_bg_preview", gridBgColor, ImGuiColorEditFlags_NoTooltip, ImVec2(46.0f, 22.0f));
-            ImGui::SameLine();
-            ImGui::TextUnformatted("Grid background");
-
-            bool gridBgChanged = false;
-            gridBgChanged |= drawColorChannelSlider("grid_bg_r", "RED", gridBgColor.x);
-            gridBgChanged |= drawColorChannelSlider("grid_bg_g", "GREEN", gridBgColor.y);
-            gridBgChanged |= drawColorChannelSlider("grid_bg_b", "BLUE", gridBgColor.z);
-            gridBgChanged |= drawColorChannelSlider("grid_bg_a", "ALPHA", gridBgColor.w);
-
-            if (gridBgChanged)
+            if (ImGui::CollapsingHeader("Canvas Colors"))
             {
-                Settings::gridBgColorR = gridBgColor.x;
-                Settings::gridBgColorG = gridBgColor.y;
-                Settings::gridBgColorB = gridBgColor.z;
-                Settings::gridBgColorA = gridBgColor.w;
+                ImVec4 gridBgColor(
+                    Settings::gridBgColorR,
+                    Settings::gridBgColorG,
+                    Settings::gridBgColorB,
+                    Settings::gridBgColorA
+                );
+                if (drawColorEditorBlock("grid_bg", "Grid background", gridBgColor))
+                {
+                    Settings::gridBgColorR = gridBgColor.x;
+                    Settings::gridBgColorG = gridBgColor.y;
+                    Settings::gridBgColorB = gridBgColor.z;
+                    Settings::gridBgColorA = gridBgColor.w;
+                }
+
+                ImGui::Separator();
+
+                ImVec4 gridLineColor(
+                    Settings::gridLineColorR,
+                    Settings::gridLineColorG,
+                    Settings::gridLineColorB,
+                    Settings::gridLineColorA
+                );
+                if (drawColorEditorBlock("grid_line", "Grid lines", gridLineColor))
+                {
+                    Settings::gridLineColorR = gridLineColor.x;
+                    Settings::gridLineColorG = gridLineColor.y;
+                    Settings::gridLineColorB = gridLineColor.z;
+                    Settings::gridLineColorA = gridLineColor.w;
+                }
             }
 
             ImGui::Spacing();
             ImGui::Separator();
-            ImGui::TextUnformatted("Grid Line Colors");
+            ImGui::TextUnformatted("Node Colors");
 
-            ImVec4 gridLineColor(
-                Settings::gridLineColorR,
-                Settings::gridLineColorG,
-                Settings::gridLineColorB,
-                Settings::gridLineColorA
-            );
-            ImGui::ColorButton("##grid_line_preview", gridLineColor, ImGuiColorEditFlags_NoTooltip, ImVec2(46.0f, 22.0f));
-            ImGui::SameLine();
-            ImGui::TextUnformatted("Grid lines");
+            ImVec4 eventHeaderColor(Settings::nodeHeaderEventColorR, Settings::nodeHeaderEventColorG, Settings::nodeHeaderEventColorB, Settings::nodeHeaderEventColorA);
+            ImVec4 dataHeaderColor(Settings::nodeHeaderDataColorR, Settings::nodeHeaderDataColorG, Settings::nodeHeaderDataColorB, Settings::nodeHeaderDataColorA);
+            ImVec4 structHeaderColor(Settings::nodeHeaderStructColorR, Settings::nodeHeaderStructColorG, Settings::nodeHeaderStructColorB, Settings::nodeHeaderStructColorA);
+            ImVec4 logicHeaderColor(Settings::nodeHeaderLogicColorR, Settings::nodeHeaderLogicColorG, Settings::nodeHeaderLogicColorB, Settings::nodeHeaderLogicColorA);
+            ImVec4 flowHeaderColor(Settings::nodeHeaderFlowColorR, Settings::nodeHeaderFlowColorG, Settings::nodeHeaderFlowColorB, Settings::nodeHeaderFlowColorA);
+            ImVec4 moreHeaderColor(Settings::nodeHeaderMoreColorR, Settings::nodeHeaderMoreColorG, Settings::nodeHeaderMoreColorB, Settings::nodeHeaderMoreColorA);
 
-            bool gridLineChanged = false;
-            gridLineChanged |= drawColorChannelSlider("grid_line_r", "RED", gridLineColor.x);
-            gridLineChanged |= drawColorChannelSlider("grid_line_g", "GREEN", gridLineColor.y);
-            gridLineChanged |= drawColorChannelSlider("grid_line_b", "BLUE", gridLineColor.z);
-            gridLineChanged |= drawColorChannelSlider("grid_line_a", "ALPHA", gridLineColor.w);
-
-            if (gridLineChanged)
+            if (ImGui::CollapsingHeader("Node Header Colors"))
             {
-                Settings::gridLineColorR = gridLineColor.x;
-                Settings::gridLineColorG = gridLineColor.y;
-                Settings::gridLineColorB = gridLineColor.z;
-                Settings::gridLineColorA = gridLineColor.w;
+                drawNodeCategoryColorSection(NodeColorCategoryLabel(NodeColorCategory::Event), "node_event", eventHeaderColor);
+                drawNodeCategoryColorSection(NodeColorCategoryLabel(NodeColorCategory::Data), "node_data", dataHeaderColor);
+                drawNodeCategoryColorSection(NodeColorCategoryLabel(NodeColorCategory::Struct), "node_struct", structHeaderColor);
+                drawNodeCategoryColorSection(NodeColorCategoryLabel(NodeColorCategory::Logic), "node_logic", logicHeaderColor);
+                drawNodeCategoryColorSection(NodeColorCategoryLabel(NodeColorCategory::Flow), "node_flow", flowHeaderColor);
+                drawNodeCategoryColorSection(NodeColorCategoryLabel(NodeColorCategory::More), "node_more", moreHeaderColor);
+
+                Settings::nodeHeaderEventColorR = eventHeaderColor.x;
+                Settings::nodeHeaderEventColorG = eventHeaderColor.y;
+                Settings::nodeHeaderEventColorB = eventHeaderColor.z;
+                Settings::nodeHeaderEventColorA = eventHeaderColor.w;
+
+                Settings::nodeHeaderDataColorR = dataHeaderColor.x;
+                Settings::nodeHeaderDataColorG = dataHeaderColor.y;
+                Settings::nodeHeaderDataColorB = dataHeaderColor.z;
+                Settings::nodeHeaderDataColorA = dataHeaderColor.w;
+
+                Settings::nodeHeaderStructColorR = structHeaderColor.x;
+                Settings::nodeHeaderStructColorG = structHeaderColor.y;
+                Settings::nodeHeaderStructColorB = structHeaderColor.z;
+                Settings::nodeHeaderStructColorA = structHeaderColor.w;
+
+                Settings::nodeHeaderLogicColorR = logicHeaderColor.x;
+                Settings::nodeHeaderLogicColorG = logicHeaderColor.y;
+                Settings::nodeHeaderLogicColorB = logicHeaderColor.z;
+                Settings::nodeHeaderLogicColorA = logicHeaderColor.w;
+
+                Settings::nodeHeaderFlowColorR = flowHeaderColor.x;
+                Settings::nodeHeaderFlowColorG = flowHeaderColor.y;
+                Settings::nodeHeaderFlowColorB = flowHeaderColor.z;
+                Settings::nodeHeaderFlowColorA = flowHeaderColor.w;
+
+                Settings::nodeHeaderMoreColorR = moreHeaderColor.x;
+                Settings::nodeHeaderMoreColorG = moreHeaderColor.y;
+                Settings::nodeHeaderMoreColorB = moreHeaderColor.z;
+                Settings::nodeHeaderMoreColorA = moreHeaderColor.w;
             }
 
             ImGui::Spacing();

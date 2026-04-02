@@ -4,6 +4,8 @@
 #include "pinRenderer.h"
 
 #include "app/constants.h"
+#include "editor/nodeColorCategories.h"
+#include "editor/settings.h"
 #include "editor/graph/graphSerializer.h"
 
 #include "imgui.h"
@@ -22,6 +24,26 @@ namespace ed = ax::NodeEditor;
 
 namespace
 {
+ImVec4 GetNodeCategoryHeaderColor(NodeType nodeType)
+{
+    switch (GetNodeColorCategory(nodeType))
+    {
+        case NodeColorCategory::Event:
+            return ImVec4(Settings::nodeHeaderEventColorR, Settings::nodeHeaderEventColorG, Settings::nodeHeaderEventColorB, Settings::nodeHeaderEventColorA);
+        case NodeColorCategory::Data:
+            return ImVec4(Settings::nodeHeaderDataColorR, Settings::nodeHeaderDataColorG, Settings::nodeHeaderDataColorB, Settings::nodeHeaderDataColorA);
+        case NodeColorCategory::Struct:
+            return ImVec4(Settings::nodeHeaderStructColorR, Settings::nodeHeaderStructColorG, Settings::nodeHeaderStructColorB, Settings::nodeHeaderStructColorA);
+        case NodeColorCategory::Logic:
+            return ImVec4(Settings::nodeHeaderLogicColorR, Settings::nodeHeaderLogicColorG, Settings::nodeHeaderLogicColorB, Settings::nodeHeaderLogicColorA);
+        case NodeColorCategory::Flow:
+            return ImVec4(Settings::nodeHeaderFlowColorR, Settings::nodeHeaderFlowColorG, Settings::nodeHeaderFlowColorB, Settings::nodeHeaderFlowColorA);
+        case NodeColorCategory::More:
+        default:
+            return ImVec4(Settings::nodeHeaderMoreColorR, Settings::nodeHeaderMoreColorG, Settings::nodeHeaderMoreColorB, Settings::nodeHeaderMoreColorA);
+    }
+}
+
 NodeField* FindFieldByName(VisualNode& node, const char* name)
 {
     for (NodeField& field : node.fields)
@@ -258,6 +280,7 @@ std::vector<std::string> ParseArrayItemsForNodeView(const std::string& text)
 static std::unordered_map<ImGuiID, bool> s_nodeArrayOpenState;
 static std::unordered_map<std::string, int> s_arrayItemCountCache;
 static std::unordered_map<std::string, std::vector<std::string>> s_structFieldNameCache;
+static std::unordered_map<uint64_t, float> s_nodeWidthCache;
 
 int GetArrayItemCountCached(const std::string& text)
 {
@@ -408,11 +431,11 @@ float MeasureFieldWidth(const VisualNode& node, const NodeField& field)
     float widgetWidth = 82.0f;
     float spacing = ImGui::GetStyle().ItemSpacing.x;
 
-    // Keep Constant node compact in graph view.
-    if (node.nodeType == NodeType::Constant && field.name == "Type")
+    // Keep Constant node much narrower in graph view.
+    if (node.nodeType == NodeType::Constant)
     {
-        widgetWidth = 88.0f;
-        spacing = 6.0f;
+        widgetWidth = 58.0f;
+        spacing = 4.0f;
     }
 
     return labelWidth + spacing + widgetWidth;
@@ -526,13 +549,40 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         n.positioned = true;
     }
 
-     const float contentWidth = MeasureNodeContentWidth(n);
+    const float contentWidth = MeasureNodeContentWidth(n);
 
     ed::BeginNode(n.id);
 
+    const float headerHeight = 22.0f;
+    const float headerPaddingX = 6.0f;
+    const float headerWidth = contentWidth + headerPaddingX * 2.0f;
+    const ImVec2 headerMin = ImGui::GetCursorScreenPos();
+    const uint64_t nodeKey = static_cast<uint64_t>(n.id.Get());
+
+    // Match header fill with actual node body margins using node-editor style
+    // padding, so all node types align evenly instead of fixed magic expansion.
+    const auto& nodeStyle = ed::GetStyle();
+    const float headerLeftInset = nodeStyle.NodePadding.x;
+    const float headerRightInset = nodeStyle.NodePadding.z;
+    const ImVec2 headerDrawMin(headerMin.x - headerLeftInset, headerMin.y);
+    float headerDrawWidth = headerWidth + headerLeftInset + headerRightInset;
+    if (auto it = s_nodeWidthCache.find(nodeKey); it != s_nodeWidthCache.end() && it->second > 0.0f)
+        headerDrawWidth = it->second;
+    const ImVec2 headerDrawMax(headerDrawMin.x + headerDrawWidth, headerMin.y + headerHeight);
+
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    drawList->AddRectFilled(
+        headerDrawMin,
+        headerDrawMax,
+        ImGui::GetColorU32(GetNodeCategoryHeaderColor(n.nodeType)),
+        4.0f
+    );
+
+    ImGui::SetCursorScreenPos(ImVec2(headerMin.x + headerPaddingX, headerMin.y + 3.0f));
     ImGui::TextUnformatted(n.title.c_str());
+    ImGui::SetCursorScreenPos(ImVec2(headerMin.x, headerMin.y + headerHeight));
     // Reserve horizontal space so node width matches measured content width.
-    ImGui::Dummy(ImVec2(contentWidth, 0.0f));
+    ImGui::Dummy(ImVec2(headerWidth, 0.0f));
     ImGui::Spacing();
 
     bool changed = false;
@@ -771,7 +821,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 else
                     ImGui::SameLine();
 
-                const float typeDropWidth = isConstantNode ? 88.0f : 110.0f;
+                const float typeDropWidth = isConstantNode ? 58.0f : 110.0f;
                 changed |= NodePopupComboDynamic("##TypeDropBar", field.value, kTypeItems, typeDropWidth);
                 continue;
             }
@@ -1160,6 +1210,10 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         DrawPin(pin, contentWidth, allLinks);
 
     ed::EndNode();
+
+    const ImVec2 actualNodeSize = ed::GetNodeSize(n.id);
+    if (actualNodeSize.x > 0.0f)
+        s_nodeWidthCache[nodeKey] = actualNodeSize.x;
 
     return changed;
 }
