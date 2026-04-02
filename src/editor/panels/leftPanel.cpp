@@ -107,7 +107,6 @@ LeftPanel::LeftPanel()
         NodeType::Loop,
         NodeType::ForEach,
         NodeType::ArrayAddAt,
-        NodeType::ArrayReplaceAt,
         NodeType::ArrayRemoveAt,
         NodeType::While,
         NodeType::Output
@@ -172,6 +171,26 @@ void LeftPanel::draw(bool hasStartNode)
         return item;
     };
 
+    auto isFlowLikeNode = [&](NodeType t) -> bool
+    {
+        const NodeDescriptor* desc = NodeRegistry::Get().Find(t);
+        if (!desc)
+            return false;
+
+        bool hasFlowInput = false;
+        bool hasFlowOutput = false;
+        for (const PinDescriptor& pin : desc->pins)
+        {
+            if (pin.type != PinType::Flow)
+                continue;
+
+            if (pin.isInput) hasFlowInput = true;
+            else             hasFlowOutput = true;
+        }
+
+        return hasFlowInput && hasFlowOutput;
+    };
+
     for (NodeType t : m_nodeTypes)
     {
         switch (t)
@@ -227,7 +246,6 @@ void LeftPanel::draw(bool hasStartNode)
             case NodeType::Loop:
             case NodeType::ForEach:
             case NodeType::ArrayAddAt:
-            case NodeType::ArrayReplaceAt:
             case NodeType::ArrayRemoveAt:
             case NodeType::While:
             case NodeType::Output:
@@ -235,7 +253,10 @@ void LeftPanel::draw(bool hasStartNode)
                 break;
 
             default:
-                moreTypes.push_back(makeDefaultItem(t));
+                if (isFlowLikeNode(t))
+                    flowTypes.push_back(makeDefaultItem(t));
+                else
+                    moreTypes.push_back(makeDefaultItem(t));
                 break;
         }
     }
