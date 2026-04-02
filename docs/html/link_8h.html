@@ -92,8 +92,7 @@ $(function(){initNavTree('link_8h.html','',''); });
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;imgui_node_editor.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="pin_8h_source.html">pin.h</a>&quot;</code><br />
-<code>#include &lt;string&gt;</code><br />
+<code>#include &quot;<a class="el" href="types_8h_source.html">types.h</a>&quot;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 </div>
 <p><a href="link_8h_source.html">Go to the source code of this file.</a></p>
@@ -102,43 +101,13 @@ $(function(){initNavTree('link_8h.html','',''); });
 Classes</h2></td></tr>
 <tr class="memitem:Link" id="r_Link"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_link.html">Link</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Represents a connection (edge) between two pins in the node graph.  <a href="struct_link.html#details">More...</a><br /></td></tr>
-<tr class="memitem:NodeSpawnPayload" id="r_NodeSpawnPayload"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_node_spawn_payload.html">NodeSpawnPayload</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Drag-and-drop payload for spawning new nodes.  <a href="struct_node_spawn_payload.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:aec9e764993b90a81c6e24c3c34639491" id="r_aec9e764993b90a81c6e24c3c34639491"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aec9e764993b90a81c6e24c3c34639491">WouldCreateCycle</a> (const std::vector&lt; <a class="el" href="struct_link.html">Link</a> &gt; &amp;links, ed::PinId startPin, ed::PinId endPin)</td></tr>
 <tr class="memdesc:aec9e764993b90a81c6e24c3c34639491"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if adding a link would create a cycle in the graph.  <br /></td></tr>
-<tr class="memitem:a7bfa959fa0c3c1ca221ef0fd0aefd1b6" id="r_a7bfa959fa0c3c1ca221ef0fd0aefd1b6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7bfa959fa0c3c1ca221ef0fd0aefd1b6">DrawLinks</a> (const std::vector&lt; <a class="el" href="struct_link.html">Link</a> &gt; &amp;links)</td></tr>
-<tr class="memdesc:a7bfa959fa0c3c1ca221ef0fd0aefd1b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render all active links in the node editor.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="a7bfa959fa0c3c1ca221ef0fd0aefd1b6" name="a7bfa959fa0c3c1ca221ef0fd0aefd1b6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7bfa959fa0c3c1ca221ef0fd0aefd1b6">&#9670;&#160;</a></span>DrawLinks()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void DrawLinks </td>
-          <td>(</td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_link.html">Link</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>links</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Render all active links in the node editor. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">links</td><td>Vector of links to draw</td></tr>
-  </table>
-  </dd>
-</dl>
-<p>Must be called within an ed::Begin() / ed::End() block. Only draws links marked as alive=true. </p>
-
-</div>
-</div>
 <a id="aec9e764993b90a81c6e24c3c34639491" name="aec9e764993b90a81c6e24c3c34639491"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aec9e764993b90a81c6e24c3c34639491">&#9670;&#160;</a></span>WouldCreateCycle()</h2>
 

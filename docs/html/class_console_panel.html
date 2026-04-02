@@ -105,6 +105,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a4ad9d12426b3421af8a745d9524830f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render the console panel (called every frame).  <br /></td></tr>
 <tr class="memitem:af2b0f8ade02b8cd72b7ce474005fe1b6" id="r_af2b0f8ade02b8cd72b7ce474005fe1b6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#af2b0f8ade02b8cd72b7ce474005fe1b6">addLog</a> (const char *fmt,...) IM_FMTARGS(2)</td></tr>
 <tr class="memdesc:af2b0f8ade02b8cd72b7ce474005fe1b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a log message to the console.  <br /></td></tr>
+<tr class="memitem:a37987d141da90523ed515cf610c16e68" id="r_a37987d141da90523ed515cf610c16e68"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a37987d141da90523ed515cf610c16e68">addLogText</a> (const std::string &amp;message)</td></tr>
+<tr class="memdesc:a37987d141da90523ed515cf610c16e68"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a preformatted message to the console (thread-safe).  <br /></td></tr>
 <tr class="memitem:a80f7d3b6308ba71e65149887f78d73f1" id="r_a80f7d3b6308ba71e65149887f78d73f1"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a80f7d3b6308ba71e65149887f78d73f1">clear</a> ()</td></tr>
 <tr class="memdesc:a80f7d3b6308ba71e65149887f78d73f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear all log messages.  <br /></td></tr>
 <tr class="memitem:abfc8fcfc4ebe8a993663d8b8ea9b55f1" id="r_abfc8fcfc4ebe8a993663d8b8ea9b55f1"><td class="memItemLeft">float&#160;</td><td class="memItemRight"><a class="el" href="#abfc8fcfc4ebe8a993663d8b8ea9b55f1">getHeight</a> () const</td></tr>
@@ -160,6 +162,25 @@ Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Add a log message to the console. </p>
+
+</div>
+</div>
+<a id="a37987d141da90523ed515cf610c16e68" name="a37987d141da90523ed515cf610c16e68"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a37987d141da90523ed515cf610c16e68">&#9670;&#160;</a></span>addLogText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ConsolePanel::addLogText </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;</td>          <td class="paramname"><span class="paramname"><em>message</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Add a preformatted message to the console (thread-safe). </p>
 
 </div>
 </div>
@@ -278,8 +299,8 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>src/ui/<a class="el" href="console_panel_8h_source.html">consolePanel.h</a></li>
-<li>src/ui/<a class="el" href="console_panel_8cpp.html">consolePanel.cpp</a></li>
+<li>src/editor/panels/<a class="el" href="console_panel_8h_source.html">consolePanel.h</a></li>
+<li>src/editor/panels/<a class="el" href="console_panel_8cpp.html">consolePanel.cpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

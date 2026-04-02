@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['settings_0',['Settings',['../namespace_settings.html',1,'']]],
-  ['std_1',['std',['../namespacestd.html',1,'']]]
+  ['layoutconstants_0',['layoutConstants',['../namespacelayout_constants.html',1,'']]]
 ];

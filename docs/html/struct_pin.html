@@ -92,27 +92,22 @@ $(function(){initNavTree('struct_pin.html','','struct_pin-members'); });
 </div><!--header-->
 <div class="contents">
 
-<p>Connection point on a node.  
+<p><a class="el" href="struct_pin.html" title="Pin types, styles, and helpers for the graph editor.">Pin</a> types, styles, and helpers for the graph editor.  
  <a href="#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="pin_8h_source.html">pin.h</a>&gt;</code></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
-Public Member Functions</h2></td></tr>
-<tr class="memitem:a26c41408bfd48ef7d63090c12704c624" id="r_a26c41408bfd48ef7d63090c12704c624"><td class="memItemLeft">ImVec4&#160;</td><td class="memItemRight"><a class="el" href="#a26c41408bfd48ef7d63090c12704c624">GetTypeColor</a> () const</td></tr>
-<tr class="memdesc:a26c41408bfd48ef7d63090c12704c624"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the color for this pin based on its type.  <br /></td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a7f757c3efb0553ad54ebcba9b985ac5a" id="r_a7f757c3efb0553ad54ebcba9b985ac5a"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a7f757c3efb0553ad54ebcba9b985ac5a">CanConnect</a> (const <a class="el" href="struct_pin.html">Pin</a> &amp;output, const <a class="el" href="struct_pin.html">Pin</a> &amp;input)</td></tr>
-<tr class="memdesc:a7f757c3efb0553ad54ebcba9b985ac5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if two pins can be connected.  <br /></td></tr>
+<tr class="memitem:a20e41b97ece51ba409c4bef65eb73e7f" id="r_a20e41b97ece51ba409c4bef65eb73e7f"><td class="memItemLeft">static bool&#160;</td><td class="memItemRight"><a class="el" href="#a20e41b97ece51ba409c4bef65eb73e7f">CanConnect</a> (const <a class="el" href="struct_pin.html">Pin</a> &amp;output, const <a class="el" href="struct_pin.html">Pin</a> &amp;input)</td></tr>
+<tr class="memdesc:a20e41b97ece51ba409c4bef65eb73e7f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if output can connect to input.  <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-attribs" class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:abf098e5bfe6a2cd7c291cda39d43f560" id="r_abf098e5bfe6a2cd7c291cda39d43f560"><td class="memItemLeft">ed::PinId&#160;</td><td class="memItemRight"><a class="el" href="#abf098e5bfe6a2cd7c291cda39d43f560">id</a> {}</td></tr>
 <tr class="memdesc:abf098e5bfe6a2cd7c291cda39d43f560"><td class="mdescLeft">&#160;</td><td class="mdescRight">Unique ID (imgui-node-editor handle).  <br /></td></tr>
 <tr class="memitem:a27b4a0fafa875196add966cad1da4f1e" id="r_a27b4a0fafa875196add966cad1da4f1e"><td class="memItemLeft">ed::NodeId&#160;</td><td class="memItemRight"><a class="el" href="#a27b4a0fafa875196add966cad1da4f1e">parentNodeId</a> {}</td></tr>
-<tr class="memdesc:a27b4a0fafa875196add966cad1da4f1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the owning <a class="el" href="struct_visual_node.html" title="Runtime instance of a node in the visual graph.">VisualNode</a>.  <br /></td></tr>
+<tr class="memdesc:a27b4a0fafa875196add966cad1da4f1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">ID of the owning <a class="el" href="struct_visual_node.html" title="Visual node data and rendering entry points.">VisualNode</a>.  <br /></td></tr>
 <tr class="memitem:ac0bf3bed0ac0d125b6fd2715dd82bdac" id="r_ac0bf3bed0ac0d125b6fd2715dd82bdac"><td class="memItemLeft"><a class="el" href="types_8h.html#acac9cbaeea226ed297804c012dc12b16">NodeType</a>&#160;</td><td class="memItemRight"><a class="el" href="#ac0bf3bed0ac0d125b6fd2715dd82bdac">parentNodeType</a> = <a class="el" href="types_8h.html#acac9cbaeea226ed297804c012dc12b16a88183b946cc5f0e8c96b2e66e1c74a7e">NodeType::Unknown</a></td></tr>
 <tr class="memdesc:ac0bf3bed0ac0d125b6fd2715dd82bdac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of the owning node.  <br /></td></tr>
 <tr class="memitem:ad940005d3eda19065f03f1deb6b469d1" id="r_ad940005d3eda19065f03f1deb6b469d1"><td class="memItemLeft">std::string&#160;</td><td class="memItemRight"><a class="el" href="#ad940005d3eda19065f03f1deb6b469d1">name</a></td></tr>
@@ -125,11 +120,11 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:a94d6edab5a5ebe8175d9f26a4f3d97ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allow multiple incoming connections.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Connection point on a node. </p>
-<p>Represents an input or output pin on a visual node. Pins have a data type, direction (input/output), and can be connected via links. The visual appearance (color) is determined by the pin's type. </p>
+<div class="textblock"><p><a class="el" href="struct_pin.html" title="Pin types, styles, and helpers for the graph editor.">Pin</a> types, styles, and helpers for the graph editor. </p>
+<p>Connection point on a node. </p>
 </div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
-<a id="a7f757c3efb0553ad54ebcba9b985ac5a" name="a7f757c3efb0553ad54ebcba9b985ac5a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7f757c3efb0553ad54ebcba9b985ac5a">&#9670;&#160;</a></span>CanConnect()</h2>
+<a id="a20e41b97ece51ba409c4bef65eb73e7f" name="a20e41b97ece51ba409c4bef65eb73e7f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a20e41b97ece51ba409c4bef65eb73e7f">&#9670;&#160;</a></span>CanConnect()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -150,52 +145,12 @@ Public Attributes</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
+<span class="mlabels"><span class="mlabel static">static</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
 
-<p>Check if two pins can be connected. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">output</td><td>The source (output) pin </td></tr>
-    <tr><td class="paramname">input</td><td>The destination (input) pin </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>true if a valid connection can be made</dd></dl>
-<p>Validates:</p><ul>
-<li>Direction: output must be output pin, input must be input pin</li>
-<li>Type: Types must match, or one side must be <a class="el" href="types_8h.html#ab5c1a71b52ceb31763d6d32416abf3e5aed36a1ef76a59ee3f15180e0441188ad" title="Wildcard type - accepts any connection.">PinType::Any</a> </li>
-</ul>
-
-</div>
-</div>
-<a id="a26c41408bfd48ef7d63090c12704c624" name="a26c41408bfd48ef7d63090c12704c624"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a26c41408bfd48ef7d63090c12704c624">&#9670;&#160;</a></span>GetTypeColor()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">ImVec4 Pin::GetTypeColor </td>
-          <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Get the color for this pin based on its type. </p>
-<dl class="section return"><dt>Returns</dt><dd>RGBA color vector for rendering </dd></dl>
+<p>Returns true if output can connect to input. </p>
 
 </div>
 </div>
@@ -276,7 +231,7 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>ID of the owning <a class="el" href="struct_visual_node.html" title="Runtime instance of a node in the visual graph.">VisualNode</a>. </p>
+<p>ID of the owning <a class="el" href="struct_visual_node.html" title="Visual node data and rendering entry points.">VisualNode</a>. </p>
 
 </div>
 </div>
@@ -312,8 +267,9 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<hr/>The documentation for this struct was generated from the following file:<ul>
+<hr/>The documentation for this struct was generated from the following files:<ul>
 <li>src/core/graph/<a class="el" href="pin_8h_source.html">pin.h</a></li>
+<li>src/core/graph/<a class="el" href="pin_8cpp.html">pin.cpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

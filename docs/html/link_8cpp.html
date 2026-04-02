@@ -100,36 +100,8 @@ $(function(){initNavTree('link_8cpp.html','',''); });
 Functions</h2></td></tr>
 <tr class="memitem:aec9e764993b90a81c6e24c3c34639491" id="r_aec9e764993b90a81c6e24c3c34639491"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aec9e764993b90a81c6e24c3c34639491">WouldCreateCycle</a> (const std::vector&lt; <a class="el" href="struct_link.html">Link</a> &gt; &amp;links, ed::PinId startPin, ed::PinId endPin)</td></tr>
 <tr class="memdesc:aec9e764993b90a81c6e24c3c34639491"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if adding a link would create a cycle in the graph.  <br /></td></tr>
-<tr class="memitem:a7bfa959fa0c3c1ca221ef0fd0aefd1b6" id="r_a7bfa959fa0c3c1ca221ef0fd0aefd1b6"><td class="memItemLeft">void&#160;</td><td class="memItemRight"><a class="el" href="#a7bfa959fa0c3c1ca221ef0fd0aefd1b6">DrawLinks</a> (const std::vector&lt; <a class="el" href="struct_link.html">Link</a> &gt; &amp;links)</td></tr>
-<tr class="memdesc:a7bfa959fa0c3c1ca221ef0fd0aefd1b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render all active links in the node editor.  <br /></td></tr>
 </table>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="a7bfa959fa0c3c1ca221ef0fd0aefd1b6" name="a7bfa959fa0c3c1ca221ef0fd0aefd1b6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7bfa959fa0c3c1ca221ef0fd0aefd1b6">&#9670;&#160;</a></span>DrawLinks()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void DrawLinks </td>
-          <td>(</td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_link.html">Link</a> &gt; &amp;</td>          <td class="paramname"><span class="paramname"><em>links</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Render all active links in the node editor. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">links</td><td>Vector of links to draw</td></tr>
-  </table>
-  </dd>
-</dl>
-<p>Must be called within an ed::Begin() / ed::End() block. Only draws links marked as alive=true. </p>
-
-</div>
-</div>
 <a id="aec9e764993b90a81c6e24c3c34639491" name="aec9e764993b90a81c6e24c3c34639491"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aec9e764993b90a81c6e24c3c34639491">&#9670;&#160;</a></span>WouldCreateCycle()</h2>
 

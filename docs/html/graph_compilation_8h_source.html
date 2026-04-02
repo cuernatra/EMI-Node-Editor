@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.16.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>AO Emi Visual Programming Tool: src/editor/graphCompilation.h Source File</title>
+<title>AO Emi Visual Programming Tool: src/editor/graph/graphCompilation.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -96,39 +96,77 @@ $(function(){initNavTree('graph_compilation_8h_source.html','',''); });
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#pragma once</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &lt;memory&gt;</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keyword">class </span><a class="code hl_class" href="class_graph_state.html">GraphState</a>;</div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span></div>
-<div class="foldopen" id="foldopen00028" data-start="{" data-end="};">
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="class_graph_compilation.html">   28</a></span><span class="keyword">class </span><a class="code hl_function" href="class_graph_compilation.html#ad67417a841a4d11e37ede3e794f4bae9">GraphCompilation</a></div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>{</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keyword">public</span>:</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <a class="code hl_function" href="class_graph_compilation.html#ad67417a841a4d11e37ede3e794f4bae9">GraphCompilation</a>();</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span></div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="class_graph_compilation.html#ab6f68b1953f32f0c014ca31154766212">   42</a></span>    <a class="code hl_function" href="class_graph_compilation.html#ab6f68b1953f32f0c014ca31154766212">~GraphCompilation</a>();</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span></div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_graph_compilation.html#aa7763cac7b10802fc7799ac16a4d8d85">CompileGraph</a>(<a class="code hl_class" href="class_graph_state.html">GraphState</a>&amp; state, <span class="keywordtype">bool</span> resultOnly = <span class="keyword">false</span>);</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <span class="comment">// Pimpl to hide EMI types from header</span></div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    <span class="keyword">class </span><a class="code hl_class" href="class_graph_compilation_1_1_impl.html">Impl</a>;</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    std::unique_ptr&lt;Impl&gt; m_impl;</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>};</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &lt;functional&gt;</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &lt;atomic&gt;</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keyword">class </span><a class="code hl_class" href="class_graph_state.html">GraphState</a>;</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="keyword">struct </span><a class="code hl_struct" href="struct_visual_node.html">VisualNode</a>;</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keyword">struct </span><a class="code hl_struct" href="struct_link.html">Link</a>;</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span></div>
+<div class="foldopen" id="foldopen00034" data-start="{" data-end="};">
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="class_graph_compilation.html">   34</a></span><span class="keyword">class </span><a class="code hl_function" href="class_graph_compilation.html#ad67417a841a4d11e37ede3e794f4bae9">GraphCompilation</a></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>{</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno"><a class="line" href="class_graph_compilation.html#a324c4147aa8131940e2947bcf98fcddb">   37</a></span>    <span class="keyword">using </span><a class="code hl_typedef" href="class_graph_compilation.html#a324c4147aa8131940e2947bcf98fcddb">LogSink</a> = std::function&lt;void(<span class="keyword">const</span> std::string&amp;)&gt;;</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
+<div class="foldopen" id="foldopen00039" data-start="{" data-end="};">
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="struct_graph_compilation_1_1_compile_result.html">   39</a></span>    <span class="keyword">struct </span><a class="code hl_struct" href="struct_graph_compilation_1_1_compile_result.html">CompileResult</a></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    {</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno"><a class="line" href="struct_graph_compilation_1_1_compile_result.html#aeef6502a6d9d87093f552ddf62230975">   41</a></span>        <span class="keywordtype">bool</span> <a class="code hl_variable" href="struct_graph_compilation_1_1_compile_result.html#aeef6502a6d9d87093f552ddf62230975">success</a> = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno"><a class="line" href="struct_graph_compilation_1_1_compile_result.html#a163c2203dc10637781a7af6527357b2f">   42</a></span>        std::string <a class="code hl_variable" href="struct_graph_compilation_1_1_compile_result.html#a163c2203dc10637781a7af6527357b2f">message</a>;</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    };</div>
 </div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span> </div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
-<div class="ttc" id="aclass_graph_compilation_1_1_impl_html"><div class="ttname"><a href="class_graph_compilation_1_1_impl.html">GraphCompilation::Impl</a></div><div class="ttdef"><b>Definition</b> graphCompilation.cpp:12</div></div>
-<div class="ttc" id="aclass_graph_compilation_html_aa7763cac7b10802fc7799ac16a4d8d85"><div class="ttname"><a href="class_graph_compilation.html#aa7763cac7b10802fc7799ac16a4d8d85">GraphCompilation::CompileGraph</a></div><div class="ttdeci">void CompileGraph(GraphState &amp;state, bool resultOnly=false)</div><div class="ttdoc">Compile and execute the graph.</div><div class="ttdef"><b>Definition</b> graphCompilation.cpp:54</div></div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span></div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <a class="code hl_function" href="class_graph_compilation.html#ad67417a841a4d11e37ede3e794f4bae9">GraphCompilation</a>();</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span></div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno"><a class="line" href="class_graph_compilation.html#ab6f68b1953f32f0c014ca31154766212">   56</a></span>    <a class="code hl_function" href="class_graph_compilation.html#ab6f68b1953f32f0c014ca31154766212">~GraphCompilation</a>();</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span></div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_graph_compilation.html#aa7763cac7b10802fc7799ac16a4d8d85">CompileGraph</a>(<a class="code hl_class" href="class_graph_state.html">GraphState</a>&amp; state, <span class="keywordtype">bool</span> resultOnly = <span class="keyword">false</span>);</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span></div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    <a class="code hl_struct" href="struct_graph_compilation_1_1_compile_result.html">CompileResult</a> <a class="code hl_function" href="class_graph_compilation.html#a7d840e79a0729f16fccd99b813105d92">CompileGraphSnapshot</a>(<span class="keyword">const</span> std::vector&lt;VisualNode&gt;&amp; nodes,</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>                                       <span class="keyword">const</span> std::vector&lt;Link&gt;&amp; links,</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>                                       <span class="keywordtype">bool</span> resultOnly = <span class="keyword">false</span>);</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span></div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_graph_compilation.html#af01d1ab4ead1608843949f61827e9a22">SetLogSink</a>(<a class="code hl_typedef" href="class_graph_compilation.html#a324c4147aa8131940e2947bcf98fcddb">LogSink</a> sink);</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span></div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_graph_compilation.html#a725f67bc8d05cf7d83bcc51e63095a73">RequestForceStop</a>();</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span></div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_graph_compilation.html#a4485484414bc5de403ae797618b380b9">ClearForceStopRequest</a>();</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span> </div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    <span class="comment">// Pimpl to hide EMI types from header</span></div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    <span class="keyword">class </span><a class="code hl_class" href="class_graph_compilation_1_1_impl.html">Impl</a>;</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    std::unique_ptr&lt;Impl&gt; m_impl;</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <a class="code hl_typedef" href="class_graph_compilation.html#a324c4147aa8131940e2947bcf98fcddb">LogSink</a> m_logSink;</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    std::atomic&lt;bool&gt; m_forceStopRequested{ <span class="keyword">false</span> };</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>};</div>
+</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span> </div>
+<div class="ttc" id="aclass_graph_compilation_1_1_impl_html"><div class="ttname"><a href="class_graph_compilation_1_1_impl.html">GraphCompilation::Impl</a></div><div class="ttdef"><b>Definition</b> graphCompilation.cpp:13</div></div>
+<div class="ttc" id="aclass_graph_compilation_html_a324c4147aa8131940e2947bcf98fcddb"><div class="ttname"><a href="class_graph_compilation.html#a324c4147aa8131940e2947bcf98fcddb">GraphCompilation::LogSink</a></div><div class="ttdeci">std::function&lt; void(const std::string &amp;)&gt; LogSink</div><div class="ttdef"><b>Definition</b> graphCompilation.h:37</div></div>
+<div class="ttc" id="aclass_graph_compilation_html_a4485484414bc5de403ae797618b380b9"><div class="ttname"><a href="class_graph_compilation.html#a4485484414bc5de403ae797618b380b9">GraphCompilation::ClearForceStopRequest</a></div><div class="ttdeci">void ClearForceStopRequest()</div><div class="ttdoc">Clear any previously requested force-stop state before a new compile run.</div><div class="ttdef"><b>Definition</b> graphCompilation.cpp:61</div></div>
+<div class="ttc" id="aclass_graph_compilation_html_a725f67bc8d05cf7d83bcc51e63095a73"><div class="ttname"><a href="class_graph_compilation.html#a725f67bc8d05cf7d83bcc51e63095a73">GraphCompilation::RequestForceStop</a></div><div class="ttdeci">void RequestForceStop()</div><div class="ttdoc">Request force-stop for currently running compile/execute operation.</div><div class="ttdef"><b>Definition</b> graphCompilation.cpp:52</div></div>
+<div class="ttc" id="aclass_graph_compilation_html_a7d840e79a0729f16fccd99b813105d92"><div class="ttname"><a href="class_graph_compilation.html#a7d840e79a0729f16fccd99b813105d92">GraphCompilation::CompileGraphSnapshot</a></div><div class="ttdeci">CompileResult CompileGraphSnapshot(const std::vector&lt; VisualNode &gt; &amp;nodes, const std::vector&lt; Link &gt; &amp;links, bool resultOnly=false)</div><div class="ttdoc">Compile and execute from immutable graph snapshots (thread-friendly API).</div><div class="ttdef"><b>Definition</b> graphCompilation.cpp:76</div></div>
+<div class="ttc" id="aclass_graph_compilation_html_aa7763cac7b10802fc7799ac16a4d8d85"><div class="ttname"><a href="class_graph_compilation.html#aa7763cac7b10802fc7799ac16a4d8d85">GraphCompilation::CompileGraph</a></div><div class="ttdeci">void CompileGraph(GraphState &amp;state, bool resultOnly=false)</div><div class="ttdoc">Compile and execute the graph.</div><div class="ttdef"><b>Definition</b> graphCompilation.cpp:70</div></div>
 <div class="ttc" id="aclass_graph_compilation_html_ab6f68b1953f32f0c014ca31154766212"><div class="ttname"><a href="class_graph_compilation.html#ab6f68b1953f32f0c014ca31154766212">GraphCompilation::~GraphCompilation</a></div><div class="ttdeci">~GraphCompilation()</div><div class="ttdoc">Clean up the EMI environment.</div></div>
-<div class="ttc" id="aclass_graph_compilation_html_ad67417a841a4d11e37ede3e794f4bae9"><div class="ttname"><a href="class_graph_compilation.html#ad67417a841a4d11e37ede3e794f4bae9">GraphCompilation::GraphCompilation</a></div><div class="ttdeci">GraphCompilation()</div><div class="ttdoc">Initialize the EMI environment for compilation.</div><div class="ttdef"><b>Definition</b> graphCompilation.cpp:34</div></div>
+<div class="ttc" id="aclass_graph_compilation_html_ad67417a841a4d11e37ede3e794f4bae9"><div class="ttname"><a href="class_graph_compilation.html#ad67417a841a4d11e37ede3e794f4bae9">GraphCompilation::GraphCompilation</a></div><div class="ttdeci">GraphCompilation()</div><div class="ttdoc">Initialize the EMI environment for compilation.</div><div class="ttdef"><b>Definition</b> graphCompilation.cpp:35</div></div>
+<div class="ttc" id="aclass_graph_compilation_html_af01d1ab4ead1608843949f61827e9a22"><div class="ttname"><a href="class_graph_compilation.html#af01d1ab4ead1608843949f61827e9a22">GraphCompilation::SetLogSink</a></div><div class="ttdeci">void SetLogSink(LogSink sink)</div><div class="ttdoc">Set optional sink for forwarding compile status messages to external UI.</div><div class="ttdef"><b>Definition</b> graphCompilation.cpp:47</div></div>
 <div class="ttc" id="aclass_graph_state_html"><div class="ttname"><a href="class_graph_state.html">GraphState</a></div><div class="ttdoc">Central container for all graph state.</div><div class="ttdef"><b>Definition</b> graphState.h:35</div></div>
+<div class="ttc" id="astruct_graph_compilation_1_1_compile_result_html"><div class="ttname"><a href="struct_graph_compilation_1_1_compile_result.html">GraphCompilation::CompileResult</a></div><div class="ttdef"><b>Definition</b> graphCompilation.h:40</div></div>
+<div class="ttc" id="astruct_graph_compilation_1_1_compile_result_html_a163c2203dc10637781a7af6527357b2f"><div class="ttname"><a href="struct_graph_compilation_1_1_compile_result.html#a163c2203dc10637781a7af6527357b2f">GraphCompilation::CompileResult::message</a></div><div class="ttdeci">std::string message</div><div class="ttdef"><b>Definition</b> graphCompilation.h:42</div></div>
+<div class="ttc" id="astruct_graph_compilation_1_1_compile_result_html_aeef6502a6d9d87093f552ddf62230975"><div class="ttname"><a href="struct_graph_compilation_1_1_compile_result.html#aeef6502a6d9d87093f552ddf62230975">GraphCompilation::CompileResult::success</a></div><div class="ttdeci">bool success</div><div class="ttdef"><b>Definition</b> graphCompilation.h:41</div></div>
+<div class="ttc" id="astruct_link_html"><div class="ttname"><a href="struct_link.html">Link</a></div><div class="ttdoc">Represents a connection (edge) between two pins in the node graph.</div><div class="ttdef"><b>Definition</b> link.h:22</div></div>
+<div class="ttc" id="astruct_visual_node_html"><div class="ttname"><a href="struct_visual_node.html">VisualNode</a></div><div class="ttdoc">Visual node data and rendering entry points.</div><div class="ttdef"><b>Definition</b> visualNode.h:16</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a href="dir_a31afd56823c6335224242a3eb4525db.html">editor</a></li><li class="navelem"><a href="graph_compilation_8h.html">graphCompilation.h</a></li>
+    <li class="navelem"><a href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a href="dir_a31afd56823c6335224242a3eb4525db.html">editor</a></li><li class="navelem"><a href="dir_6e40953f6246d8ee989ac475a2739d4e.html">graph</a></li><li class="navelem"><a href="graph_compilation_8h.html">graphCompilation.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.16.1 </li>
   </ul>
 </div>

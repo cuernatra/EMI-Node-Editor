@@ -224,10 +224,14 @@
   % re-enable anchors again
   \hypersetup{pageanchor=true}
 %--- Begin generated contents ---
+\input{index}
+\input{md_file__guide}
 \chapter{Directory Hierarchy}
 \input{dirs}
 \chapter{Namespace Index}
 \input{namespaces}
+\chapter{Hierarchical Index}
+\input{hierarchy}
 \chapter{Class Index}
 \input{annotated}
 \chapter{File Index}
@@ -238,27 +242,37 @@
 \input{dir_aebb8dcc11953d78e620bbef0b9e2183}
 \input{dir_a31afd56823c6335224242a3eb4525db}
 \input{dir_1899e9f1443dc2c6d730bf840a3ce99f}
+\input{dir_6e40953f6246d8ee989ac475a2739d4e}
+\input{dir_d87b98c281f697b9e9ede4872b5bc9cb}
 \input{dir_352c0f9e7bb668ee2abec0883aaca013}
+\input{dir_60dd2a9c2e146f0ab6ba42f98d3ec091}
 \input{dir_68267d1309a1af8e8297ef4c3efbcdba}
 \input{dir_da5c6b39c0a2f54e57df6799511cd3ab}
+\input{dir_de5b9b2e3f5e4684cbde7a3ce8214a0d}
 \chapter{Namespace Documentation}
 \input{namespaceapp_constants}
 \input{namespacecolors}
-\input{namespaceelement_locations}
 \input{namespaceelement_sizes}
 \input{namespacefont_constants}
+\input{namespace_graph_editor_utils}
+\input{namespacelayout_constants}
 \input{namespacenode_preview_constants}
 \input{namespace_settings}
 \input{namespacestd}
+\input{namespaceui_fonts}
 \chapter{Class Documentation}
 \input{class_app}
+\input{struct_graph_compilation_1_1_compile_result}
+\input{class_console_emi_logger}
 \input{class_console_panel}
-\input{class_drop_bar}
+\input{class_editor_layout}
+\input{struct_editor_pin_style}
 \input{struct_field_descriptor}
 \input{struct_flow_target}
 \input{class_graph_compilation}
 \input{class_graph_compiler}
 \input{class_graph_editor}
+\input{class_graph_preview_panel}
 \input{class_graph_serializer}
 \input{class_graph_state}
 \input{structstd_1_1hash_3_01ed_1_1_node_id_01_4}
@@ -266,6 +280,7 @@
 \input{structstd_1_1hash_3_01_node_type_01_4}
 \input{struct_id_gen}
 \input{class_graph_compilation_1_1_impl}
+\input{class_inspector_panel}
 \input{class_left_panel}
 \input{struct_link}
 \input{class_main_editor}
@@ -276,21 +291,24 @@
 \input{struct_node_spawn_payload}
 \input{struct_pin}
 \input{struct_pin_descriptor}
+\input{struct_pin_icon_palette}
 \input{class_pin_resolver}
 \input{struct_pin_source}
+\input{struct_pin_style_palette}
 \input{struct_position}
 \input{class_top_panel}
-\input{class_ui}
 \input{struct_visual_node}
 \chapter{File Documentation}
+\input{file__guide_8md}
+\input{_r_e_a_d_m_e_8md}
 \input{app_8cpp}
 \input{app_8h}
 \input{app_8h_source}
 \input{constants_8h}
 \input{constants_8h_source}
-\input{ui_8cpp}
-\input{ui_8h}
-\input{ui_8h_source}
+\input{editor_layout_8cpp}
+\input{editor_layout_8h}
+\input{editor_layout_8h_source}
 \input{graph_compiler_8cpp}
 \input{graph_compiler_8h}
 \input{graph_compiler_8h_source}
@@ -302,14 +320,13 @@
 \input{link_8cpp}
 \input{link_8h}
 \input{link_8h_source}
+\input{pin_8cpp}
 \input{pin_8h}
 \input{pin_8h_source}
 \input{types_8h}
 \input{types_8h_source}
-\input{visual_node_8cpp}
 \input{visual_node_8h}
 \input{visual_node_8h_source}
-\input{field_widget_8cpp}
 \input{field_widget_8h}
 \input{field_widget_8h_source}
 \input{node_descriptor_8h}
@@ -326,6 +343,9 @@
 \input{graph_editor_8cpp}
 \input{graph_editor_8h}
 \input{graph_editor_8h_source}
+\input{graph_editor_utils_8cpp}
+\input{graph_editor_utils_8h}
+\input{graph_editor_utils_8h_source}
 \input{graph_serializer_8cpp}
 \input{graph_serializer_8h}
 \input{graph_serializer_8h_source}
@@ -335,25 +355,47 @@
 \input{main_editor_8cpp}
 \input{main_editor_8h}
 \input{main_editor_8h_source}
-\input{settings_8cpp}
-\input{settings_8h}
-\input{settings_8h_source}
-\input{main_8cpp}
+\input{console_emi_logger_8cpp}
+\input{console_emi_logger_8h}
+\input{console_emi_logger_8h_source}
 \input{console_panel_8cpp}
 \input{console_panel_8h}
 \input{console_panel_8h_source}
-\input{drop_bar_8cpp}
-\input{drop_bar_8h}
-\input{drop_bar_8h_source}
+\input{graph_preview_panel_8cpp}
+\input{graph_preview_panel_8h}
+\input{graph_preview_panel_8h_source}
+\input{inspector_panel_8cpp}
+\input{inspector_panel_8h}
+\input{inspector_panel_8h_source}
 \input{left_panel_8cpp}
 \input{left_panel_8h}
 \input{left_panel_8h_source}
-\input{node_preview_8cpp}
-\input{node_preview_8h}
-\input{node_preview_8h_source}
 \input{top_panel_8cpp}
 \input{top_panel_8h}
 \input{top_panel_8h_source}
+\input{field_widget_renderer_8cpp}
+\input{field_widget_renderer_8h}
+\input{field_widget_renderer_8h_source}
+\input{link_renderer_8cpp}
+\input{link_renderer_8h}
+\input{link_renderer_8h_source}
+\input{node_renderer_8cpp}
+\input{node_renderer_8h}
+\input{node_renderer_8h_source}
+\input{pin_renderer_8cpp}
+\input{pin_renderer_8h}
+\input{pin_renderer_8h_source}
+\input{settings_8cpp}
+\input{settings_8h}
+\input{settings_8h_source}
+\input{spawn_payload_8h}
+\input{spawn_payload_8h_source}
+\input{node_preview_8cpp}
+\input{node_preview_8h}
+\input{node_preview_8h_source}
+\input{main_8cpp}
+\input{theme_8h}
+\input{theme_8h_source}
 %--- End generated contents ---
 % Index
   \backmatter

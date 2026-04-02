@@ -107,7 +107,7 @@ Public Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Identifies the source of a connected input pin. </p>
 <p>Represents where an input pin's value comes from:</p><ul>
-<li>node: The upstream <a class="el" href="struct_visual_node.html" title="Runtime instance of a node in the visual graph.">VisualNode</a> with the output pin</li>
+<li>node: The upstream <a class="el" href="struct_visual_node.html" title="Visual node data and rendering entry points.">VisualNode</a> with the output pin</li>
 <li>pinIdx: Index into node-&gt;outPins (which output pin on that node)</li>
 </ul>
 <p>Used during recursive AST building to traverse from outputs back through inputs, accumulating the expression tree.</p>

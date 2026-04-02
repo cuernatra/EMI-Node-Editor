@@ -2,6 +2,7 @@ var class_console_panel =
 [
     [ "ConsolePanel", "class_console_panel.html#aad534192a164289eea60e6b9b17d6303", null ],
     [ "addLog", "class_console_panel.html#af2b0f8ade02b8cd72b7ce474005fe1b6", null ],
+    [ "addLogText", "class_console_panel.html#a37987d141da90523ed515cf610c16e68", null ],
     [ "clear", "class_console_panel.html#a80f7d3b6308ba71e65149887f78d73f1", null ],
     [ "draw", "class_console_panel.html#a4ad9d12426b3421af8a745d9524830f1", null ],
     [ "getHeight", "class_console_panel.html#abfc8fcfc4ebe8a993663d8b8ea9b55f1", null ],

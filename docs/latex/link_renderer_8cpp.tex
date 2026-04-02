@@ -1,0 +1,25 @@
+\doxysection{src/\+editor/\+renderer/\+link\+Renderer.cpp File Reference}
+\hypertarget{link_renderer_8cpp}{}\label{link_renderer_8cpp}\index{src/editor/renderer/linkRenderer.cpp@{src/editor/renderer/linkRenderer.cpp}}
+{\ttfamily \+\#include "{}link\+Renderer.\+h"{}}\newline
+{\ttfamily \+\#include "{}pin\+Renderer.\+h"{}}\newline
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{link_renderer_8cpp_a7bfa959fa0c3c1ca221ef0fd0aefd1b6}{Draw\+Links}} (const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \&links)
+\begin{DoxyCompactList}\small\item\em Render all active links in the node editor. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\label{doc-func-members}
+\Hypertarget{link_renderer_8cpp_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{link_renderer_8cpp_a7bfa959fa0c3c1ca221ef0fd0aefd1b6}\index{linkRenderer.cpp@{linkRenderer.cpp}!DrawLinks@{DrawLinks}}
+\index{DrawLinks@{DrawLinks}!linkRenderer.cpp@{linkRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{DrawLinks()}{DrawLinks()}}
+{\footnotesize\ttfamily \label{link_renderer_8cpp_a7bfa959fa0c3c1ca221ef0fd0aefd1b6} 
+void Draw\+Links (\begin{DoxyParamCaption}\item[{const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \&}]{links}{}\end{DoxyParamCaption})}
+
+
+
+Render all active links in the node editor. 
+
+Must be called within an ed::\+\+Begin() /\+ ed::\+\+End() block. Only draws links marked as alive=true. 

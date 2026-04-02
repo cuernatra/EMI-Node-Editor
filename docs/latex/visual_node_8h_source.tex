@@ -3,40 +3,35 @@
 \doxymbox{\hyperlink{visual_node_8h}{Go to the documentation of this file.}}
 \begin{DoxyCode}{0}
 \DoxyCodeLine{00001\ }
-\DoxyCodeLine{00010\ }
-\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#ifndef\ VISUALNODE\_H}}
-\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#define\ VISUALNODE\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#ifndef\ VISUALNODE\_H}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#define\ VISUALNODE\_H}}
+\DoxyCodeLine{00006\ }
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{id_gen_8h}{idGen.h}}"{}}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{pin_8h}{pin.h}}"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{link_8h}{link.h}}"{}}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{field_widget_8h}{../registry/fieldWidget.h}}"{}}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <string>}}
 \DoxyCodeLine{00013\ }
-\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{id_gen_8h}{idGen.h}}"{}}}
-\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{pin_8h}{pin.h}}"{}}}
-\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{link_8h}{link.h}}"{}}}
-\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{field_widget_8h}{../registry/fieldWidget.h}}"{}}}
-\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ <vector>}}
-\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ <string>}}
-\DoxyCodeLine{00020\ }
-\DoxyCodeLine{00035\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_visual_node}{VisualNode}}}
-\DoxyCodeLine{00036\ \{}
-\DoxyCodeLine{00037\ \ \ \ \ ed::NodeId\ \ \textcolor{keywordtype}{id}\{\};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
-\DoxyCodeLine{00038\ \ \ \ \ \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{NodeType}}\ \ \ \ \doxymbox{\hyperlink{struct_visual_node_afbec97aa8a8659dcca30db6e18c8b62b}{nodeType}}\ \ =\ \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16a88183b946cc5f0e8c96b2e66e1c74a7e}{NodeType::Unknown}};\ \ }
-\DoxyCodeLine{00039\ }
-\DoxyCodeLine{00040\ \ \ \ \ std::vector<Pin>\ \ \ \ \ \ \ \doxymbox{\hyperlink{struct_visual_node_a7d82897c2aa2585184fc660503bfe96b}{inPins}};\ \ \ \ }
-\DoxyCodeLine{00041\ \ \ \ \ std::vector<Pin>\ \ \ \ \ \ \ \doxymbox{\hyperlink{struct_visual_node_a6dc9a9c361a59515cff7d7b85514e9b9}{outPins}};\ \ \ }
-\DoxyCodeLine{00042\ \ \ \ \ std::vector<NodeField>\ \doxymbox{\hyperlink{struct_visual_node_a2af80030ec977b295228065e802ac176}{fields}};\ \ \ \ }
-\DoxyCodeLine{00043\ }
-\DoxyCodeLine{00044\ \ \ \ \ std::string\ \doxymbox{\hyperlink{struct_visual_node_ab033e1125ef69fe1060df6b0a11346ca}{title}};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
-\DoxyCodeLine{00045\ }
-\DoxyCodeLine{00046\ \ \ \ \ ImVec2\ \doxymbox{\hyperlink{struct_visual_node_a4b8327097e50e622b99e71dc08826905}{initialPos}}\{0,\ 0\};\ }
-\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \doxymbox{\hyperlink{struct_visual_node_ab62263d162ceabba5a68d2fe0efa50b1}{positioned}}\ =\ \textcolor{keyword}{false};\ }
-\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \doxymbox{\hyperlink{struct_visual_node_ad787dd557c577f39ff55825a2daa9a1d}{alive}}\ \ \ \ \ \ =\ \textcolor{keyword}{true};\ \ \ \ \ \ \ \ \ }
-\DoxyCodeLine{00049\ \};}
-\DoxyCodeLine{00050\ }
-\DoxyCodeLine{00058\ \textcolor{keyword}{static}\ \textcolor{keywordtype}{void}\ DrawPin(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_pin}{Pin}}\&\ pin);}
-\DoxyCodeLine{00059\ }
-\DoxyCodeLine{00072\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{visual_node_8h_a27d38fc57c2da83774983297c2ef01fa}{DrawVisualNode}}(\doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n);}
-\DoxyCodeLine{00073\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{visual_node_8h_a27d38fc57c2da83774983297c2ef01fa}{DrawVisualNode}}(\doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n,\ \doxymbox{\hyperlink{struct_id_gen}{IdGen}}*\ idGen);}
-\DoxyCodeLine{00074\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{visual_node_8h_a27d38fc57c2da83774983297c2ef01fa}{DrawVisualNode}}(\doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n,\ \doxymbox{\hyperlink{struct_id_gen}{IdGen}}*\ idGen,\ \textcolor{keyword}{const}\ std::vector<VisualNode>*\ allNodes);}
-\DoxyCodeLine{00075\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{visual_node_8h_a27d38fc57c2da83774983297c2ef01fa}{DrawVisualNode}}(\doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n,\ \doxymbox{\hyperlink{struct_id_gen}{IdGen}}*\ idGen,\ \textcolor{keyword}{const}\ std::vector<VisualNode>*\ allNodes,\ \textcolor{keyword}{const}\ std::vector<Link>*\ allLinks);}
-\DoxyCodeLine{00076\ }
-\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ VISUALNODE\_H}}
+\DoxyCodeLine{00015\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_visual_node}{VisualNode}}}
+\DoxyCodeLine{00016\ \{}
+\DoxyCodeLine{00017\ \ \ \ \ ed::NodeId\ \ \textcolor{keywordtype}{id}\{\};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00018\ \ \ \ \ \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{NodeType}}\ \ \ \ \doxymbox{\hyperlink{struct_visual_node_afbec97aa8a8659dcca30db6e18c8b62b}{nodeType}}\ \ =\ \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16a88183b946cc5f0e8c96b2e66e1c74a7e}{NodeType::Unknown}};\ \ }
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \ \ \ \ std::vector<Pin>\ \ \ \ \ \ \ \doxymbox{\hyperlink{struct_visual_node_a7d82897c2aa2585184fc660503bfe96b}{inPins}};\ \ \ \ }
+\DoxyCodeLine{00021\ \ \ \ \ std::vector<Pin>\ \ \ \ \ \ \ \doxymbox{\hyperlink{struct_visual_node_a6dc9a9c361a59515cff7d7b85514e9b9}{outPins}};\ \ \ }
+\DoxyCodeLine{00022\ \ \ \ \ std::vector<NodeField>\ \doxymbox{\hyperlink{struct_visual_node_a2af80030ec977b295228065e802ac176}{fields}};\ \ \ \ }
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \ \ \ \ std::string\ \doxymbox{\hyperlink{struct_visual_node_ab033e1125ef69fe1060df6b0a11346ca}{title}};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \ \ \ \ ImVec2\ \doxymbox{\hyperlink{struct_visual_node_a4b8327097e50e622b99e71dc08826905}{initialPos}}\{0,\ 0\};\ }
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \doxymbox{\hyperlink{struct_visual_node_ab62263d162ceabba5a68d2fe0efa50b1}{positioned}}\ =\ \textcolor{keyword}{false};\ }
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keywordtype}{bool}\ \ \ \doxymbox{\hyperlink{struct_visual_node_ad787dd557c577f39ff55825a2daa9a1d}{alive}}\ \ \ \ \ \ =\ \textcolor{keyword}{true};\ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00029\ \};}
+\DoxyCodeLine{00030\ }
+\DoxyCodeLine{00031\ \textcolor{comment}{//\ Rendering\ helpers\ live\ on\ the\ editor\ side\ (see\ editor/renderer/nodeRenderer.h).}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ VISUALNODE\_H}}
 
 \end{DoxyCode}

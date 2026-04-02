@@ -6,7 +6,7 @@
 \DoxyCodeLine{00010\ }
 \DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <SFML/Graphics/RenderWindow.hpp>}}
 \DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <SFML/System/Clock.hpp>}}
-\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{ui_8h}{ui.h}}"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{editor_layout_8h}{editorLayout.h}}"{}}}
 \DoxyCodeLine{00014\ }
 \DoxyCodeLine{00015\ \textcolor{preprocessor}{\#ifndef\ APP\_H}}
 \DoxyCodeLine{00016\ \textcolor{preprocessor}{\#define\ APP\_H}}
@@ -27,13 +27,15 @@
 \DoxyCodeLine{00055\ }
 \DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordtype}{void}\ loadFont();}
 \DoxyCodeLine{00061\ }
-\DoxyCodeLine{00063\ \ \ \ \ sf::RenderWindow\ m\_window;}
-\DoxyCodeLine{00064\ \ \ \ \ }
-\DoxyCodeLine{00066\ \ \ \ \ sf::Clock\ m\_deltaClock;}
-\DoxyCodeLine{00067\ \ \ \ \ }
-\DoxyCodeLine{00069\ \ \ \ \ \doxymbox{\hyperlink{class_ui}{Ui}}\ m\_ui;}
-\DoxyCodeLine{00070\ \};}
-\DoxyCodeLine{00071\ }
-\DoxyCodeLine{00072\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keywordtype}{void}\ applyImGuiStyle();}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00068\ \ \ \ \ sf::RenderWindow\ m\_window;}
+\DoxyCodeLine{00069\ \ \ \ \ }
+\DoxyCodeLine{00071\ \ \ \ \ sf::Clock\ m\_deltaClock;}
+\DoxyCodeLine{00072\ \ \ \ \ }
+\DoxyCodeLine{00074\ \ \ \ \ \doxymbox{\hyperlink{class_editor_layout}{EditorLayout}}\ m\_ui;}
+\DoxyCodeLine{00075\ \};}
+\DoxyCodeLine{00076\ }
+\DoxyCodeLine{00077\ \textcolor{preprocessor}{\#endif}}
 
 \end{DoxyCode}

@@ -12,7 +12,14 @@ High-\/level graph compilation and execution interface.
 \doxysubsubsection*{Classes}
 \begin{DoxyCompactItemize}
 \item 
+struct \doxymbox{\hyperlink{struct_graph_compilation_1_1_compile_result}{Compile\+Result}}
+\item 
 class \doxymbox{\hyperlink{class_graph_compilation_1_1_impl}{Impl}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+using \doxymbox{\hyperlink{class_graph_compilation_a324c4147aa8131940e2947bcf98fcddb}{Log\+Sink}} = std::\+function$<$void(const std::\+string\&)$>$
 \end{DoxyCompactItemize}
 \doxysubsubsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
@@ -22,7 +29,15 @@ class \doxymbox{\hyperlink{class_graph_compilation_1_1_impl}{Impl}}
 \doxymbox{\hyperlink{class_graph_compilation_ab6f68b1953f32f0c014ca31154766212}{\texorpdfstring{$\sim$}{\string~}\+Graph\+Compilation}} ()
 \begin{DoxyCompactList}\small\item\em Clean up the EMI environment. \end{DoxyCompactList}\item 
 void \doxymbox{\hyperlink{class_graph_compilation_aa7763cac7b10802fc7799ac16a4d8d85}{Compile\+Graph}} (\doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&state, bool result\+Only=false)
-\begin{DoxyCompactList}\small\item\em Compile and execute the graph. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Compile and execute the graph. \end{DoxyCompactList}\item 
+\doxymbox{\hyperlink{struct_graph_compilation_1_1_compile_result}{Compile\+Result}} \doxymbox{\hyperlink{class_graph_compilation_a7d840e79a0729f16fccd99b813105d92}{Compile\+Graph\+Snapshot}} (const std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \&nodes, const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \&links, bool result\+Only=false)
+\begin{DoxyCompactList}\small\item\em Compile and execute from immutable graph snapshots (thread-\/friendly API). \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_compilation_af01d1ab4ead1608843949f61827e9a22}{Set\+Log\+Sink}} (\doxymbox{\hyperlink{class_graph_compilation_a324c4147aa8131940e2947bcf98fcddb}{Log\+Sink}} sink)
+\begin{DoxyCompactList}\small\item\em Set optional sink for forwarding compile status messages to external UI. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_compilation_a725f67bc8d05cf7d83bcc51e63095a73}{Request\+Force\+Stop}} ()
+\begin{DoxyCompactList}\small\item\em Request force-\/stop for currently running compile/\+execute operation. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_compilation_a4485484414bc5de403ae797618b380b9}{Clear\+Force\+Stop\+Request}} ()
+\begin{DoxyCompactList}\small\item\em Clear any previously requested force-\/stop state before a new compile run. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \doxysubsection{Detailed Description}
@@ -31,6 +46,17 @@ High-\/level graph compilation and execution interface.
 Manages the EMI-\/\+Script VM environment and provides a simple compilation interface for the editor. Validates the graph, compiles to AST, and prepares for EMI\textquotesingle{}s internal ASTWalker compilation.
 
 Currently creates and prints the AST. Future integration will use EMI\textquotesingle{}s Parser::\+\+Parse\+AST() and internal execution APIs. 
+
+\label{doc-typedef-members}
+\Hypertarget{class_graph_compilation_doc-typedef-members}
+\doxysubsection{Member Typedef Documentation}
+\Hypertarget{class_graph_compilation_a324c4147aa8131940e2947bcf98fcddb}\index{GraphCompilation@{GraphCompilation}!LogSink@{LogSink}}
+\index{LogSink@{LogSink}!GraphCompilation@{GraphCompilation}}
+\doxysubsubsection{\texorpdfstring{LogSink}{LogSink}}
+{\footnotesize\ttfamily \label{class_graph_compilation_a324c4147aa8131940e2947bcf98fcddb} 
+using \doxymbox{\hyperlink{class_graph_compilation_a324c4147aa8131940e2947bcf98fcddb}{Graph\+Compilation::\+\+Log\+Sink}} = std::\+function$<$void(const std::\+string\&)$>$}
+
+
 
 \label{doc-constructors}
 \Hypertarget{class_graph_compilation_doc-constructors}
@@ -72,6 +98,16 @@ Jenny
 \label{doc-func-members}
 \Hypertarget{class_graph_compilation_doc-func-members}
 \doxysubsection{Member Function Documentation}
+\Hypertarget{class_graph_compilation_a4485484414bc5de403ae797618b380b9}\index{GraphCompilation@{GraphCompilation}!ClearForceStopRequest@{ClearForceStopRequest}}
+\index{ClearForceStopRequest@{ClearForceStopRequest}!GraphCompilation@{GraphCompilation}}
+\doxysubsubsection{\texorpdfstring{ClearForceStopRequest()}{ClearForceStopRequest()}}
+{\footnotesize\ttfamily \label{class_graph_compilation_a4485484414bc5de403ae797618b380b9} 
+void Graph\+Compilation::\+\+Clear\+Force\+Stop\+Request (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Clear any previously requested force-\/stop state before a new compile run. 
+
 \Hypertarget{class_graph_compilation_aa7763cac7b10802fc7799ac16a4d8d85}\index{GraphCompilation@{GraphCompilation}!CompileGraph@{CompileGraph}}
 \index{CompileGraph@{CompileGraph}!GraphCompilation@{GraphCompilation}}
 \doxysubsubsection{\texorpdfstring{CompileGraph()}{CompileGraph()}}
@@ -81,8 +117,6 @@ void Graph\+Compilation::\+\+Compile\+Graph (\begin{DoxyParamCaption}\item[{\dox
 
 
 Compile and execute the graph. 
-
-Compiles and executes a visual graph.
 
 
 \begin{DoxyParams}{Parameters}
@@ -98,21 +132,39 @@ Performs the following steps:\+
 \item TODO:\+ Retrieve return value and update state
 \end{DoxyEnumerate}
 
-Currently creates and prints AST for debugging. Future integration will use EMI\textquotesingle{}s internal compilation and execution APIs. All compilation and runtime errors are caught and stored in the graph state for display to the user.
+Currently creates and prints AST for debugging. Future integration will use EMI\textquotesingle{}s internal compilation and execution APIs. All compilation and runtime errors are caught and stored in the graph state for display to the user. \Hypertarget{class_graph_compilation_a7d840e79a0729f16fccd99b813105d92}\index{GraphCompilation@{GraphCompilation}!CompileGraphSnapshot@{CompileGraphSnapshot}}
+\index{CompileGraphSnapshot@{CompileGraphSnapshot}!GraphCompilation@{GraphCompilation}}
+\doxysubsubsection{\texorpdfstring{CompileGraphSnapshot()}{CompileGraphSnapshot()}}
+{\footnotesize\ttfamily \label{class_graph_compilation_a7d840e79a0729f16fccd99b813105d92} 
+\doxymbox{\hyperlink{struct_graph_compilation_1_1_compile_result}{Graph\+Compilation::\+\+Compile\+Result}} Graph\+Compilation::\+\+Compile\+Graph\+Snapshot (\begin{DoxyParamCaption}\item[{const std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \&}]{nodes}{, }\item[{const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \&}]{links}{, }\item[{bool}]{result\+Only}{ = {\ttfamily false}}\end{DoxyParamCaption})}
 
 
-\begin{DoxyParams}{Parameters}
-{\em state} & The graph state containing nodes and links to compile. \\
-\hline
-{\em result\+Only} & If true, suppress debug output; if false, enable debug logging.\\
-\hline
-\end{DoxyParams}
-\begin{DoxyAuthor}{Author}
-Jenny 
-\end{DoxyAuthor}
+
+Compile and execute from immutable graph snapshots (thread-\/friendly API). 
+
+\Hypertarget{class_graph_compilation_a725f67bc8d05cf7d83bcc51e63095a73}\index{GraphCompilation@{GraphCompilation}!RequestForceStop@{RequestForceStop}}
+\index{RequestForceStop@{RequestForceStop}!GraphCompilation@{GraphCompilation}}
+\doxysubsubsection{\texorpdfstring{RequestForceStop()}{RequestForceStop()}}
+{\footnotesize\ttfamily \label{class_graph_compilation_a725f67bc8d05cf7d83bcc51e63095a73} 
+void Graph\+Compilation::\+\+Request\+Force\+Stop (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Request force-\/stop for currently running compile/\+execute operation. 
+
+\Hypertarget{class_graph_compilation_af01d1ab4ead1608843949f61827e9a22}\index{GraphCompilation@{GraphCompilation}!SetLogSink@{SetLogSink}}
+\index{SetLogSink@{SetLogSink}!GraphCompilation@{GraphCompilation}}
+\doxysubsubsection{\texorpdfstring{SetLogSink()}{SetLogSink()}}
+{\footnotesize\ttfamily \label{class_graph_compilation_af01d1ab4ead1608843949f61827e9a22} 
+void Graph\+Compilation::\+\+Set\+Log\+Sink (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{class_graph_compilation_a324c4147aa8131940e2947bcf98fcddb}{Log\+Sink}}}]{sink}{}\end{DoxyParamCaption})}
+
+
+
+Set optional sink for forwarding compile status messages to external UI. 
+
 
 
 The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
 \item 
-src/\+editor/\+\doxymbox{\hyperlink{graph_compilation_8h}{graph\+Compilation.\+h}}\item 
-src/\+editor/\+\doxymbox{\hyperlink{graph_compilation_8cpp}{graph\+Compilation.\+cpp}}\end{DoxyCompactItemize}
+src/\+editor/\+graph/\+\doxymbox{\hyperlink{graph_compilation_8h}{graph\+Compilation.\+h}}\item 
+src/\+editor/\+graph/\+\doxymbox{\hyperlink{graph_compilation_8cpp}{graph\+Compilation.\+cpp}}\end{DoxyCompactItemize}

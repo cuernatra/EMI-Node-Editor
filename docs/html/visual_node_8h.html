@@ -91,9 +91,6 @@ $(function(){initNavTree('visual_node_8h.html','',''); });
   <div class="headertitle"><div class="title">visualNode.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-
-<p>Visual node representation for the node graph.  
-<a href="#details">More...</a></p>
 <div class="textblock"><code>#include &quot;<a class="el" href="id_gen_8h_source.html">idGen.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="pin_8h_source.html">pin.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="link_8h_source.html">link.h</a>&quot;</code><br />
@@ -106,130 +103,8 @@ $(function(){initNavTree('visual_node_8h.html','',''); });
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:VisualNode" id="r_VisualNode"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_visual_node.html">VisualNode</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Runtime instance of a node in the visual graph.  <a href="struct_visual_node.html#details">More...</a><br /></td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:a27d38fc57c2da83774983297c2ef01fa" id="r_a27d38fc57c2da83774983297c2ef01fa"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a27d38fc57c2da83774983297c2ef01fa">DrawVisualNode</a> (<a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n)</td></tr>
-<tr class="memdesc:a27d38fc57c2da83774983297c2ef01fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Render a visual node on the canvas.  <br /></td></tr>
-<tr class="memitem:a0fb48c396a642e32aed96213685e52c4" id="r_a0fb48c396a642e32aed96213685e52c4"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a0fb48c396a642e32aed96213685e52c4">DrawVisualNode</a> (<a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n, <a class="el" href="struct_id_gen.html">IdGen</a> *idGen)</td></tr>
-<tr class="memitem:aa091b273f9fb98c00f1ea81aa94bae75" id="r_aa091b273f9fb98c00f1ea81aa94bae75"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#aa091b273f9fb98c00f1ea81aa94bae75">DrawVisualNode</a> (<a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n, <a class="el" href="struct_id_gen.html">IdGen</a> *idGen, const std::vector&lt; <a class="el" href="struct_visual_node.html">VisualNode</a> &gt; *allNodes)</td></tr>
-<tr class="memitem:a296a8d7c00e4cda7f14ecf397208a220" id="r_a296a8d7c00e4cda7f14ecf397208a220"><td class="memItemLeft">bool&#160;</td><td class="memItemRight"><a class="el" href="#a296a8d7c00e4cda7f14ecf397208a220">DrawVisualNode</a> (<a class="el" href="struct_visual_node.html">VisualNode</a> &amp;n, <a class="el" href="struct_id_gen.html">IdGen</a> *idGen, const std::vector&lt; <a class="el" href="struct_visual_node.html">VisualNode</a> &gt; *allNodes, const std::vector&lt; <a class="el" href="struct_link.html">Link</a> &gt; *allLinks)</td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Visual node data and rendering entry points.  <a href="struct_visual_node.html#details">More...</a><br /></td></tr>
 </table>
-<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Visual node representation for the node graph. </p>
-<p>Defines the runtime representation of a node in the visual editor. Nodes contain pins (connection points), editable fields, and state for positioning and lifecycle management. </p>
-</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="a27d38fc57c2da83774983297c2ef01fa" name="a27d38fc57c2da83774983297c2ef01fa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a27d38fc57c2da83774983297c2ef01fa">&#9670;&#160;</a></span>DrawVisualNode() <span class="overload">[1/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool DrawVisualNode </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Render a visual node on the canvas. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">n</td><td>The node to render</td></tr>
-  </table>
-  </dd>
-</dl>
-<p>Draws the node using imgui-node-editor primitives:</p><ul>
-<li>Node body with title</li>
-<li>Input pins on the left</li>
-<li>Output pins on the right</li>
-<li>Editable fields in the center</li>
-</ul>
-<p>Must be called within an ed::Begin() / ed::End() block. </p>
-
-</div>
-</div>
-<a id="a0fb48c396a642e32aed96213685e52c4" name="a0fb48c396a642e32aed96213685e52c4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0fb48c396a642e32aed96213685e52c4">&#9670;&#160;</a></span>DrawVisualNode() <span class="overload">[2/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool DrawVisualNode </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="struct_id_gen.html">IdGen</a> *</td>          <td class="paramname"><span class="paramname"><em>idGen</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa091b273f9fb98c00f1ea81aa94bae75" name="aa091b273f9fb98c00f1ea81aa94bae75"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa091b273f9fb98c00f1ea81aa94bae75">&#9670;&#160;</a></span>DrawVisualNode() <span class="overload">[3/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool DrawVisualNode </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="struct_id_gen.html">IdGen</a> *</td>          <td class="paramname"><span class="paramname"><em>idGen</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_visual_node.html">VisualNode</a> &gt; *</td>          <td class="paramname"><span class="paramname"><em>allNodes</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a296a8d7c00e4cda7f14ecf397208a220" name="a296a8d7c00e4cda7f14ecf397208a220"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a296a8d7c00e4cda7f14ecf397208a220">&#9670;&#160;</a></span>DrawVisualNode() <span class="overload">[4/4]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool DrawVisualNode </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="struct_visual_node.html">VisualNode</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>n</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="struct_id_gen.html">IdGen</a> *</td>          <td class="paramname"><span class="paramname"><em>idGen</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_visual_node.html">VisualNode</a> &gt; *</td>          <td class="paramname"><span class="paramname"><em>allNodes</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="struct_link.html">Link</a> &gt; *</td>          <td class="paramname"><span class="paramname"><em>allLinks</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <div id="page-nav" class="page-nav-panel">

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.16.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>AO Emi Visual Programming Tool: src/editor/graphEditor.h Source File</title>
+<title>AO Emi Visual Programming Tool: src/editor/graph/graphEditor.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -92,67 +92,72 @@ $(function(){initNavTree('graph_editor_8h_source.html','',''); });
 </div><!--header-->
 <div class="contents">
 <a href="graph_editor_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#pragma once</span></div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="visual_node_8h.html">../core/graph/visualNode.h</a>&quot;</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;imgui_node_editor.h&quot;</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="keyword">class </span><a class="code hl_class" href="class_graph_state.html">GraphState</a>;</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keyword">namespace </span>ed = ax::NodeEditor;</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span></div>
-<div class="foldopen" id="foldopen00034" data-start="{" data-end="};">
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno"><a class="line" href="class_graph_editor.html">   34</a></span><span class="keyword">class </span><a class="code hl_function" href="class_graph_editor.html#a9a09d5d9c80f84442b7b1314ec066000">GraphEditor</a></div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>{</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="keyword">public</span>:</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <a class="code hl_function" href="class_graph_editor.html#a9a09d5d9c80f84442b7b1314ec066000">GraphEditor</a>(ed::EditorContext* ctx, <a class="code hl_class" href="class_graph_state.html">GraphState</a>&amp; state);</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    </div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <a class="code hl_function" href="class_graph_editor.html#a063074d0b285eeaa06f8323c763afa7a">~GraphEditor</a>();</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span></div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_graph_editor.html#ac64c42bccd772522491654a8f6587698">Draw</a>();</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span></div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_graph_editor.html#a9fc2d054dddc8a3a4277534e8a31c27e">DrawInspectorPanel</a>();</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span></div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="class_graph_editor.html#a7ee21ed48f4aa4264613d74d83cdb490">HasSelectedNode</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#pragma once</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &quot;<a class="code" href="visual_node_8h.html">core/graph/visualNode.h</a>&quot;</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &quot;imgui_node_editor.h&quot;</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span> </div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">class </span><a class="code hl_class" href="class_graph_state.html">GraphState</a>;</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keyword">namespace </span>ed = ax::NodeEditor;</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span></div>
+<div class="foldopen" id="foldopen00039" data-start="{" data-end="};">
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="class_graph_editor.html">   39</a></span><span class="keyword">class </span><a class="code hl_function" href="class_graph_editor.html#a9a09d5d9c80f84442b7b1314ec066000">GraphEditor</a></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>{</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <a class="code hl_function" href="class_graph_editor.html#a9a09d5d9c80f84442b7b1314ec066000">GraphEditor</a>(ed::EditorContext* ctx, <a class="code hl_class" href="class_graph_state.html">GraphState</a>&amp; state);</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    </div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <a class="code hl_function" href="class_graph_editor.html#a063074d0b285eeaa06f8323c763afa7a">~GraphEditor</a>();</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_graph_editor.html#ac64c42bccd772522491654a8f6587698">Draw</a>();</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span></div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_graph_editor.html#a9fc2d054dddc8a3a4277534e8a31c27e">DrawInspectorPanel</a>();</div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span></div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_graph_editor.html#adb96381c835a8cd6b653bd5fcb0b0f15">HandleDeleteShortcutFallback</a>();</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span></div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="class_graph_editor.html#acbb87f1c3d2937762f864f4265b35d6d">TryGetSingleSelectedNodeId</a>(uintptr_t&amp; outId) <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    <span class="keywordtype">void</span> DrawNodeCanvas();</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    </div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    <span class="keywordtype">void</span> DrawContextMenus();</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span></div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    <span class="keywordtype">void</span> CreateNewLink();</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    </div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    <span class="keywordtype">void</span> DeleteNodes(ed::NodeId nodeId);</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    </div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    <span class="keywordtype">void</span> DeleteLinks(ed::LinkId linkId);</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span> </div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    ed::EditorContext* m_ctx;  </div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>    <a class="code hl_class" href="class_graph_state.html">GraphState</a>&amp; m_state;       </div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    <span class="keywordtype">bool</span> m_initialAutoStartHandled = <span class="keyword">false</span>; </div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>};</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="class_graph_editor.html#a7ee21ed48f4aa4264613d74d83cdb490">HasSelectedNode</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span></div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="class_graph_editor.html#adb96381c835a8cd6b653bd5fcb0b0f15">HandleDeleteShortcutFallback</a>();</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span></div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>    <span class="keywordtype">bool</span> <a class="code hl_function" href="class_graph_editor.html#acbb87f1c3d2937762f864f4265b35d6d">TryGetSingleSelectedNodeId</a>(uintptr_t&amp; outId) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span> </div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="keywordtype">void</span> DrawNodeCanvas();</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    </div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    <span class="keywordtype">void</span> DrawContextMenus();</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span></div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>    <span class="keywordtype">void</span> CreateNewLink();</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    </div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    <span class="keywordtype">void</span> DeleteNodes(ed::NodeId nodeId);</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    </div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    <span class="keywordtype">void</span> DeleteLinks(ed::LinkId linkId);</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span></div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>    <span class="keywordtype">bool</span> DrawSpawnNodeMenuContents(<span class="keyword">const</span> ImVec2&amp; spawnCanvasPos);</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span> </div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>    ed::EditorContext* m_ctx;  </div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    <a class="code hl_class" href="class_graph_state.html">GraphState</a>&amp; m_state;       </div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    <span class="keywordtype">bool</span> m_initialAutoStartHandled = <span class="keyword">false</span>; </div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    <span class="keywordtype">bool</span> m_openSpawnPopupRequested = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>    ImVec2 m_spawnPopupScreenPos = ImVec2(0.0f, 0.0f);</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>    ImVec2 m_spawnPopupCanvasPos = ImVec2(0.0f, 0.0f);</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>};</div>
 </div>
-<div class="ttc" id="aclass_graph_editor_html_a063074d0b285eeaa06f8323c763afa7a"><div class="ttname"><a href="class_graph_editor.html#a063074d0b285eeaa06f8323c763afa7a">GraphEditor::~GraphEditor</a></div><div class="ttdeci">~GraphEditor()</div><div class="ttdoc">Clean up editor resources.</div><div class="ttdef"><b>Definition</b> graphEditor.cpp:707</div></div>
-<div class="ttc" id="aclass_graph_editor_html_a7ee21ed48f4aa4264613d74d83cdb490"><div class="ttname"><a href="class_graph_editor.html#a7ee21ed48f4aa4264613d74d83cdb490">GraphEditor::HasSelectedNode</a></div><div class="ttdeci">bool HasSelectedNode() const</div><div class="ttdoc">Check if an existing node is currently selected.</div><div class="ttdef"><b>Definition</b> graphEditor.cpp:1064</div></div>
-<div class="ttc" id="aclass_graph_editor_html_a9a09d5d9c80f84442b7b1314ec066000"><div class="ttname"><a href="class_graph_editor.html#a9a09d5d9c80f84442b7b1314ec066000">GraphEditor::GraphEditor</a></div><div class="ttdeci">GraphEditor(ed::EditorContext *ctx, GraphState &amp;state)</div><div class="ttdoc">Initialize the graph editor.</div><div class="ttdef"><b>Definition</b> graphEditor.cpp:702</div></div>
-<div class="ttc" id="aclass_graph_editor_html_a9fc2d054dddc8a3a4277534e8a31c27e"><div class="ttname"><a href="class_graph_editor.html#a9fc2d054dddc8a3a4277534e8a31c27e">GraphEditor::DrawInspectorPanel</a></div><div class="ttdeci">void DrawInspectorPanel()</div><div class="ttdoc">Draw inspector panel contents for selected node.</div><div class="ttdef"><b>Definition</b> graphEditor.cpp:880</div></div>
-<div class="ttc" id="aclass_graph_editor_html_ac64c42bccd772522491654a8f6587698"><div class="ttname"><a href="class_graph_editor.html#ac64c42bccd772522491654a8f6587698">GraphEditor::Draw</a></div><div class="ttdeci">void Draw()</div><div class="ttdoc">Draw the editor canvas and handle all interactions.</div><div class="ttdef"><b>Definition</b> graphEditor.cpp:711</div></div>
-<div class="ttc" id="aclass_graph_editor_html_acbb87f1c3d2937762f864f4265b35d6d"><div class="ttname"><a href="class_graph_editor.html#acbb87f1c3d2937762f864f4265b35d6d">GraphEditor::TryGetSingleSelectedNodeId</a></div><div class="ttdeci">bool TryGetSingleSelectedNodeId(uintptr_t &amp;outId) const</div><div class="ttdoc">Get selected node id when exactly one alive node is selected.</div><div class="ttdef"><b>Definition</b> graphEditor.cpp:1113</div></div>
-<div class="ttc" id="aclass_graph_editor_html_adb96381c835a8cd6b653bd5fcb0b0f15"><div class="ttname"><a href="class_graph_editor.html#adb96381c835a8cd6b653bd5fcb0b0f15">GraphEditor::HandleDeleteShortcutFallback</a></div><div class="ttdeci">void HandleDeleteShortcutFallback()</div><div class="ttdoc">Handle shared delete shortcuts (Delete/Backspace) for current selection.</div><div class="ttdef"><b>Definition</b> graphEditor.cpp:1070</div></div>
+<div class="ttc" id="aclass_graph_editor_html_a063074d0b285eeaa06f8323c763afa7a"><div class="ttname"><a href="class_graph_editor.html#a063074d0b285eeaa06f8323c763afa7a">GraphEditor::~GraphEditor</a></div><div class="ttdeci">~GraphEditor()</div><div class="ttdoc">Clean up editor resources.</div><div class="ttdef"><b>Definition</b> graphEditor.cpp:21</div></div>
+<div class="ttc" id="aclass_graph_editor_html_a7ee21ed48f4aa4264613d74d83cdb490"><div class="ttname"><a href="class_graph_editor.html#a7ee21ed48f4aa4264613d74d83cdb490">GraphEditor::HasSelectedNode</a></div><div class="ttdeci">bool HasSelectedNode() const</div><div class="ttdoc">Check if an existing node is currently selected.</div><div class="ttdef"><b>Definition</b> graphEditor.cpp:348</div></div>
+<div class="ttc" id="aclass_graph_editor_html_a9a09d5d9c80f84442b7b1314ec066000"><div class="ttname"><a href="class_graph_editor.html#a9a09d5d9c80f84442b7b1314ec066000">GraphEditor::GraphEditor</a></div><div class="ttdeci">GraphEditor(ed::EditorContext *ctx, GraphState &amp;state)</div><div class="ttdoc">Initialize the graph editor.</div><div class="ttdef"><b>Definition</b> graphEditor.cpp:16</div></div>
+<div class="ttc" id="aclass_graph_editor_html_a9fc2d054dddc8a3a4277534e8a31c27e"><div class="ttname"><a href="class_graph_editor.html#a9fc2d054dddc8a3a4277534e8a31c27e">GraphEditor::DrawInspectorPanel</a></div><div class="ttdeci">void DrawInspectorPanel()</div><div class="ttdoc">Draw inspector panel contents for selected node.</div><div class="ttdef"><b>Definition</b> graphEditor.cpp:338</div></div>
+<div class="ttc" id="aclass_graph_editor_html_ac64c42bccd772522491654a8f6587698"><div class="ttname"><a href="class_graph_editor.html#ac64c42bccd772522491654a8f6587698">GraphEditor::Draw</a></div><div class="ttdeci">void Draw()</div><div class="ttdoc">Draw the editor canvas and handle all interactions.</div><div class="ttdef"><b>Definition</b> graphEditor.cpp:25</div></div>
+<div class="ttc" id="aclass_graph_editor_html_acbb87f1c3d2937762f864f4265b35d6d"><div class="ttname"><a href="class_graph_editor.html#acbb87f1c3d2937762f864f4265b35d6d">GraphEditor::TryGetSingleSelectedNodeId</a></div><div class="ttdeci">bool TryGetSingleSelectedNodeId(uintptr_t &amp;outId) const</div><div class="ttdoc">Get selected node id when exactly one alive node is selected.</div><div class="ttdef"><b>Definition</b> graphEditor.cpp:397</div></div>
+<div class="ttc" id="aclass_graph_editor_html_adb96381c835a8cd6b653bd5fcb0b0f15"><div class="ttname"><a href="class_graph_editor.html#adb96381c835a8cd6b653bd5fcb0b0f15">GraphEditor::HandleDeleteShortcutFallback</a></div><div class="ttdeci">void HandleDeleteShortcutFallback()</div><div class="ttdoc">Handle shared delete shortcuts (Delete/Backspace) for current selection.</div><div class="ttdef"><b>Definition</b> graphEditor.cpp:354</div></div>
 <div class="ttc" id="aclass_graph_state_html"><div class="ttname"><a href="class_graph_state.html">GraphState</a></div><div class="ttdoc">Central container for all graph state.</div><div class="ttdef"><b>Definition</b> graphState.h:35</div></div>
-<div class="ttc" id="avisual_node_8h_html"><div class="ttname"><a href="visual_node_8h.html">visualNode.h</a></div><div class="ttdoc">Visual node representation for the node graph.</div></div>
+<div class="ttc" id="avisual_node_8h_html"><div class="ttname"><a href="visual_node_8h.html">visualNode.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a href="dir_a31afd56823c6335224242a3eb4525db.html">editor</a></li><li class="navelem"><a href="graph_editor_8h.html">graphEditor.h</a></li>
+    <li class="navelem"><a href="dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a href="dir_a31afd56823c6335224242a3eb4525db.html">editor</a></li><li class="navelem"><a href="dir_6e40953f6246d8ee989ac475a2739d4e.html">graph</a></li><li class="navelem"><a href="graph_editor_8h.html">graphEditor.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.16.1 </li>
   </ul>
 </div>

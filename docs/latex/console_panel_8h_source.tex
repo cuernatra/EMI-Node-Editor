@@ -1,42 +1,54 @@
 \doxysection{console\+Panel.\+h}
-\hypertarget{console_panel_8h_source}{}\label{console_panel_8h_source}\index{src/ui/consolePanel.h@{src/ui/consolePanel.h}}
+\hypertarget{console_panel_8h_source}{}\label{console_panel_8h_source}\index{src/editor/panels/consolePanel.h@{src/editor/panels/consolePanel.h}}
 \doxymbox{\hyperlink{console_panel_8h}{Go to the documentation of this file.}}
 \begin{DoxyCode}{0}
 \DoxyCodeLine{00001\ }
 \DoxyCodeLine{00005\ \textcolor{preprocessor}{\#ifndef\ CONSOLEPANEL\_H}}
 \DoxyCodeLine{00006\ \textcolor{preprocessor}{\#define\ CONSOLEPANEL\_H}}
 \DoxyCodeLine{00007\ }
-\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{constants_8h}{../app/constants.h}}"{}}}
-\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <vector>}}
-\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ <string>}}
-\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <mutex>}}
-\DoxyCodeLine{00012\ }
-\DoxyCodeLine{00017\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_console_panel_aad534192a164289eea60e6b9b17d6303}{ConsolePanel}}}
-\DoxyCodeLine{00018\ \{}
-\DoxyCodeLine{00019\ \textcolor{keyword}{public}:}
-\DoxyCodeLine{00021\ \ \ \ \ \doxymbox{\hyperlink{class_console_panel_aad534192a164289eea60e6b9b17d6303}{ConsolePanel}}();}
-\DoxyCodeLine{00022\ \ \ \ \ }
-\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_console_panel_a4ad9d12426b3421af8a745d9524830f1}{draw}}();}
-\DoxyCodeLine{00025\ \ \ \ \ }
-\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_console_panel_af2b0f8ade02b8cd72b7ce474005fe1b6}{addLog}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ fmt,\ ...)\ IM\_FMTARGS(2);}
-\DoxyCodeLine{00028\ }
-\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_console_panel_a80f7d3b6308ba71e65149887f78d73f1}{clear}}();}
-\DoxyCodeLine{00031\ }
-\DoxyCodeLine{00033\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{class_console_panel_abfc8fcfc4ebe8a993663d8b8ea9b55f1}{getHeight}}()\ \textcolor{keyword}{const};}
-\DoxyCodeLine{00034\ }
-\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_console_panel_a3026dbdb042205f6756d74ceab811a2a}{setHeight}}(\textcolor{keywordtype}{float}\ height);}
-\DoxyCodeLine{00037\ }
-\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_console_panel_a6c538b31185992db9b6ca41f0d279607}{toggleMinimized}}();}
-\DoxyCodeLine{00040\ }
-\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_console_panel_a730285fd05a9cc5bf0dd412f754a4eba}{isMinimized}}()\ \textcolor{keyword}{const};}
-\DoxyCodeLine{00043\ \ \ \ \ }
-\DoxyCodeLine{00044\ \textcolor{keyword}{private}:}
-\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordtype}{float}\ m\_height;}
-\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keywordtype}{float}\ m\_lastExpandedHeight;}
-\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_minimized;}
-\DoxyCodeLine{00051\ \ \ \ \ std::vector<std::string>\ m\_logs;}
-\DoxyCodeLine{00052\ \};}
-\DoxyCodeLine{00053\ }
-\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{constants_8h}{app/constants.h}}"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <cstddef>}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ <deque>}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <mutex>}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00018\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_console_panel_aad534192a164289eea60e6b9b17d6303}{ConsolePanel}}}
+\DoxyCodeLine{00019\ \{}
+\DoxyCodeLine{00020\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00022\ \ \ \ \ \doxymbox{\hyperlink{class_console_panel_aad534192a164289eea60e6b9b17d6303}{ConsolePanel}}();}
+\DoxyCodeLine{00023\ \ \ \ \ }
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_console_panel_a4ad9d12426b3421af8a745d9524830f1}{draw}}();}
+\DoxyCodeLine{00026\ \ \ \ \ }
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_console_panel_af2b0f8ade02b8cd72b7ce474005fe1b6}{addLog}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ fmt,\ ...)\ IM\_FMTARGS(2);}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_console_panel_a37987d141da90523ed515cf610c16e68}{addLogText}}(\textcolor{keyword}{const}\ std::string\&\ message);}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_console_panel_a80f7d3b6308ba71e65149887f78d73f1}{clear}}();}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{class_console_panel_abfc8fcfc4ebe8a993663d8b8ea9b55f1}{getHeight}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_console_panel_a3026dbdb042205f6756d74ceab811a2a}{setHeight}}(\textcolor{keywordtype}{float}\ height);}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_console_panel_a6c538b31185992db9b6ca41f0d279607}{toggleMinimized}}();}
+\DoxyCodeLine{00044\ }
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_console_panel_a730285fd05a9cc5bf0dd412f754a4eba}{isMinimized}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00047\ \ \ \ \ }
+\DoxyCodeLine{00048\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{constexpr}\ std::size\_t\ kMaxLogLines\ =\ 10000;}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{keywordtype}{float}\ m\_height;}
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keywordtype}{float}\ m\_lastExpandedHeight;}
+\DoxyCodeLine{00056\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_minimized;}
+\DoxyCodeLine{00057\ \ \ \ \ std::mutex\ m\_logsMutex;}
+\DoxyCodeLine{00058\ \ \ \ \ std::deque<std::string>\ m\_logs;}
+\DoxyCodeLine{00059\ \ \ \ \ std::string\ m\_activeLinePrefix;}
+\DoxyCodeLine{00060\ \ \ \ \ std::string\ m\_activeLine;}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00062\ \ \ \ \ std::string\ makeTimestampPrefix()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00063\ \ \ \ \ std::string\ withTimestamp(\textcolor{keyword}{const}\ std::string\&\ message)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keywordtype}{void}\ pushCappedLine(\textcolor{keyword}{const}\ std::string\&\ line);}
+\DoxyCodeLine{00065\ \};}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00067\ \textcolor{preprocessor}{\#endif}}
 
 \end{DoxyCode}
