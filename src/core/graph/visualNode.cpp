@@ -1,6 +1,7 @@
 #include "visualNode.h"
 #include "../registry/fieldWidget.h"
 #include "editor/graphSerializer.h"
+#include "editor/renderer/pinRenderer.h"
 #include "app/constants.h"
 #include "imgui.h"
 #include "imgui_node_editor.h"
@@ -380,7 +381,7 @@ float MeasureNodeContentWidth(const VisualNode& n)
 
 void DrawPin(const Pin& pin, float contentWidth, const std::vector<Link>* allLinks)
 {
-    const ImVec4      colorF    = pin.GetTypeColor();
+    const ImVec4      colorF    = GetPinTypeColor(pin.type);
     const ImU32       iconColor = ImGui::ColorConvertFloat4ToU32(colorF);
     const ImU32       innerColor = ImGui::GetColorU32(colors::background);
     const ImVec2      iconSize(14.0f, 14.0f);

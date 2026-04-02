@@ -53,18 +53,3 @@ bool WouldCreateCycle(const std::vector<Link>& links,
     return false;
 }
 
-// ---------------------------------------------------------------------------
-// DrawLinks
-// ---------------------------------------------------------------------------
-
-void DrawLinks(const std::vector<Link>& links)
-{
-    for (const auto& lnk : links)
-    {
-        if (!lnk.alive) continue;
-
-        ImVec4 col = lnk.GetColor();
-        ed::Link(lnk.id, lnk.startPinId, lnk.endPinId,
-                 col, /* thickness */ 2.0f);
-    }
-}

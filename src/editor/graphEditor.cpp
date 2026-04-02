@@ -4,6 +4,7 @@
 #include "graphEditorUtils.h"
 #include "../core/graph/visualNode.h"
 #include "../core/graph/link.h"
+#include "renderer/linkRenderer.h"
 #include "../core/registry/nodeFactory.h"
 #include "../ui/dropBar.h"
 #include "../ui/inspectorPanel.h"
