@@ -181,10 +181,47 @@ void GraphEditor::DrawNodeCanvas()
 
 void GraphEditor::RefreshGraphAndMarkDirty()
 {
+    static std::vector<VisualNode>* s_lastNodesPtr = nullptr;
+    static size_t s_lastAliveStructDefineCount = 0;
+    static size_t s_lastAliveStructShapeHash = 0;
+
+    auto& nodesRef = m_state.GetNodes();
+    size_t aliveStructDefineCount = 0;
+    size_t aliveStructShapeHash = 1469598103934665603ull; // FNV offset basis
+
+    for (const auto& n : nodesRef)
+    {
+        if (!n.alive || n.nodeType != NodeType::StructDefine)
+            continue;
+
+        ++aliveStructDefineCount;
+
+        // Mix stable, cheap shape inputs only (avoid full schema parsing every frame).
+        aliveStructShapeHash ^= static_cast<size_t>(n.id.Get());
+        aliveStructShapeHash *= 1099511628211ull;
+        aliveStructShapeHash ^= n.fields.size();
+        aliveStructShapeHash *= 1099511628211ull;
+        aliveStructShapeHash ^= n.inPins.size();
+        aliveStructShapeHash *= 1099511628211ull;
+        aliveStructShapeHash ^= n.outPins.size();
+        aliveStructShapeHash *= 1099511628211ull;
+    }
+
+    const bool structLikelyDirty =
+        (s_lastNodesPtr != &nodesRef)
+        || (s_lastAliveStructDefineCount != aliveStructDefineCount)
+        || (s_lastAliveStructShapeHash != aliveStructShapeHash);
+
+    s_lastNodesPtr = &nodesRef;
+    s_lastAliveStructDefineCount = aliveStructDefineCount;
+    s_lastAliveStructShapeHash = aliveStructShapeHash;
+
     const bool descriptorLayoutChanged = GraphEditorUtils::RefreshNodesFromRegistryDescriptors(m_state);
     const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
     const bool forEachLayoutChanged = GraphEditorUtils::RefreshForEachNodeLayout(m_state);
-    const bool structLayoutChanged = GraphEditorUtils::RefreshStructNodeLayouts(m_state);
+    const bool structLayoutChanged = structLikelyDirty
+        ? GraphEditorUtils::RefreshStructNodeLayouts(m_state)
+        : false;
     const bool outputInputTypesChanged = GraphEditorUtils::RefreshOutputNodeInputTypes(m_state);
     const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
     if (descriptorLayoutChanged || variableTypesChanged || forEachLayoutChanged || structLayoutChanged || outputInputTypesChanged || linksChanged)

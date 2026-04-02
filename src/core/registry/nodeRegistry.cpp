@@ -303,9 +303,34 @@ descriptors_[NodeType::Constant] = {
         },
         {
             { "Array", PinType::Array, "[]" },
-            { "Index", PinType::Number, "0" }
+            { "Index", PinType::Number, "0" },
+            { "Add Type", PinType::String, "Number" },
+            { "Add Value", PinType::Any, "0.0" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayAddAt(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // Array Replace  —  Flow in + array + index + value -> Flow out
+    // Replaces one item at Index (implemented as Remove + Insert sequence).
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::ArrayReplaceAt] = {
+        NodeType::ArrayReplaceAt,
+        "Array Replace",
+        {
+            { "In",    PinType::Flow,   /*isInput=*/true  },
+            { "Array", PinType::Array,  /*isInput=*/true  },
+            { "Index", PinType::Number, /*isInput=*/true  },
+            { "Value", PinType::Any,    /*isInput=*/true  },
+            { "Out",   PinType::Flow,   /*isInput=*/false }
+        },
+        {
+            { "Array", PinType::Array, "[]" },
+            { "Index", PinType::Number, "0" },
+            { "Replace Type", PinType::String, "Number" },
+            { "Replace Value", PinType::Any, "0.0" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayReplaceAt(n); }
     };
 
     // ------------------------------------------------------------------
@@ -322,7 +347,6 @@ descriptors_[NodeType::Constant] = {
             { "Out",   PinType::Flow,   /*isInput=*/false }
         },
         {
-            { "Array", PinType::Array, "[]" },
             { "Index", PinType::Number, "0" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayRemoveAt(n); }

@@ -1266,7 +1266,39 @@ Node* GraphCompiler::BuildArrayAddAt(const VisualNode& n)
         indexExpr = MakeNumberNode(indexValue);
     }
 
-    Node* valueExpr = BuildExpr(*valuePin);
+    Node* valueExpr = nullptr;
+    if (const PinSource* valueSrc = resolver_.Resolve(valuePin->id))
+    {
+        valueExpr = BuildNode(*valueSrc->node, valueSrc->pinIdx);
+    }
+    else
+    {
+        const std::string* addTypeText = GetField(n, "Add Type");
+        const std::string* addValueText = GetField(n, "Add Value");
+
+        const std::string addType = addTypeText ? *addTypeText : "Number";
+        const std::string addValue = addValueText ? *addValueText : "0.0";
+
+        if (addType == "Boolean")
+        {
+            const bool b = (addValue == "true" || addValue == "True" || addValue == "1");
+            valueExpr = MakeBoolNode(b);
+        }
+        else if (addType == "String")
+        {
+            valueExpr = MakeStringNode(addValue);
+        }
+        else if (addType == "Array")
+        {
+            valueExpr = BuildArrayLiteralNode(addValue);
+        }
+        else // Number default
+        {
+            try { valueExpr = MakeNumberNode(std::stod(addValue)); }
+            catch (...) { valueExpr = MakeNumberNode(0.0); }
+        }
+    }
+
     if (HasError || !arrayExpr || !indexExpr || !valueExpr)
     {
         delete arrayExpr;
@@ -1283,6 +1315,123 @@ Node* GraphCompiler::BuildArrayAddAt(const VisualNode& n)
     params->children.push_back(valueExpr);
     call->children.push_back(params);
     return call;
+}
+
+Node* GraphCompiler::BuildArrayReplaceAt(const VisualNode& n)
+{
+    const Pin* arrayPin = GetInputPinByName(n, "Array");
+    const Pin* indexPin = GetInputPinByName(n, "Index");
+    const Pin* valuePin = GetInputPinByName(n, "Value");
+    if (!arrayPin || !indexPin || !valuePin)
+    {
+        Error("Array Replace node needs Array, Index and Value inputs");
+        return nullptr;
+    }
+
+    Node* arrayExpr = nullptr;
+    if (const PinSource* arraySrc = resolver_.Resolve(arrayPin->id))
+        arrayExpr = BuildNode(*arraySrc->node, arraySrc->pinIdx);
+    else
+    {
+        const std::string* arrayText = GetField(n, "Array");
+        arrayExpr = BuildArrayLiteralNode(arrayText ? *arrayText : "[]");
+    }
+
+    Node* indexExpr = nullptr;
+    if (const PinSource* indexSrc = resolver_.Resolve(indexPin->id))
+        indexExpr = BuildNode(*indexSrc->node, indexSrc->pinIdx);
+    else
+    {
+        const std::string* indexText = GetField(n, "Index");
+        double indexValue = 0.0;
+        if (indexText)
+        {
+            try { indexValue = std::stod(*indexText); }
+            catch (...) { indexValue = 0.0; }
+        }
+        indexExpr = MakeNumberNode(indexValue);
+    }
+
+    Node* valueExpr = nullptr;
+    if (const PinSource* valueSrc = resolver_.Resolve(valuePin->id))
+    {
+        valueExpr = BuildNode(*valueSrc->node, valueSrc->pinIdx);
+    }
+    else
+    {
+        const std::string* replaceTypeText = GetField(n, "Replace Type");
+        const std::string* replaceValueText = GetField(n, "Replace Value");
+
+        const std::string replaceType = replaceTypeText ? *replaceTypeText : "Number";
+        const std::string replaceValue = replaceValueText ? *replaceValueText : "0.0";
+
+        if (replaceType == "Boolean")
+        {
+            const bool b = (replaceValue == "true" || replaceValue == "True" || replaceValue == "1");
+            valueExpr = MakeBoolNode(b);
+        }
+        else if (replaceType == "String")
+        {
+            valueExpr = MakeStringNode(replaceValue);
+        }
+        else if (replaceType == "Array")
+        {
+            valueExpr = BuildArrayLiteralNode(replaceValue);
+        }
+        else // Number default
+        {
+            try { valueExpr = MakeNumberNode(std::stod(replaceValue)); }
+            catch (...) { valueExpr = MakeNumberNode(0.0); }
+        }
+    }
+
+    if (HasError || !arrayExpr || !indexExpr || !valueExpr)
+    {
+        delete arrayExpr;
+        delete indexExpr;
+        delete valueExpr;
+        return nullptr;
+    }
+
+    // Replace = RemoveIndex(array, index) then Insert(array, index, value)
+    Node* scope = MakeNode(Token::Scope);
+
+    Node* removeCall = MakeNode(Token::FunctionCall);
+    removeCall->children.push_back(MakeIdNode("Array.RemoveIndex"));
+    Node* removeParams = MakeNode(Token::CallParams);
+    removeParams->children.push_back(MakeIdNode("Array"));
+    removeParams->children.push_back(MakeIdNode("Index"));
+    removeCall->children.push_back(removeParams);
+
+    Node* insertCall = MakeNode(Token::FunctionCall);
+    insertCall->children.push_back(MakeIdNode("Array.Insert"));
+    Node* insertParams = MakeNode(Token::CallParams);
+    insertParams->children.push_back(MakeIdNode("Array"));
+    insertParams->children.push_back(MakeIdNode("Index"));
+    insertParams->children.push_back(MakeIdNode("Value"));
+    insertCall->children.push_back(insertParams);
+
+    Node* arrayDecl = MakeNode(Token::VarDeclare);
+    arrayDecl->data = "Array";
+    arrayDecl->children.push_back(MakeNode(Token::TypeArray));
+    arrayDecl->children.push_back(arrayExpr);
+
+    Node* indexDecl = MakeNode(Token::VarDeclare);
+    indexDecl->data = "Index";
+    indexDecl->children.push_back(MakeNode(Token::TypeNumber));
+    indexDecl->children.push_back(indexExpr);
+
+    Node* valueDecl = MakeNode(Token::VarDeclare);
+    valueDecl->data = "Value";
+    valueDecl->children.push_back(MakeNode(Token::AnyType));
+    valueDecl->children.push_back(valueExpr);
+
+    scope->children.push_back(arrayDecl);
+    scope->children.push_back(indexDecl);
+    scope->children.push_back(valueDecl);
+    scope->children.push_back(removeCall);
+    scope->children.push_back(insertCall);
+    return scope;
 }
 
 Node* GraphCompiler::BuildArrayRemoveAt(const VisualNode& n)

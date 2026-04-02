@@ -107,6 +107,7 @@ LeftPanel::LeftPanel()
         NodeType::Loop,
         NodeType::ForEach,
         NodeType::ArrayAddAt,
+        NodeType::ArrayReplaceAt,
         NodeType::ArrayRemoveAt,
         NodeType::While,
         NodeType::Output
@@ -226,6 +227,7 @@ void LeftPanel::draw(bool hasStartNode)
             case NodeType::Loop:
             case NodeType::ForEach:
             case NodeType::ArrayAddAt:
+            case NodeType::ArrayReplaceAt:
             case NodeType::ArrayRemoveAt:
             case NodeType::While:
             case NodeType::Output:

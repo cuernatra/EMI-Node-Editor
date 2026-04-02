@@ -35,6 +35,7 @@ enum class NodeType
     ForEach,     ///< Iterate over array elements
     ArrayGetAt,  ///< Read value from array by index
     ArrayAddAt,  ///< Insert value to array at index
+    ArrayReplaceAt, ///< Replace value in array at index
     ArrayRemoveAt, ///< Remove value from array at index
     ArrayLength, ///< Number of items in array
     GridNodeSchema, ///< Legacy/removed
@@ -72,6 +73,7 @@ inline const char* NodeTypeToString(NodeType t)
         case NodeType::ForEach:    return "For Each";
         case NodeType::ArrayGetAt: return "Array Get";
         case NodeType::ArrayAddAt: return "Array Add";
+        case NodeType::ArrayReplaceAt: return "Array Replace";
         case NodeType::ArrayRemoveAt: return "Array Remove";
         case NodeType::ArrayLength: return "Array Length";
         case NodeType::GridNodeSchema: return "Grid Node Schema";
@@ -131,6 +133,7 @@ inline NodeType NodeTypeFromString(const std::string& s)
     if (norm == "ForEach")       return NodeType::ForEach;
     if (norm == "ArrayGet")      return NodeType::ArrayGetAt;
     if (norm == "ArrayAdd")      return NodeType::ArrayAddAt;
+    if (norm == "ArrayReplace")  return NodeType::ArrayReplaceAt;
     if (norm == "ArrayRemove")   return NodeType::ArrayRemoveAt;
     if (norm == "ArrayLength")   return NodeType::ArrayLength;
     if (norm == "ArrayCount")    return NodeType::ArrayLength;

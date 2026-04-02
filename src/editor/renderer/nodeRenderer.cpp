@@ -256,6 +256,53 @@ std::vector<std::string> ParseArrayItemsForNodeView(const std::string& text)
 }
 
 static std::unordered_map<ImGuiID, bool> s_nodeArrayOpenState;
+static std::unordered_map<std::string, int> s_arrayItemCountCache;
+static std::unordered_map<std::string, std::vector<std::string>> s_structFieldNameCache;
+
+int GetArrayItemCountCached(const std::string& text)
+{
+    auto it = s_arrayItemCountCache.find(text);
+    if (it != s_arrayItemCountCache.end())
+        return it->second;
+
+    const int count = static_cast<int>(ParseArrayItemsForNodeView(text).size());
+    s_arrayItemCountCache[text] = count;
+    return count;
+}
+
+const std::vector<std::string>& GetStructFieldNamesCached(const std::string& schemaText)
+{
+    auto it = s_structFieldNameCache.find(schemaText);
+    if (it != s_structFieldNameCache.end())
+        return it->second;
+
+    std::vector<std::string> names;
+    const std::vector<std::string> defs = ParseArrayItemsForNodeView(schemaText);
+    for (std::string raw : defs)
+    {
+        raw = TrimArrayToken(raw);
+        if (raw.size() >= 2
+            && ((raw.front() == '"' && raw.back() == '"')
+                || (raw.front() == '\'' && raw.back() == '\'')))
+        {
+            raw = raw.substr(1, raw.size() - 2);
+        }
+
+        const size_t sep = raw.find(':');
+        const std::string name = TrimArrayToken(
+            (sep == std::string::npos) ? raw : raw.substr(0, sep)
+        );
+
+        if (!name.empty()
+            && std::find(names.begin(), names.end(), name) == names.end())
+        {
+            names.push_back(name);
+        }
+    }
+
+    auto [insertedIt, _] = s_structFieldNameCache.emplace(schemaText, std::move(names));
+    return insertedIt->second;
+}
 }
 
 static bool NodePopupComboDynamic(const char* id,
@@ -364,8 +411,8 @@ float MeasureFieldWidth(const VisualNode& node, const NodeField& field)
     // Keep Constant node compact in graph view.
     if (node.nodeType == NodeType::Constant && field.name == "Type")
     {
-        widgetWidth = 84.0f;
-        spacing = 4.0f; // tighten only the label->dropbar gap
+        widgetWidth = 88.0f;
+        spacing = 6.0f;
     }
 
     return labelWidth + spacing + widgetWidth;
@@ -473,8 +520,6 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
 bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* allNodes, const std::vector<Link>* allLinks)
 {
-    const bool compactConstantFrame = (n.nodeType == NodeType::Constant);
-
     if (!n.positioned)
     {
         ed::SetNodePosition(n.id, n.initialPos);
@@ -482,9 +527,6 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     }
 
      const float contentWidth = MeasureNodeContentWidth(n);
-
-    if (compactConstantFrame)
-        ed::PushStyleVar(ed::StyleVar_NodePadding, ImVec4(4.0f, 8.0f, 4.0f, 8.0f));
 
     ed::BeginNode(n.id);
 
@@ -524,7 +566,10 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const bool isArrayIndexNode =
         (n.nodeType == NodeType::ArrayGetAt
          || n.nodeType == NodeType::ArrayAddAt
+         || n.nodeType == NodeType::ArrayReplaceAt
          || n.nodeType == NodeType::ArrayRemoveAt);
+    const bool isArrayAddNode = (n.nodeType == NodeType::ArrayAddAt);
+    const bool isArrayReplaceNode = (n.nodeType == NodeType::ArrayReplaceAt);
     const bool isArrayLengthNode = (n.nodeType == NodeType::ArrayLength);
     const bool hasArrayInputFieldNode = (isForEachNode || isArrayIndexNode || isArrayLengthNode);
     bool drawNodeColorTextChanged = false;
@@ -722,11 +767,11 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
                 ImGui::TextUnformatted("Type");
                 if (isConstantNode)
-                    ImGui::SameLine(0.0f, 4.0f);
+                    ImGui::SameLine(0.0f, 6.0f);
                 else
                     ImGui::SameLine();
 
-                const float typeDropWidth = isConstantNode ? 84.0f : 110.0f;
+                const float typeDropWidth = isConstantNode ? 88.0f : 110.0f;
                 changed |= NodePopupComboDynamic("##TypeDropBar", field.value, kTypeItems, typeDropWidth);
                 continue;
             }
@@ -857,6 +902,56 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 continue;
             }
 
+            if ((isArrayAddNode && field.name == "Add Type")
+                || (isArrayReplaceNode && field.name == "Replace Type"))
+            {
+                static const std::vector<std::string> kAddTypeItems = {
+                    "Number", "Boolean", "String", "Array"
+                };
+
+                const bool replaceMode = isArrayReplaceNode;
+                ImGui::TextUnformatted(replaceMode ? "Replace Type" : "Add Type");
+                ImGui::SameLine();
+                const bool typeChanged = NodePopupComboDynamic(
+                    replaceMode ? "##ArrayReplaceTypeDropBar" : "##ArrayAddTypeDropBar",
+                    field.value,
+                    kAddTypeItems,
+                    110.0f
+                );
+                if (typeChanged)
+                {
+                    changed = true;
+
+                    NodeField* typedValueField = FindFieldByName(n, replaceMode ? "Replace Value" : "Add Value");
+                    if (typedValueField)
+                    {
+                        const PinType resolved = ValuePinTypeFromString(field.value, PinType::Number);
+                        typedValueField->valueType = resolved;
+
+                        if (resolved == PinType::Boolean)
+                            typedValueField->value = "false";
+                        else if (resolved == PinType::Number)
+                            typedValueField->value = "0.0";
+                        else if (resolved == PinType::String)
+                            typedValueField->value = "";
+                        else if (resolved == PinType::Array)
+                            typedValueField->value = "[]";
+                    }
+                }
+                continue;
+            }
+
+            if ((isArrayAddNode && field.name == "Add Value")
+                || (isArrayReplaceNode && field.name == "Replace Value"))
+            {
+                const bool valueConnected = isInputPinConnected("Value");
+                if (valueConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
             if (isDrawRectNode &&
                 (field.name == "X" || field.name == "Y" || field.name == "W" || field.name == "H"))
             {
@@ -919,10 +1014,10 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
             if (isStructDefineNode && field.name == "Fields")
             {
-                const std::vector<std::string> items = ParseArrayItemsForNodeView(field.value);
+                const int fieldCount = GetArrayItemCountCached(field.value);
                 ImGui::TextUnformatted("Fields");
                 ImGui::SameLine();
-                ImGui::TextDisabled("[%d]", static_cast<int>(items.size()));
+                ImGui::TextDisabled("[%d]", fieldCount);
                 continue;
             }
 
@@ -942,28 +1037,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 std::vector<std::string> selectableFields;
                 if (const NodeField* schemaField = FindFieldByName(n, "Schema Fields"))
                 {
-                    const std::vector<std::string> defs = ParseArrayItemsForNodeView(schemaField->value);
-                    for (std::string raw : defs)
-                    {
-                        raw = TrimArrayToken(raw);
-                        if (raw.size() >= 2 &&
-                            ((raw.front() == '"' && raw.back() == '"') ||
-                             (raw.front() == '\'' && raw.back() == '\'')))
-                        {
-                            raw = raw.substr(1, raw.size() - 2);
-                        }
-
-                        const size_t sep = raw.find(':');
-                        const std::string name = TrimArrayToken(
-                            (sep == std::string::npos) ? raw : raw.substr(0, sep)
-                        );
-
-                        if (!name.empty() &&
-                            std::find(selectableFields.begin(), selectableFields.end(), name) == selectableFields.end())
-                        {
-                            selectableFields.push_back(name);
-                        }
-                    }
+                    selectableFields = GetStructFieldNamesCached(schemaField->value);
                 }
 
                 if (!selectableFields.empty())
@@ -1086,9 +1160,6 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         DrawPin(pin, contentWidth, allLinks);
 
     ed::EndNode();
-
-    if (compactConstantFrame)
-        ed::PopStyleVar();
 
     return changed;
 }
