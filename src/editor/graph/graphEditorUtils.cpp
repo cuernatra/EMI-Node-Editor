@@ -295,9 +295,6 @@ bool ShouldSkipDescriptorSync(NodeType t)
         case NodeType::Variable:
         case NodeType::StructDefine:
         case NodeType::StructCreate:
-        case NodeType::StructGetField:
-        case NodeType::StructSetField:
-        case NodeType::StructDelete:
             return true; // handled by bespoke refresh passes
 
         default:
@@ -868,7 +865,12 @@ bool RefreshStructNodeLayouts(GraphState& state)
 
         const std::vector<StructFieldDef> defs = ParseStructFieldDefs(fieldsField ? fieldsField->value : "[]");
         const std::string schemaName = (nameField && !nameField->value.empty()) ? nameField->value : "test";
-        n.title = "Struct " + schemaName;
+        const std::string wantedTitle = "Struct " + schemaName;
+        if (n.title != wantedTitle)
+        {
+            n.title = wantedTitle;
+            changed = true;
+        }
 
         RemovePinsByNameExcept(n.inPins, {});
         RemovePinsByNameExcept(n.outPins, { "Schema" });
@@ -924,7 +926,12 @@ bool RefreshStructNodeLayouts(GraphState& state)
         if (n.nodeType == NodeType::StructCreate)
         {
             auto [structName, entry] = ensureSchemaFields(n, "test");
-            n.title = "Create " + structName;
+            const std::string wantedTitle = "Create " + structName;
+            if (n.title != wantedTitle)
+            {
+                n.title = wantedTitle;
+                changed = true;
+            }
 
             RemovePinsByNameExcept(n.inPins, { "Struct" });
             RemovePinsByNameExcept(n.outPins, { "Item" });
@@ -962,6 +969,11 @@ bool RefreshStructNodeLayouts(GraphState& state)
                 n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Struct", PinType::String, true));
                 changed = true;
             }
+            else if (structPin->type != PinType::String)
+            {
+                structPin->type = PinType::String;
+                changed = true;
+            }
 
             for (const StructFieldDef& def : entry.defs)
             {
@@ -978,7 +990,10 @@ bool RefreshStructNodeLayouts(GraphState& state)
                 }
 
                 NodeField* valueField = EnsureField(n.fields, def.name, def.type, DefaultValueForPinType(def.type), changed);
+                const std::string before = valueField->value;
                 NormalizeValueForPinType(def.type, valueField->value);
+                if (valueField->value != before)
+                    changed = true;
             }
 
             Pin* itemPin = FindPinByName(n.outPins, "Item");
@@ -990,124 +1005,6 @@ bool RefreshStructNodeLayouts(GraphState& state)
             else if (itemPin->type != PinType::Array)
             {
                 itemPin->type = PinType::Array;
-                changed = true;
-            }
-        }
-        else if (n.nodeType == NodeType::StructGetField)
-        {
-            auto [structName, entry] = ensureSchemaFields(n, "test");
-            NodeField* fieldField = EnsureField(n.fields, "Field", PinType::String, entry.defs.empty() ? "" : entry.defs.front().name, changed);
-            if (!entry.defs.empty())
-            {
-                const bool exists = std::any_of(entry.defs.begin(), entry.defs.end(), [&](const StructFieldDef& def){ return def.name == fieldField->value; });
-                if (!exists)
-                {
-                    fieldField->value = entry.defs.front().name;
-                    changed = true;
-                }
-            }
-
-            n.title = "Get " + structName + "." + fieldField->value;
-            RemovePinsByNameExcept(n.inPins, { "Item" });
-            RemovePinsByNameExcept(n.outPins, { "Value" });
-
-            PinType valueType = PinType::Any;
-            for (const StructFieldDef& def : entry.defs)
-                if (def.name == fieldField->value) { valueType = def.type; break; }
-
-            Pin* inPin = FindPinByName(n.inPins, "Item");
-            if (!inPin)
-            {
-                n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Item", PinType::Array, true));
-                changed = true;
-            }
-            Pin* outPin = FindPinByName(n.outPins, "Value");
-            if (!outPin)
-            {
-                n.outPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Value", valueType, false));
-                changed = true;
-            }
-            else if (outPin->type != valueType)
-            {
-                outPin->type = valueType;
-                changed = true;
-            }
-        }
-        else if (n.nodeType == NodeType::StructSetField)
-        {
-            auto [structName, entry] = ensureSchemaFields(n, "test");
-            NodeField* fieldField = EnsureField(n.fields, "Field", PinType::String, entry.defs.empty() ? "" : entry.defs.front().name, changed);
-            if (!entry.defs.empty())
-            {
-                const bool exists = std::any_of(entry.defs.begin(), entry.defs.end(), [&](const StructFieldDef& def){ return def.name == fieldField->value; });
-                if (!exists)
-                {
-                    fieldField->value = entry.defs.front().name;
-                    changed = true;
-                }
-            }
-
-            n.title = "Set " + structName + "." + fieldField->value;
-            RemovePinsByNameExcept(n.inPins, { "Item", "Value" });
-            RemovePinsByNameExcept(n.outPins, { "Out" });
-
-            PinType valueType = PinType::Any;
-            for (const StructFieldDef& def : entry.defs)
-                if (def.name == fieldField->value) { valueType = def.type; break; }
-
-            Pin* itemPin = FindPinByName(n.inPins, "Item");
-            if (!itemPin)
-            {
-                n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Item", PinType::Array, true));
-                changed = true;
-            }
-            Pin* valuePin = FindPinByName(n.inPins, "Value");
-            if (!valuePin)
-            {
-                n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Value", valueType, true));
-                changed = true;
-            }
-            else if (valuePin->type != valueType)
-            {
-                valuePin->type = valueType;
-                changed = true;
-            }
-            Pin* outPin = FindPinByName(n.outPins, "Out");
-            if (!outPin)
-            {
-                n.outPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Out", PinType::Array, false));
-                changed = true;
-            }
-            else if (outPin->type != PinType::Array)
-            {
-                outPin->type = PinType::Array;
-                changed = true;
-            }
-        }
-        else if (n.nodeType == NodeType::StructDelete)
-        {
-            n.title = "Struct Delete";
-            RemovePinsByNameExcept(n.inPins, { "In", "Array", "Id" });
-            RemovePinsByNameExcept(n.outPins, { "Out" });
-
-            EnsureField(n.fields, "Id", PinType::Number, "0", changed);
-
-            Pin* idPin = FindPinByName(n.inPins, "Id");
-            if (!idPin)
-            {
-                n.inPins.push_back(MakePin(
-                    static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                    n.id,
-                    n.nodeType,
-                    "Id",
-                    PinType::Number,
-                    true
-                ));
-                changed = true;
-            }
-            else if (idPin->type != PinType::Number)
-            {
-                idPin->type = PinType::Number;
                 changed = true;
             }
         }
