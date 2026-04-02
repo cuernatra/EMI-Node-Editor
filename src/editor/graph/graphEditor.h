@@ -115,6 +115,8 @@ private:
      */
     void DeleteLinks(ed::LinkId linkId);
 
+    void RefreshGraphAndMarkDirty();
+
 
     ed::EditorContext* m_ctx;  ///< The imgui-node-editor context
     GraphState& m_state;       ///< Reference to the graph state

@@ -220,7 +220,7 @@ static bool DrawInspectorFieldsFromDescriptor(
 		}
 	}
 
-	// Draw runtime fields not present in the descriptor (dynamic fields, legacy nodes, etc.)
+	// Draw runtime fields not present in the descriptor (dynamic fields, nodes with extra fields, etc.)
 	for (NodeField& field : node.fields)
 	{
 		if (shouldSkip(field.name))
@@ -659,10 +659,9 @@ void InspectorPanel::draw(GraphState& state, uintptr_t selectedNodeRawId)
 	{
 		GraphSerializer::ApplyConstantTypeFromFields(*selectedNode, /*resetValueOnTypeChange=*/true);
 
+		GraphEditorUtils::RefreshNodesFromRegistryDescriptors(state);
 		GraphEditorUtils::RefreshVariableNodeTypes(state);
 		GraphEditorUtils::RefreshForEachNodeLayout(state);
-		GraphEditorUtils::RefreshLoopNodeLayout(state);
-		GraphEditorUtils::RefreshDrawRectNodeLayout(state);
 		GraphEditorUtils::RefreshStructNodeLayouts(state);
 		GraphEditorUtils::SyncLinkTypesAndPruneInvalid(state);
 		state.MarkDirty();

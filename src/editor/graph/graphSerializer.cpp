@@ -47,21 +47,18 @@ static int HexToNibble(char c)
 
 static std::string DecodeFieldValue(const std::string& encoded)
 {
-    // Backward compatibility: accept older "esc:" prefix but do not require it.
-    const std::string& body = (encoded.rfind("esc:", 0) == 0) ? encoded.substr(4) : encoded;
-
-    if (body.find('%') == std::string::npos)
-        return body;
+    if (encoded.find('%') == std::string::npos)
+        return encoded;
 
     std::string out;
-    out.reserve(body.size());
+    out.reserve(encoded.size());
 
-    for (size_t i = 0; i < body.size(); ++i)
+    for (size_t i = 0; i < encoded.size(); ++i)
     {
-        if (body[i] == '%' && i + 2 < body.size())
+        if (encoded[i] == '%' && i + 2 < encoded.size())
         {
-            int hi = HexToNibble(body[i + 1]);
-            int lo = HexToNibble(body[i + 2]);
+            int hi = HexToNibble(encoded[i + 1]);
+            int lo = HexToNibble(encoded[i + 2]);
             if (hi >= 0 && lo >= 0)
             {
                 out.push_back(static_cast<char>((hi << 4) | lo));
@@ -70,7 +67,7 @@ static std::string DecodeFieldValue(const std::string& encoded)
             }
         }
 
-        out.push_back(body[i]);
+        out.push_back(encoded[i]);
     }
 
     return out;
@@ -233,7 +230,7 @@ void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n, bool resetValue
         }
         else
         {
-            // Keep backward compatibility with older/invalid values when not explicitly resetting.
+            // Normalize the current value when not explicitly resetting.
             if (targetType == PinType::Boolean)
             {
                 const bool b = ParseBoolValue(valueF->value);
@@ -278,7 +275,7 @@ void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n, bool resetValue
     else
     {
         // Keep Constant type set constrained to sane data values.
-        // Legacy/invalid values (Flow/Function/Any/unknown) are normalized to String.
+        // Invalid values (Flow/Function/Any/unknown) are normalized to String.
         typeF->value = "String";
         setTypeAndNormalize(PinType::String);
     }

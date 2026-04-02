@@ -174,17 +174,21 @@ void GraphEditor::DrawNodeCanvas()
         }
     }
 
+    RefreshGraphAndMarkDirty();
+
+    ed::End();
+}
+
+void GraphEditor::RefreshGraphAndMarkDirty()
+{
+    const bool descriptorLayoutChanged = GraphEditorUtils::RefreshNodesFromRegistryDescriptors(m_state);
     const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
-    const bool loopLayoutChanged = GraphEditorUtils::RefreshLoopNodeLayout(m_state);
     const bool forEachLayoutChanged = GraphEditorUtils::RefreshForEachNodeLayout(m_state);
-    const bool drawRectLayoutChanged = GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
     const bool structLayoutChanged = GraphEditorUtils::RefreshStructNodeLayouts(m_state);
     const bool outputInputTypesChanged = GraphEditorUtils::RefreshOutputNodeInputTypes(m_state);
     const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-    if (variableTypesChanged || loopLayoutChanged || forEachLayoutChanged || drawRectLayoutChanged || structLayoutChanged || outputInputTypesChanged || linksChanged)
+    if (descriptorLayoutChanged || variableTypesChanged || forEachLayoutChanged || structLayoutChanged || outputInputTypesChanged || linksChanged)
         m_state.MarkDirty();
-
-    ed::End();
 }
 
 void GraphEditor::DrawInspectorPanel()
@@ -377,13 +381,7 @@ void GraphEditor::CreateNewLink()
         lnk.type       = outPin->type;
         m_state.AddLink(lnk);
 
-        const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
-        const bool loopLayoutChanged = GraphEditorUtils::RefreshLoopNodeLayout(m_state);
-        const bool drawRectLayoutChanged = GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
-        const bool structLayoutChanged = GraphEditorUtils::RefreshStructNodeLayouts(m_state);
-        const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-        if (variableTypesChanged || loopLayoutChanged || drawRectLayoutChanged || structLayoutChanged || linksChanged)
-            m_state.MarkDirty();
+        RefreshGraphAndMarkDirty();
     }
 }
 
@@ -399,13 +397,7 @@ void GraphEditor::DeleteNodes(ed::NodeId nodeId)
 
     if (anyDeleted)
     {
-        const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
-        const bool loopLayoutChanged = GraphEditorUtils::RefreshLoopNodeLayout(m_state);
-        const bool drawRectLayoutChanged = GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
-        const bool structLayoutChanged = GraphEditorUtils::RefreshStructNodeLayouts(m_state);
-        const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-        if (variableTypesChanged || loopLayoutChanged || drawRectLayoutChanged || structLayoutChanged || linksChanged)
-            m_state.MarkDirty();
+        RefreshGraphAndMarkDirty();
     }
 }
 
@@ -421,11 +413,6 @@ void GraphEditor::DeleteLinks(ed::LinkId linkId)
 
     if (anyDeleted)
     {
-        const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
-        const bool loopLayoutChanged = GraphEditorUtils::RefreshLoopNodeLayout(m_state);
-        const bool drawRectLayoutChanged = GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
-        const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-        if (variableTypesChanged || loopLayoutChanged || drawRectLayoutChanged || linksChanged)
-            m_state.MarkDirty();
+        RefreshGraphAndMarkDirty();
     }
 }
