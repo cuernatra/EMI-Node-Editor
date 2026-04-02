@@ -1,5 +1,7 @@
 # AO_Emi-Visual-Programming-Tool
 
+[![CI](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/ci.yml)
+
 COMP.SE.610/620
 
 ## Build instructions
