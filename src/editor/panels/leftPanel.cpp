@@ -190,7 +190,7 @@ void LeftPanel::draw(bool hasStartNode)
     {
         PaletteItem item;
         item.type = t;
-        item.payloadTitle = NodeTypeToString(t);
+        item.payloadTitle = NodeTypeToSaveToken(t);
         item.disabled = (t == NodeType::Start && hasStartNode);
         return item;
     };
