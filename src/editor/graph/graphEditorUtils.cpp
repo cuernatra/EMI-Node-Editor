@@ -1,5 +1,6 @@
 #include "graphEditorUtils.h"
 #include "core/graph/link.h"
+#include "core/registry/nodeRegistry.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -257,6 +258,195 @@ const Pin* FindIncomingPinSource(const GraphState& state, const std::vector<Link
     }
     return nullptr;
 }
+
+bool IsPinLinked(const GraphState& state, ed::PinId pinId)
+{
+    for (const Link& l : state.GetLinks())
+    {
+        if (!l.alive)
+            continue;
+        if (l.startPinId == pinId || l.endPinId == pinId)
+            return true;
+    }
+    return false;
+}
+
+enum class DescriptorSyncMode
+{
+    EnsureOnly,         // Ensure descriptor pins exist; keep extras.
+    PruneUnlinkedExtras // Ensure descriptor pins exist; drop extra pins if they are unlinked.
+};
+
+DescriptorSyncMode DescriptorSyncModeForNodeType(NodeType t)
+{
+    switch (t)
+    {
+        case NodeType::Sequence:
+            return DescriptorSyncMode::EnsureOnly; // expandable Then pins
+        default:
+            return DescriptorSyncMode::PruneUnlinkedExtras;
+    }
+}
+
+bool ShouldSkipDescriptorSync(NodeType t)
+{
+    switch (t)
+    {
+        case NodeType::Variable:
+        case NodeType::StructDefine:
+        case NodeType::StructCreate:
+        case NodeType::StructGetField:
+        case NodeType::StructSetField:
+        case NodeType::StructDelete:
+            return true; // handled by bespoke refresh passes
+
+        default:
+            return false;
+    }
+}
+
+bool SyncPinsToDescriptor(GraphState& state,
+                         VisualNode& node,
+                         const NodeDescriptor& desc,
+                         bool isInput,
+                         std::vector<Pin>& pins,
+                         DescriptorSyncMode mode,
+                         bool& changed)
+{
+    std::vector<Pin> newPins;
+    newPins.reserve(pins.size());
+
+    std::vector<ed::PinId> usedIds;
+    usedIds.reserve(pins.size());
+
+    for (const PinDescriptor& pd : desc.pins)
+    {
+        if (pd.isInput != isInput)
+            continue;
+
+        Pin* existing = GraphEditorUtils::FindPinByName(pins, pd.name.c_str());
+        if (!existing)
+        {
+            newPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                node.id,
+                node.nodeType,
+                pd.name,
+                pd.type,
+                pd.isInput,
+                pd.isMultiInput
+            ));
+            changed = true;
+            continue;
+        }
+
+        Pin updated = *existing;
+        usedIds.push_back(updated.id);
+
+        if (updated.parentNodeId != node.id)
+        {
+            updated.parentNodeId = node.id;
+            changed = true;
+        }
+        if (updated.parentNodeType != node.nodeType)
+        {
+            updated.parentNodeType = node.nodeType;
+            changed = true;
+        }
+        if (updated.isInput != pd.isInput)
+        {
+            updated.isInput = pd.isInput;
+            changed = true;
+        }
+        if (updated.isMultiInput != pd.isMultiInput)
+        {
+            updated.isMultiInput = pd.isMultiInput;
+            changed = true;
+        }
+        if (updated.name != pd.name)
+        {
+            updated.name = pd.name;
+            changed = true;
+        }
+
+        // Avoid fighting dynamic typing:
+        // if the descriptor says Any, keep the current runtime-resolved type.
+        if (pd.type != PinType::Any && updated.type != pd.type)
+        {
+            updated.type = pd.type;
+            changed = true;
+        }
+
+        newPins.push_back(std::move(updated));
+    }
+
+    for (const Pin& oldPin : pins)
+    {
+        const bool used = std::any_of(usedIds.begin(), usedIds.end(), [&](ed::PinId id) { return id == oldPin.id; });
+        if (used)
+            continue;
+
+        if (mode == DescriptorSyncMode::EnsureOnly)
+        {
+            newPins.push_back(oldPin);
+            continue;
+        }
+
+        if (IsPinLinked(state, oldPin.id))
+        {
+            newPins.push_back(oldPin);
+            continue;
+        }
+
+        changed = true; // pruned
+    }
+
+    if (newPins.size() != pins.size())
+        changed = true;
+
+    pins = std::move(newPins);
+    return true;
+}
+
+bool SyncNodeToDescriptor(GraphState& state, VisualNode& node, const NodeDescriptor& desc)
+{
+    bool changed = false;
+
+    if (node.title != desc.label)
+    {
+        node.title = desc.label;
+        changed = true;
+    }
+
+    // Ensure descriptor fields exist and have correct types.
+    for (const FieldDescriptor& fd : desc.fields)
+    {
+        NodeField* f = GraphEditorUtils::FindField(node.fields, fd.name.c_str());
+        if (!f)
+        {
+            node.fields.push_back(NodeField{ fd.name, fd.valueType, fd.defaultValue });
+            changed = true;
+            continue;
+        }
+
+        if (f->valueType != fd.valueType)
+        {
+            f->valueType = fd.valueType;
+            f->value = fd.defaultValue;
+            changed = true;
+        }
+
+        const std::string before = f->value;
+        NormalizeValueForPinType(fd.valueType, f->value);
+        if (f->value != before)
+            changed = true;
+    }
+
+    const DescriptorSyncMode mode = DescriptorSyncModeForNodeType(node.nodeType);
+    SyncPinsToDescriptor(state, node, desc, /*isInput=*/true, node.inPins, mode, changed);
+    SyncPinsToDescriptor(state, node, desc, /*isInput=*/false, node.outPins, mode, changed);
+    return changed;
+}
 }
 
 namespace GraphEditorUtils
@@ -319,12 +509,37 @@ Pin* FindPinByName(std::vector<Pin>& pins, const char* name)
     return nullptr;
 }
 
+bool RefreshNodesFromRegistryDescriptors(GraphState& state)
+{
+    bool changed = false;
+    auto& nodes = state.GetNodes();
+
+    for (auto& n : nodes)
+    {
+        if (!n.alive)
+            continue;
+
+        if (ShouldSkipDescriptorSync(n.nodeType))
+            continue;
+
+        const NodeDescriptor* desc = NodeRegistry::Get().Find(n.nodeType);
+        if (!desc)
+            continue;
+
+        changed |= SyncNodeToDescriptor(state, n, *desc);
+    }
+
+    return changed;
+}
+
 bool RefreshVariableNodeTypes(GraphState& state)
 {
     bool changed = false;
 
     auto& nodes = state.GetNodes();
     const auto& links = state.GetLinks();
+
+    const NodeDescriptor* variableDesc = NodeRegistry::Get().Find(NodeType::Variable);
 
     struct VariableDef
     {
@@ -353,86 +568,34 @@ bool RefreshVariableNodeTypes(GraphState& state)
             changed = true;
         }
 
-        if (n.title != "Set Variable")
+        // Use registry descriptor to keep the Set-variable pin layout stable.
+        if (variableDesc)
         {
-            n.title = "Set Variable";
-            changed = true;
-        }
+            if (n.title != variableDesc->label)
+            {
+                n.title = variableDesc->label;
+                changed = true;
+            }
 
-        Pin* flowInPin = FindPinByName(n.inPins, "In");
-        if (!flowInPin)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "In",
-                PinType::Flow,
-                true
-            ));
-            flowInPin = &n.inPins.back();
-            changed = true;
-        }
-        else if (flowInPin->type != PinType::Flow)
-        {
-            flowInPin->type = PinType::Flow;
-            changed = true;
+            bool pinsChanged = false;
+            const DescriptorSyncMode mode = DescriptorSyncModeForNodeType(NodeType::Variable);
+            SyncPinsToDescriptor(state, n, *variableDesc, /*isInput=*/true, n.inPins, mode, pinsChanged);
+            SyncPinsToDescriptor(state, n, *variableDesc, /*isInput=*/false, n.outPins, mode, pinsChanged);
+            if (pinsChanged)
+                changed = true;
         }
 
         Pin* setPin = FindPinByName(n.inPins, "Default");
-        if (!setPin)
-            setPin = FindPinByName(n.inPins, "Set");
-        if (!setPin)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Default",
-                PinType::Any,
-                true
-            ));
-            setPin = &n.inPins.back();
-            changed = true;
-        }
-        else if (setPin->name != "Default")
-        {
-            setPin->name = "Default";
-            changed = true;
-        }
-
-        Pin* flowOutPin = FindPinByName(n.outPins, "Out");
-        if (!flowOutPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Out",
-                PinType::Flow,
-                false
-            ));
-            flowOutPin = &n.outPins.back();
-            changed = true;
-        }
-        else if (flowOutPin->type != PinType::Flow)
-        {
-            flowOutPin->type = PinType::Flow;
-            changed = true;
-        }
-
         Pin* valuePin = FindPinByName(n.outPins, "Value");
-        if (!valuePin)
+
+        // Ensure core fields exist (do not force Default field type; it is dynamic).
+        EnsureField(n.fields, "Variant", PinType::String, "Set", changed);
+        EnsureField(n.fields, "Name", PinType::String, "myVar", changed);
+        EnsureField(n.fields, "Type", PinType::String, "Number", changed);
+        if (!defaultField)
         {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Value",
-                PinType::Any,
-                false
-            ));
-            valuePin = &n.outPins.back();
+            n.fields.push_back(NodeField{ "Default", PinType::Number, "0.0" });
+            defaultField = &n.fields.back();
             changed = true;
         }
 
@@ -642,320 +805,23 @@ bool RefreshOutputNodeInputTypes(GraphState& state)
     return changed;
 }
 
-bool RefreshLoopNodeLayout(GraphState& state)
-{
-    bool changed = false;
-
-    auto& nodes = state.GetNodes();
-
-    for (auto& n : nodes)
-    {
-        if (!n.alive || n.nodeType != NodeType::Loop)
-            continue;
-
-        if (n.title != "Loop")
-        {
-            n.title = "Loop";
-            changed = true;
-        }
-
-        const size_t inBefore = n.inPins.size();
-        RemovePinsByNameExcept(n.inPins, { "In", "Start", "Count" });
-        if (n.inPins.size() != inBefore)
-            changed = true;
-
-        const size_t outBefore = n.outPins.size();
-        RemovePinsByNameExcept(n.outPins, { "Body", "Completed", "Index" });
-        if (n.outPins.size() != outBefore)
-            changed = true;
-
-        Pin* inPin = FindPinByName(n.inPins, "In");
-        if (!inPin)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "In",
-                PinType::Flow,
-                true
-            ));
-            inPin = &n.inPins.back();
-            changed = true;
-        }
-        else if (inPin->type != PinType::Flow)
-        {
-            inPin->type = PinType::Flow;
-            changed = true;
-        }
-
-        Pin* startPin = FindPinByName(n.inPins, "Start");
-        if (!startPin)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Start",
-                PinType::Number,
-                true
-            ));
-            startPin = &n.inPins.back();
-            changed = true;
-        }
-        else if (startPin->type != PinType::Number)
-        {
-            startPin->type = PinType::Number;
-            changed = true;
-        }
-
-        Pin* countPin = FindPinByName(n.inPins, "Count");
-        if (!countPin)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Count",
-                PinType::Number,
-                true
-            ));
-            countPin = &n.inPins.back();
-            changed = true;
-        }
-        else if (countPin->type != PinType::Number)
-        {
-            countPin->type = PinType::Number;
-            changed = true;
-        }
-
-        Pin* bodyPin = FindPinByName(n.outPins, "Body");
-        if (!bodyPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Body",
-                PinType::Flow,
-                false
-            ));
-            bodyPin = &n.outPins.back();
-            changed = true;
-        }
-        else if (bodyPin->type != PinType::Flow)
-        {
-            bodyPin->type = PinType::Flow;
-            changed = true;
-        }
-
-        Pin* completedPin = FindPinByName(n.outPins, "Completed");
-        if (!completedPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Completed",
-                PinType::Flow,
-                false
-            ));
-            completedPin = &n.outPins.back();
-            changed = true;
-        }
-        else if (completedPin->type != PinType::Flow)
-        {
-            completedPin->type = PinType::Flow;
-            changed = true;
-        }
-
-        Pin* indexPin = FindPinByName(n.outPins, "Index");
-        if (!indexPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Index",
-                PinType::Number,
-                false
-            ));
-            indexPin = &n.outPins.back();
-            changed = true;
-        }
-        else if (indexPin->type != PinType::Number)
-        {
-            indexPin->type = PinType::Number;
-            changed = true;
-        }
-
-        NodeField* startField = FindField(n.fields, "Start");
-        if (!startField)
-        {
-            n.fields.push_back(NodeField{ "Start", PinType::Number, "0" });
-            startField = &n.fields.back();
-            changed = true;
-        }
-        else
-        {
-            const bool typeChanged = (startField->valueType != PinType::Number);
-            startField->valueType = PinType::Number;
-            if (typeChanged)
-                changed = true;
-
-            const std::string before = startField->value;
-            NormalizeValueForPinType(PinType::Number, startField->value);
-            if (startField->value != before)
-                changed = true;
-        }
-
-        NodeField* countField = FindField(n.fields, "Count");
-        if (!countField)
-        {
-            n.fields.push_back(NodeField{ "Count", PinType::Number, "0" });
-            countField = &n.fields.back();
-            changed = true;
-        }
-        else
-        {
-            const bool typeChanged = (countField->valueType != PinType::Number);
-            countField->valueType = PinType::Number;
-            if (typeChanged)
-                changed = true;
-
-            const std::string before = countField->value;
-            NormalizeValueForPinType(PinType::Number, countField->value);
-            if (countField->value != before)
-                changed = true;
-        }
-    }
-
-    return changed;
-}
-
 bool RefreshForEachNodeLayout(GraphState& state)
 {
     bool changed = false;
-
     auto& nodes = state.GetNodes();
 
+    const NodeDescriptor* desc = NodeRegistry::Get().Find(NodeType::ForEach);
     for (auto& n : nodes)
     {
         if (!n.alive || n.nodeType != NodeType::ForEach)
             continue;
 
-        if (n.title != "For Each")
-        {
-            n.title = "For Each";
-            changed = true;
-        }
+        if (desc)
+            changed |= SyncNodeToDescriptor(state, n, *desc);
 
-        const size_t inBefore = n.inPins.size();
-        RemovePinsByNameExcept(n.inPins, { "In", "Array" });
-        if (n.inPins.size() != inBefore)
-            changed = true;
-
-        const size_t outBefore = n.outPins.size();
-        RemovePinsByNameExcept(n.outPins, { "Body", "Completed", "Element" });
-        if (n.outPins.size() != outBefore)
-            changed = true;
-
-        Pin* inPin = FindPinByName(n.inPins, "In");
-        if (!inPin)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "In",
-                PinType::Flow,
-                true
-            ));
-            inPin = &n.inPins.back();
-            changed = true;
-        }
-        else if (inPin->type != PinType::Flow)
-        {
-            inPin->type = PinType::Flow;
-            changed = true;
-        }
-
-        Pin* arrayPin = FindPinByName(n.inPins, "Array");
-        if (!arrayPin)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Array",
-                PinType::Array,
-                true
-            ));
-            arrayPin = &n.inPins.back();
-            changed = true;
-        }
-        else if (arrayPin->type != PinType::Array)
-        {
-            arrayPin->type = PinType::Array;
-            changed = true;
-        }
-
-        Pin* bodyPin = FindPinByName(n.outPins, "Body");
-        if (!bodyPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Body",
-                PinType::Flow,
-                false
-            ));
-            bodyPin = &n.outPins.back();
-            changed = true;
-        }
-        else if (bodyPin->type != PinType::Flow)
-        {
-            bodyPin->type = PinType::Flow;
-            changed = true;
-        }
-
-        Pin* completedPin = FindPinByName(n.outPins, "Completed");
-        if (!completedPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Completed",
-                PinType::Flow,
-                false
-            ));
-            completedPin = &n.outPins.back();
-            changed = true;
-        }
-        else if (completedPin->type != PinType::Flow)
-        {
-            completedPin->type = PinType::Flow;
-            changed = true;
-        }
-
-        Pin* elementPin = FindPinByName(n.outPins, "Element");
         NodeField* elementTypeField = FindField(n.fields, "Element Type");
-        if (!elementTypeField)
+        if (elementTypeField)
         {
-            n.fields.push_back(NodeField{ "Element Type", PinType::String, "Any" });
-            elementTypeField = &n.fields.back();
-            changed = true;
-        }
-        else
-        {
-            if (elementTypeField->valueType != PinType::String)
-            {
-                elementTypeField->valueType = PinType::String;
-                changed = true;
-            }
-
             const PinType parsedType = ValuePinTypeFromString(elementTypeField->value, PinType::Number);
             const std::string normalized = ValuePinTypeToString(parsedType);
             if (elementTypeField->value != normalized)
@@ -963,120 +829,16 @@ bool RefreshForEachNodeLayout(GraphState& state)
                 elementTypeField->value = normalized;
                 changed = true;
             }
-        }
 
-        const PinType elementType = ValuePinTypeFromString(elementTypeField ? elementTypeField->value : "Any", PinType::Number);
-        if (!elementPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Element",
-                elementType,
-                false
-            ));
-            elementPin = &n.outPins.back();
-            changed = true;
-        }
-        else if (elementPin->type != elementType)
-        {
-            elementPin->type = elementType;
-            changed = true;
-        }
-
-        NodeField* arrayField = FindField(n.fields, "Array");
-        if (!arrayField)
-        {
-            n.fields.push_back(NodeField{ "Array", PinType::Array, "[]" });
-            changed = true;
-        }
-        else
-        {
-            if (arrayField->valueType != PinType::Array)
+            const PinType elementType = ValuePinTypeFromString(elementTypeField->value, PinType::Number);
+            if (Pin* elementPin = FindPinByName(n.outPins, "Element"))
             {
-                arrayField->valueType = PinType::Array;
-                changed = true;
+                if (elementPin->type != elementType)
+                {
+                    elementPin->type = elementType;
+                    changed = true;
+                }
             }
-
-            const std::string before = arrayField->value;
-            NormalizeValueForPinType(PinType::Array, arrayField->value);
-            if (arrayField->value != before)
-                changed = true;
-        }
-    }
-
-    return changed;
-}
-
-bool RefreshDrawRectNodeLayout(GraphState& state)
-{
-    bool changed = false;
-
-    auto& nodes = state.GetNodes();
-    for (auto& n : nodes)
-    {
-        if (!n.alive || n.nodeType != NodeType::DrawRect)
-            continue;
-
-        const size_t inBefore = n.inPins.size();
-        RemovePinsByNameExcept(n.inPins, { "In", "X", "Y", "W", "H", "R", "G", "B" });
-        if (n.inPins.size() != inBefore)
-            changed = true;
-
-        const size_t outBefore = n.outPins.size();
-        RemovePinsByNameExcept(n.outPins, { "Out" });
-        if (n.outPins.size() != outBefore)
-            changed = true;
-
-        auto ensureInput = [&](const char* name, PinType type)
-        {
-            Pin* pin = FindPinByName(n.inPins, name);
-            if (!pin)
-            {
-                n.inPins.push_back(MakePin(
-                    static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                    n.id,
-                    n.nodeType,
-                    name,
-                    type,
-                    true
-                ));
-                changed = true;
-            }
-            else if (pin->type != type)
-            {
-                pin->type = type;
-                changed = true;
-            }
-        };
-
-        ensureInput("In", PinType::Flow);
-        ensureInput("X", PinType::Number);
-        ensureInput("Y", PinType::Number);
-        ensureInput("W", PinType::Number);
-        ensureInput("H", PinType::Number);
-        ensureInput("R", PinType::Number);
-        ensureInput("G", PinType::Number);
-        ensureInput("B", PinType::Number);
-
-        Pin* outPin = FindPinByName(n.outPins, "Out");
-        if (!outPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Out",
-                PinType::Flow,
-                false
-            ));
-            changed = true;
-        }
-        else if (outPin->type != PinType::Flow)
-        {
-            outPin->type = PinType::Flow;
-            changed = true;
         }
     }
 
@@ -1327,26 +1089,6 @@ bool RefreshStructNodeLayouts(GraphState& state)
             n.title = "Struct Delete";
             RemovePinsByNameExcept(n.inPins, { "In", "Array", "Id" });
             RemovePinsByNameExcept(n.outPins, { "Out" });
-
-            // Backward compatibility: migrate legacy "Index" field to "Id".
-            if (NodeField* legacyIndex = FindField(n.fields, "Index"))
-            {
-                NodeField* idField = FindField(n.fields, "Id");
-                if (!idField)
-                {
-                    n.fields.push_back(NodeField{ "Id", PinType::Number, legacyIndex->value });
-                    changed = true;
-                }
-
-                n.fields.erase(
-                    std::remove_if(n.fields.begin(), n.fields.end(), [](const NodeField& f)
-                    {
-                        return f.name == "Index";
-                    }),
-                    n.fields.end()
-                );
-                changed = true;
-            }
 
             EnsureField(n.fields, "Id", PinType::Number, "0", changed);
 

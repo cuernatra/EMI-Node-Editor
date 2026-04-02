@@ -714,6 +714,12 @@ Node* GraphCompiler::BuildConstant(const VisualNode& n)
     const std::string value = val ? *val : "";
     const std::string valueType = type ? *type : "";
 
+    if (valueType.empty())
+    {
+        Error("Constant node is missing required Type field");
+        return nullptr;
+    }
+
     // Prefer explicit Constant type over value auto-detection so
     // Boolean false never degrades to Number 0 in AST printout/runtime.
     if (valueType == "Boolean")
@@ -734,14 +740,8 @@ Node* GraphCompiler::BuildConstant(const VisualNode& n)
     if (valueType == "Array")
         return BuildArrayLiteralNode(value);
 
-    // Backward compatibility for old/incomplete data without Type field.
-    try { return MakeNumberNode(std::stod(value)); }
-    catch (...) {}
-
-    if (value == "true"  || value == "1") return MakeBoolNode(true);
-    if (value == "false" || value == "0") return MakeBoolNode(false);
-
-    return MakeStringNode(value);
+    Error("Invalid Constant Type: " + valueType);
+    return nullptr;
 }
 
 Node* GraphCompiler::BuildStart(const VisualNode& n)
@@ -1686,8 +1686,6 @@ Node* GraphCompiler::BuildStructDelete(const VisualNode& n)
 {
     const Pin* arrayPin = GetInputPinByName(n, "Array");
     const Pin* idPin = GetInputPinByName(n, "Id");
-    if (!idPin)
-        idPin = GetInputPinByName(n, "Index"); // backward compatibility
 
     if (!arrayPin || !idPin)
     {
@@ -1711,7 +1709,11 @@ Node* GraphCompiler::BuildStructDelete(const VisualNode& n)
     {
         const std::string* idText = GetField(n, "Id");
         if (!idText)
-            idText = GetField(n, "Index"); // backward compatibility
+        {
+            Error("Struct Delete is missing required Id field");
+            delete arrayExpr;
+            return nullptr;
+        }
 
         double idValue = 0.0;
         if (idText)
@@ -1757,7 +1759,10 @@ Node* GraphCompiler::BuildVariable(const VisualNode& n)
 
     const Pin* setInput = GetInputPinByName(n, "Default");
     if (!setInput)
-        setInput = GetInputPinByName(n, "Set"); // backward compatibility
+    {
+        Error("Variable Set node is missing required Default input pin");
+        return nullptr;
+    }
 
     if (setInput)
     {

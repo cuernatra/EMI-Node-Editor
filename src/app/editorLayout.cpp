@@ -288,7 +288,7 @@ void EditorLayout::draw()
     }
 
     // Allow overlay windows (like Inspector) to reuse graph canvas shortcuts.
-    // This keeps legacy actions (e.g. Delete selected node/link) working even
+    // This keeps standard actions (e.g. Delete selected node/link) working even
     // when the overlay currently has keyboard focus.
     m_mainEditor.handleSharedShortcuts();
 
