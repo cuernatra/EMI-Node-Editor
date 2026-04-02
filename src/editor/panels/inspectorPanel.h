@@ -13,6 +13,13 @@
 
 class GraphState;
 
+/**
+ * @brief Inspector panel for viewing and editing the selected node
+ *
+ * Displays editable fields and metadata for the currently selected node.
+ * The panel reads from and writes to graph state through the inspector UI.
+ */
+
 class InspectorPanel
 {
 public:
