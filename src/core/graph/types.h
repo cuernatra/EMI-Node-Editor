@@ -36,15 +36,15 @@ enum class NodeType
     ArrayGetAt,  ///< Read value from array by index
     ArrayAddAt,  ///< Insert value to array at index
     ArrayRemoveAt, ///< Remove value from array at index
-    GridNodeSchema, ///< Defines default grid-node struct layout/data
-    GridNodeCreate, ///< Creates one grid-node instance (struct-as-array)
-    GridNodeUpdate, ///< Returns updated grid-node instance
-    GridNodeDelete, ///< Removes grid-node instance from array by index
+    GridNodeSchema, ///< Legacy/removed
+    GridNodeCreate, ///< Legacy/removed
+    GridNodeUpdate, ///< Legacy/removed
+    GridNodeDelete, ///< Legacy/removed
     StructDefine, ///< Defines a named struct schema with custom fields
     StructCreate, ///< Creates one instance of a named struct
-    StructGetField, ///< Reads one field value from a named struct instance
-    StructSetField, ///< Writes one field value and returns updated struct instance
-    StructDelete, ///< Removes one struct instance from array by Id input
+    StructGetField, ///< Legacy/removed
+    StructSetField, ///< Legacy/removed
+    StructDelete, ///< Legacy/removed
     While,       ///< While loop
     Variable,    ///< Variable get/set
     Function,    ///< Function definition/call
@@ -131,16 +131,16 @@ inline NodeType NodeTypeFromString(const std::string& s)
     if (norm == "ArrayAdd")      return NodeType::ArrayAddAt;
     if (norm == "ArrayRemove")   return NodeType::ArrayRemoveAt;
 
-    if (norm == "GridNodeSchema") return NodeType::GridNodeSchema;
-    if (norm == "GridNodeCreate") return NodeType::GridNodeCreate;
-    if (norm == "GridNodeUpdate") return NodeType::GridNodeUpdate;
-    if (norm == "GridNodeDelete") return NodeType::GridNodeDelete;
+    if (norm == "GridNodeSchema") return NodeType::Unknown;
+    if (norm == "GridNodeCreate") return NodeType::Unknown;
+    if (norm == "GridNodeUpdate") return NodeType::Unknown;
+    if (norm == "GridNodeDelete") return NodeType::Unknown;
 
     if (norm == "StructDefine")   return NodeType::StructDefine;
     if (norm == "StructCreate")   return NodeType::StructCreate;
-    if (norm == "StructGetField") return NodeType::StructGetField;
-    if (norm == "StructSetField") return NodeType::StructSetField;
-    if (norm == "StructDelete")   return NodeType::StructDelete;
+    if (norm == "StructGetField") return NodeType::Unknown;
+    if (norm == "StructSetField") return NodeType::Unknown;
+    if (norm == "StructDelete")   return NodeType::Unknown;
 
     if (norm == "While")        return NodeType::While;
     if (norm == "Variable")     return NodeType::Variable;

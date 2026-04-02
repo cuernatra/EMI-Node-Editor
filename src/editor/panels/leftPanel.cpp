@@ -114,8 +114,6 @@ LeftPanel::LeftPanel()
         NodeType::Variable,
         NodeType::StructDefine,
         NodeType::StructCreate,
-        NodeType::StructGetField,
-        NodeType::StructSetField,
         NodeType::ArrayGetAt,
         NodeType::Operator,
         NodeType::Comparison,
@@ -129,7 +127,6 @@ LeftPanel::LeftPanel()
         NodeType::Branch,
         NodeType::Loop,
         NodeType::ForEach,
-        NodeType::StructDelete,
         NodeType::ArrayAddAt,
         NodeType::ArrayRemoveAt,
         NodeType::While,
@@ -213,8 +210,6 @@ void LeftPanel::draw(bool hasStartNode)
                 break;
 
             case NodeType::StructCreate:
-            case NodeType::StructGetField:
-            case NodeType::StructSetField:
                 structValueTypes.push_back(makeDefaultItem(t));
                 break;
 
@@ -255,10 +250,6 @@ void LeftPanel::draw(bool hasStartNode)
             case NodeType::While:
             case NodeType::Output:
                 flowTypes.push_back(makeDefaultItem(t));
-                break;
-
-            case NodeType::StructDelete:
-                structFlowTypes.push_back(makeDefaultItem(t));
                 break;
 
             default:
