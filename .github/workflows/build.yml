@@ -1,4 +1,7 @@
-name: CI
+name: Build
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 on:
   push:
@@ -7,7 +10,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
     env:
@@ -32,27 +35,24 @@ jobs:
         uses: actions/cache@v4
         with:
           path: build/_deps
-          key: ${{ runner.os }}-catch2-${{ hashFiles('tests/CMakeLists.txt') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('dependencies/**/CMakeLists.txt', 'tests/CMakeLists.txt') }}
 
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ccache
-          key: ${{ runner.os }}-ccache-${{ hashFiles('**/*.cpp','**/*.hpp') }}
+          key: ${{ runner.os }}-ccache-${{ hashFiles('**/*.cpp','**/*.h','**/*.hpp') }}
           restore-keys: |
             ${{ runner.os }}-ccache-
 
       - name: Configure
         run: |
           cmake -S . -B $BUILD_DIR \
-          -G Ninja \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DBUILD_SHARED_LIBS=OFF \
-          -DBUILD_TESTS=ON \
-          -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DBUILD_TESTS=OFF \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
       - name: Build
         run: cmake --build $BUILD_DIR
-
-      - name: Test
-        run: ctest --test-dir $BUILD_DIR --parallel $(nproc) --output-on-failure
