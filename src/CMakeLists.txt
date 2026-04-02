@@ -7,6 +7,7 @@ add_executable(emi-editor
   ui/consolePanel.cpp
   ui/consoleEmiLogger.cpp
   ui/graphPreviewPanel.cpp
+  ui/inspectorPanel.cpp
   ui/dropBar.cpp
   ui/nodePreview.cpp
   editor/mainEditor.cpp
