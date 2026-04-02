@@ -1,13 +1,12 @@
-#include "editorLayout.h"
-
-#include "ui/theme.h"
+#include "ui.h"
+#include "../ui/theme.h"
 #include <imgui-SFML.h>
 #include <algorithm>
 #include <cfloat>
 #include <cstdio>
 #include <EMI/EMI.h>
 
-EditorLayout::EditorLayout()
+Ui::Ui()
 {
     m_topPanel.setFilesystemCallback([this]() {
         m_consolePanel.addLogText("Filesystem");
@@ -57,11 +56,11 @@ EditorLayout::EditorLayout()
     m_consolePanel.addLog("Console initialized. Welcome to EMI Visual Programming Tool!");
 }
 
-EditorLayout::~EditorLayout()
+Ui::~Ui()
 {
 }
 
-void EditorLayout::draw()
+void Ui::draw()
 {   
     bool drawInspectorOverlay = false;
     ImVec2 inspectorPos(0.0f, 0.0f);
@@ -345,13 +344,11 @@ void EditorLayout::draw()
                 ImGui::AlignTextToFramePadding();
                 ImGui::TextUnformatted(label);
                 ImGui::SameLine();
-
                 ImGui::PushStyleColor(ImGuiCol_FrameBg, colors::surface);
                 ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, colors::elevated);
                 ImGui::PushStyleColor(ImGuiCol_FrameBgActive, colors::background);
                 ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(colors::textSecondary.x, colors::textSecondary.y, colors::textSecondary.z, 0.35f));
-                ImGui::PushStyleColor(ImGuiCol_SliderGrab, colors::transparent);
-                ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, colors::transparent);
+
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 10.0f));
                 ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 16.0f);
                 ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
@@ -388,10 +385,10 @@ void EditorLayout::draw()
             ImGui::TextUnformatted("Grid background");
 
             bool gridBgChanged = false;
-            gridBgChanged |= drawColorChannelSlider("grid_bg_r", "RED", gridBgColor.x);
-            gridBgChanged |= drawColorChannelSlider("grid_bg_g", "GREEN", gridBgColor.y);
-            gridBgChanged |= drawColorChannelSlider("grid_bg_b", "BLUE", gridBgColor.z);
-            gridBgChanged |= drawColorChannelSlider("grid_bg_a", "ALPHA", gridBgColor.w);
+            gridBgChanged |= drawColorChannelSlider("grid_bg_r", "R", gridBgColor.x);
+            gridBgChanged |= drawColorChannelSlider("grid_bg_g", "G", gridBgColor.y);
+            gridBgChanged |= drawColorChannelSlider("grid_bg_b", "B", gridBgColor.z);
+            gridBgChanged |= drawColorChannelSlider("grid_bg_a", "A", gridBgColor.w);
 
             if (gridBgChanged)
             {
@@ -416,10 +413,10 @@ void EditorLayout::draw()
             ImGui::TextUnformatted("Grid lines");
 
             bool gridLineChanged = false;
-            gridLineChanged |= drawColorChannelSlider("grid_line_r", "RED", gridLineColor.x);
-            gridLineChanged |= drawColorChannelSlider("grid_line_g", "GREEN", gridLineColor.y);
-            gridLineChanged |= drawColorChannelSlider("grid_line_b", "BLUE", gridLineColor.z);
-            gridLineChanged |= drawColorChannelSlider("grid_line_a", "ALPHA", gridLineColor.w);
+            gridLineChanged |= drawColorChannelSlider("grid_line_r", "R", gridLineColor.x);
+            gridLineChanged |= drawColorChannelSlider("grid_line_g", "G", gridLineColor.y);
+            gridLineChanged |= drawColorChannelSlider("grid_line_b", "B", gridLineColor.z);
+            gridLineChanged |= drawColorChannelSlider("grid_line_a", "A", gridLineColor.w);
 
             if (gridLineChanged)
             {
@@ -444,7 +441,7 @@ void EditorLayout::draw()
     m_graphPreviewPanel.update(m_mainEditor.getGraphState());
 }
 
-void EditorLayout::DrawSplitter(float totalWidth, float thickness, float minLeft, float minRight)
+void Ui::DrawSplitter(float totalWidth, float thickness, float minLeft, float minRight)
 {   
     ImGui::InvisibleButton(
         "splitter",
@@ -470,7 +467,7 @@ void EditorLayout::DrawSplitter(float totalWidth, float thickness, float minLeft
     }
 }
 
-void EditorLayout::DrawConsoleSplitter(float width, float thickness, float minMain, float minConsole, float availableHeight)
+void Ui::DrawConsoleSplitter(float width, float thickness, float minMain, float minConsole, float availableHeight)
 {
     ImGui::InvisibleButton("console_splitter", ImVec2(width, thickness));
 
