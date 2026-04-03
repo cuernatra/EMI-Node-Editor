@@ -16,13 +16,27 @@ add_executable(tests
     test_graph_state.cpp
     test_settings_placeholder.cpp
     test_serializer_placeholder.cpp
+    test_graph_compiler.cpp
     ../src/editor/graph/graphState.cpp
     ../src/editor/settings.cpp
+    ../src/core/compiler/graphCompiler.cpp
+    ../src/core/compiler/pinResolver.cpp
+    ../src/core/registry/nodeFactory.cpp
+    ../src/core/registry/nodeRegistry.cpp
+    ../src/core/registry/nodes/dataNodes.cpp
+    ../src/core/registry/nodes/eventNodes.cpp
+    ../src/core/registry/nodes/flowNodes.cpp
+    ../src/core/registry/nodes/logicNodes.cpp
+    ../src/core/registry/nodes/structNodes.cpp
+    ../src/core/graph/pin.cpp
 )
 
 target_include_directories(tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/dependencies/imgui-node-editor
+    ${CMAKE_SOURCE_DIR}/EMI-Script/EMI-Script-master/src
+    ${CMAKE_SOURCE_DIR}/EMI-Script/EMI-Script-master/include
+    ${CMAKE_BINARY_DIR}/_deps/unordered_dense-src/include
     ${CMAKE_BINARY_DIR}/_deps/imgui-src
 )
 

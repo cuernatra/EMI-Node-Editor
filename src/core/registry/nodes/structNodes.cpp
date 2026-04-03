@@ -1,31 +1,5 @@
 #include "../nodeRegistry.h"
-#include "../../compiler/graphCompiler.h"
-#include "../../graph/visualNode.h"
-
-namespace
-{
-bool PopulateExactPinsAndFields(VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds)
-{
-    if (pinIds.size() != desc.pins.size())
-        return false;
-
-    size_t pinIndex = 0;
-    for (const PinDescriptor& pd : desc.pins)
-    {
-        const uint32_t pinId = static_cast<uint32_t>(pinIds[pinIndex++]);
-        Pin p = MakePin(pinId, n.id, desc.type, pd.name, pd.type, pd.isInput, pd.isMultiInput);
-        if (pd.isInput)
-            n.inPins.push_back(p);
-        else
-            n.outPins.push_back(p);
-    }
-
-    for (const FieldDescriptor& fd : desc.fields)
-        n.fields.push_back(MakeNodeField(fd));
-
-    return true;
-}
-}
+#include "nodeCompileHelpers.h"
 
 void NodeRegistry::RegisterStructNodes()
 {
@@ -39,7 +13,11 @@ void NodeRegistry::RegisterStructNodes()
             { "Struct Name", PinType::String, "test" },
             { "Fields", PinType::Array, "[\"id:Number\", \"type:String\"]" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStructDefine(n); },
+        [](GraphCompiler* compiler, const VisualNode& n) -> Node*
+        {
+            const std::string* fields = FindField(n, "Fields");
+            return compiler->BuildArrayLiteralNode(fields ? *fields : "[]");
+        },
         nullptr,
         "Structs"
     });
@@ -56,7 +34,7 @@ void NodeRegistry::RegisterStructNodes()
             { "Struct Name", PinType::String, "test" },
             { "Schema Fields", PinType::Array, "[]" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStructCreate(n); },
+        [](GraphCompiler* compiler, const VisualNode& n) { return BuildStructCreateNode(compiler, n); },
         [](VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds) -> bool {
             if (pinIds.size() == desc.pins.size())
                 return PopulateExactPinsAndFields(n, desc, pinIds);

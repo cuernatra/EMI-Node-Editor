@@ -3,66 +3,238 @@
 
 ## Principles
 
-- Keep logic and UI separate.
-- `src/core` should not contain ImGui UI rendering.
-- Theme values (colors/fonts) live in `src/ui` (do not hardcode UI colors in random files).
+- Keep the code that does work separate from the code that draws the screen.
+- `src/core` should not draw ImGui UI.
+- Colors and fonts live in `src/ui`. Do not hardcode UI colors in random files.
 
 ## High-level architecture
 
 - `src/core/`
-  - Owns the graph model and compilation logic.
+  - Holds the graph data and the code that turns graphs into executable form.
   - Main parts:
-    - `core/graph/`: graph data types (nodes, pins, links, ids)
-    - `core/registry/`: node type definitions (descriptors) + node factory
-    - `core/compiler/`: graph → EMI-Script AST compilation
+    - `core/graph/`: graph data like nodes, pins, links, and ids
+    - `core/registry/`: node definitions and node creation helpers
+    - `core/compiler/`: turns a graph into EMI-Script AST code
+
+Core file ownership boundaries:
+- `core/graph/types.h`: shared node and pin type lists.
+- `core/graph/visualNode.h`: runtime state for one node on the graph.
+- `core/registry/nodeDescriptor.h`: the node recipe, including pins, fields, and compile logic.
+- `core/registry/nodeRegistry.*`: looks up node recipes by type or token.
+- `core/registry/nodeFactory.*`: builds live `VisualNode` objects from recipes.
 
 - `src/editor/`
-  - Owns editor state + all UI rendering.
+  - Holds editor state and all screen drawing.
   - Main parts:
-    - `editor/graph/`: editor-side graph state, serialization, and compile bridge
-    - `editor/panels/`: ImGui panels (left palette, top bar, console, inspector, preview)
-    - `editor/renderer/`: ImGui + node-editor rendering (nodes, pins, links, field widgets)
-    - `editor/widgets/`: small shared UI widgets (example: node preview)
+    - `editor/graph/`: editor graph state, save/load, and compile bridge
+    - `editor/panels/`: the side panels, top bar, console, inspector, and preview
+    - `editor/renderer/`: drawing for nodes, pins, links, and field controls
+    - `editor/widgets/`: small shared UI pieces, like the node preview
 
 - `src/app/`
-  - Application shell: SFML window loop + top-level layout.
-  - `app/app.*`: main loop, ImGui-SFML init, per-frame draw
-  - `app/editorLayout.*`: layout compositor that places panels + main editor
+  - Application shell: SFML window loop and top-level layout.
+  - `app/app.*`: main loop, ImGui-SFML setup, and frame drawing
+  - `app/editorLayout.*`: places the panels and the main editor area
 
 - `src/ui/`
-  - Theme tokens only (colors, shared fonts). No panels/widgets.
+  - Theme values only, like colors and shared fonts. No panels or widgets.
 
-## How to add a new node (short checklist)
+## Node authoring policy
 
-1) Must: add a new `NodeType`
-   - File: `src/core/graph/types.h`
+For most node changes, the main work happens in `src/core/registry/nodes/`.
 
-2) Must: register the node type (this makes it appear in the editor)
-   - File: `src/core/registry/nodeRegistry.cpp`
-   - Add a `NodeDescriptor` entry:
-     - `label` (title shown in the node header)
-     - `pins` (name/type/input-output)
-     - `fields` (editable values stored as strings)
-     - compile callback (usually `compiler->BuildYourNode(n)`)
+- Add or remove `NodeType` values in `src/core/graph/types.h`.
+- Add or remove node recipes and compile code in the category files under `src/core/registry/nodes/`.
+- Reuse the shared helpers in `src/core/registry/nodes/nodeCompileHelpers.h`.
+- Do not add new node-specific `GraphCompiler::BuildX` methods.
 
-3) Optional: special-case node creation
-   - Usually nothing to do: `src/core/registry/nodeFactory.*` creates pins/fields from the descriptor.
-   - Only needed for dynamic pin layouts (variable pin count, schema-driven pins, etc.).
+`src/core/registry/nodeRegistry.*` is shared support code, not a normal per-node edit target.
 
-4) Must (to compile): implement compilation
-   - Files:
-     - `src/core/compiler/graphCompiler.h` (declare `BuildYourNode`)
-     - `src/core/compiler/graphCompiler.cpp` (implement `BuildYourNode`)
+`src/core/compiler/graphCompiler.*` should only change when the compiler itself needs a new ability, not for routine node add/remove work.
 
-5) Optional: custom UI behavior
-   - File: `src/editor/renderer/nodeRenderer.cpp`
-   - Most nodes “just work” because pins/fields come from the descriptor.
-   - Add code here only if you need a custom widget/behavior.
+## Plain language node guide
 
-Notes:
-- The left palette auto-enumerates all registered node descriptors.
-  You do not manually add nodes to the palette.
-  Unknown/unclassified nodes end up under the “More” section.
+- For a normal node change, you usually edit two files.
+- The usual files are `src/core/graph/types.h` and one file in `src/core/registry/nodes/`.
+- If you want the node to keep the same saved name, set `saveToken` in the node recipe. If you do not set it, the program makes one for you.
+- To add a node, give it a type, add it to the right category file, write the compile code there, then build and test.
+- To remove a node, delete its recipe and remove its type.
+- Keep the inspector drop-downs simple. Do not use the node-canvas popup helper there, because it can crash outside the canvas.
+- For array values in the inspector, use the normal inspector controls or plain text editing. Do not use the node-editor popup helper there.
+- If a node looks wrong after a change, rebuild the app and run the tests before changing more code.
+
+## Where to put a node
+
+- `src/core/registry/nodes/eventNodes.cpp`: start and event-style nodes
+- `src/core/registry/nodes/dataNodes.cpp`: constants, variables, arrays, and output
+- `src/core/registry/nodes/logicNodes.cpp`: math, comparison, and boolean logic
+- `src/core/registry/nodes/flowNodes.cpp`: delay, sequence, branch, loop, foreach, and while
+- `src/core/registry/nodes/structNodes.cpp`: struct define and struct create
+
+## Create node: simple path
+
+Use this when node compile logic is a direct expression/call/indexer using existing helpers.
+
+1) Add enum
+- File: `src/core/graph/types.h`
+- Add a new `NodeType` value.
+
+2) Decide category file
+- Event-like: `src/core/registry/nodes/eventNodes.cpp`
+- Data/value: `src/core/registry/nodes/dataNodes.cpp`
+- Logic/comparison: `src/core/registry/nodes/logicNodes.cpp`
+- Flow/control: `src/core/registry/nodes/flowNodes.cpp`
+- Struct/schema: `src/core/registry/nodes/structNodes.cpp`
+
+3) Register descriptor in that file
+- File: one of `src/core/registry/nodes/*.cpp`
+- Add `Register({ ... })` entry with:
+  - `type`
+  - `label`
+  - `pins`
+  - `fields`
+  - compile lambda
+  - deserialize lambda (`nullptr` unless needed)
+  - `category`
+  - optional `paletteVariants`
+
+4) Write compile lambda in the descriptor
+- Prefer helpers from `nodeCompileHelpers.h`:
+  - `FindInputPin`, `FindField`
+  - `BuildNumberInput`, `BuildArrayInput`, `BuildOutputValue`, etc.
+  - `MakeNumberLiteral`, `MakeBoolLiteral`, `MakeStringLiteral`
+- Use the compiler's built-in helpers instead of new node-specific compiler methods:
+  - `EmitBinaryOp`
+  - `EmitUnaryOp`
+  - `EmitFunctionCall`
+  - `EmitIndexer`
+  - `BuildExpr`
+
+5) Configure node UI in descriptor fields (automated)
+- `FieldDescriptor` can include a list of choices for drop-downs.
+- If you set `options`, the node body and inspector show a combo box automatically.
+- If a field has the same name as an input pin, the inspector handles read-only behavior automatically when that pin is connected.
+- This means most node UI behavior lives in `src/core/registry/nodes/*.cpp` without changing editor renderer files.
+
+6) Set a stable save token
+- File: same descriptor block
+- Set `saveToken` when label may change or has spaces.
+- If omitted, the registry derives a default token automatically.
+
+7) Validate
+- Build and run tests.
+- Check that the node appears in the left palette and can be dragged into the graph.
+- Save the graph, reload it, and confirm the node comes back correctly.
+
+Files you usually should NOT edit for normal node creation:
+- `src/core/compiler/graphCompiler.*`
+- `src/core/registry/nodeFactory.*`
+- `src/editor/renderer/nodeRenderer.cpp`
+- `src/editor/panels/leftPanel.cpp`
+
+Simple compile lambda pattern:
+
+```cpp
+[](GraphCompiler* compiler, const VisualNode& n) -> Node*
+{
+    const Pin* a = FindInputPin(n, "A");
+    const Pin* b = FindInputPin(n, "B");
+    if (!a || !b)
+    {
+        compiler->Error("MyNode needs A and B");
+        return nullptr;
+    }
+
+    Node* lhs = BuildNumberInput(compiler, n, *a, "A");
+    Node* rhs = BuildNumberInput(compiler, n, *b, "B");
+    return compiler->EmitBinaryOp(Token::Add, lhs, rhs);
+}
+```
+
+## Create node: complex path
+
+Use this when a node has changing pins, more than one palette entry, or compile output that needs several steps.
+
+### A) Dynamic pin layout (deserialize callback)
+
+Add a `deserialize` callback if the node needs to rebuild its pins from saved pin ids.
+
+- Good examples: Variable Get/Set variants, Sequence variable outputs, and Struct Create fields that come from a schema.
+- Keep `PopulateExactPinsAndFields` in the category file for the exact-match fallback path.
+
+Pattern:
+
+```cpp
+[](VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds) -> bool {
+    if (pinIds.size() == desc.pins.size())
+        return PopulateExactPinsAndFields(n, desc, pinIds);
+
+    // custom pin reconstruction...
+    return true;
+}
+```
+
+### B) Multi-statement compile output
+
+Return a `Token::Scope` and add the statement nodes to `children`.
+
+- Use this for nodes that need temporary variables and more than one compile step.
+- Keep ownership clear: if one step fails, delete the partial work and return `nullptr`.
+
+### C) Palette variants
+
+If one `NodeType` should appear more than once in the palette, use `paletteVariants` in the descriptor.
+
+```cpp
+{
+  { "Set Variable", "Variable:Set" },
+  { "Get Variable", "Variable:Get" }
+}
+```
+
+## Remove node: simple path
+
+1) Remove the node recipe from its category file under `src/core/registry/nodes/`.
+2) Remove `NodeType` enum value from `src/core/graph/types.h`.
+3) Remove any tests, sample graphs, or fixtures that still use the node.
+4) Build and run tests.
+
+## Remove node: complex path
+
+Also check and clean:
+
+- Custom pin rebuild code in the same category file.
+- Extra palette entries and any payload assumptions.
+- References in `graphSerializer` fixtures or sample graphs.
+- Any helper in `nodeCompileHelpers.h` that is no longer used.
+- Inspector or preview handling, if that node had special UI code.
+
+## Decision rule: when GraphCompiler can stay untouched
+
+You do not need to change `graphCompiler` when your new or changed node can be built with:
+
+- pin and field reads from helpers,
+- `BuildExpr` for connected inputs,
+- the existing emitters (`EmitBinaryOp`, `EmitUnaryOp`, `EmitFunctionCall`, `EmitIndexer`),
+- and optional `Token::Scope` composition.
+
+You only need to change `graphCompiler` if you add a new compiler ability, such as:
+
+- a new AST emitter,
+- flow behavior that the current builders cannot handle,
+- or a change to how the compiler resolves or walks the graph.
+
+## Quick QA checklist for node CRUD
+
+- Node appears in palette under correct category.
+- Spawn, save, reload works (token and deserialize path valid).
+- Compile succeeds with node connected and disconnected defaults.
+- Error message quality is user-facing and clear.
+- No new node-specific methods were added to `graphCompiler.h/.cpp`.
+
+Recommended local commands before PR:
+- `cmake --build build --config Debug --target emi-editor`
+- `cmake --build build --config Debug --target tests`
 
 ## Compiler + AST overview (conceptual)
 
@@ -82,8 +254,8 @@ Notes:
 
 1) Node types define how they compile
    - `src/core/registry/nodeDescriptor.h`
-   - `src/core/registry/nodeRegistry.cpp`
-   Each `NodeType` has a `NodeDescriptor`, including a compile callback like `compiler->BuildOperator(node)`.
+  - `src/core/registry/nodes/*.cpp`
+  Each `NodeType` has a `NodeDescriptor`, including a compile lambda that uses compiler primitives and shared helpers.
 
 2) `GraphCompiler` builds an AST from the visual graph
    - `src/core/compiler/graphCompiler.*`

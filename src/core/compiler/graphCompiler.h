@@ -81,44 +81,34 @@ public:
      */
     const std::string& GetError() const { return errorMsg_; }
 
-    // Implementation methods called by descriptor lambdas in nodeRegistry.cpp
-    Node* BuildConstant  (const VisualNode& n);   ///< Builds AST for Constant nodes
-    Node* BuildStart     (const VisualNode& n);   ///< Builds AST for Start event nodes
-    Node* BuildOperator  (const VisualNode& n);   ///< Builds AST for Operator nodes
-    Node* BuildComparison(const VisualNode& n);   ///< Builds AST for Comparison nodes
-    Node* BuildLogic     (const VisualNode& n);   ///< Builds AST for Logic nodes
-    Node* BuildNot       (const VisualNode& n);   ///< Builds AST for Not nodes
-    Node* BuildDrawRect  (const VisualNode& n);   ///< Preview-only node, compiles to no-op scope
-    Node* BuildDrawGrid  (const VisualNode& n);   ///< Preview-only node, compiles to no-op scope
-    Node* BuildDelay     (const VisualNode& n);   ///< Flow utility node, compiles to no-op scope
-    Node* BuildSequence  (const VisualNode& n);   ///< Builds AST for Sequence nodes
-    Node* BuildBranch    (const VisualNode& n);   ///< Builds AST for Branch nodes
-    Node* BuildLoop      (const VisualNode& n);   ///< Builds AST for Loop nodes
-    Node* BuildForEach   (const VisualNode& n);   ///< Builds AST for For Each nodes
-    Node* BuildArrayGetAt(const VisualNode& n);   ///< Builds AST for Array Get node
-    Node* BuildArrayAddAt(const VisualNode& n);   ///< Builds AST for Array Add node
-    Node* BuildArrayReplaceAt(const VisualNode& n);///< Builds AST for Array Replace node
-    Node* BuildArrayRemoveAt(const VisualNode& n);///< Builds AST for Array Remove node
-    Node* BuildArrayLength(const VisualNode& n);  ///< Builds AST for Array Length node
-    Node* BuildGridNodeSchema(const VisualNode& n); ///< Builds AST for Grid Node Schema (default struct template)
-    Node* BuildGridNodeCreate(const VisualNode& n); ///< Builds AST for Grid Node Create (new instance)
-    Node* BuildGridNodeUpdate(const VisualNode& n); ///< Builds AST for Grid Node Update (updated instance)
-    Node* BuildGridNodeDelete(const VisualNode& n); ///< Builds AST for Grid Node Delete (remove instance from array)
-    Node* BuildStructDefine(const VisualNode& n);   ///< Builds AST for named struct schema definition
-    Node* BuildStructCreate(const VisualNode& n);   ///< Builds AST for named struct instance creation
-    Node* BuildStructGetField(const VisualNode& n); ///< Builds AST for reading one field from struct
-    Node* BuildStructSetField(const VisualNode& n); ///< Builds AST for updating one field in struct
-    Node* BuildStructDelete(const VisualNode& n);   ///< Builds AST for removing struct from array by Id input
-    Node* BuildWhile     (const VisualNode& n);   ///< Builds AST for While nodes
-    Node* BuildVariable  (const VisualNode& n);   ///< Builds AST for Variable nodes
-    Node* BuildOutput    (const VisualNode& n);   ///< Builds AST for Output nodes
-    Node* BuildFunction  (const VisualNode& n);   ///< Builds AST for Function nodes
+    void Error(const std::string& msg);  ///< Records a compilation error message
 
-private:
-    PinResolver resolver_;  ///< Analyzes pin connections and resolves input sources
+    /**
+     * @brief Resolve whether an input pin is connected.
+     * @param inputPin Input pin to inspect
+     * @return PinSource when connected, or nullptr when unconnected
+     */
+    const PinSource* Resolve(const Pin& inputPin) const { return resolver_.Resolve(inputPin.id); }
+
+    /**
+     * @brief Resolve downstream flow target for a flow output pin.
+     * @param outputPin Flow output pin to inspect
+     * @return FlowTarget when connected, or nullptr when unconnected
+     */
+    const FlowTarget* ResolveFlow(const Pin& outputPin) const { return resolver_.ResolveFlow(outputPin.id); }
+
+    // Expression primitives used directly by descriptor lambdas.
+    Node* EmitBinaryOp   (Token op, Node* lhs, Node* rhs) const;
+    Node* EmitUnaryOp    (Token op, Node* operand) const;
+    Node* EmitFunctionCall(const std::string& name, std::vector<Node*> args) const;
+    Node* EmitIndexer    (Node* array, Node* index) const;
 
     Node* BuildExpr(const Pin& inputPin);        ///< Recursively builds AST expression from a pin's connected output
     Node* BuildNode(const VisualNode& n, int outPinIdx = 0);  ///< Builds AST node by looking up and invoking descriptor's compile callback
+    Node* BuildArrayLiteralNode(const std::string& text) const; ///< Parses "[a, b, ...]" text into AST array literal
+
+private:
+    PinResolver resolver_;  ///< Analyzes pin connections and resolves input sources
 
     // Flow compilation helpers (Start-rooted execution order)
     void CollectFlowReachableFromOutput(ed::PinId flowOutputPinId);
@@ -128,28 +118,13 @@ private:
     bool NodeRequiresFlow(const VisualNode& n) const;
     const VisualNode* FindFirstNode(NodeType type) const;
     const Pin* GetOutputPinByName(const VisualNode& n, const char* name) const;
-    std::string LoopIndexVarName(const VisualNode& n) const;
-    std::string LoopLastIndexVarName(const VisualNode& n) const;
-    std::string LoopStartVarName(const VisualNode& n) const;
-    std::string LoopEndVarName(const VisualNode& n) const;
-    std::string ForEachIterVarName(const VisualNode& n) const;
-    std::string ForEachElementVarName(const VisualNode& n) const;
 
     Node* MakeNode(Token t)                    const;  ///< Creates a bare AST node with the given token type
     Node* MakeNumberNode(double v)             const;  ///< Creates an AST numeric literal node
     Node* MakeBoolNode(bool v)                 const;  ///< Creates an AST boolean literal node
     Node* MakeStringNode(const std::string& s) const;  ///< Creates an AST string literal node
     Node* MakeIdNode(const std::string& name)  const;  ///< Creates an AST identifier node
-    Node* BuildArrayLiteralNode(const std::string& text) const; ///< Parses "[a, b, ...]" text into AST array literal
 
-    const std::string* GetField(const VisualNode& n, const std::string& name) const;  ///< Retrieves a field value from a visual node's data
-    const Pin* GetInputPinByName(const VisualNode& n, const char* name) const;        ///< Finds an input pin by name
-
-    static Token OperatorToken(const std::string& op);  ///< Maps operator strings (+, -, etc.) to Token enum values
-    static Token CompareToken (const std::string& op);  ///< Maps comparison strings (==, <, etc.) to Token enum values
-    static Token LogicToken   (const std::string& op);  ///< Maps logic strings (AND, OR, etc.) to Token enum values
-
-    void Error(const std::string& msg);  ///< Records a compilation error message
     std::string errorMsg_;               ///< Stores the last compilation error
 
     // Tracks nodes currently being built to detect recursive cycles.

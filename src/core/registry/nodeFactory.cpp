@@ -1,6 +1,6 @@
 #include "nodeFactory.h"
 #include "nodeRegistry.h"
-#include "fieldWidget.h"
+#include "../graph/nodeField.h"
 #include <cassert>
 #include <iostream>
 

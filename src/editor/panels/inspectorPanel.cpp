@@ -39,74 +39,10 @@ static std::string TrimCopy(const std::string& s)
 	return s.substr(a, b - a);
 }
 
-static std::vector<std::string> SplitTopLevelArrayItems(const std::string& text)
-{
-	std::string src = TrimCopy(text);
-	if (src.size() >= 2 && src.front() == '[' && src.back() == ']')
-		src = src.substr(1, src.size() - 2);
-
-	std::vector<std::string> out;
-	std::string current;
-	int bracketDepth = 0;
-	bool inQuote = false;
-	char quoteChar = '\0';
-	bool escape = false;
-
-	auto pushCurrent = [&]()
-	{
-		std::string item = TrimCopy(current);
-		if (!item.empty())
-			out.push_back(item);
-		current.clear();
-	};
-
-	for (char ch : src)
-	{
-		if (escape)
-		{
-			current.push_back(ch);
-			escape = false;
-			continue;
-		}
-
-		if (inQuote)
-		{
-			current.push_back(ch);
-			if (ch == '\\')
-				escape = true;
-			else if (ch == quoteChar)
-				inQuote = false;
-			continue;
-		}
-
-		if (ch == '"' || ch == '\'')
-		{
-			inQuote = true;
-			quoteChar = ch;
-			current.push_back(ch);
-			continue;
-		}
-
-		if (ch == '[') ++bracketDepth;
-		else if (ch == ']') bracketDepth = std::max(0, bracketDepth - 1);
-
-		if (ch == ',' && bracketDepth == 0)
-		{
-			pushCurrent();
-			continue;
-		}
-
-		current.push_back(ch);
-	}
-
-	pushCurrent();
-	return out;
-}
-
 static std::vector<InspectorStructFieldDef> ParseStructDefs(const std::string& raw)
 {
 	std::vector<InspectorStructFieldDef> defs;
-	const std::vector<std::string> items = SplitTopLevelArrayItems(raw);
+	const std::vector<std::string> items = ParseArrayItems(raw);
 	for (std::string item : items)
 	{
 		item = TrimCopy(item);
@@ -128,15 +64,11 @@ static std::vector<InspectorStructFieldDef> ParseStructDefs(const std::string& r
 
 static std::string BuildStructDefs(const std::vector<InspectorStructFieldDef>& defs)
 {
-	std::string out = "[";
+	std::vector<std::string> items;
+	items.reserve(defs.size());
 	for (size_t i = 0; i < defs.size(); ++i)
-	{
-		if (i != 0)
-			out += ", ";
-		out += "\"" + defs[i].name + ":" + defs[i].type + "\"";
-	}
-	out += "]";
-	return out;
+		items.push_back("\"" + defs[i].name + ":" + defs[i].type + "\"");
+	return BuildArrayString(items);
 }
 
 static std::vector<std::string> CollectDefinedStructNames(const GraphState& state)
@@ -545,94 +477,6 @@ void InspectorPanel::draw(GraphState& state, uintptr_t selectedNodeRawId)
 				},
 				fieldsChanged);
 
-			ImGui::PopID();
-		}
-		else if (selectedNode->nodeType == NodeType::StructGetField
-			  || selectedNode->nodeType == NodeType::StructSetField)
-		{
-			NodeField* structNameField = GraphEditorUtils::FindField(selectedNode->fields, "Struct Name");
-			const NodeField* schemaField = GraphEditorUtils::FindField(selectedNode->fields, "Schema Fields");
-			const std::vector<std::string> structNames = CollectDefinedStructNames(state);
-			const NodeDescriptor* desc = NodeRegistry::Get().Find(selectedNode->nodeType);
-
-			std::vector<std::string> fieldNames;
-			if (schemaField)
-			{
-				for (const auto& def : ParseStructDefs(schemaField->value))
-					fieldNames.push_back(def.name);
-			}
-
-			ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
-			DrawInspectorFieldsFromDescriptor(
-				state,
-				*selectedNode,
-				desc,
-				isInputPinConnectedByName,
-				/*skipNames=*/{ "Schema Fields" },
-				/*overrideDrawer=*/[&](NodeField& field) -> bool
-				{
-					if (structNameField && &field == structNameField)
-					{
-						if (!structNames.empty())
-						{
-							if (!ContainsString(structNames, structNameField->value))
-							{
-								structNameField->value = structNames.front();
-								fieldsChanged = true;
-							}
-
-							if (ImGui::BeginCombo("Struct", structNameField->value.c_str()))
-							{
-								for (const std::string& name : structNames)
-								{
-									const bool selected = (structNameField->value == name);
-									if (ImGui::Selectable(name.c_str(), selected))
-									{
-										structNameField->value = name;
-										fieldsChanged = true;
-									}
-									if (selected)
-										ImGui::SetItemDefaultFocus();
-								}
-								ImGui::EndCombo();
-							}
-						}
-						else
-						{
-							DrawFieldReadOnly(field, FieldWidgetLayout::Inspector);
-						}
-						return true;
-					}
-
-					if (field.name == "Field" && !fieldNames.empty())
-					{
-						if (!ContainsString(fieldNames, field.value))
-						{
-							field.value = fieldNames.front();
-							fieldsChanged = true;
-						}
-
-						if (ImGui::BeginCombo("Field", field.value.c_str()))
-						{
-							for (const std::string& name : fieldNames)
-							{
-								const bool selected = (field.value == name);
-								if (ImGui::Selectable(name.c_str(), selected))
-								{
-									field.value = name;
-									fieldsChanged = true;
-								}
-								if (selected)
-									ImGui::SetItemDefaultFocus();
-							}
-							ImGui::EndCombo();
-						}
-						return true;
-					}
-
-					return false;
-				},
-				fieldsChanged);
 			ImGui::PopID();
 		}
 		else if (selectedNode->nodeType == NodeType::While)

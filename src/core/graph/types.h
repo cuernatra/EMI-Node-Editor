@@ -35,15 +35,8 @@ enum class NodeType
     ArrayReplaceAt, ///< Replace value in array at index
     ArrayRemoveAt, ///< Remove value from array at index
     ArrayLength, ///< Number of items in array
-    GridNodeSchema, ///< Legacy/removed
-    GridNodeCreate, ///< Legacy/removed
-    GridNodeUpdate, ///< Legacy/removed
-    GridNodeDelete, ///< Legacy/removed
     StructDefine, ///< Defines a named struct schema with custom fields
     StructCreate, ///< Creates one instance of a named struct
-    StructGetField, ///< Legacy/removed
-    StructSetField, ///< Legacy/removed
-    StructDelete, ///< Legacy/removed
     While,       ///< While loop
     Variable,    ///< Variable get/set
     Function,    ///< Function definition/call
@@ -51,7 +44,6 @@ enum class NodeType
     Unknown      ///< Uninitialized or invalid type
 };
 
-// TODO: mitä helee??
 namespace std {
     template<>
     struct hash<NodeType>

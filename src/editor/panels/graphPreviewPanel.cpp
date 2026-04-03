@@ -105,6 +105,152 @@ const VisualNode* FindNodeById(const GraphState& state, ed::NodeId nodeId)
             return &node;
     return nullptr;
 }
+
+struct PreviewEvaluator
+{
+    const GraphState& state;
+    const std::vector<Link>& links;
+    std::unordered_set<uintptr_t> activeEvalPins;
+    std::unordered_map<uintptr_t, double> activeLoopIndices;
+
+    const VisualNode* FindNodeByPin(ed::PinId pinId) const
+    {
+        const Pin* pin = state.FindPin(pinId);
+        if (!pin)
+            return nullptr;
+        return FindNodeById(state, pin->parentNodeId);
+    }
+
+    const VisualNode* ResolveFlowTarget(ed::PinId flowOutputPinId) const
+    {
+        for (const auto& link : links)
+        {
+            if (!link.alive || link.startPinId != flowOutputPinId)
+                continue;
+
+            const Pin* endPin = state.FindPin(link.endPinId);
+            if (!endPin || endPin->type != PinType::Flow)
+                continue;
+
+            return FindNodeById(state, endPin->parentNodeId);
+        }
+
+        return nullptr;
+    }
+
+    double EvalNamedInput(const VisualNode& node, const char* name)
+    {
+        const Pin* pin = FindInputPin(node, name);
+        if (pin)
+            return EvalPin(node, *pin);
+
+        const NodeField* field = FindField(node, name);
+        double out = 0.0;
+        if (field && TryParseDouble(field->value, out))
+            return out;
+        return 0.0;
+    }
+
+    double EvalPin(const VisualNode& owner, const Pin& pin)
+    {
+        const uintptr_t evalKey = static_cast<uintptr_t>(pin.id.Get());
+        if (!activeEvalPins.insert(evalKey).second)
+            return 0.0;
+
+        struct ScopedErase
+        {
+            std::unordered_set<uintptr_t>& set;
+            uintptr_t key;
+            ~ScopedErase() { set.erase(key); }
+        } guard{ activeEvalPins, evalKey };
+
+        for (const auto& link : links)
+        {
+            if (!link.alive || link.endPinId != pin.id)
+                continue;
+
+            const VisualNode* srcNode = FindNodeByPin(link.startPinId);
+            if (!srcNode)
+                break;
+
+            switch (srcNode->nodeType)
+            {
+                case NodeType::Loop:
+                {
+                    const Pin* srcPin = state.FindPin(link.startPinId);
+                    if (srcPin && srcPin->name == "Index")
+                    {
+                        const uintptr_t loopId = static_cast<uintptr_t>(srcNode->id.Get());
+                        const auto it = activeLoopIndices.find(loopId);
+                        if (it != activeLoopIndices.end())
+                            return it->second;
+                    }
+                    return 0.0;
+                }
+
+                case NodeType::Constant:
+                {
+                    const NodeField* valueField = FindField(*srcNode, "Value");
+                    double out = 0.0;
+                    if (valueField && TryParseDouble(valueField->value, out))
+                        return out;
+                    return 0.0;
+                }
+
+                case NodeType::Operator:
+                {
+                    const NodeField* opField = FindField(*srcNode, "Op");
+                    const std::string op = opField ? opField->value : "+";
+                    const double a = EvalNamedInput(*srcNode, "A");
+                    const double b = EvalNamedInput(*srcNode, "B");
+                    if (op == "+") return a + b;
+                    if (op == "-") return a - b;
+                    if (op == "*") return a * b;
+                    if (op == "/") return std::abs(b) < 0.000001 ? 0.0 : a / b;
+                    return 0.0;
+                }
+
+                case NodeType::Comparison:
+                {
+                    const NodeField* opField = FindField(*srcNode, "Op");
+                    const std::string op = opField ? opField->value : "==";
+                    const double a = EvalNamedInput(*srcNode, "A");
+                    const double b = EvalNamedInput(*srcNode, "B");
+                    if (op == "==") return a == b ? 1.0 : 0.0;
+                    if (op == "!=") return a != b ? 1.0 : 0.0;
+                    if (op == "<")  return a < b ? 1.0 : 0.0;
+                    if (op == "<=") return a <= b ? 1.0 : 0.0;
+                    if (op == ">")  return a > b ? 1.0 : 0.0;
+                    if (op == ">=") return a >= b ? 1.0 : 0.0;
+                    return 0.0;
+                }
+
+                case NodeType::Logic:
+                {
+                    const NodeField* opField = FindField(*srcNode, "Op");
+                    const std::string op = opField ? opField->value : "AND";
+                    const bool a = EvalNamedInput(*srcNode, "A") != 0.0;
+                    const bool b = EvalNamedInput(*srcNode, "B") != 0.0;
+                    if (op == "AND") return (a && b) ? 1.0 : 0.0;
+                    if (op == "OR")  return (a || b) ? 1.0 : 0.0;
+                    return 0.0;
+                }
+
+                case NodeType::Not:
+                    return EvalNamedInput(*srcNode, "A") == 0.0 ? 1.0 : 0.0;
+
+                default:
+                    break;
+            }
+        }
+
+        const NodeField* field = FindField(owner, pin.name.c_str());
+        double out = 0.0;
+        if (field && TryParseDouble(field->value, out))
+            return out;
+        return 0.0;
+    }
+};
 }
 
 sf::VertexArray GraphPreviewPanel::BuildGrid(float width, float height, float step, const sf::Color& color, float originX, float originY)
@@ -215,149 +361,15 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
 
     const auto& nodes = state.GetNodes();
     const auto& links = state.GetLinks();
-
-    auto findNodeByPin = [&](ed::PinId pinId) -> const VisualNode*
+    PreviewEvaluator evaluator{ state, links };
+    auto evalNamedInput = [&](const VisualNode& node, const char* name) -> double
     {
-        const Pin* pin = state.FindPin(pinId);
-        if (!pin)
-            return nullptr;
-
-        return FindNodeById(state, pin->parentNodeId);
+        return evaluator.EvalNamedInput(node, name);
     };
 
     auto resolveFlowTarget = [&](ed::PinId flowOutputPinId) -> const VisualNode*
     {
-        for (const auto& link : links)
-        {
-            if (!link.alive || link.startPinId != flowOutputPinId)
-                continue;
-
-            const Pin* endPin = state.FindPin(link.endPinId);
-            if (!endPin || endPin->type != PinType::Flow)
-                continue;
-
-            return FindNodeById(state, endPin->parentNodeId);
-        }
-
-        return nullptr;
-    };
-
-    std::function<double(const VisualNode&, const Pin&)> evalPin;
-    std::function<double(const VisualNode&, const char*)> evalNamedInput;
-    std::unordered_set<uintptr_t> activeEvalPins;
-    std::unordered_map<uintptr_t, double> activeLoopIndices;
-
-    evalNamedInput = [&](const VisualNode& node, const char* name) -> double
-    {
-        const Pin* pin = FindInputPin(node, name);
-        if (pin)
-            return evalPin(node, *pin);
-
-        const NodeField* field = FindField(node, name);
-        double out = 0.0;
-        if (field && TryParseDouble(field->value, out))
-            return out;
-        return 0.0;
-    };
-
-    evalPin = [&](const VisualNode& owner, const Pin& pin) -> double
-    {
-        const uintptr_t evalKey = static_cast<uintptr_t>(pin.id.Get());
-        if (!activeEvalPins.insert(evalKey).second)
-            return 0.0;
-
-        struct ScopedErase
-        {
-            std::unordered_set<uintptr_t>& set;
-            uintptr_t key;
-            ~ScopedErase() { set.erase(key); }
-        } guard{ activeEvalPins, evalKey };
-
-        for (const auto& link : links)
-        {
-            if (!link.alive || link.endPinId != pin.id)
-                continue;
-
-            const VisualNode* srcNode = findNodeByPin(link.startPinId);
-            if (!srcNode)
-                break;
-
-            switch (srcNode->nodeType)
-            {
-                case NodeType::Loop:
-                {
-                    const Pin* srcPin = state.FindPin(link.startPinId);
-                    if (srcPin && srcPin->name == "Index")
-                    {
-                        const uintptr_t loopId = static_cast<uintptr_t>(srcNode->id.Get());
-                        const auto it = activeLoopIndices.find(loopId);
-                        if (it != activeLoopIndices.end())
-                            return it->second;
-                    }
-                    return 0.0;
-                }
-
-                case NodeType::Constant:
-                {
-                    const NodeField* valueField = FindField(*srcNode, "Value");
-                    double out = 0.0;
-                    if (valueField && TryParseDouble(valueField->value, out))
-                        return out;
-                    return 0.0;
-                }
-
-                case NodeType::Operator:
-                {
-                    const NodeField* opField = FindField(*srcNode, "Op");
-                    const std::string op = opField ? opField->value : "+";
-                    const double a = evalNamedInput(*srcNode, "A");
-                    const double b = evalNamedInput(*srcNode, "B");
-                    if (op == "+") return a + b;
-                    if (op == "-") return a - b;
-                    if (op == "*") return a * b;
-                    if (op == "/") return std::abs(b) < 0.000001 ? 0.0 : a / b;
-                    return 0.0;
-                }
-
-                case NodeType::Comparison:
-                {
-                    const NodeField* opField = FindField(*srcNode, "Op");
-                    const std::string op = opField ? opField->value : "==";
-                    const double a = evalNamedInput(*srcNode, "A");
-                    const double b = evalNamedInput(*srcNode, "B");
-                    if (op == "==") return a == b ? 1.0 : 0.0;
-                    if (op == "!=") return a != b ? 1.0 : 0.0;
-                    if (op == "<")  return a < b ? 1.0 : 0.0;
-                    if (op == "<=") return a <= b ? 1.0 : 0.0;
-                    if (op == ">")  return a > b ? 1.0 : 0.0;
-                    if (op == ">=") return a >= b ? 1.0 : 0.0;
-                    return 0.0;
-                }
-
-                case NodeType::Logic:
-                {
-                    const NodeField* opField = FindField(*srcNode, "Op");
-                    const std::string op = opField ? opField->value : "AND";
-                    const bool a = evalNamedInput(*srcNode, "A") != 0.0;
-                    const bool b = evalNamedInput(*srcNode, "B") != 0.0;
-                    if (op == "AND") return (a && b) ? 1.0 : 0.0;
-                    if (op == "OR")  return (a || b) ? 1.0 : 0.0;
-                    return 0.0;
-                }
-
-                case NodeType::Not:
-                    return evalNamedInput(*srcNode, "A") == 0.0 ? 1.0 : 0.0;
-
-                default:
-                    break;
-            }
-        }
-
-        const NodeField* field = FindField(owner, pin.name.c_str());
-        double out = 0.0;
-        if (field && TryParseDouble(field->value, out))
-            return out;
-        return 0.0;
+        return evaluator.ResolveFlowTarget(flowOutputPinId);
     };
 
     struct ScheduledCommand
@@ -430,12 +442,12 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
             {
                 for (int i = 0; i < count; ++i)
                 {
-                    activeLoopIndices[loopId] = static_cast<double>(start + i);
+                    evaluator.activeLoopIndices[loopId] = static_cast<double>(start + i);
                     appendFlowChain(bodyOut->id, loopCursor, depth + 1, activeGrid);
                 }
             }
 
-            activeLoopIndices.erase(loopId);
+            evaluator.activeLoopIndices.erase(loopId);
 
             timeCursor = loopCursor;
             if (completedOut)

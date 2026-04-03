@@ -58,7 +58,7 @@ static std::string TrimArrayToken(const std::string& s)
     return s.substr(a, b - a);
 }
 
-static std::vector<std::string> ParseArrayItems(const std::string& text)
+std::vector<std::string> ParseArrayItems(const std::string& text)
 {
     std::string src = TrimArrayToken(text);
     if (src.size() >= 2 && src.front() == '[' && src.back() == ']')
@@ -130,7 +130,7 @@ static std::vector<std::string> ParseArrayItems(const std::string& text)
     return out;
 }
 
-static std::string BuildArrayString(const std::vector<std::string>& items)
+std::string BuildArrayString(const std::vector<std::string>& items)
 {
     std::string out = "[";
     for (size_t i = 0; i < items.size(); ++i)
@@ -293,7 +293,11 @@ static void HandleShortcutToggle(const char* widgetId)
     }
 }
 
-static bool OpPopupCombo(const char* id, std::string& value, const char** items, float width = 100.0f)
+static bool OpPopupCombo(const char* id,
+                         std::string& value,
+                         const char** items,
+                         float width = 100.0f,
+                         bool suspendEditor = true)
 {
     bool changed = false;
 
@@ -325,7 +329,8 @@ static bool OpPopupCombo(const char* id, std::string& value, const char** items,
     if (open)
         ImGui::OpenPopup("##popup");
 
-    ed::Suspend();
+    if (suspendEditor)
+        ed::Suspend();
 
     ImGui::SetNextWindowPos({ImGui::GetMousePos().x, ImGui::GetMousePos().y}, ImGuiCond_Appearing);
     ImGui::SetNextWindowSizeConstraints(ImVec2(40.0f, 0.0f), ImVec2(10000.0f, 10000.0f));
@@ -351,7 +356,97 @@ static bool OpPopupCombo(const char* id, std::string& value, const char** items,
         ImGui::EndPopup();
     }
 
-    ed::Resume();
+    if (suspendEditor)
+        ed::Resume();
+
+    ImGui::PopID();
+    return changed;
+}
+
+static bool StringOptionsCombo(const char* id, std::string& value, const std::vector<std::string>& items)
+{
+    bool changed = false;
+    if (ImGui::BeginCombo(id, value.c_str()))
+    {
+        for (const std::string& item : items)
+        {
+            const bool isSelected = (value == item);
+            if (ImGui::Selectable(item.c_str(), isSelected))
+            {
+                value = item;
+                changed = true;
+            }
+            if (isSelected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndCombo();
+    }
+    HandleShortcutToggle(id);
+    return changed;
+}
+
+static bool StringOptionsPopupCombo(const char* id,
+                                    std::string& value,
+                                    const std::vector<std::string>& items,
+                                    float width = 100.0f,
+                                    bool suspendEditor = true)
+{
+    bool changed = false;
+
+    ImGui::PushID(id);
+
+    bool open = false;
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 4));
+    if (ImGui::Button(value.c_str(), ImVec2(width, 0.0f)))
+        open = true;
+
+    ImVec2 leftMin  = ImGui::GetItemRectMin();
+    ImVec2 rightMax = ImGui::GetItemRectMax();
+    ImDrawList* draw = ImGui::GetWindowDrawList();
+    float arrowX = rightMax.x - ImGui::GetFrameHeight() * 0.55f;
+    float arrowY = (leftMin.y + rightMax.y) * 0.5f;
+
+    draw->AddTriangleFilled(
+        ImVec2(arrowX - 4.0f, arrowY - 2.0f),
+        ImVec2(arrowX + 4.0f, arrowY - 2.0f),
+        ImVec2(arrowX,        arrowY + 3.0f),
+        ImGui::GetColorU32(colors::textPrimary)
+    );
+
+    ImGui::PopStyleVar();
+
+    if (open)
+        ImGui::OpenPopup("##popup");
+
+    if (suspendEditor)
+        ed::Suspend();
+
+    ImGui::SetNextWindowPos({ImGui::GetMousePos().x, ImGui::GetMousePos().y}, ImGuiCond_Appearing);
+    ImGui::SetNextWindowSizeConstraints(ImVec2(40.0f, 0.0f), ImVec2(10000.0f, 10000.0f));
+
+    if (ImGui::BeginPopup("##popup",
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_AlwaysAutoResize |
+        ImGuiWindowFlags_NoSavedSettings))
+    {
+        for (const std::string& item : items)
+        {
+            const bool selected = (value == item);
+            if (ImGui::Selectable(item.c_str(), selected))
+            {
+                value = item;
+                changed = true;
+                ImGui::CloseCurrentPopup();
+            }
+            if (selected)
+                ImGui::SetItemDefaultFocus();
+        }
+        ImGui::EndPopup();
+    }
+
+    if (suspendEditor)
+        ed::Resume();
 
     ImGui::PopID();
     return changed;
@@ -445,6 +540,22 @@ bool DrawField(NodeField& field, FieldWidgetLayout layout)
 
         case PinType::String:
         {
+            if (!field.options.empty())
+            {
+                if (layout == FieldWidgetLayout::Inspector)
+                {
+                    BeginInspectorRow(field.name.c_str());
+                    changed |= StringOptionsCombo("##options", field.value, field.options);
+                }
+                else
+                {
+                    ImGui::Text("%s", field.name.c_str());
+                    ImGui::SameLine();
+                    changed |= StringOptionsPopupCombo("##options", field.value, field.options, 100.0f, true);
+                }
+                break;
+            }
+
             if (field.name == "Op")
             {
                 if (layout == FieldWidgetLayout::Inspector)
@@ -629,7 +740,7 @@ bool DrawField(NodeField& field, FieldWidgetLayout layout)
                     std::string payload = ArrayItemPayload(items[static_cast<size_t>(i)], itemType);
 
                     std::string selectedType = ArrayItemTypeToLabel(itemType);
-                    if (OpPopupCombo("##itemType", selectedType, kArrayItemTypes, 120.0f))
+                    if (OpPopupCombo("##itemType", selectedType, kArrayItemTypes, 120.0f, layout != FieldWidgetLayout::Inspector))
                     {
                         const ArrayItemType parsedType = ArrayItemTypeFromLabel(selectedType);
                         items[static_cast<size_t>(i)] = BuildArrayItemFromPayload(parsedType, payload);
@@ -684,7 +795,7 @@ bool DrawField(NodeField& field, FieldWidgetLayout layout)
                                 std::string nestedPayload = ArrayItemPayload(nestedItems[static_cast<size_t>(ni)], nestedType);
 
                                 std::string selectedNestedType = ArrayItemTypeToLabel(nestedType);
-                                if (OpPopupCombo("##nestedType", selectedNestedType, kArrayItemTypes, 92.0f))
+                                if (OpPopupCombo("##nestedType", selectedNestedType, kArrayItemTypes, 92.0f, layout != FieldWidgetLayout::Inspector))
                                 {
                                     const ArrayItemType parsedNestedType = ArrayItemTypeFromLabel(selectedNestedType);
                                     nestedItems[static_cast<size_t>(ni)] = BuildArrayItemFromPayload(parsedNestedType, nestedPayload);

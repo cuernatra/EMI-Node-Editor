@@ -4,6 +4,7 @@
 #include "pinRenderer.h"
 
 #include "app/constants.h"
+#include "core/registry/nodeRegistry.h"
 #include "editor/nodeColorCategories.h"
 #include "editor/settings.h"
 #include "editor/graph/graphSerializer.h"
@@ -25,9 +26,9 @@ namespace ed = ax::NodeEditor;
 
 namespace
 {
-ImVec4 GetNodeCategoryHeaderColor(NodeType nodeType)
+ImVec4 GetNodeCategoryHeaderColor(const NodeDescriptor* desc)
 {
-    switch (GetNodeColorCategory(nodeType))
+    switch (GetNodeColorCategory(desc))
     {
         case NodeColorCategory::Event:
             return ImVec4(Settings::nodeHeaderEventColorR, Settings::nodeHeaderEventColorG, Settings::nodeHeaderEventColorB, Settings::nodeHeaderEventColorA);
@@ -575,11 +576,13 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const ImVec2 headerColorMin(headerDrawMin.x + headerInsetX, headerDrawMin.y + headerInsetY);
     const ImVec2 headerColorMax(headerDrawMax.x - headerInsetX, headerDrawMax.y - headerInsetY);
 
+    const NodeDescriptor* desc = NodeRegistry::Get().Find(n.nodeType);
+
     ImDrawList* drawList = ImGui::GetWindowDrawList();
     drawList->AddRectFilled(
         headerColorMin,
         headerColorMax,
-        ImGui::GetColorU32(GetNodeCategoryHeaderColor(n.nodeType)),
+        ImGui::GetColorU32(GetNodeCategoryHeaderColor(desc)),
         4.0f
     );
 
@@ -608,7 +611,6 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         (n.nodeType == NodeType::Variable && variant && *variant == "Get");
     const bool isSetVariable =
         (n.nodeType == NodeType::Variable && variant && *variant == "Set");
-    const bool isConstantNode = (n.nodeType == NodeType::Constant);
     const bool isForEachNode = (n.nodeType == NodeType::ForEach);
     const bool isLoopNode = (n.nodeType == NodeType::Loop);
     const bool isBinaryDefaultNode =
@@ -619,9 +621,6 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const bool isDrawGridNode = (n.nodeType == NodeType::DrawGrid);
     const bool isStructDefineNode = (n.nodeType == NodeType::StructDefine);
     const bool isStructCreateNode = (n.nodeType == NodeType::StructCreate);
-    const bool isStructGetNode = (n.nodeType == NodeType::StructGetField);
-    const bool isStructSetNode = (n.nodeType == NodeType::StructSetField);
-    const bool isStructDeleteNode = (n.nodeType == NodeType::StructDelete);
     const bool isArrayIndexNode =
         (n.nodeType == NodeType::ArrayGetAt
          || n.nodeType == NodeType::ArrayAddAt
@@ -683,12 +682,6 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             return true;
 
         if (isStructCreateNode && pin.name != "Struct")
-            return true;
-
-        if ((isStructGetNode || isStructSetNode) && pin.name == "Item")
-            return true;
-
-        if (isStructDeleteNode && pin.name == "Id")
             return true;
 
         if (isArrayIndexNode && pin.name == "Index")
@@ -813,56 +806,6 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 {
                     changed |= DrawField(field);
                 }
-                continue;
-            }
-
-            // Use the same popup/dropbar behavior as Get Variable node for
-            // requested nodes/fields.
-            if ((isConstantNode || isSetVariable) && field.name == "Type")
-            {
-                static const std::vector<std::string> kTypeItems = {
-                    "Number", "Boolean", "String", "Array"
-                };
-
-                ImGui::TextUnformatted("Type");
-                if (isConstantNode)
-                    ImGui::SameLine(0.0f, 6.0f);
-                else
-                    ImGui::SameLine();
-
-                const float typeDropWidth = isConstantNode ? 58.0f : 110.0f;
-                changed |= NodePopupComboDynamic("##TypeDropBar", field.value, kTypeItems, typeDropWidth);
-                continue;
-            }
-
-            if (isForEachNode && field.name == "Element Type")
-            {
-                static const std::vector<std::string> kElementTypeItems = {
-                    "Any", "Number", "Boolean", "String", "Array"
-                };
-
-                ImGui::TextUnformatted("Element Type");
-                ImGui::SameLine();
-                changed |= NodePopupComboDynamic("##ElementTypeDropBar", field.value, kElementTypeItems, 110.0f);
-                continue;
-            }
-
-            if (field.name == "Op"
-                && (n.nodeType == NodeType::Operator
-                    || n.nodeType == NodeType::Comparison
-                    || n.nodeType == NodeType::Logic))
-            {
-                std::vector<std::string> opItems;
-                if (n.nodeType == NodeType::Operator)
-                    opItems = { "+", "-", "*", "/" };
-                else if (n.nodeType == NodeType::Comparison)
-                    opItems = { "==", "!=", "<", "<=", ">", ">=" };
-                else
-                    opItems = { "AND", "OR" };
-
-                ImGui::TextUnformatted("Op");
-                ImGui::SameLine();
-                changed |= NodePopupComboDynamic("##OpDropBar", field.value, opItems, 110.0f);
                 continue;
             }
 
@@ -1068,9 +1011,6 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             if (isStructCreateNode && field.name == "Schema Fields")
                 continue;
 
-            if ((isStructGetNode || isStructSetNode) && field.name == "Schema Fields")
-                continue;
-
             if (isStructDefineNode && field.name == "Fields")
             {
                 const int fieldCount = GetArrayItemCountCached(field.value);
@@ -1084,45 +1024,6 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             {
                 drawDeferredPinByName(field.name.c_str());
                 const bool pinConnected = isInputPinConnected(field.name.c_str());
-                if (pinConnected)
-                    DrawReadOnlyField(field);
-                else
-                    changed |= DrawField(field);
-                continue;
-            }
-
-            if ((isStructGetNode || isStructSetNode) && field.name == "Field")
-            {
-                std::vector<std::string> selectableFields;
-                if (const NodeField* schemaField = FindFieldByName(n, "Schema Fields"))
-                {
-                    selectableFields = GetStructFieldNamesCached(schemaField->value);
-                }
-
-                if (!selectableFields.empty())
-                {
-                    if (std::find(selectableFields.begin(), selectableFields.end(), field.value) == selectableFields.end())
-                    {
-                        field.value = selectableFields.front();
-                        changed = true;
-                    }
-
-                    ImGui::TextUnformatted("Field");
-                    ImGui::SameLine();
-                    changed |= NodePopupComboDynamic("##StructFieldDropBar", field.value, selectableFields, 110.0f);
-                }
-                else
-                {
-                    changed |= DrawField(field);
-                }
-                continue;
-            }
-
-            if (isStructDeleteNode && field.name == "Id")
-            {
-                drawDeferredPinByName("Id");
-                drewDeferredIndexPin = true;
-                const bool pinConnected = isInputPinConnected("Id");
                 if (pinConnected)
                     DrawReadOnlyField(field);
                 else

@@ -15,7 +15,6 @@ add_executable(emi-editor
   editor/panels/consoleEmiLogger.cpp
   editor/panels/graphPreviewPanel.cpp
   editor/panels/inspectorPanel.cpp
-  editor/widgets/nodePreview.cpp
   editor/settings.cpp
   editor/renderer/pinRenderer.cpp
   editor/renderer/linkRenderer.cpp

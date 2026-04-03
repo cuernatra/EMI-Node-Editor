@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/graph/types.h"
+#include "core/registry/nodeDescriptor.h"
 
 enum class NodeColorCategory
 {
@@ -26,48 +26,35 @@ inline const char* NodeColorCategoryLabel(NodeColorCategory category)
     }
 }
 
-inline NodeColorCategory GetNodeColorCategory(NodeType type)
+inline NodeColorCategory GetNodeColorCategory(const std::string& category)
 {
-    switch (type)
-    {
-        case NodeType::Start:
-            return NodeColorCategory::Event;
+    if (category == "Events")
+        return NodeColorCategory::Event;
 
-        case NodeType::Constant:
-        case NodeType::Variable:
-        case NodeType::ArrayGetAt:
-        case NodeType::ArrayLength:
-            return NodeColorCategory::Data;
+    if (category == "Data")
+        return NodeColorCategory::Data;
 
-        case NodeType::StructDefine:
-        case NodeType::StructCreate:
-        case NodeType::StructGetField:
-        case NodeType::StructSetField:
-        case NodeType::StructDelete:
-            return NodeColorCategory::Struct;
+    if (category == "Structs")
+        return NodeColorCategory::Struct;
 
-        case NodeType::Operator:
-        case NodeType::Comparison:
-        case NodeType::Logic:
-        case NodeType::Not:
-        case NodeType::DrawGrid:
-        case NodeType::Function:
-            return NodeColorCategory::Logic;
+    if (category == "Logic")
+        return NodeColorCategory::Logic;
 
-        case NodeType::Delay:
-        case NodeType::DrawRect:
-        case NodeType::Sequence:
-        case NodeType::Branch:
-        case NodeType::Loop:
-        case NodeType::ForEach:
-        case NodeType::ArrayAddAt:
-        case NodeType::ArrayReplaceAt:
-        case NodeType::ArrayRemoveAt:
-        case NodeType::While:
-        case NodeType::Output:
-            return NodeColorCategory::Flow;
+    if (category == "Flow")
+        return NodeColorCategory::Flow;
 
-        default:
-            return NodeColorCategory::More;
-    }
+    return NodeColorCategory::More;
+}
+
+inline NodeColorCategory GetNodeColorCategory(const NodeDescriptor* descriptor)
+{
+    if (!descriptor)
+        return NodeColorCategory::More;
+
+    return GetNodeColorCategory(descriptor->category);
+}
+
+inline NodeColorCategory GetNodeColorCategory(const char* category)
+{
+    return category ? GetNodeColorCategory(std::string(category)) : NodeColorCategory::More;
 }

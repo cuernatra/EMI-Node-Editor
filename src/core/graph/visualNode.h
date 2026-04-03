@@ -6,8 +6,7 @@
 
 #include "idGen.h"
 #include "pin.h"
-#include "link.h"
-#include "../registry/fieldWidget.h"
+#include "nodeField.h"
 #include <vector>
 #include <string>
 
