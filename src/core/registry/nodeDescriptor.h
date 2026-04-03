@@ -76,6 +76,8 @@ struct PaletteVariant
 /**
  * @brief Complete static definition of a node type
  * One immutable descriptor per NodeType; all instances share it and differ only in runtime state.
+ * This is the structural contract for a node: pins, fields, palette entries, compile behavior,
+ * deserialize behavior, and save token all live here.
  */
 struct NodeDescriptor
 {
