@@ -8,6 +8,7 @@
 #include <cctype>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace
 {
@@ -957,7 +958,6 @@ bool RefreshStructNodeLayouts(GraphState& state)
                 changed = true;
             }
 
-            RemovePinsByNameExcept(n.inPins, { "Struct" });
             RemovePinsByNameExcept(n.outPins, { "Item" });
 
             {
@@ -999,25 +999,104 @@ bool RefreshStructNodeLayouts(GraphState& state)
                 changed = true;
             }
 
+            std::unordered_set<uintptr_t> claimedInputPinIds;
+            if (structPin)
+                claimedInputPinIds.insert(static_cast<uintptr_t>(structPin->id.Get()));
+
+            auto isSchemaFieldName = [&](const std::string& pinName) -> bool
+            {
+                return std::any_of(
+                    entry.defs.begin(),
+                    entry.defs.end(),
+                    [&](const StructFieldDef& def) { return def.name == pinName; }
+                );
+            };
+
+            auto findReusableLegacyInputPin = [&]() -> Pin*
+            {
+                for (Pin& p : n.inPins)
+                {
+                    if (p.name == "Struct")
+                        continue;
+
+                    const uintptr_t pid = static_cast<uintptr_t>(p.id.Get());
+                    if (claimedInputPinIds.find(pid) != claimedInputPinIds.end())
+                        continue;
+
+                    // Prefer legacy placeholders produced by older deserialization
+                    // ("Field N"). Fall back to any non-schema, non-Struct input.
+                    const bool isLegacyPlaceholder = (p.name.rfind("Field ", 0) == 0);
+                    const bool isSchemaNamed = isSchemaFieldName(p.name);
+                    if (isLegacyPlaceholder || !isSchemaNamed)
+                        return &p;
+                }
+                return nullptr;
+            };
+
             for (const StructFieldDef& def : entry.defs)
             {
                 Pin* fieldPin = FindPinByName(n.inPins, def.name.c_str());
                 if (!fieldPin)
                 {
-                    n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, def.name, def.type, true));
-                    changed = true;
+                    if (Pin* reusable = findReusableLegacyInputPin())
+                    {
+                        if (reusable->name != def.name)
+                        {
+                            reusable->name = def.name;
+                            changed = true;
+                        }
+                        fieldPin = reusable;
+                    }
+                    else
+                    {
+                        n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, def.name, def.type, true));
+                        fieldPin = &n.inPins.back();
+                        changed = true;
+                    }
                 }
-                else if (fieldPin->type != def.type)
+
+                if (fieldPin && fieldPin->type != def.type)
                 {
                     fieldPin->type = def.type;
                     changed = true;
                 }
+
+                if (fieldPin)
+                    claimedInputPinIds.insert(static_cast<uintptr_t>(fieldPin->id.Get()));
 
                 NodeField* valueField = EnsureField(n.fields, def.name, def.type, DefaultValueForPinType(def.type), changed);
                 const std::string before = valueField->value;
                 NormalizeValueForPinType(def.type, valueField->value);
                 if (valueField->value != before)
                     changed = true;
+            }
+
+            // Prune stale dynamic input pins only when they are unlinked.
+            // Keep linked extras to avoid dropping user wires during live schema edits.
+            {
+                n.inPins.erase(
+                    std::remove_if(n.inPins.begin(), n.inPins.end(), [&](const Pin& p)
+                    {
+                        if (p.name == "Struct")
+                            return false;
+
+                        const bool existsInSchema = std::any_of(
+                            entry.defs.begin(),
+                            entry.defs.end(),
+                            [&](const StructFieldDef& def) { return def.name == p.name; }
+                        );
+
+                        if (existsInSchema)
+                            return false;
+
+                        if (IsPinLinked(state, p.id))
+                            return false;
+
+                        changed = true;
+                        return true;
+                    }),
+                    n.inPins.end()
+                );
             }
 
             Pin* itemPin = FindPinByName(n.outPins, "Item");
