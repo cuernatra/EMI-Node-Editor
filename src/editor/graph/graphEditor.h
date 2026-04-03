@@ -9,7 +9,7 @@
  * 
  * Manages the imgui-node-editor canvas: rendering nodes and links,
  * handling user interactions (dragging, connecting, deleting),
- * and displaying context menus.
+ * and node spawn via drag/drop.
  * 
  */
 
@@ -30,7 +30,6 @@ namespace ed = ax::NodeEditor;
  * - Drawing nodes with pins and fields
  * - Rendering links between pins
  * - Processing user interactions (drag, connect, delete)
- * - Displaying context menus for spawning/removing elements
  * - Validating link creation (type compatibility, cycle detection)
  * 
  * Operates on a GraphState reference but doesn't own it.
@@ -56,7 +55,7 @@ public:
      * 
      * Must be called within an ed::Begin() / ed::End() block.
      * Renders all nodes and links, processes user input, and handles
-     * context menu display and actions.
+    * editor actions.
      */
     void Draw();
 
@@ -95,14 +94,6 @@ private:
      * rendering them using imgui-node-editor primitives.
      */
     void DrawNodeCanvas();
-    
-    /**
-     * @brief Display and handle context menus
-     * 
-     * Shows right-click context menus for spawning new nodes,
-     * creating links, and deleting elements.
-     */
-    void DrawContextMenus();
 
     /**
      * @brief Handle new link creation
@@ -124,16 +115,10 @@ private:
      */
     void DeleteLinks(ed::LinkId linkId);
 
-    /**
-     * @brief Draw spawn-menu entries and spawn selected node at given canvas position
-     * @return true if a node was spawned
-     */
-    bool DrawSpawnNodeMenuContents(const ImVec2& spawnCanvasPos);
+    void RefreshGraphAndMarkDirty();
+
 
     ed::EditorContext* m_ctx;  ///< The imgui-node-editor context
     GraphState& m_state;       ///< Reference to the graph state
     bool m_initialAutoStartHandled = false; ///< Ensures empty-graph Start auto-spawn runs only once at startup
-    bool m_openSpawnPopupRequested = false;
-    ImVec2 m_spawnPopupScreenPos = ImVec2(0.0f, 0.0f);
-    ImVec2 m_spawnPopupCanvasPos = ImVec2(0.0f, 0.0f);
 };

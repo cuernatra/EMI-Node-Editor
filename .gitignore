@@ -46,6 +46,7 @@ build/
 .vscode/
 graph.txt
 node_editor.json
+build_cline_check/
 
 # cmake preset
 CMakePresets.json

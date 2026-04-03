@@ -75,30 +75,8 @@ void DrawSection(const char* title, const std::vector<PaletteItem>& items)
 
 void DrawStructSubSection(const char* title, const std::vector<PaletteItem>& items)
 {
-    if (items.empty())
-        return;
-
-    if (ImGui::TreeNodeEx(title, ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        const float leftBarWidth = ImGui::GetContentRegionAvail().x;
-
-        size_t col = 0;
-        size_t idx = 0;
-        for (const PaletteItem& item : items)
-        {
-            DrawNodeItem(item);
-            col++;
-            idx++;
-            if (idx < items.size()
-                && (nodePreviewConstants::fixedWidth + nodePreviewConstants::padding)
-                   * (col + 1) < leftBarWidth)
-                ImGui::SameLine();
-            else
-                col = 0;
-        }
-
-        ImGui::TreePop();
-    }
+    // Kept for compatibility with older call sites; currently unused.
+    DrawSection(title, items);
 }
 }
 
@@ -114,9 +92,8 @@ LeftPanel::LeftPanel()
         NodeType::Variable,
         NodeType::StructDefine,
         NodeType::StructCreate,
-        NodeType::StructGetField,
-        NodeType::StructSetField,
         NodeType::ArrayGetAt,
+        NodeType::ArrayLength,
         NodeType::Operator,
         NodeType::Comparison,
         NodeType::Logic,
@@ -129,7 +106,6 @@ LeftPanel::LeftPanel()
         NodeType::Branch,
         NodeType::Loop,
         NodeType::ForEach,
-        NodeType::StructDelete,
         NodeType::ArrayAddAt,
         NodeType::ArrayRemoveAt,
         NodeType::While,
@@ -190,9 +166,29 @@ void LeftPanel::draw(bool hasStartNode)
     {
         PaletteItem item;
         item.type = t;
-        item.payloadTitle = NodeTypeToString(t);
+        item.payloadTitle = NodeTypeToSaveToken(t);
         item.disabled = (t == NodeType::Start && hasStartNode);
         return item;
+    };
+
+    auto isFlowLikeNode = [&](NodeType t) -> bool
+    {
+        const NodeDescriptor* desc = NodeRegistry::Get().Find(t);
+        if (!desc)
+            return false;
+
+        bool hasFlowInput = false;
+        bool hasFlowOutput = false;
+        for (const PinDescriptor& pin : desc->pins)
+        {
+            if (pin.type != PinType::Flow)
+                continue;
+
+            if (pin.isInput) hasFlowInput = true;
+            else             hasFlowOutput = true;
+        }
+
+        return hasFlowInput && hasFlowOutput;
     };
 
     for (NodeType t : m_nodeTypes)
@@ -205,6 +201,7 @@ void LeftPanel::draw(bool hasStartNode)
 
             case NodeType::Constant:
             case NodeType::ArrayGetAt:
+            case NodeType::ArrayLength:
                 dataTypes.push_back(makeDefaultItem(t));
                 break;
 
@@ -213,8 +210,6 @@ void LeftPanel::draw(bool hasStartNode)
                 break;
 
             case NodeType::StructCreate:
-            case NodeType::StructGetField:
-            case NodeType::StructSetField:
                 structValueTypes.push_back(makeDefaultItem(t));
                 break;
 
@@ -257,12 +252,11 @@ void LeftPanel::draw(bool hasStartNode)
                 flowTypes.push_back(makeDefaultItem(t));
                 break;
 
-            case NodeType::StructDelete:
-                structFlowTypes.push_back(makeDefaultItem(t));
-                break;
-
             default:
-                moreTypes.push_back(makeDefaultItem(t));
+                if (isFlowLikeNode(t))
+                    flowTypes.push_back(makeDefaultItem(t));
+                else
+                    moreTypes.push_back(makeDefaultItem(t));
                 break;
         }
     }
@@ -272,9 +266,31 @@ void LeftPanel::draw(bool hasStartNode)
 
     if (ImGui::CollapsingHeader("Structs", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        DrawStructSubSection("Schema", structSchemaTypes);
-        DrawStructSubSection("Values", structValueTypes);
-        DrawStructSubSection("Flow", structFlowTypes);
+        std::vector<PaletteItem> structItems;
+        structItems.reserve(structSchemaTypes.size() + structValueTypes.size() + structFlowTypes.size());
+        structItems.insert(structItems.end(), structSchemaTypes.begin(), structSchemaTypes.end());
+        structItems.insert(structItems.end(), structValueTypes.begin(), structValueTypes.end());
+        structItems.insert(structItems.end(), structFlowTypes.begin(), structFlowTypes.end());
+
+        const float leftBarWidth = ImGui::GetContentRegionAvail().x;
+        size_t col = 0;
+        size_t idx = 0;
+        for (const PaletteItem& item : structItems)
+        {
+            DrawNodeItem(item);
+            col++;
+            idx++;
+            if (idx < structItems.size()
+                && (nodePreviewConstants::fixedWidth + nodePreviewConstants::padding)
+                   * (col + 1) < leftBarWidth)
+            {
+                ImGui::SameLine();
+            }
+            else
+            {
+                col = 0;
+            }
+        }
     }
 
     DrawSection("Logic", logicTypes);

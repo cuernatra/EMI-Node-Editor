@@ -714,6 +714,12 @@ Node* GraphCompiler::BuildConstant(const VisualNode& n)
     const std::string value = val ? *val : "";
     const std::string valueType = type ? *type : "";
 
+    if (valueType.empty())
+    {
+        Error("Constant node is missing required Type field");
+        return nullptr;
+    }
+
     // Prefer explicit Constant type over value auto-detection so
     // Boolean false never degrades to Number 0 in AST printout/runtime.
     if (valueType == "Boolean")
@@ -734,14 +740,8 @@ Node* GraphCompiler::BuildConstant(const VisualNode& n)
     if (valueType == "Array")
         return BuildArrayLiteralNode(value);
 
-    // Backward compatibility for old/incomplete data without Type field.
-    try { return MakeNumberNode(std::stod(value)); }
-    catch (...) {}
-
-    if (value == "true"  || value == "1") return MakeBoolNode(true);
-    if (value == "false" || value == "0") return MakeBoolNode(false);
-
-    return MakeStringNode(value);
+    Error("Invalid Constant Type: " + valueType);
+    return nullptr;
 }
 
 Node* GraphCompiler::BuildStart(const VisualNode& n)
@@ -1266,7 +1266,39 @@ Node* GraphCompiler::BuildArrayAddAt(const VisualNode& n)
         indexExpr = MakeNumberNode(indexValue);
     }
 
-    Node* valueExpr = BuildExpr(*valuePin);
+    Node* valueExpr = nullptr;
+    if (const PinSource* valueSrc = resolver_.Resolve(valuePin->id))
+    {
+        valueExpr = BuildNode(*valueSrc->node, valueSrc->pinIdx);
+    }
+    else
+    {
+        const std::string* addTypeText = GetField(n, "Add Type");
+        const std::string* addValueText = GetField(n, "Add Value");
+
+        const std::string addType = addTypeText ? *addTypeText : "Number";
+        const std::string addValue = addValueText ? *addValueText : "0.0";
+
+        if (addType == "Boolean")
+        {
+            const bool b = (addValue == "true" || addValue == "True" || addValue == "1");
+            valueExpr = MakeBoolNode(b);
+        }
+        else if (addType == "String")
+        {
+            valueExpr = MakeStringNode(addValue);
+        }
+        else if (addType == "Array")
+        {
+            valueExpr = BuildArrayLiteralNode(addValue);
+        }
+        else // Number default
+        {
+            try { valueExpr = MakeNumberNode(std::stod(addValue)); }
+            catch (...) { valueExpr = MakeNumberNode(0.0); }
+        }
+    }
+
     if (HasError || !arrayExpr || !indexExpr || !valueExpr)
     {
         delete arrayExpr;
@@ -1283,6 +1315,123 @@ Node* GraphCompiler::BuildArrayAddAt(const VisualNode& n)
     params->children.push_back(valueExpr);
     call->children.push_back(params);
     return call;
+}
+
+Node* GraphCompiler::BuildArrayReplaceAt(const VisualNode& n)
+{
+    const Pin* arrayPin = GetInputPinByName(n, "Array");
+    const Pin* indexPin = GetInputPinByName(n, "Index");
+    const Pin* valuePin = GetInputPinByName(n, "Value");
+    if (!arrayPin || !indexPin || !valuePin)
+    {
+        Error("Array Replace node needs Array, Index and Value inputs");
+        return nullptr;
+    }
+
+    Node* arrayExpr = nullptr;
+    if (const PinSource* arraySrc = resolver_.Resolve(arrayPin->id))
+        arrayExpr = BuildNode(*arraySrc->node, arraySrc->pinIdx);
+    else
+    {
+        const std::string* arrayText = GetField(n, "Array");
+        arrayExpr = BuildArrayLiteralNode(arrayText ? *arrayText : "[]");
+    }
+
+    Node* indexExpr = nullptr;
+    if (const PinSource* indexSrc = resolver_.Resolve(indexPin->id))
+        indexExpr = BuildNode(*indexSrc->node, indexSrc->pinIdx);
+    else
+    {
+        const std::string* indexText = GetField(n, "Index");
+        double indexValue = 0.0;
+        if (indexText)
+        {
+            try { indexValue = std::stod(*indexText); }
+            catch (...) { indexValue = 0.0; }
+        }
+        indexExpr = MakeNumberNode(indexValue);
+    }
+
+    Node* valueExpr = nullptr;
+    if (const PinSource* valueSrc = resolver_.Resolve(valuePin->id))
+    {
+        valueExpr = BuildNode(*valueSrc->node, valueSrc->pinIdx);
+    }
+    else
+    {
+        const std::string* replaceTypeText = GetField(n, "Replace Type");
+        const std::string* replaceValueText = GetField(n, "Replace Value");
+
+        const std::string replaceType = replaceTypeText ? *replaceTypeText : "Number";
+        const std::string replaceValue = replaceValueText ? *replaceValueText : "0.0";
+
+        if (replaceType == "Boolean")
+        {
+            const bool b = (replaceValue == "true" || replaceValue == "True" || replaceValue == "1");
+            valueExpr = MakeBoolNode(b);
+        }
+        else if (replaceType == "String")
+        {
+            valueExpr = MakeStringNode(replaceValue);
+        }
+        else if (replaceType == "Array")
+        {
+            valueExpr = BuildArrayLiteralNode(replaceValue);
+        }
+        else // Number default
+        {
+            try { valueExpr = MakeNumberNode(std::stod(replaceValue)); }
+            catch (...) { valueExpr = MakeNumberNode(0.0); }
+        }
+    }
+
+    if (HasError || !arrayExpr || !indexExpr || !valueExpr)
+    {
+        delete arrayExpr;
+        delete indexExpr;
+        delete valueExpr;
+        return nullptr;
+    }
+
+    // Replace = RemoveIndex(array, index) then Insert(array, index, value)
+    Node* scope = MakeNode(Token::Scope);
+
+    Node* removeCall = MakeNode(Token::FunctionCall);
+    removeCall->children.push_back(MakeIdNode("Array.RemoveIndex"));
+    Node* removeParams = MakeNode(Token::CallParams);
+    removeParams->children.push_back(MakeIdNode("Array"));
+    removeParams->children.push_back(MakeIdNode("Index"));
+    removeCall->children.push_back(removeParams);
+
+    Node* insertCall = MakeNode(Token::FunctionCall);
+    insertCall->children.push_back(MakeIdNode("Array.Insert"));
+    Node* insertParams = MakeNode(Token::CallParams);
+    insertParams->children.push_back(MakeIdNode("Array"));
+    insertParams->children.push_back(MakeIdNode("Index"));
+    insertParams->children.push_back(MakeIdNode("Value"));
+    insertCall->children.push_back(insertParams);
+
+    Node* arrayDecl = MakeNode(Token::VarDeclare);
+    arrayDecl->data = "Array";
+    arrayDecl->children.push_back(MakeNode(Token::TypeArray));
+    arrayDecl->children.push_back(arrayExpr);
+
+    Node* indexDecl = MakeNode(Token::VarDeclare);
+    indexDecl->data = "Index";
+    indexDecl->children.push_back(MakeNode(Token::TypeNumber));
+    indexDecl->children.push_back(indexExpr);
+
+    Node* valueDecl = MakeNode(Token::VarDeclare);
+    valueDecl->data = "Value";
+    valueDecl->children.push_back(MakeNode(Token::AnyType));
+    valueDecl->children.push_back(valueExpr);
+
+    scope->children.push_back(arrayDecl);
+    scope->children.push_back(indexDecl);
+    scope->children.push_back(valueDecl);
+    scope->children.push_back(removeCall);
+    scope->children.push_back(insertCall);
+    return scope;
 }
 
 Node* GraphCompiler::BuildArrayRemoveAt(const VisualNode& n)
@@ -1331,6 +1480,38 @@ Node* GraphCompiler::BuildArrayRemoveAt(const VisualNode& n)
     Node* params = MakeNode(Token::CallParams);
     params->children.push_back(arrayExpr);
     params->children.push_back(indexExpr);
+    call->children.push_back(params);
+    return call;
+}
+
+Node* GraphCompiler::BuildArrayLength(const VisualNode& n)
+{
+    const Pin* arrayPin = GetInputPinByName(n, "Array");
+    if (!arrayPin)
+    {
+        Error("Array Length node needs Array input");
+        return nullptr;
+    }
+
+    Node* arrayExpr = nullptr;
+    if (const PinSource* arraySrc = resolver_.Resolve(arrayPin->id))
+        arrayExpr = BuildNode(*arraySrc->node, arraySrc->pinIdx);
+    else
+    {
+        const std::string* arrayText = GetField(n, "Array");
+        arrayExpr = BuildArrayLiteralNode(arrayText ? *arrayText : "[]");
+    }
+
+    if (HasError || !arrayExpr)
+    {
+        delete arrayExpr;
+        return nullptr;
+    }
+
+    Node* call = MakeNode(Token::FunctionCall);
+    call->children.push_back(MakeIdNode("Array.Size"));
+    Node* params = MakeNode(Token::CallParams);
+    params->children.push_back(arrayExpr);
     call->children.push_back(params);
     return call;
 }
@@ -1591,6 +1772,14 @@ Node* GraphCompiler::BuildStructGetField(const VisualNode& n)
     if (!fieldName)
         return MakeNode(Token::Null);
 
+    const Pin* itemPin = GetInputPinByName(n, "Item");
+    const Pin* idPin = GetInputPinByName(n, "Id");
+    if (!itemPin || !idPin)
+    {
+        Error("Struct Get Field needs Item and Id inputs");
+        return nullptr;
+    }
+
     int index = -1;
     if (schemaText)
     {
@@ -1609,14 +1798,43 @@ Node* GraphCompiler::BuildStructGetField(const VisualNode& n)
         }
     }
 
-    const Pin* itemPin = GetInputPinByName(n, "Item");
-    if (!itemPin || index < 0)
+    if (index < 0)
         return MakeNode(Token::Null);
 
     Node* itemExpr = BuildExpr(*itemPin);
+    Node* idExpr = nullptr;
+    if (const PinSource* idSrc = resolver_.Resolve(idPin->id))
+        idExpr = BuildNode(*idSrc->node, idSrc->pinIdx);
+    else
+    {
+        const std::string* idText = GetField(n, "Id");
+        if (!idText)
+        {
+            Error("Struct Get Field is missing required Id field");
+            delete itemExpr;
+            return nullptr;
+        }
+
+        double idValue = 0.0;
+        try { idValue = std::stod(*idText); }
+        catch (...) { idValue = 0.0; }
+        idExpr = MakeNumberNode(idValue);
+    }
+
+    if (HasError || !itemExpr || !idExpr)
+    {
+        delete itemExpr;
+        delete idExpr;
+        return nullptr;
+    }
+
+    Node* itemByIdIndexer = MakeNode(Token::Indexer);
+    itemByIdIndexer->children.push_back(itemExpr);
+    itemByIdIndexer->children.push_back(idExpr);
+
     Node* idxExpr = MakeNumberNode(static_cast<double>(index));
     Node* indexer = MakeNode(Token::Indexer);
-    indexer->children.push_back(itemExpr);
+    indexer->children.push_back(itemByIdIndexer);
     indexer->children.push_back(idxExpr);
     return indexer;
 }
@@ -1646,24 +1864,71 @@ Node* GraphCompiler::BuildStructSetField(const VisualNode& n)
 
     const Pin* itemPin = GetInputPinByName(n, "Item");
     const Pin* valuePin = GetInputPinByName(n, "Value");
-    if (!itemPin || !valuePin)
-        return MakeNode(Token::Null);
+    const Pin* idPin = GetInputPinByName(n, "Id");
+    if (!itemPin || !valuePin || !idPin)
+    {
+        Error("Struct Set Field needs Item, Id and Value inputs");
+        return nullptr;
+    }
+
+    auto buildIdExpr = [&]() -> Node*
+    {
+        if (const PinSource* idSrc = resolver_.Resolve(idPin->id))
+            return BuildNode(*idSrc->node, idSrc->pinIdx);
+
+        const std::string* idText = GetField(n, "Id");
+        if (!idText)
+        {
+            Error("Struct Set Field is missing required Id field");
+            return nullptr;
+        }
+
+        double idValue = 0.0;
+        try { idValue = std::stod(*idText); }
+        catch (...) { idValue = 0.0; }
+        return MakeNumberNode(idValue);
+    };
+
+    auto buildItemByIdExpr = [&]() -> Node*
+    {
+        Node* itemExpr = BuildExpr(*itemPin);
+        Node* idExpr = buildIdExpr();
+        if (HasError || !itemExpr || !idExpr)
+        {
+            delete itemExpr;
+            delete idExpr;
+            return nullptr;
+        }
+
+        Node* indexer = MakeNode(Token::Indexer);
+        indexer->children.push_back(itemExpr);
+        indexer->children.push_back(idExpr);
+        return indexer;
+    };
 
     // Rebuild whole array by reading each slot and replacing requested field.
     Node* arr = MakeNode(Token::Array);
-    Node* itemExpr = BuildExpr(*itemPin);
-    if (HasError || !itemExpr) { delete arr; delete itemExpr; return nullptr; }
+    Node* itemByIdExpr = buildItemByIdExpr();
+    if (HasError || !itemByIdExpr) { delete arr; delete itemByIdExpr; return nullptr; }
 
     for (int i = 0; i < static_cast<int>(defs.size()); ++i)
     {
         if (i == index)
         {
             arr->children.push_back(BuildExpr(*valuePin));
-            if (HasError) { delete arr; delete itemExpr; return nullptr; }
+            if (HasError) { delete arr; delete itemByIdExpr; return nullptr; }
             continue;
         }
         Node* indexer = MakeNode(Token::Indexer);
-        indexer->children.push_back(MakeIdNode("__struct_tmp"));
+        Node* sourceStruct = buildItemByIdExpr();
+        if (HasError || !sourceStruct)
+        {
+            delete indexer;
+            delete arr;
+            delete itemByIdExpr;
+            return nullptr;
+        }
+        indexer->children.push_back(sourceStruct);
         indexer->children.push_back(MakeNumberNode(static_cast<double>(i)));
         arr->children.push_back(indexer);
     }
@@ -1672,13 +1937,13 @@ Node* GraphCompiler::BuildStructSetField(const VisualNode& n)
     if (defs.empty())
     {
         delete arr;
-        return itemExpr;
+        return itemByIdExpr;
     }
 
     // Wrap as Array.Copy-like temp-less approximation not available -> return rebuilt array using tmp variable pattern omitted.
     // Current fallback: if connected item is plain array literal/expr, returned array references __struct_tmp indexes,
     // so instead use original item expression only when schema unavailable. For schema path, prefer direct rebuild only if item is array literal.
-    delete itemExpr;
+    delete itemByIdExpr;
     return arr;
 }
 
@@ -1686,8 +1951,6 @@ Node* GraphCompiler::BuildStructDelete(const VisualNode& n)
 {
     const Pin* arrayPin = GetInputPinByName(n, "Array");
     const Pin* idPin = GetInputPinByName(n, "Id");
-    if (!idPin)
-        idPin = GetInputPinByName(n, "Index"); // backward compatibility
 
     if (!arrayPin || !idPin)
     {
@@ -1711,7 +1974,11 @@ Node* GraphCompiler::BuildStructDelete(const VisualNode& n)
     {
         const std::string* idText = GetField(n, "Id");
         if (!idText)
-            idText = GetField(n, "Index"); // backward compatibility
+        {
+            Error("Struct Delete is missing required Id field");
+            delete arrayExpr;
+            return nullptr;
+        }
 
         double idValue = 0.0;
         if (idText)
@@ -1757,7 +2024,10 @@ Node* GraphCompiler::BuildVariable(const VisualNode& n)
 
     const Pin* setInput = GetInputPinByName(n, "Default");
     if (!setInput)
-        setInput = GetInputPinByName(n, "Set"); // backward compatibility
+    {
+        Error("Variable Set node is missing required Default input pin");
+        return nullptr;
+    }
 
     if (setInput)
     {

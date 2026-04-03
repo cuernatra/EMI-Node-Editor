@@ -22,14 +22,13 @@ NodeField* FindField(std::vector<NodeField>& fields, const char* name);
 const NodeField* FindField(const std::vector<NodeField>& fields, const char* name);
 Pin* FindPinByName(std::vector<Pin>& pins, const char* name);
 
-bool DrawInspectorField(NodeField& field);
-void DrawInspectorReadOnlyField(const NodeField& field);
+// Sync nodes to the static definitions in NodeRegistry.
+// This makes node layouts largely automatic for newly registered node types.
+bool RefreshNodesFromRegistryDescriptors(GraphState& state);
 
 bool RefreshVariableNodeTypes(GraphState& state);
 bool RefreshOutputNodeInputTypes(GraphState& state);
-bool RefreshLoopNodeLayout(GraphState& state);
 bool RefreshForEachNodeLayout(GraphState& state);
-bool RefreshDrawRectNodeLayout(GraphState& state);
 bool RefreshStructNodeLayouts(GraphState& state);
 bool SyncLinkTypesAndPruneInvalid(GraphState& state);
 void DisconnectNonAnyLinksForPins(GraphState& state, const std::vector<ed::PinId>& pinIds);

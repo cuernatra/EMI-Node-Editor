@@ -68,24 +68,20 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
 
     const bool isSequence = (type == NodeType::Sequence);
     const bool isVariable = (type == NodeType::Variable);
-    const bool isLoop = (type == NodeType::Loop);
-    const bool isDrawGrid = (type == NodeType::DrawGrid);
     const bool isStructCreate = (type == NodeType::StructCreate);
-    if ((!isSequence && !isLoop && pinIds.size() != desc->pins.size()) ||
-        (isSequence && pinIds.size() < desc->pins.size()))
+
+    const bool variablePinsOk = !isVariable || (pinIds.size() == desc->pins.size() || pinIds.size() == 1);
+    const bool sequencePinsOk = !isSequence || (pinIds.size() >= desc->pins.size());
+    const bool structCreatePinsOk = !isStructCreate || (pinIds.size() >= 2);
+    const bool normalPinsOk = (isSequence || isVariable || isStructCreate) || (pinIds.size() == desc->pins.size());
+
+    if (!variablePinsOk || !sequencePinsOk || !structCreatePinsOk || !normalPinsOk)
     {
-        // Backward compatibility for older Variable node saves
-        // (legacy Set/Get layouts used different pin counts).
-        if (!isVariable
-            && !isStructCreate
-            && !(isDrawGrid && pinIds.size() == desc->pins.size() + 1))
-        {
-            std::cerr << "CreateNodeFromTypeWithIds: Pin ID count mismatch\n";
-            return {};
-        }
+        std::cerr << "CreateNodeFromTypeWithIds: Pin ID count mismatch\n";
+        return {};
     }
 
-    assert((isSequence || isVariable || isLoop || isStructCreate || (isDrawGrid && pinIds.size() == desc->pins.size() + 1) || pinIds.size() == desc->pins.size()) && "Pin ID count mismatch");
+    assert((variablePinsOk && sequencePinsOk && structCreatePinsOk && normalPinsOk) && "Pin ID count mismatch");
 
     VisualNode n;
     n.id         = ed::NodeId(nodeId);
@@ -96,116 +92,26 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
 
     int pinIndex = 0;
 
-    if (isVariable && pinIds.size() != desc->pins.size())
+    if (isVariable && pinIds.size() == 1)
     {
-        // Legacy Variable layouts:
-        // 1 pin  -> Get (Value out)
-        // 2 pins -> Set (Set in, Value out)
-        // 3 pins -> transitional (In, Set, Value)
-        if (!pinIds.empty())
-        {
-            if (pinIds.size() == 1)
-            {
-                n.outPins.push_back(MakePin(
-                    static_cast<uint32_t>(pinIds[0]), n.id, n.nodeType,
-                    "Value", PinType::Any, false));
-            }
-            else if (pinIds.size() == 2)
-            {
-                n.inPins.push_back(MakePin(
-                    static_cast<uint32_t>(pinIds[0]), n.id, n.nodeType,
-                    "Set", PinType::Any, true));
-                n.outPins.push_back(MakePin(
-                    static_cast<uint32_t>(pinIds[1]), n.id, n.nodeType,
-                    "Value", PinType::Any, false));
-            }
-            else
-            {
-                n.inPins.push_back(MakePin(
-                    static_cast<uint32_t>(pinIds[0]), n.id, n.nodeType,
-                    "In", PinType::Flow, true));
-                n.inPins.push_back(MakePin(
-                    static_cast<uint32_t>(pinIds[1]), n.id, n.nodeType,
-                    "Set", PinType::Any, true));
-                n.outPins.push_back(MakePin(
-                    static_cast<uint32_t>(pinIds[2]), n.id, n.nodeType,
-                    "Value", PinType::Any, false));
-            }
-        }
+        // Variable Get variant is intentionally a reduced layout (Value out only).
+        n.outPins.push_back(MakePin(
+            static_cast<uint32_t>(pinIds[0]), n.id, n.nodeType,
+            "Value", PinType::Any, false));
 
-        // Legacy path still needs descriptor fields.
+        // Still needs descriptor fields.
         for (const FieldDescriptor& fd : desc->fields)
             n.fields.push_back(MakeNodeField(fd));
 
-        // Infer Variant from legacy pin layout.
-        // 1 pin => old Get (Value output only), otherwise Set.
+        // Force Variant to Get.
         for (NodeField& f : n.fields)
         {
             if (f.name == "Variant")
             {
-                f.value = (pinIds.size() == 1) ? "Get" : "Set";
+                f.value = "Get";
                 break;
             }
         }
-    }
-    else if (isLoop && pinIds.size() != desc->pins.size())
-    {
-        // Legacy Loop layouts:
-        // 4 pins -> In, Count, Body, Completed
-        // 5 pins -> In, Count, Body, Completed, Index
-        // Current  -> In, Start, Count, Body, Completed, Index
-        if (pinIds.size() >= 1)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(pinIds[0]), n.id, n.nodeType,
-                "In", PinType::Flow, true));
-        }
-        if (pinIds.size() >= 2)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(pinIds[1]), n.id, n.nodeType,
-                "Count", PinType::Number, true));
-        }
-        if (pinIds.size() >= 3)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(pinIds[2]), n.id, n.nodeType,
-                "Body", PinType::Flow, false));
-        }
-        if (pinIds.size() >= 4)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(pinIds[3]), n.id, n.nodeType,
-                "Completed", PinType::Flow, false));
-        }
-        if (pinIds.size() >= 5)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(pinIds[4]), n.id, n.nodeType,
-                "Index", PinType::Number, false));
-        }
-
-        for (const FieldDescriptor& fd : desc->fields)
-            n.fields.push_back(MakeNodeField(fd));
-    }
-    else if (isDrawGrid && pinIds.size() == desc->pins.size() + 1)
-    {
-        // Legacy Draw Grid layout had an extra Step input pin between H and RGB.
-        static const int kLegacyPinMap[] = { 0, 1, 2, 3, 4, 6, 7, 8, 9 };
-        for (int mappedIndex : kLegacyPinMap)
-        {
-            const PinDescriptor& pd = desc->pins[pinIndex];
-            Pin p = MakePin(static_cast<uint32_t>(pinIds[mappedIndex]), n.id, desc->type,
-                            pd.name, pd.type, pd.isInput, pd.isMultiInput);
-            if (pd.isInput)
-                n.inPins.push_back(p);
-            else
-                n.outPins.push_back(p);
-            ++pinIndex;
-        }
-
-        for (const FieldDescriptor& fd : desc->fields)
-            n.fields.push_back(MakeNodeField(fd));
     }
     else if (isStructCreate && pinIds.size() != desc->pins.size())
     {

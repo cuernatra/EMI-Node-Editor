@@ -34,6 +34,36 @@ void Load()
         gridLineColorB = s.value("gridLineColorB", gridLineColorB);
         gridLineColorA = s.value("gridLineColorA", gridLineColorA);
 
+        nodeHeaderEventColorR = s.value("nodeHeaderEventColorR", nodeHeaderEventColorR);
+        nodeHeaderEventColorG = s.value("nodeHeaderEventColorG", nodeHeaderEventColorG);
+        nodeHeaderEventColorB = s.value("nodeHeaderEventColorB", nodeHeaderEventColorB);
+        nodeHeaderEventColorA = s.value("nodeHeaderEventColorA", nodeHeaderEventColorA);
+
+        nodeHeaderDataColorR = s.value("nodeHeaderDataColorR", nodeHeaderDataColorR);
+        nodeHeaderDataColorG = s.value("nodeHeaderDataColorG", nodeHeaderDataColorG);
+        nodeHeaderDataColorB = s.value("nodeHeaderDataColorB", nodeHeaderDataColorB);
+        nodeHeaderDataColorA = s.value("nodeHeaderDataColorA", nodeHeaderDataColorA);
+
+        nodeHeaderStructColorR = s.value("nodeHeaderStructColorR", nodeHeaderStructColorR);
+        nodeHeaderStructColorG = s.value("nodeHeaderStructColorG", nodeHeaderStructColorG);
+        nodeHeaderStructColorB = s.value("nodeHeaderStructColorB", nodeHeaderStructColorB);
+        nodeHeaderStructColorA = s.value("nodeHeaderStructColorA", nodeHeaderStructColorA);
+
+        nodeHeaderLogicColorR = s.value("nodeHeaderLogicColorR", nodeHeaderLogicColorR);
+        nodeHeaderLogicColorG = s.value("nodeHeaderLogicColorG", nodeHeaderLogicColorG);
+        nodeHeaderLogicColorB = s.value("nodeHeaderLogicColorB", nodeHeaderLogicColorB);
+        nodeHeaderLogicColorA = s.value("nodeHeaderLogicColorA", nodeHeaderLogicColorA);
+
+        nodeHeaderFlowColorR = s.value("nodeHeaderFlowColorR", nodeHeaderFlowColorR);
+        nodeHeaderFlowColorG = s.value("nodeHeaderFlowColorG", nodeHeaderFlowColorG);
+        nodeHeaderFlowColorB = s.value("nodeHeaderFlowColorB", nodeHeaderFlowColorB);
+        nodeHeaderFlowColorA = s.value("nodeHeaderFlowColorA", nodeHeaderFlowColorA);
+
+        nodeHeaderMoreColorR = s.value("nodeHeaderMoreColorR", nodeHeaderMoreColorR);
+        nodeHeaderMoreColorG = s.value("nodeHeaderMoreColorG", nodeHeaderMoreColorG);
+        nodeHeaderMoreColorB = s.value("nodeHeaderMoreColorB", nodeHeaderMoreColorB);
+        nodeHeaderMoreColorA = s.value("nodeHeaderMoreColorA", nodeHeaderMoreColorA);
+
         // Add new settings here:
         // myNewSetting = s.value("myNewSetting", myNewSetting);
     }
@@ -62,6 +92,36 @@ void Save()
     s["gridLineColorG"] = gridLineColorG;
     s["gridLineColorB"] = gridLineColorB;
     s["gridLineColorA"] = gridLineColorA;
+
+    s["nodeHeaderEventColorR"] = nodeHeaderEventColorR;
+    s["nodeHeaderEventColorG"] = nodeHeaderEventColorG;
+    s["nodeHeaderEventColorB"] = nodeHeaderEventColorB;
+    s["nodeHeaderEventColorA"] = nodeHeaderEventColorA;
+
+    s["nodeHeaderDataColorR"] = nodeHeaderDataColorR;
+    s["nodeHeaderDataColorG"] = nodeHeaderDataColorG;
+    s["nodeHeaderDataColorB"] = nodeHeaderDataColorB;
+    s["nodeHeaderDataColorA"] = nodeHeaderDataColorA;
+
+    s["nodeHeaderStructColorR"] = nodeHeaderStructColorR;
+    s["nodeHeaderStructColorG"] = nodeHeaderStructColorG;
+    s["nodeHeaderStructColorB"] = nodeHeaderStructColorB;
+    s["nodeHeaderStructColorA"] = nodeHeaderStructColorA;
+
+    s["nodeHeaderLogicColorR"] = nodeHeaderLogicColorR;
+    s["nodeHeaderLogicColorG"] = nodeHeaderLogicColorG;
+    s["nodeHeaderLogicColorB"] = nodeHeaderLogicColorB;
+    s["nodeHeaderLogicColorA"] = nodeHeaderLogicColorA;
+
+    s["nodeHeaderFlowColorR"] = nodeHeaderFlowColorR;
+    s["nodeHeaderFlowColorG"] = nodeHeaderFlowColorG;
+    s["nodeHeaderFlowColorB"] = nodeHeaderFlowColorB;
+    s["nodeHeaderFlowColorA"] = nodeHeaderFlowColorA;
+
+    s["nodeHeaderMoreColorR"] = nodeHeaderMoreColorR;
+    s["nodeHeaderMoreColorG"] = nodeHeaderMoreColorG;
+    s["nodeHeaderMoreColorB"] = nodeHeaderMoreColorB;
+    s["nodeHeaderMoreColorA"] = nodeHeaderMoreColorA;
 
     // Add new settings here:
     // s["myNewSetting"] = myNewSetting;
