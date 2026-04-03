@@ -278,24 +278,24 @@ enum class DescriptorSyncMode
     PruneUnlinkedExtras // Ensure descriptor pins exist; drop extra pins if they are unlinked.
 };
 
-DescriptorSyncMode DescriptorSyncModeForNodeType(NodeType t)
+DescriptorSyncMode DescriptorSyncModeForStyle(NodeRenderStyle style)
 {
-    switch (t)
+    switch (style)
     {
-        case NodeType::Sequence:
+        case NodeRenderStyle::Sequence:
             return DescriptorSyncMode::EnsureOnly; // expandable Then pins
         default:
             return DescriptorSyncMode::PruneUnlinkedExtras;
     }
 }
 
-bool ShouldSkipDescriptorSync(NodeType t)
+bool ShouldSkipDescriptorSync(NodeRenderStyle style)
 {
-    switch (t)
+    switch (style)
     {
-        case NodeType::Variable:
-        case NodeType::StructDefine:
-        case NodeType::StructCreate:
+        case NodeRenderStyle::Variable:
+        case NodeRenderStyle::StructDefine:
+        case NodeRenderStyle::StructCreate:
             return true; // handled by bespoke refresh passes
 
         default:
@@ -452,7 +452,7 @@ bool SyncNodeToDescriptor(GraphState& state, VisualNode& node, const NodeDescrip
         }
     }
 
-    const DescriptorSyncMode mode = DescriptorSyncModeForNodeType(node.nodeType);
+    const DescriptorSyncMode mode = DescriptorSyncModeForStyle(desc.renderStyle);
     SyncPinsToDescriptor(state, node, desc, /*isInput=*/true, node.inPins, mode, changed);
     SyncPinsToDescriptor(state, node, desc, /*isInput=*/false, node.outPins, mode, changed);
     return changed;
@@ -525,11 +525,11 @@ bool RefreshNodesFromRegistryDescriptors(GraphState& state)
         if (!n.alive)
             continue;
 
-        if (ShouldSkipDescriptorSync(n.nodeType))
-            continue;
-
         const NodeDescriptor* desc = NodeRegistry::Get().Find(n.nodeType);
         if (!desc)
+            continue;
+
+        if (ShouldSkipDescriptorSync(desc->renderStyle))
             continue;
 
         changed |= SyncNodeToDescriptor(state, n, *desc);
@@ -584,7 +584,7 @@ bool RefreshVariableNodeTypes(GraphState& state)
             }
 
             bool pinsChanged = false;
-            const DescriptorSyncMode mode = DescriptorSyncModeForNodeType(NodeType::Variable);
+            const DescriptorSyncMode mode = DescriptorSyncModeForStyle(variableDesc->renderStyle);
             SyncPinsToDescriptor(state, n, *variableDesc, /*isInput=*/true, n.inPins, mode, pinsChanged);
             SyncPinsToDescriptor(state, n, *variableDesc, /*isInput=*/false, n.outPins, mode, pinsChanged);
             if (pinsChanged)
@@ -601,9 +601,15 @@ bool RefreshVariableNodeTypes(GraphState& state)
         if (!defaultField)
         {
             n.fields.push_back(NodeField{ "Default", PinType::Number, "0.0" });
-            defaultField = &n.fields.back();
             changed = true;
         }
+
+        // Reacquire field pointers after EnsureField/push_back operations,
+        // because vector growth can invalidate previously captured pointers.
+        variantField = FindField(n.fields, "Variant");
+        nameField = FindField(n.fields, "Name");
+        typeField = FindField(n.fields, "Type");
+        defaultField = FindField(n.fields, "Default");
 
         PinType resolvedType = ValuePinTypeFromString(typeField ? typeField->value : "Number", PinType::Number);
         if (setPin)
@@ -885,8 +891,13 @@ bool RefreshStructNodeLayouts(GraphState& state)
         if (!n.alive || n.nodeType != NodeType::StructDefine)
             continue;
 
-        NodeField* nameField = EnsureField(n.fields, "Struct Name", PinType::String, "test", changed);
-        NodeField* fieldsField = EnsureField(n.fields, "Fields", PinType::Array, "[]", changed);
+        EnsureField(n.fields, "Struct Name", PinType::String, "test", changed);
+        EnsureField(n.fields, "Fields", PinType::Array, "[]", changed);
+
+        // Reacquire pointers after EnsureField calls because vector growth
+        // can invalidate prior pointers.
+        NodeField* nameField = GraphEditorUtils::FindField(n.fields, "Struct Name");
+        NodeField* fieldsField = GraphEditorUtils::FindField(n.fields, "Fields");
 
         const std::vector<StructFieldDef> defs = ParseStructFieldDefs(fieldsField ? fieldsField->value : "[]");
         const std::string schemaName = (nameField && !nameField->value.empty()) ? nameField->value : "test";
@@ -916,16 +927,23 @@ bool RefreshStructNodeLayouts(GraphState& state)
 
     auto ensureSchemaFields = [&](VisualNode& n, const std::string& defaultName) -> std::pair<std::string, StructDefEntry>
     {
-        NodeField* nameField = EnsureField(n.fields, "Struct Name", PinType::String, defaultName, changed);
-        NodeField* schemaField = EnsureField(n.fields, "Schema Fields", PinType::Array, "[]", changed);
+        EnsureField(n.fields, "Struct Name", PinType::String, defaultName, changed);
+        EnsureField(n.fields, "Schema Fields", PinType::Array, "[]", changed);
+
+        // Reacquire pointers after EnsureField mutations to avoid dangling refs.
+        NodeField* nameField = GraphEditorUtils::FindField(n.fields, "Struct Name");
+        NodeField* schemaField = GraphEditorUtils::FindField(n.fields, "Schema Fields");
 
         std::string structName = (nameField && !nameField->value.empty()) ? nameField->value : defaultName;
         auto it = definitions.find(structName);
         if (it == definitions.end() && !definitions.empty())
         {
             structName = definitions.begin()->first;
-            nameField->value = structName;
-            changed = true;
+            if (nameField)
+            {
+                nameField->value = structName;
+                changed = true;
+            }
             it = definitions.find(structName);
         }
 
@@ -934,7 +952,7 @@ bool RefreshStructNodeLayouts(GraphState& state)
             entry = it->second;
 
         const std::string targetSchema = entry.schemaText.empty() ? "[]" : entry.schemaText;
-        if (schemaField->value != targetSchema)
+        if (schemaField && schemaField->value != targetSchema)
         {
             schemaField->value = targetSchema;
             changed = true;

@@ -89,7 +89,7 @@ Node* CompileNotNode(GraphCompiler* compiler, const VisualNode& n)
 void NodeRegistry::RegisterLogicNodes()
 {
     // Each Register(...) entry below follows NodeDescriptor order:
-    // type, label, pins, fields, compile, deserialize, category, paletteVariants, saveToken.
+    // type, label, pins, fields, compile, deserialize, category, paletteVariants, saveToken, deferredInputPins, renderStyle.
     Register({
         NodeType::Operator,
         "Operator",
@@ -109,7 +109,9 @@ void NodeRegistry::RegisterLogicNodes()
         nullptr,
         "Flow",
         {},
-        "Operator"
+        "Operator",
+        { "A", "B" },
+        NodeRenderStyle::Binary
     });
 
     Register({
@@ -131,7 +133,9 @@ void NodeRegistry::RegisterLogicNodes()
         nullptr,
         "Logic",
         {},
-        "Comparison"
+        "Comparison",
+        { "A", "B" },
+        NodeRenderStyle::Binary
     });
 
     Register({
@@ -153,7 +157,9 @@ void NodeRegistry::RegisterLogicNodes()
         nullptr,
         "Logic",
         {},
-        "Logic"
+        "Logic",
+        { "A", "B" },
+        NodeRenderStyle::Binary
     });
 
     Register({
@@ -172,6 +178,8 @@ void NodeRegistry::RegisterLogicNodes()
         nullptr,
         "Logic",
         {},
-        "Not"
+        "Not",
+        { "A" },
+        NodeRenderStyle::Unary
     });
 }

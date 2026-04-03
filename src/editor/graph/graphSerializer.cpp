@@ -9,8 +9,36 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdlib>
+#include <cmath>
+#include <iostream>
 
 namespace ed = ax::NodeEditor;
+
+namespace
+{
+void ApplyFallbackGridLayout(GraphState& state)
+{
+    constexpr float kStartX = 40.0f;
+    constexpr float kStartY = 40.0f;
+    constexpr float kStepX = 280.0f;
+    constexpr float kStepY = 180.0f;
+    constexpr int kColumns = 6;
+
+    int index = 0;
+    for (VisualNode& node : state.GetNodes())
+    {
+        if (!node.alive)
+            continue;
+
+        const int col = index % kColumns;
+        const int row = index / kColumns;
+        node.initialPos = ImVec2(kStartX + kStepX * static_cast<float>(col),
+                                 kStartY + kStepY * static_cast<float>(row));
+        node.positioned = false;
+        ++index;
+    }
+}
+}
 
 static std::string EncodeFieldValue(const std::string& value)
 {
@@ -293,6 +321,7 @@ void GraphSerializer::Load(GraphState& state, const char* path)
     state.Clear();
 
     int maxId = 0;
+    bool needsFallbackLayout = false;
     std::string token;
 
     while (in >> token)
@@ -347,12 +376,39 @@ void GraphSerializer::Load(GraphState& state, const char* path)
                 }
             }
 
-            float px, py; 
-            in >> px >> py;
+            float px = 0.0f;
+            float py = 0.0f;
+            if (!(in >> px >> py))
+            {
+                // Missing/corrupt position tokens in legacy files.
+                needsFallbackLayout = true;
+                in.clear();
+                std::string rest;
+                std::getline(in, rest);
+                px = 0.0f;
+                py = 0.0f;
+            }
+
+            if (!std::isfinite(px) || !std::isfinite(py))
+            {
+                needsFallbackLayout = true;
+                px = 0.0f;
+                py = 0.0f;
+            }
 
             maxId = std::max(maxId, nid);
 
             VisualNode n = CreateNodeFromTypeWithIds(nodeType, nid, pinIds, ImVec2(px, py));
+            if (n.nodeType == NodeType::Unknown)
+            {
+                std::cerr << "GraphSerializer::Load: skipped incompatible node token="
+                          << nodeTypeStr << " id=" << nid << "\n";
+                continue;
+            }
+
+            // Always apply graph.txt positions once on open. This keeps graph
+            // layout deterministic even when node-editor has cached state.
+            n.positioned = false;
 
             // Apply loaded field values
             for (auto& [name, val] : fieldValues)
@@ -401,6 +457,19 @@ void GraphSerializer::Load(GraphState& state, const char* path)
             std::getline(in, dummy);
         }
     }
+
+    // Remove links that point to missing pins (common with legacy/incompatible nodes).
+    auto& links = state.GetLinks();
+    links.erase(
+        std::remove_if(links.begin(), links.end(), [&](const Link& l)
+        {
+            return state.FindPin(l.startPinId) == nullptr || state.FindPin(l.endPinId) == nullptr;
+        }),
+        links.end()
+    );
+
+    if (needsFallbackLayout)
+        ApplyFallbackGridLayout(state);
 
     state.GetIdGen().SetNext(maxId + 1);
     state.ClearDirty();

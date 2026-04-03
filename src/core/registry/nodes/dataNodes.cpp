@@ -316,7 +316,7 @@ Node* CompileOutputNode(GraphCompiler* compiler, const VisualNode& n)
 void NodeRegistry::RegisterDataNodes()
 {
     // Each Register(...) entry below follows NodeDescriptor order:
-    // type, label, pins, fields, compile, deserialize, category, paletteVariants, saveToken.
+    // type, label, pins, fields, compile, deserialize, category, paletteVariants, saveToken, deferredInputPins, renderStyle.
     Register({
         NodeType::Constant,
         "Constant",
@@ -331,7 +331,9 @@ void NodeRegistry::RegisterDataNodes()
         nullptr,
         "Data",
         {},
-        "Constant"
+        "Constant",
+        {},
+        NodeRenderStyle::Constant
     });
 
     Register({
@@ -355,7 +357,9 @@ void NodeRegistry::RegisterDataNodes()
             { "Set Variable", "Variable:Set" },
             { "Get Variable", "Variable:Get" }
         },
-        "Variable"
+        "Variable",
+        { "Default" },
+        NodeRenderStyle::Variable
     });
 
     Register({
@@ -374,7 +378,9 @@ void NodeRegistry::RegisterDataNodes()
         nullptr,
         "Data",
         {},
-        "ArrayGet"
+        "ArrayGet",
+        { "Index" },
+        NodeRenderStyle::Array
     });
 
     Register({
@@ -397,7 +403,9 @@ void NodeRegistry::RegisterDataNodes()
         nullptr,
         "Data",
         {},
-        "ArrayAdd"
+        "ArrayAdd",
+        { "Index" },
+        NodeRenderStyle::Array
     });
 
     Register({
@@ -420,7 +428,9 @@ void NodeRegistry::RegisterDataNodes()
         nullptr,
         "Data",
         {},
-        "ArrayReplace"
+        "ArrayReplace",
+        { "Index" },
+        NodeRenderStyle::Array
     });
 
     Register({
@@ -439,7 +449,9 @@ void NodeRegistry::RegisterDataNodes()
         nullptr,
         "Data",
         {},
-        "ArrayRemove"
+        "ArrayRemove",
+        { "Index" },
+        NodeRenderStyle::Array
     });
 
     Register({
@@ -456,7 +468,9 @@ void NodeRegistry::RegisterDataNodes()
         nullptr,
         "Data",
         {},
-        "ArrayLength"
+        "ArrayLength",
+        {},
+        NodeRenderStyle::Array
     });
 
     Register({

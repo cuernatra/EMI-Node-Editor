@@ -74,6 +74,29 @@ struct PaletteVariant
 };
 
 /**
+ * @brief Layout hint used by the editor and renderer.
+ *
+ * The render style groups nodes by presentation shape so UI code can make
+ * layout decisions without hardcoding NodeType checks.
+ */
+enum class NodeRenderStyle
+{
+    Default,
+    Constant,
+    Variable,
+    Sequence,
+    Delay,
+    Loop,
+    ForEach,
+    Binary,
+    Unary,
+    Array,
+    Draw,
+    StructDefine,
+    StructCreate
+};
+
+/**
  * @brief Complete static definition of a node type
  * One immutable descriptor per NodeType; all instances share it and differ only in runtime state.
  * This is the structural contract for a node: pins, fields, palette entries, compile behavior,
@@ -90,6 +113,8 @@ struct NodeDescriptor
     std::string                  category = "More";  ///< Palette section name
     std::vector<PaletteVariant>  paletteVariants;     ///< Optional palette variants (empty = single default tile)
     std::string                  saveToken;  ///< Stable whitespace-free token used for serialization and spawn payloads
+    std::vector<std::string>     deferredInputPins; ///< Input pins rendered inline with fields instead of in the top pin stack
+    NodeRenderStyle              renderStyle = NodeRenderStyle::Default; ///< Presentation group used by the editor and renderer
 };
 
 #endif // NODE_DESCRIPTOR_H
