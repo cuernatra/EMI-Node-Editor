@@ -1,6 +1,81 @@
 #include "../nodeRegistry.h"
 #include "nodeCompileHelpers.h"
 
+namespace
+{
+Node* CompileDelayNode(GraphCompiler* compiler, const VisualNode& n)
+{
+    Node* durationExpr = nullptr;
+    const Pin* durationPin = FindInputPin(n, "Duration");
+    if (durationPin)
+    {
+        if (const PinSource* src = compiler->Resolve(*durationPin))
+        {
+            durationExpr = compiler->BuildNode(*src->node, src->pinIdx);
+            if (compiler->HasError) return nullptr;
+        }
+    }
+    if (!durationExpr)
+    {
+        const std::string* durStr = FindField(n, "Duration");
+        double ms = 1000.0;
+        if (durStr) { try { ms = std::stod(*durStr); } catch (...) { ms = 1000.0; } }
+        durationExpr = MakeNumberLiteral(ms);
+    }
+    return compiler->EmitFunctionCall("delay", { durationExpr });
+}
+
+Node* CompileSequenceNode(GraphCompiler*, const VisualNode&)
+{
+    return MakeNode(Token::Scope);
+}
+
+bool DeserializeSequenceNode(VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds)
+{
+    if (pinIds.size() < desc.pins.size())
+        return false;
+
+    std::vector<int> basePins(pinIds.begin(), pinIds.begin() + static_cast<std::ptrdiff_t>(desc.pins.size()));
+    if (!PopulateExactPinsAndFields(n, desc, basePins))
+        return false;
+
+    for (size_t i = desc.pins.size(); i < pinIds.size(); ++i)
+    {
+        const int thenIndex = static_cast<int>(n.outPins.size());
+        n.outPins.push_back(MakePin(
+            static_cast<uint32_t>(pinIds[i]),
+            n.id,
+            desc.type,
+            "Then " + std::to_string(thenIndex),
+            PinType::Flow,
+            false
+        ));
+    }
+
+    return true;
+}
+
+Node* CompileBranchNode(GraphCompiler* compiler, const VisualNode& n)
+{
+    return BuildBranchNode(compiler, n);
+}
+
+Node* CompileLoopNode(GraphCompiler* compiler, const VisualNode& n)
+{
+    return BuildLoopNode(compiler, n);
+}
+
+Node* CompileForEachNode(GraphCompiler* compiler, const VisualNode& n)
+{
+    return BuildForEachNode(compiler, n);
+}
+
+Node* CompileWhileNode(GraphCompiler* compiler, const VisualNode& n)
+{
+    return BuildWhileNode(compiler, n);
+}
+}
+
 void NodeRegistry::RegisterFlowNodes()
 {
     Register({
@@ -14,27 +89,7 @@ void NodeRegistry::RegisterFlowNodes()
         {
             { "Duration", PinType::Number, "1000.0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) -> Node*
-        {
-            Node* durationExpr = nullptr;
-            const Pin* durationPin = FindInputPin(n, "Duration");
-            if (durationPin)
-            {
-                if (const PinSource* src = compiler->Resolve(*durationPin))
-                {
-                    durationExpr = compiler->BuildNode(*src->node, src->pinIdx);
-                    if (compiler->HasError) return nullptr;
-                }
-            }
-            if (!durationExpr)
-            {
-                const std::string* durStr = FindField(n, "Duration");
-                double ms = 1000.0;
-                if (durStr) { try { ms = std::stod(*durStr); } catch (...) { ms = 1000.0; } }
-                durationExpr = MakeNumberLiteral(ms);
-            }
-            return compiler->EmitFunctionCall("delay", { durationExpr });
-        },
+        CompileDelayNode,
         nullptr,
         "Flow"
     });
@@ -47,30 +102,8 @@ void NodeRegistry::RegisterFlowNodes()
             { "Then 0", PinType::Flow, false }
         },
         {},
-        [](GraphCompiler*, const VisualNode&) -> Node* { return MakeNode(Token::Scope); },
-        [](VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds) -> bool {
-            if (pinIds.size() < desc.pins.size())
-                return false;
-
-            std::vector<int> basePins(pinIds.begin(), pinIds.begin() + static_cast<std::ptrdiff_t>(desc.pins.size()));
-            if (!PopulateExactPinsAndFields(n, desc, basePins))
-                return false;
-
-            for (size_t i = desc.pins.size(); i < pinIds.size(); ++i)
-            {
-                const int thenIndex = static_cast<int>(n.outPins.size());
-                n.outPins.push_back(MakePin(
-                    static_cast<uint32_t>(pinIds[i]),
-                    n.id,
-                    desc.type,
-                    "Then " + std::to_string(thenIndex),
-                    PinType::Flow,
-                    false
-                ));
-            }
-
-            return true;
-        },
+        CompileSequenceNode,
+        DeserializeSequenceNode,
         "Flow"
     });
 
@@ -84,7 +117,7 @@ void NodeRegistry::RegisterFlowNodes()
             { "False", PinType::Flow, false }
         },
         {},
-        [](GraphCompiler* compiler, const VisualNode& n) { return BuildBranchNode(compiler, n); },
+        CompileBranchNode,
         nullptr,
         "Flow"
     });
@@ -104,7 +137,7 @@ void NodeRegistry::RegisterFlowNodes()
             { "Start", PinType::Number, "0" },
             { "Count", PinType::Number, "0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return BuildLoopNode(compiler, n); },
+        CompileLoopNode,
         nullptr,
         "Flow"
     });
@@ -123,7 +156,7 @@ void NodeRegistry::RegisterFlowNodes()
             { "Element Type", PinType::String, "Any", { "Any", "Number", "Boolean", "String", "Array" } },
             { "Array", PinType::Array, "[]" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return BuildForEachNode(compiler, n); },
+        CompileForEachNode,
         nullptr,
         "Flow"
     });
@@ -138,7 +171,7 @@ void NodeRegistry::RegisterFlowNodes()
             { "Completed", PinType::Flow, false }
         },
         {},
-        [](GraphCompiler* compiler, const VisualNode& n) { return BuildWhileNode(compiler, n); },
+        CompileWhileNode,
         nullptr,
         "Flow"
     });
