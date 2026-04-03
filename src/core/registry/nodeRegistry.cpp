@@ -594,6 +594,50 @@ descriptors_[NodeType::Constant] = {
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildOutput(n); }
     };
+
+    auto setCategory = [&](NodeType type, const char* category)
+    {
+        auto it = descriptors_.find(type);
+        if (it != descriptors_.end())
+            it->second.category = category;
+    };
+
+    setCategory(NodeType::Start, "Events");
+
+    setCategory(NodeType::Constant, "Data");
+    setCategory(NodeType::Variable, "Data");
+    setCategory(NodeType::ArrayGetAt, "Data");
+    setCategory(NodeType::ArrayLength, "Data");
+
+    setCategory(NodeType::StructDefine, "Structs");
+    setCategory(NodeType::StructCreate, "Structs");
+
+    setCategory(NodeType::Operator, "Logic");
+    setCategory(NodeType::Comparison, "Logic");
+    setCategory(NodeType::Logic, "Logic");
+    setCategory(NodeType::Not, "Logic");
+    setCategory(NodeType::DrawGrid, "Logic");
+    setCategory(NodeType::Function, "Logic");
+
+    setCategory(NodeType::Delay, "Flow");
+    setCategory(NodeType::DrawRect, "Flow");
+    setCategory(NodeType::Sequence, "Flow");
+    setCategory(NodeType::Branch, "Flow");
+    setCategory(NodeType::Loop, "Flow");
+    setCategory(NodeType::ForEach, "Flow");
+    setCategory(NodeType::ArrayAddAt, "Flow");
+    setCategory(NodeType::ArrayRemoveAt, "Flow");
+    setCategory(NodeType::While, "Flow");
+    setCategory(NodeType::Output, "Flow");
+
+    auto variableIt = descriptors_.find(NodeType::Variable);
+    if (variableIt != descriptors_.end())
+    {
+        variableIt->second.paletteVariants = {
+            { "Set Variable", "Variable:Set" },
+            { "Get Variable", "Variable:Get" }
+        };
+    }
 }
 
 // ---------------------------------------------------------------------------

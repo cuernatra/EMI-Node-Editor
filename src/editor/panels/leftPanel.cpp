@@ -5,8 +5,8 @@
 #include <algorithm>
 #include <cstring>
 #include <cstdio>
+#include <map>
 #include <string>
-#include <unordered_set>
 #include <vector>
 #include "editor/widgets/nodePreview.h"
 
@@ -82,60 +82,13 @@ void DrawStructSubSection(const char* title, const std::vector<PaletteItem>& ite
 
 LeftPanel::LeftPanel()
 {
-    // Keep palette deterministic and grouped in UI.
+    // Keep palette deterministic by sorting all registered nodes by label.
     const auto& registry = NodeRegistry::Get();
     const auto& allDescriptors = registry.All();
-
-    const NodeType preferredOrder[] = {
-        NodeType::Start,
-        NodeType::Constant,
-        NodeType::Variable,
-        NodeType::StructDefine,
-        NodeType::StructCreate,
-        NodeType::ArrayGetAt,
-        NodeType::ArrayLength,
-        NodeType::Operator,
-        NodeType::Comparison,
-        NodeType::Logic,
-        NodeType::Not,
-        NodeType::DrawRect,
-        NodeType::DrawGrid,
-        NodeType::Function,
-        NodeType::Delay,
-        NodeType::Sequence,
-        NodeType::Branch,
-        NodeType::Loop,
-        NodeType::ForEach,
-        NodeType::ArrayAddAt,
-        NodeType::ArrayRemoveAt,
-        NodeType::While,
-        NodeType::Output
-    };
-
-    std::unordered_set<NodeType> added;
-    added.reserve(allDescriptors.size());
-
-    for (NodeType t : preferredOrder)
-    {
-        if (allDescriptors.find(t) != allDescriptors.end())
-        {
-            m_nodeTypes.push_back(t);
-            added.insert(t);
-        }
-    }
-
-    // Append any other registered node types not explicitly ordered above.
-    // These will land in the "More" section unless later classified.
-    std::vector<NodeType> remaining;
-    remaining.reserve(allDescriptors.size());
     for (const auto& kv : allDescriptors)
-    {
-        const NodeType t = kv.first;
-        if (added.find(t) == added.end())
-            remaining.push_back(t);
-    }
+        m_nodeTypes.push_back(kv.first);
 
-    std::sort(remaining.begin(), remaining.end(), [&](NodeType a, NodeType b) {
+    std::sort(m_nodeTypes.begin(), m_nodeTypes.end(), [&](NodeType a, NodeType b) {
         const NodeDescriptor* da = registry.Find(a);
         const NodeDescriptor* db = registry.Find(b);
         const std::string& la = da ? da->label : std::string();
@@ -144,8 +97,6 @@ LeftPanel::LeftPanel()
             return la < lb;
         return static_cast<int>(a) < static_cast<int>(b);
     });
-
-    m_nodeTypes.insert(m_nodeTypes.end(), remaining.begin(), remaining.end());
 }
 
 void LeftPanel::draw(bool hasStartNode)
@@ -153,14 +104,8 @@ void LeftPanel::draw(bool hasStartNode)
     ImGui::Text("NODE PALETTE");
     ImGui::Separator();
 
-    std::vector<PaletteItem> eventTypes;
-    std::vector<PaletteItem> dataTypes;
-    std::vector<PaletteItem> structSchemaTypes;
-    std::vector<PaletteItem> structValueTypes;
-    std::vector<PaletteItem> structFlowTypes;
-    std::vector<PaletteItem> logicTypes;
-    std::vector<PaletteItem> flowTypes;
-    std::vector<PaletteItem> moreTypes;
+    std::map<std::string, std::vector<PaletteItem>> sections;
+    const auto& registry = NodeRegistry::Get();
 
     auto makeDefaultItem = [&](NodeType t) -> PaletteItem
     {
@@ -171,129 +116,32 @@ void LeftPanel::draw(bool hasStartNode)
         return item;
     };
 
-    auto isFlowLikeNode = [&](NodeType t) -> bool
-    {
-        const NodeDescriptor* desc = NodeRegistry::Get().Find(t);
-        if (!desc)
-            return false;
-
-        bool hasFlowInput = false;
-        bool hasFlowOutput = false;
-        for (const PinDescriptor& pin : desc->pins)
-        {
-            if (pin.type != PinType::Flow)
-                continue;
-
-            if (pin.isInput) hasFlowInput = true;
-            else             hasFlowOutput = true;
-        }
-
-        return hasFlowInput && hasFlowOutput;
-    };
-
     for (NodeType t : m_nodeTypes)
     {
-        switch (t)
+        const NodeDescriptor* desc = registry.Find(t);
+        if (!desc)
+            continue;
+
+        const std::string category = desc->category.empty() ? "More" : desc->category;
+
+        if (!desc->paletteVariants.empty())
         {
-            case NodeType::Start:
-                eventTypes.push_back(makeDefaultItem(t));
-                break;
-
-            case NodeType::Constant:
-            case NodeType::ArrayGetAt:
-            case NodeType::ArrayLength:
-                dataTypes.push_back(makeDefaultItem(t));
-                break;
-
-            case NodeType::StructDefine:
-                structSchemaTypes.push_back(makeDefaultItem(t));
-                break;
-
-            case NodeType::StructCreate:
-                structValueTypes.push_back(makeDefaultItem(t));
-                break;
-
-            case NodeType::Variable:
+            for (const PaletteVariant& variant : desc->paletteVariants)
             {
-                PaletteItem setItem;
-                setItem.type = NodeType::Variable;
-                setItem.displayLabel = "Set Variable";
-                setItem.payloadTitle = "Variable:Set";
-
-                PaletteItem getItem;
-                getItem.type = NodeType::Variable;
-                getItem.displayLabel = "Get Variable";
-                getItem.payloadTitle = "Variable:Get";
-
-                dataTypes.push_back(setItem);
-                dataTypes.push_back(getItem);
-                break;
+                PaletteItem item;
+                item.type = t;
+                item.displayLabel = variant.displayLabel;
+                item.payloadTitle = variant.payloadTitle;
+                item.disabled = (t == NodeType::Start && hasStartNode);
+                sections[category].push_back(item);
             }
-
-            case NodeType::Operator:
-            case NodeType::Comparison:
-            case NodeType::Logic:
-            case NodeType::Not:
-            case NodeType::DrawGrid:
-            case NodeType::Function:
-                logicTypes.push_back(makeDefaultItem(t));
-                break;
-
-            case NodeType::Delay:
-            case NodeType::DrawRect:
-            case NodeType::Sequence:
-            case NodeType::Branch:
-            case NodeType::Loop:
-            case NodeType::ForEach:
-            case NodeType::ArrayAddAt:
-            case NodeType::ArrayRemoveAt:
-            case NodeType::While:
-            case NodeType::Output:
-                flowTypes.push_back(makeDefaultItem(t));
-                break;
-
-            default:
-                if (isFlowLikeNode(t))
-                    flowTypes.push_back(makeDefaultItem(t));
-                else
-                    moreTypes.push_back(makeDefaultItem(t));
-                break;
+        }
+        else
+        {
+            sections[category].push_back(makeDefaultItem(t));
         }
     }
 
-    DrawSection("Events", eventTypes);
-    DrawSection("Data", dataTypes);
-
-    if (ImGui::CollapsingHeader("Structs", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-        std::vector<PaletteItem> structItems;
-        structItems.reserve(structSchemaTypes.size() + structValueTypes.size() + structFlowTypes.size());
-        structItems.insert(structItems.end(), structSchemaTypes.begin(), structSchemaTypes.end());
-        structItems.insert(structItems.end(), structValueTypes.begin(), structValueTypes.end());
-        structItems.insert(structItems.end(), structFlowTypes.begin(), structFlowTypes.end());
-
-        const float leftBarWidth = ImGui::GetContentRegionAvail().x;
-        size_t col = 0;
-        size_t idx = 0;
-        for (const PaletteItem& item : structItems)
-        {
-            DrawNodeItem(item);
-            col++;
-            idx++;
-            if (idx < structItems.size()
-                && (nodePreviewConstants::fixedWidth + nodePreviewConstants::padding)
-                   * (col + 1) < leftBarWidth)
-            {
-                ImGui::SameLine();
-            }
-            else
-            {
-                col = 0;
-            }
-        }
-    }
-
-    DrawSection("Logic", logicTypes);
-    DrawSection("Flow", flowTypes);
-    DrawSection("More", moreTypes);
+    for (const auto& [category, items] : sections)
+        DrawSection(category.c_str(), items);
 }
