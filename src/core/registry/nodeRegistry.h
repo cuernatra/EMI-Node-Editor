@@ -58,6 +58,13 @@ public:
     const NodeDescriptor* Find(NodeType type) const;
 
     /**
+     * @brief Resolve a save/spawn token to a node type.
+     * @param token Token text from serialized graph or drag payload.
+     * @return Matching node type, or NodeType::Unknown when no match exists.
+     */
+    NodeType FindByToken(const std::string& token) const;
+
+    /**
      * @brief Get all registered descriptors
      * @return Map of all NodeType → NodeDescriptor mappings
      * 

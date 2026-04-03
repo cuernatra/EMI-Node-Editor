@@ -88,6 +88,7 @@ struct NodeDescriptor
     DeserializeCallback          deserialize;  ///< Optional: Custom pin reconstruction from saved IDs (nullptr = standard exact-match path)
     std::string                  category = "More";  ///< Palette section name
     std::vector<PaletteVariant>  paletteVariants;     ///< Optional palette variants (empty = single default tile)
+    std::string                  saveToken;  ///< Stable whitespace-free token used for serialization and spawn payloads
 };
 
 #endif // NODE_DESCRIPTOR_H
