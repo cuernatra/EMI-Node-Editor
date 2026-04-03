@@ -18,6 +18,7 @@
 
 Core file ownership boundaries:
 - `core/graph/types.h`: shared node and pin type lists.
+- `core/graph/nodeField.h`: runtime per-node editable field values.
 - `core/graph/visualNode.h`: runtime state for one node on the graph.
 - `core/registry/nodeDescriptor.h`: the node recipe, including pins, fields, and compile logic.
 - `core/registry/nodeRegistry.*`: looks up node recipes by type or token.
@@ -29,7 +30,6 @@ Core file ownership boundaries:
     - `editor/graph/`: editor graph state, save/load, and compile bridge
     - `editor/panels/`: the side panels, top bar, console, inspector, and preview
     - `editor/renderer/`: drawing for nodes, pins, links, and field controls
-    - `editor/widgets/`: small shared UI pieces, like the node preview
 
 - `src/app/`
   - Application shell: SFML window loop and top-level layout.
