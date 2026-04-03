@@ -3,6 +3,7 @@
 #include "core/graph/visualNode.h"
 #include "core/graph/link.h"
 #include "core/registry/nodeFactory.h"
+#include "core/registry/nodeRegistry.h"
 #include "imgui_node_editor.h"
 #include <fstream>
 #include <algorithm>
@@ -114,13 +115,16 @@ void GraphSerializer::Save(const GraphState& state, const char* path)
     {
         if (!n.alive) continue;
 
+        const NodeDescriptor* desc = NodeRegistry::Get().Find(n.nodeType);
+        const std::string saveToken = desc ? desc->saveToken : "Unknown";
+
         std::vector<uint32_t> pinIds;
         for (const Pin& p : n.inPins)  pinIds.push_back(static_cast<uint32_t>(p.id.Get()));
         for (const Pin& p : n.outPins) pinIds.push_back(static_cast<uint32_t>(p.id.Get()));
 
         out << "node "
             << n.id.Get() << " "
-            << NodeTypeToSaveToken(n.nodeType) << " "
+            << saveToken << " "
             << pinIds.size();
 
         for (uint32_t pid : pinIds) out << " " << pid;
@@ -302,7 +306,7 @@ void GraphSerializer::Load(GraphState& state, const char* path)
 
             in >> pinCount;
 
-            NodeType nodeType = NodeTypeFromString(nodeTypeStr);
+            NodeType nodeType = NodeRegistry::Get().FindByToken(nodeTypeStr);
             if (nodeType == NodeType::Unknown)
             {
                 // Unknown node type in save file: skip gracefully.

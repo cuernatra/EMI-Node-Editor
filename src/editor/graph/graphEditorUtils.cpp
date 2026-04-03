@@ -465,7 +465,7 @@ ImVec2 SnapToNodeGrid(const ImVec2& pos)
 
 void ParseSpawnPayloadTitle(const char* payloadTitle, NodeType& outType, std::string& outVariableVariant)
 {
-    outType = NodeTypeFromString(payloadTitle ? payloadTitle : "");
+    outType = NodeType::Unknown;
     outVariableVariant.clear();
 
     if (!payloadTitle)
@@ -473,19 +473,15 @@ void ParseSpawnPayloadTitle(const char* payloadTitle, NodeType& outType, std::st
 
     const std::string raw(payloadTitle);
     const size_t sep = raw.find(':');
-    if (sep == std::string::npos)
+    const std::string base = (sep == std::string::npos) ? raw : raw.substr(0, sep);
+
+    outType = NodeRegistry::Get().FindByToken(base);
+    if (outType == NodeType::Unknown || sep == std::string::npos)
         return;
 
-    const std::string base = raw.substr(0, sep);
-    const std::string suffix = raw.substr(sep + 1);
-
-    const NodeType parsedBase = NodeTypeFromString(base);
-    if (parsedBase == NodeType::Unknown)
-        return;
-
-    outType = parsedBase;
-    if (parsedBase == NodeType::Variable)
-        outVariableVariant = suffix;
+    const NodeDescriptor* desc = NodeRegistry::Get().Find(outType);
+    if (desc && !desc->paletteVariants.empty())
+        outVariableVariant = raw.substr(sep + 1);
 }
 
 NodeField* FindField(std::vector<NodeField>& fields, const char* name)

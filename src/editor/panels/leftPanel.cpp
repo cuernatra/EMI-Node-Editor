@@ -22,8 +22,9 @@ struct PaletteItem
 
 void DrawNodeItem(const PaletteItem& item)
 {
+    const NodeDescriptor* descriptor = NodeRegistry::Get().Find(item.type);
     const char* payloadTitle = item.payloadTitle.empty()
-        ? NodeTypeToString(item.type)
+        ? (descriptor ? descriptor->saveToken.c_str() : "Unknown")
         : item.payloadTitle.c_str();
 
     ImGui::PushID(payloadTitle);
@@ -111,7 +112,8 @@ void LeftPanel::draw(bool hasStartNode)
     {
         PaletteItem item;
         item.type = t;
-        item.payloadTitle = NodeTypeToSaveToken(t);
+        if (const NodeDescriptor* desc = registry.Find(t))
+            item.payloadTitle = desc->saveToken;
         item.disabled = (t == NodeType::Start && hasStartNode);
         return item;
     };

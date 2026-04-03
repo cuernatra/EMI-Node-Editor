@@ -262,9 +262,11 @@ void InspectorPanel::draw(GraphState& state, uintptr_t selectedNodeRawId)
 		return;
 
 	const ImVec2 nodePos = ed::GetNodePosition(selectedNode->id);
+	const NodeDescriptor* descriptor = NodeRegistry::Get().Find(selectedNode->nodeType);
+	const char* typeLabel = descriptor ? descriptor->label.c_str() : "Unknown";
 
 	ImGui::TextColored(colors::textSecondary, "Node ID: %llu", static_cast<unsigned long long>(selectedNode->id.Get()));
-	ImGui::TextColored(colors::textSecondary, "Type: %s", NodeTypeToString(selectedNode->nodeType));
+	ImGui::TextColored(colors::textSecondary, "Type: %s", typeLabel);
 	ImGui::TextColored(colors::textSecondary, "Position: (%.1f, %.1f)", nodePos.x, nodePos.y);
 
 	ImGui::Spacing();
