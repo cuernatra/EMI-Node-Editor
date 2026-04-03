@@ -73,6 +73,16 @@ private:
      */
     NodeRegistry();
 
+    /// Register one descriptor into the immutable map.
+    void Register(NodeDescriptor descriptor);
+
+    /// Category-specific registration helpers (implemented in nodes/*.cpp).
+    void RegisterEventNodes();
+    void RegisterDataNodes();
+    void RegisterLogicNodes();
+    void RegisterFlowNodes();
+    void RegisterStructNodes();
+
     std::unordered_map<NodeType, NodeDescriptor> descriptors_;  ///< NodeType → descriptor map
 };
 

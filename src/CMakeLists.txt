@@ -25,6 +25,11 @@ add_executable(emi-editor
   core/graph/link.cpp
   core/registry/nodeFactory.cpp
   core/registry/nodeRegistry.cpp
+  core/registry/nodes/eventNodes.cpp
+  core/registry/nodes/dataNodes.cpp
+  core/registry/nodes/logicNodes.cpp
+  core/registry/nodes/flowNodes.cpp
+  core/registry/nodes/structNodes.cpp
   core/compiler/graphCompiler.cpp
   core/compiler/pinResolver.cpp
 
