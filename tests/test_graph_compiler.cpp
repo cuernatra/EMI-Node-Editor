@@ -209,6 +209,7 @@ TEST_CASE("All current NodeTypes are registered and compile callbacks are valid"
         REQUIRE(desc != nullptr);
         REQUIRE(desc->compile != nullptr);
         REQUIRE_FALSE(desc->saveToken.empty());
+        REQUIRE(registry.FindByToken(desc->saveToken) == type);
 
         VisualNode node = CreateNodeFromType(type, gen, ImVec2(0.0f, 0.0f));
         REQUIRE(node.nodeType == type);
@@ -219,5 +220,19 @@ TEST_CASE("All current NodeTypes are registered and compile callbacks are valid"
         REQUIRE_FALSE(compiler.HasError);
         REQUIRE(compiled != nullptr);
         delete compiled;
+    }
+}
+
+TEST_CASE("Registry save tokens round-trip for all registered nodes", "[registry][serialization]")
+{
+    const NodeRegistry& registry = NodeRegistry::Get();
+    const auto& all = registry.All();
+
+    REQUIRE_FALSE(all.empty());
+
+    for (const auto& [type, descriptor] : all)
+    {
+        REQUIRE_FALSE(descriptor.saveToken.empty());
+        REQUIRE(registry.FindByToken(descriptor.saveToken) == type);
     }
 }
