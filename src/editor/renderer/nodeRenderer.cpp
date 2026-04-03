@@ -4,6 +4,8 @@
 #include "pinRenderer.h"
 
 #include "app/constants.h"
+#include "editor/nodeColorCategories.h"
+#include "editor/settings.h"
 #include "editor/graph/graphSerializer.h"
 
 #include "imgui.h"
@@ -11,6 +13,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cfloat>
 #include <cmath>
 #include <cctype>
 #include <cstdio>
@@ -22,6 +25,26 @@ namespace ed = ax::NodeEditor;
 
 namespace
 {
+ImVec4 GetNodeCategoryHeaderColor(NodeType nodeType)
+{
+    switch (GetNodeColorCategory(nodeType))
+    {
+        case NodeColorCategory::Event:
+            return ImVec4(Settings::nodeHeaderEventColorR, Settings::nodeHeaderEventColorG, Settings::nodeHeaderEventColorB, Settings::nodeHeaderEventColorA);
+        case NodeColorCategory::Data:
+            return ImVec4(Settings::nodeHeaderDataColorR, Settings::nodeHeaderDataColorG, Settings::nodeHeaderDataColorB, Settings::nodeHeaderDataColorA);
+        case NodeColorCategory::Struct:
+            return ImVec4(Settings::nodeHeaderStructColorR, Settings::nodeHeaderStructColorG, Settings::nodeHeaderStructColorB, Settings::nodeHeaderStructColorA);
+        case NodeColorCategory::Logic:
+            return ImVec4(Settings::nodeHeaderLogicColorR, Settings::nodeHeaderLogicColorG, Settings::nodeHeaderLogicColorB, Settings::nodeHeaderLogicColorA);
+        case NodeColorCategory::Flow:
+            return ImVec4(Settings::nodeHeaderFlowColorR, Settings::nodeHeaderFlowColorG, Settings::nodeHeaderFlowColorB, Settings::nodeHeaderFlowColorA);
+        case NodeColorCategory::More:
+        default:
+            return ImVec4(Settings::nodeHeaderMoreColorR, Settings::nodeHeaderMoreColorG, Settings::nodeHeaderMoreColorB, Settings::nodeHeaderMoreColorA);
+    }
+}
+
 NodeField* FindFieldByName(VisualNode& node, const char* name)
 {
     for (NodeField& field : node.fields)
@@ -256,6 +279,54 @@ std::vector<std::string> ParseArrayItemsForNodeView(const std::string& text)
 }
 
 static std::unordered_map<ImGuiID, bool> s_nodeArrayOpenState;
+static std::unordered_map<std::string, int> s_arrayItemCountCache;
+static std::unordered_map<std::string, std::vector<std::string>> s_structFieldNameCache;
+static std::unordered_map<uint64_t, float> s_nodeWidthCache;
+
+int GetArrayItemCountCached(const std::string& text)
+{
+    auto it = s_arrayItemCountCache.find(text);
+    if (it != s_arrayItemCountCache.end())
+        return it->second;
+
+    const int count = static_cast<int>(ParseArrayItemsForNodeView(text).size());
+    s_arrayItemCountCache[text] = count;
+    return count;
+}
+
+const std::vector<std::string>& GetStructFieldNamesCached(const std::string& schemaText)
+{
+    auto it = s_structFieldNameCache.find(schemaText);
+    if (it != s_structFieldNameCache.end())
+        return it->second;
+
+    std::vector<std::string> names;
+    const std::vector<std::string> defs = ParseArrayItemsForNodeView(schemaText);
+    for (std::string raw : defs)
+    {
+        raw = TrimArrayToken(raw);
+        if (raw.size() >= 2
+            && ((raw.front() == '"' && raw.back() == '"')
+                || (raw.front() == '\'' && raw.back() == '\'')))
+        {
+            raw = raw.substr(1, raw.size() - 2);
+        }
+
+        const size_t sep = raw.find(':');
+        const std::string name = TrimArrayToken(
+            (sep == std::string::npos) ? raw : raw.substr(0, sep)
+        );
+
+        if (!name.empty()
+            && std::find(names.begin(), names.end(), name) == names.end())
+        {
+            names.push_back(name);
+        }
+    }
+
+    auto [insertedIt, _] = s_structFieldNameCache.emplace(schemaText, std::move(names));
+    return insertedIt->second;
+}
 }
 
 static bool NodePopupComboDynamic(const char* id,
@@ -355,11 +426,19 @@ static void DrawReadOnlyArrayFieldPreview(const NodeField& field, int previewCou
     ImGui::TextDisabled("%s [%d] %s", field.name.c_str(), static_cast<int>(items.size()), preview.c_str());
 }
 
-float MeasureFieldWidth(const NodeField& field)
+float MeasureFieldWidth(const VisualNode& node, const NodeField& field)
 {
     const float labelWidth  = ImGui::CalcTextSize(field.name.c_str()).x;
-    const float widgetWidth = 82.0f;
-    const float spacing     = ImGui::GetStyle().ItemSpacing.x;
+    float widgetWidth = 82.0f;
+    float spacing = ImGui::GetStyle().ItemSpacing.x;
+
+    // Keep Constant node much narrower in graph view.
+    if (node.nodeType == NodeType::Constant)
+    {
+        widgetWidth = 58.0f;
+        spacing = 4.0f;
+    }
+
     return labelWidth + spacing + widgetWidth;
 }
 
@@ -380,7 +459,7 @@ float MeasureNodeContentWidth(const VisualNode& n)
     for (const NodeField& field : n.fields)
     {
         if (field.name == "Variant") continue;
-        maxWidth = std::max(maxWidth, MeasureFieldWidth(field));
+        maxWidth = std::max(maxWidth, MeasureFieldWidth(n, field));
     }
 
     return maxWidth;
@@ -471,13 +550,48 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         n.positioned = true;
     }
 
-     const float contentWidth = MeasureNodeContentWidth(n);
+    const float contentWidth = MeasureNodeContentWidth(n);
 
     ed::BeginNode(n.id);
 
-    ImGui::TextUnformatted(n.title.c_str());
+    const float headerHeight = 30.0f;
+    const float headerPaddingX = 6.0f;
+    const float headerInsetX = 12.0f;
+    const float headerInsetY = 4.0f;
+    const float headerWidth = contentWidth + headerPaddingX * 2.0f;
+    const ImVec2 headerMin = ImGui::GetCursorScreenPos();
+    const uint64_t nodeKey = static_cast<uint64_t>(n.id.Get());
+
+    // Match header fill with actual node body margins using node-editor style
+    // padding, so all node types align evenly instead of fixed magic expansion.
+    const auto& nodeStyle = ed::GetStyle();
+    const float headerLeftInset = nodeStyle.NodePadding.x;
+    const float headerRightInset = nodeStyle.NodePadding.z;
+    const ImVec2 headerDrawMin(headerMin.x - headerLeftInset, headerMin.y);
+    float headerDrawWidth = headerWidth + headerLeftInset + headerRightInset;
+    if (auto it = s_nodeWidthCache.find(nodeKey); it != s_nodeWidthCache.end() && it->second > 0.0f)
+        headerDrawWidth = it->second;
+    const ImVec2 headerDrawMax(headerDrawMin.x + headerDrawWidth, headerMin.y + headerHeight);
+    const ImVec2 headerColorMin(headerDrawMin.x + headerInsetX, headerDrawMin.y + headerInsetY);
+    const ImVec2 headerColorMax(headerDrawMax.x - headerInsetX, headerDrawMax.y - headerInsetY);
+
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    drawList->AddRectFilled(
+        headerColorMin,
+        headerColorMax,
+        ImGui::GetColorU32(GetNodeCategoryHeaderColor(n.nodeType)),
+        4.0f
+    );
+
+    ImFont* titleFont = ImGui::GetFont();
+    const float titleFontSize = ImGui::GetFontSize() + 3.0f;
+    const ImVec2 titleSize = titleFont->CalcTextSizeA(titleFontSize, FLT_MAX, 0.0f, n.title.c_str());
+    const float titleX = headerColorMin.x + std::max(0.0f, (headerColorMax.x - headerColorMin.x - titleSize.x) * 0.5f);
+    const float titleY = headerColorMin.y + std::max(0.0f, (headerColorMax.y - headerColorMin.y - titleSize.y) * 0.5f);
+    drawList->AddText(titleFont, titleFontSize, ImVec2(titleX, titleY), ImGui::GetColorU32(colors::textPrimary), n.title.c_str());
+    ImGui::SetCursorScreenPos(ImVec2(headerMin.x, headerMin.y + headerHeight));
     // Reserve horizontal space so node width matches measured content width.
-    ImGui::Dummy(ImVec2(contentWidth, 0.0f));
+    ImGui::Dummy(ImVec2(headerWidth, 0.0f));
     ImGui::Spacing();
 
     bool changed = false;
@@ -511,8 +625,12 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const bool isArrayIndexNode =
         (n.nodeType == NodeType::ArrayGetAt
          || n.nodeType == NodeType::ArrayAddAt
+         || n.nodeType == NodeType::ArrayReplaceAt
          || n.nodeType == NodeType::ArrayRemoveAt);
-    const bool hasArrayInputFieldNode = (isForEachNode || isArrayIndexNode);
+    const bool isArrayAddNode = (n.nodeType == NodeType::ArrayAddAt);
+    const bool isArrayReplaceNode = (n.nodeType == NodeType::ArrayReplaceAt);
+    const bool isArrayLengthNode = (n.nodeType == NodeType::ArrayLength);
+    const bool hasArrayInputFieldNode = (isForEachNode || isArrayIndexNode || isArrayLengthNode);
     bool drawNodeColorTextChanged = false;
 
     bool drewDeferredDefaultPin = false;
@@ -707,8 +825,13 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 };
 
                 ImGui::TextUnformatted("Type");
-                ImGui::SameLine();
-                changed |= NodePopupComboDynamic("##TypeDropBar", field.value, kTypeItems, 110.0f);
+                if (isConstantNode)
+                    ImGui::SameLine(0.0f, 6.0f);
+                else
+                    ImGui::SameLine();
+
+                const float typeDropWidth = isConstantNode ? 58.0f : 110.0f;
+                changed |= NodePopupComboDynamic("##TypeDropBar", field.value, kTypeItems, typeDropWidth);
                 continue;
             }
 
@@ -838,6 +961,56 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 continue;
             }
 
+            if ((isArrayAddNode && field.name == "Add Type")
+                || (isArrayReplaceNode && field.name == "Replace Type"))
+            {
+                static const std::vector<std::string> kAddTypeItems = {
+                    "Number", "Boolean", "String", "Array"
+                };
+
+                const bool replaceMode = isArrayReplaceNode;
+                ImGui::TextUnformatted(replaceMode ? "Replace Type" : "Add Type");
+                ImGui::SameLine();
+                const bool typeChanged = NodePopupComboDynamic(
+                    replaceMode ? "##ArrayReplaceTypeDropBar" : "##ArrayAddTypeDropBar",
+                    field.value,
+                    kAddTypeItems,
+                    110.0f
+                );
+                if (typeChanged)
+                {
+                    changed = true;
+
+                    NodeField* typedValueField = FindFieldByName(n, replaceMode ? "Replace Value" : "Add Value");
+                    if (typedValueField)
+                    {
+                        const PinType resolved = ValuePinTypeFromString(field.value, PinType::Number);
+                        typedValueField->valueType = resolved;
+
+                        if (resolved == PinType::Boolean)
+                            typedValueField->value = "false";
+                        else if (resolved == PinType::Number)
+                            typedValueField->value = "0.0";
+                        else if (resolved == PinType::String)
+                            typedValueField->value = "";
+                        else if (resolved == PinType::Array)
+                            typedValueField->value = "[]";
+                    }
+                }
+                continue;
+            }
+
+            if ((isArrayAddNode && field.name == "Add Value")
+                || (isArrayReplaceNode && field.name == "Replace Value"))
+            {
+                const bool valueConnected = isInputPinConnected("Value");
+                if (valueConnected)
+                    DrawReadOnlyField(field);
+                else
+                    changed |= DrawField(field);
+                continue;
+            }
+
             if (isDrawRectNode &&
                 (field.name == "X" || field.name == "Y" || field.name == "W" || field.name == "H"))
             {
@@ -900,10 +1073,10 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
             if (isStructDefineNode && field.name == "Fields")
             {
-                const std::vector<std::string> items = ParseArrayItemsForNodeView(field.value);
+                const int fieldCount = GetArrayItemCountCached(field.value);
                 ImGui::TextUnformatted("Fields");
                 ImGui::SameLine();
-                ImGui::TextDisabled("[%d]", static_cast<int>(items.size()));
+                ImGui::TextDisabled("[%d]", fieldCount);
                 continue;
             }
 
@@ -923,28 +1096,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 std::vector<std::string> selectableFields;
                 if (const NodeField* schemaField = FindFieldByName(n, "Schema Fields"))
                 {
-                    const std::vector<std::string> defs = ParseArrayItemsForNodeView(schemaField->value);
-                    for (std::string raw : defs)
-                    {
-                        raw = TrimArrayToken(raw);
-                        if (raw.size() >= 2 &&
-                            ((raw.front() == '"' && raw.back() == '"') ||
-                             (raw.front() == '\'' && raw.back() == '\'')))
-                        {
-                            raw = raw.substr(1, raw.size() - 2);
-                        }
-
-                        const size_t sep = raw.find(':');
-                        const std::string name = TrimArrayToken(
-                            (sep == std::string::npos) ? raw : raw.substr(0, sep)
-                        );
-
-                        if (!name.empty() &&
-                            std::find(selectableFields.begin(), selectableFields.end(), name) == selectableFields.end())
-                        {
-                            selectableFields.push_back(name);
-                        }
-                    }
+                    selectableFields = GetStructFieldNamesCached(schemaField->value);
                 }
 
                 if (!selectableFields.empty())
@@ -1067,8 +1219,10 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         DrawPin(pin, contentWidth, allLinks);
 
     ed::EndNode();
+
+    const ImVec2 actualNodeSize = ed::GetNodeSize(n.id);
+    if (actualNodeSize.x > 0.0f)
+        s_nodeWidthCache[nodeKey] = actualNodeSize.x;
+
     return changed;
 }
-
-
-

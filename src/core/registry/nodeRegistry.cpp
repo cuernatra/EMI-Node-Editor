@@ -28,12 +28,13 @@ descriptors_[NodeType::Constant] = {
     NodeType::Constant,
     "Constant",
     {
-        { "Value", PinType::Number, /*isInput=*/false }
+        // Dynamic value type (Number/Boolean/String/Array) is resolved from Type field.
+        { "Value", PinType::Any, /*isInput=*/false }
     },
     {
         // Keep Type first so changing type updates Value widget/reset immediately.
         { "Type",  PinType::String, "Number" },
-        { "Value", PinType::Number, "0.0" }
+        { "Value", PinType::Any, "0.0" }
     },
     [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildConstant(n); }
 };
@@ -302,9 +303,34 @@ descriptors_[NodeType::Constant] = {
         },
         {
             { "Array", PinType::Array, "[]" },
-            { "Index", PinType::Number, "0" }
+            { "Index", PinType::Number, "0" },
+            { "Add Type", PinType::String, "Number" },
+            { "Add Value", PinType::Any, "0.0" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayAddAt(n); }
+    };
+
+    // ------------------------------------------------------------------
+    // Array Replace  —  Flow in + array + index + value -> Flow out
+    // Replaces one item at Index (implemented as Remove + Insert sequence).
+    // ------------------------------------------------------------------
+    descriptors_[NodeType::ArrayReplaceAt] = {
+        NodeType::ArrayReplaceAt,
+        "Array Replace",
+        {
+            { "In",    PinType::Flow,   /*isInput=*/true  },
+            { "Array", PinType::Array,  /*isInput=*/true  },
+            { "Index", PinType::Number, /*isInput=*/true  },
+            { "Value", PinType::Any,    /*isInput=*/true  },
+            { "Out",   PinType::Flow,   /*isInput=*/false }
+        },
+        {
+            { "Array", PinType::Array, "[]" },
+            { "Index", PinType::Number, "0" },
+            { "Replace Type", PinType::String, "Number" },
+            { "Replace Value", PinType::Any, "0.0" }
+        },
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayReplaceAt(n); }
     };
 
     // ------------------------------------------------------------------
@@ -321,134 +347,27 @@ descriptors_[NodeType::Constant] = {
             { "Out",   PinType::Flow,   /*isInput=*/false }
         },
         {
-            { "Array", PinType::Array, "[]" },
             { "Index", PinType::Number, "0" }
         },
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayRemoveAt(n); }
     };
 
     // ------------------------------------------------------------------
-    // Grid Node Schema  —  defines default struct-like layout for world cells
-    // Slot layout:
-    // [0]=Id, [1]=Tag, [2]=Type, [3]=X, [4]=Y, [5]=R, [6]=G, [7]=B,
-    // [8]=IsWall, [9]=Distance, [10]=Neighbors
+    // Array Length  —  array -> item count (Number)
     // ------------------------------------------------------------------
-    descriptors_[NodeType::GridNodeSchema] = {
-        NodeType::GridNodeSchema,
-        "Grid Node Schema",
+    descriptors_[NodeType::ArrayLength] = {
+        NodeType::ArrayLength,
+        "Array Length",
         {
-            { "Schema", PinType::Array, /*isInput=*/false }
+            { "Array",  PinType::Array,  /*isInput=*/true  },
+            { "Length", PinType::Number, /*isInput=*/false }
         },
         {
-            { "Id",        PinType::Number,  "0" },
-            { "Tag",       PinType::String,  "node_0" },
-            { "Type",      PinType::String,  "Empty" },
-            { "X",         PinType::Number,  "0" },
-            { "Y",         PinType::Number,  "0" },
-            { "R",         PinType::Number,  "120" },
-            { "G",         PinType::Number,  "180" },
-            { "B",         PinType::Number,  "255" },
-            { "IsWall",    PinType::Boolean, "false" },
-            { "Distance",  PinType::Number,  "0" },
-            { "Neighbors", PinType::Array,   "[]" }
+            { "Array", PinType::Array, "[]" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildGridNodeSchema(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayLength(n); }
     };
 
-    // ------------------------------------------------------------------
-    // Grid Node Create  —  instantiate one node from schema/overrides
-    // ------------------------------------------------------------------
-    descriptors_[NodeType::GridNodeCreate] = {
-        NodeType::GridNodeCreate,
-        "Grid Node Create",
-        {
-            { "Schema",    PinType::Array,   /*isInput=*/true  },
-            { "Id",        PinType::Number,  /*isInput=*/true  },
-            { "Tag",       PinType::String,  /*isInput=*/true  },
-            { "Type",      PinType::String,  /*isInput=*/true  },
-            { "X",         PinType::Number,  /*isInput=*/true  },
-            { "Y",         PinType::Number,  /*isInput=*/true  },
-            { "R",         PinType::Number,  /*isInput=*/true  },
-            { "G",         PinType::Number,  /*isInput=*/true  },
-            { "B",         PinType::Number,  /*isInput=*/true  },
-            { "IsWall",    PinType::Boolean, /*isInput=*/true  },
-            { "Distance",  PinType::Number,  /*isInput=*/true  },
-            { "Neighbors", PinType::Array,   /*isInput=*/true  },
-            { "Node",      PinType::Array,   /*isInput=*/false }
-        },
-        {
-            { "Schema",    PinType::Array,   "[]" },
-            { "Id",        PinType::Number,  "0" },
-            { "Tag",       PinType::String,  "node_0" },
-            { "Type",      PinType::String,  "Empty" },
-            { "X",         PinType::Number,  "0" },
-            { "Y",         PinType::Number,  "0" },
-            { "R",         PinType::Number,  "120" },
-            { "G",         PinType::Number,  "180" },
-            { "B",         PinType::Number,  "255" },
-            { "IsWall",    PinType::Boolean, "false" },
-            { "Distance",  PinType::Number,  "0" },
-            { "Neighbors", PinType::Array,   "[]" }
-        },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildGridNodeCreate(n); }
-    };
-
-    // ------------------------------------------------------------------
-    // Grid Node Update  —  update one existing node (immutable-style return)
-    // ------------------------------------------------------------------
-    descriptors_[NodeType::GridNodeUpdate] = {
-        NodeType::GridNodeUpdate,
-        "Grid Node Update",
-        {
-            { "Node",      PinType::Array,   /*isInput=*/true  },
-            { "Id",        PinType::Number,  /*isInput=*/true  },
-            { "Tag",       PinType::String,  /*isInput=*/true  },
-            { "Type",      PinType::String,  /*isInput=*/true  },
-            { "X",         PinType::Number,  /*isInput=*/true  },
-            { "Y",         PinType::Number,  /*isInput=*/true  },
-            { "R",         PinType::Number,  /*isInput=*/true  },
-            { "G",         PinType::Number,  /*isInput=*/true  },
-            { "B",         PinType::Number,  /*isInput=*/true  },
-            { "IsWall",    PinType::Boolean, /*isInput=*/true  },
-            { "Distance",  PinType::Number,  /*isInput=*/true  },
-            { "Neighbors", PinType::Array,   /*isInput=*/true  },
-            { "Updated",   PinType::Array,   /*isInput=*/false }
-        },
-        {
-            { "Node",      PinType::Array,   "[]" },
-            { "Id",        PinType::Number,  "0" },
-            { "Tag",       PinType::String,  "node_0" },
-            { "Type",      PinType::String,  "Empty" },
-            { "X",         PinType::Number,  "0" },
-            { "Y",         PinType::Number,  "0" },
-            { "R",         PinType::Number,  "120" },
-            { "G",         PinType::Number,  "180" },
-            { "B",         PinType::Number,  "255" },
-            { "IsWall",    PinType::Boolean, "false" },
-            { "Distance",  PinType::Number,  "0" },
-            { "Neighbors", PinType::Array,   "[]" }
-        },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildGridNodeUpdate(n); }
-    };
-
-    // ------------------------------------------------------------------
-    // Grid Node Delete  —  remove node instance from array by index
-    // ------------------------------------------------------------------
-    descriptors_[NodeType::GridNodeDelete] = {
-        NodeType::GridNodeDelete,
-        "Grid Node Delete",
-        {
-            { "In",    PinType::Flow,   /*isInput=*/true  },
-            { "Nodes", PinType::Array,  /*isInput=*/true  },
-            { "Index", PinType::Number, /*isInput=*/true  },
-            { "Out",   PinType::Flow,   /*isInput=*/false }
-        },
-        {
-            { "Nodes", PinType::Array,  "[]" },
-            { "Index", PinType::Number, "0" }
-        },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildGridNodeDelete(n); }
-    };
 
     // ------------------------------------------------------------------
     // Struct Define  — named compact schema, custom fields stored in array text
@@ -485,60 +404,6 @@ descriptors_[NodeType::Constant] = {
         [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStructCreate(n); }
     };
 
-    // ------------------------------------------------------------------
-    // Struct Get Field  — read one named field from struct instance
-    // ------------------------------------------------------------------
-    descriptors_[NodeType::StructGetField] = {
-        NodeType::StructGetField,
-        "Struct Get Field",
-        {
-            { "Item",  PinType::Array,  /*isInput=*/true  },
-            { "Value", PinType::Any,    /*isInput=*/false }
-        },
-        {
-            { "Struct Name", PinType::String, "test" },
-            { "Field", PinType::String, "id" },
-            { "Schema Fields", PinType::Array, "[]" }
-        },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStructGetField(n); }
-    };
-
-    // ------------------------------------------------------------------
-    // Struct Set Field  — update one named field in struct instance
-    // ------------------------------------------------------------------
-    descriptors_[NodeType::StructSetField] = {
-        NodeType::StructSetField,
-        "Struct Set Field",
-        {
-            { "Item",  PinType::Array,  /*isInput=*/true  },
-            { "Value", PinType::Any,    /*isInput=*/true  },
-            { "Out",   PinType::Array,  /*isInput=*/false }
-        },
-        {
-            { "Struct Name", PinType::String, "test" },
-            { "Field", PinType::String, "id" },
-            { "Schema Fields", PinType::Array, "[]" }
-        },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStructSetField(n); }
-    };
-
-    // ------------------------------------------------------------------
-    // Struct Delete  — remove struct instance from array by id/index input
-    // ------------------------------------------------------------------
-    descriptors_[NodeType::StructDelete] = {
-        NodeType::StructDelete,
-        "Struct Delete",
-        {
-            { "In",    PinType::Flow,   /*isInput=*/true  },
-            { "Array", PinType::Array,  /*isInput=*/true  },
-            { "Id",    PinType::Number, /*isInput=*/true  },
-            { "Out",   PinType::Flow,   /*isInput=*/false }
-        },
-        {
-            { "Id", PinType::Number, "0" }
-        },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStructDelete(n); }
-    };
 
     // ------------------------------------------------------------------
     // While  —  Flow in + condition -> Body flow + Completed flow
@@ -565,8 +430,7 @@ descriptors_[NodeType::Constant] = {
         {
             { "In",    PinType::Flow, /*isInput=*/true  },
             { "Default", PinType::Any,  /*isInput=*/true  },
-            { "Out",   PinType::Flow, /*isInput=*/false },
-            { "Value", PinType::Any,  /*isInput=*/false }
+            { "Out",   PinType::Flow, /*isInput=*/false }
         },
         {
             { "Variant", PinType::String, "Set" },

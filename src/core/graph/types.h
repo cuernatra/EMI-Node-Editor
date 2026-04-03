@@ -1,7 +1,9 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <functional>
+#include <cctype>
 
 // Shared graph enums (duplicated until call sites are migrated).
 
@@ -33,16 +35,18 @@ enum class NodeType
     ForEach,     ///< Iterate over array elements
     ArrayGetAt,  ///< Read value from array by index
     ArrayAddAt,  ///< Insert value to array at index
+    ArrayReplaceAt, ///< Replace value in array at index
     ArrayRemoveAt, ///< Remove value from array at index
-    GridNodeSchema, ///< Defines default grid-node struct layout/data
-    GridNodeCreate, ///< Creates one grid-node instance (struct-as-array)
-    GridNodeUpdate, ///< Returns updated grid-node instance
-    GridNodeDelete, ///< Removes grid-node instance from array by index
+    ArrayLength, ///< Number of items in array
+    GridNodeSchema, ///< Legacy/removed
+    GridNodeCreate, ///< Legacy/removed
+    GridNodeUpdate, ///< Legacy/removed
+    GridNodeDelete, ///< Legacy/removed
     StructDefine, ///< Defines a named struct schema with custom fields
     StructCreate, ///< Creates one instance of a named struct
-    StructGetField, ///< Reads one field value from a named struct instance
-    StructSetField, ///< Writes one field value and returns updated struct instance
-    StructDelete, ///< Removes one struct instance from array by Id input
+    StructGetField, ///< Legacy/removed
+    StructSetField, ///< Legacy/removed
+    StructDelete, ///< Legacy/removed
     While,       ///< While loop
     Variable,    ///< Variable get/set
     Function,    ///< Function definition/call
@@ -69,7 +73,9 @@ inline const char* NodeTypeToString(NodeType t)
         case NodeType::ForEach:    return "For Each";
         case NodeType::ArrayGetAt: return "Array Get";
         case NodeType::ArrayAddAt: return "Array Add";
+        case NodeType::ArrayReplaceAt: return "Array Replace";
         case NodeType::ArrayRemoveAt: return "Array Remove";
+        case NodeType::ArrayLength: return "Array Length";
         case NodeType::GridNodeSchema: return "Grid Node Schema";
         case NodeType::GridNodeCreate: return "Grid Node Create";
         case NodeType::GridNodeUpdate: return "Grid Node Update";
@@ -87,53 +93,66 @@ inline const char* NodeTypeToString(NodeType t)
     }
 }
 
+inline std::string RemoveWhitespace(std::string_view s)
+{
+    std::string out;
+    out.reserve(s.size());
+    for (unsigned char ch : s)
+    {
+        if (!std::isspace(ch))
+            out.push_back(static_cast<char>(ch));
+    }
+    return out;
+}
+
+// Stable, single-token identifier for serialization.
+// This must NOT contain whitespace because the graph file format uses whitespace tokenization.
+// Derived from the UI label to avoid per-node manual token maintenance.
+inline std::string NodeTypeToSaveToken(NodeType t)
+{
+    return RemoveWhitespace(NodeTypeToString(t));
+}
+
 inline NodeType NodeTypeFromString(const std::string& s)
 {
-    if (s == "Start")      return NodeType::Start;
-    if (s == "Constant")   return NodeType::Constant;
-    if (s == "Operator")   return NodeType::Operator;
-    if (s == "Comparison") return NodeType::Comparison;
-    if (s == "Logic")      return NodeType::Logic;
-    if (s == "Not")        return NodeType::Not;
-    if (s == "DrawRect")   return NodeType::DrawRect;
-    if (s == "Draw Rect")  return NodeType::DrawRect;
-    if (s == "DrawGrid")   return NodeType::DrawGrid;
-    if (s == "Draw Grid")  return NodeType::DrawGrid;
-    if (s == "Delay")      return NodeType::Delay;
-    if (s == "Sequence")   return NodeType::Sequence;
-    if (s == "Branch")     return NodeType::Branch;
-    if (s == "Loop")       return NodeType::Loop;
-    if (s == "ForEach")    return NodeType::ForEach;
-    if (s == "For Each")   return NodeType::ForEach;
-    if (s == "ArrayGetAt") return NodeType::ArrayGetAt;
-    if (s == "Array Get")  return NodeType::ArrayGetAt;
-    if (s == "ArrayAddAt") return NodeType::ArrayAddAt;
-    if (s == "Array Add")  return NodeType::ArrayAddAt;
-    if (s == "ArrayRemoveAt") return NodeType::ArrayRemoveAt;
-    if (s == "Array Remove")  return NodeType::ArrayRemoveAt;
-    if (s == "GridNodeSchema") return NodeType::GridNodeSchema;
-    if (s == "Grid Node Schema") return NodeType::GridNodeSchema;
-    if (s == "GridNodeCreate") return NodeType::GridNodeCreate;
-    if (s == "Grid Node Create") return NodeType::GridNodeCreate;
-    if (s == "GridNodeUpdate") return NodeType::GridNodeUpdate;
-    if (s == "Grid Node Update") return NodeType::GridNodeUpdate;
-    if (s == "GridNodeDelete") return NodeType::GridNodeDelete;
-    if (s == "Grid Node Delete") return NodeType::GridNodeDelete;
-    if (s == "StructDefine") return NodeType::StructDefine;
-    if (s == "Struct Define") return NodeType::StructDefine;
-    if (s == "StructCreate") return NodeType::StructCreate;
-    if (s == "Struct Create") return NodeType::StructCreate;
-    if (s == "StructGetField") return NodeType::StructGetField;
-    if (s == "Struct Get Field") return NodeType::StructGetField;
-    if (s == "StructSetField") return NodeType::StructSetField;
-    if (s == "Struct Set Field") return NodeType::StructSetField;
-    if (s == "StructDelete") return NodeType::StructDelete;
-    if (s == "Struct Delete") return NodeType::StructDelete;
-    if (s == "While")      return NodeType::While;
-    if (s == "Variable")   return NodeType::Variable;
-    if (s == "Function")   return NodeType::Function;
-    if (s == "Output")      return NodeType::Output;      // backward compatibility
-    if (s == "Debug Print") return NodeType::Output;
+    const std::string norm = RemoveWhitespace(s);
+
+    if (norm == "Start")      return NodeType::Start;
+    if (norm == "Constant")   return NodeType::Constant;
+    if (norm == "Operator")   return NodeType::Operator;
+    if (norm == "Comparison") return NodeType::Comparison;
+    if (norm == "Logic")      return NodeType::Logic;
+    if (norm == "Not")        return NodeType::Not;
+    if (norm == "DrawRect")   return NodeType::DrawRect;
+    if (norm == "DrawGrid")   return NodeType::DrawGrid;
+    if (norm == "Delay")      return NodeType::Delay;
+    if (norm == "Sequence")   return NodeType::Sequence;
+    if (norm == "Branch")     return NodeType::Branch;
+    if (norm == "Loop")       return NodeType::Loop;
+
+    if (norm == "ForEach")       return NodeType::ForEach;
+    if (norm == "ArrayGet")      return NodeType::ArrayGetAt;
+    if (norm == "ArrayAdd")      return NodeType::ArrayAddAt;
+    if (norm == "ArrayReplace")  return NodeType::ArrayReplaceAt;
+    if (norm == "ArrayRemove")   return NodeType::ArrayRemoveAt;
+    if (norm == "ArrayLength")   return NodeType::ArrayLength;
+    if (norm == "ArrayCount")    return NodeType::ArrayLength;
+
+    if (norm == "GridNodeSchema") return NodeType::Unknown;
+    if (norm == "GridNodeCreate") return NodeType::Unknown;
+    if (norm == "GridNodeUpdate") return NodeType::Unknown;
+    if (norm == "GridNodeDelete") return NodeType::Unknown;
+
+    if (norm == "StructDefine")   return NodeType::StructDefine;
+    if (norm == "StructCreate")   return NodeType::StructCreate;
+    if (norm == "StructGetField") return NodeType::Unknown;
+    if (norm == "StructSetField") return NodeType::Unknown;
+    if (norm == "StructDelete")   return NodeType::Unknown;
+
+    if (norm == "While")        return NodeType::While;
+    if (norm == "Variable")     return NodeType::Variable;
+    if (norm == "Function")     return NodeType::Function;
+    if (norm == "DebugPrint")   return NodeType::Output;
     return NodeType::Unknown;
 }
 

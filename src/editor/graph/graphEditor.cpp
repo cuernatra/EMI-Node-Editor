@@ -153,23 +153,6 @@ void GraphEditor::DrawNodeCanvas()
         CreateNewLink();
     ed::EndCreate();
 
-    // Open spawn popup at cursor when right-clicking empty node-space background.
-    ed::Suspend();
-    const bool canvasHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup);
-    const bool rightClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
-    const bool overNode = ed::GetHoveredNode().Get() != 0;
-    const bool overLink = ed::GetHoveredLink().Get() != 0;
-    const bool overPin = ed::GetHoveredPin().Get() != 0;
-    if (canvasHovered && rightClicked && !overNode && !overLink && !overPin)
-    {
-        m_spawnPopupScreenPos = ImGui::GetMousePos();
-        m_spawnPopupCanvasPos = GraphEditorUtils::SnapToNodeGrid(ed::ScreenToCanvas(m_spawnPopupScreenPos));
-        m_openSpawnPopupRequested = true;
-    }
-    ed::Resume();
-
-    DrawContextMenus();
-
     // UX rule:
     // If user clicks the same already-selected single node again,
     // deselect it (so inspector closes instead of becoming dim/stacked).
@@ -191,148 +174,58 @@ void GraphEditor::DrawNodeCanvas()
         }
     }
 
-    const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
-    const bool loopLayoutChanged = GraphEditorUtils::RefreshLoopNodeLayout(m_state);
-    const bool forEachLayoutChanged = GraphEditorUtils::RefreshForEachNodeLayout(m_state);
-    const bool drawRectLayoutChanged = GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
-    const bool structLayoutChanged = GraphEditorUtils::RefreshStructNodeLayouts(m_state);
-    const bool outputInputTypesChanged = GraphEditorUtils::RefreshOutputNodeInputTypes(m_state);
-    const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-    if (variableTypesChanged || loopLayoutChanged || forEachLayoutChanged || drawRectLayoutChanged || structLayoutChanged || outputInputTypesChanged || linksChanged)
-        m_state.MarkDirty();
+    RefreshGraphAndMarkDirty();
 
     ed::End();
 }
 
-
-
-bool GraphEditor::DrawSpawnNodeMenuContents(const ImVec2& spawnCanvasPos)
+void GraphEditor::RefreshGraphAndMarkDirty()
 {
-    auto spawnFromPayloadTitle = [&](const char* payloadTitle) -> bool
+    static std::vector<VisualNode>* s_lastNodesPtr = nullptr;
+    static size_t s_lastAliveStructDefineCount = 0;
+    static size_t s_lastAliveStructShapeHash = 0;
+
+    auto& nodesRef = m_state.GetNodes();
+    size_t aliveStructDefineCount = 0;
+    size_t aliveStructShapeHash = 1469598103934665603ull; // FNV offset basis
+
+    for (const auto& n : nodesRef)
     {
-        NodeType type = NodeType::Unknown;
-        std::string variableVariant;
-        GraphEditorUtils::ParseSpawnPayloadTitle(payloadTitle, type, variableVariant);
-        if (type == NodeType::Unknown)
-            return false;
+        if (!n.alive || n.nodeType != NodeType::StructDefine)
+            continue;
 
-        if (type == NodeType::Start && m_state.HasNodeType(NodeType::Start))
-            return false;
+        ++aliveStructDefineCount;
 
-        VisualNode newNode = CreateNodeFromType(type, m_state.GetIdGen(), spawnCanvasPos);
+        // Mix stable, cheap shape inputs only (avoid full schema parsing every frame).
+        aliveStructShapeHash ^= static_cast<size_t>(n.id.Get());
+        aliveStructShapeHash *= 1099511628211ull;
+        aliveStructShapeHash ^= n.fields.size();
+        aliveStructShapeHash *= 1099511628211ull;
+        aliveStructShapeHash ^= n.inPins.size();
+        aliveStructShapeHash *= 1099511628211ull;
+        aliveStructShapeHash ^= n.outPins.size();
+        aliveStructShapeHash *= 1099511628211ull;
+    }
 
-        if (type == NodeType::Variable && !variableVariant.empty())
-        {
-            if (NodeField* variant = GraphEditorUtils::FindField(newNode.fields, "Variant"))
-                variant->value = (variableVariant == "Get") ? "Get" : "Set";
-        }
+    const bool structLikelyDirty =
+        (s_lastNodesPtr != &nodesRef)
+        || (s_lastAliveStructDefineCount != aliveStructDefineCount)
+        || (s_lastAliveStructShapeHash != aliveStructShapeHash);
 
-        m_state.AddNode(newNode);
+    s_lastNodesPtr = &nodesRef;
+    s_lastAliveStructDefineCount = aliveStructDefineCount;
+    s_lastAliveStructShapeHash = aliveStructShapeHash;
+
+    const bool descriptorLayoutChanged = GraphEditorUtils::RefreshNodesFromRegistryDescriptors(m_state);
+    const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
+    const bool forEachLayoutChanged = GraphEditorUtils::RefreshForEachNodeLayout(m_state);
+    const bool structLayoutChanged = structLikelyDirty
+        ? GraphEditorUtils::RefreshStructNodeLayouts(m_state)
+        : false;
+    const bool outputInputTypesChanged = GraphEditorUtils::RefreshOutputNodeInputTypes(m_state);
+    const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
+    if (descriptorLayoutChanged || variableTypesChanged || forEachLayoutChanged || structLayoutChanged || outputInputTypesChanged || linksChanged)
         m_state.MarkDirty();
-        return true;
-    };
-
-    const bool hasStartNode = m_state.HasNodeType(NodeType::Start);
-
-    if (ImGui::BeginMenu("Events"))
-    {
-        if (ImGui::MenuItem("Start", nullptr, false, !hasStartNode))
-            return spawnFromPayloadTitle("Start");
-        ImGui::EndMenu();
-    }
-
-    if (ImGui::BeginMenu("Data"))
-    {
-        if (ImGui::MenuItem("Constant"))
-            return spawnFromPayloadTitle("Constant");
-        if (ImGui::MenuItem("Set Variable"))
-            return spawnFromPayloadTitle("Variable:Set");
-        if (ImGui::MenuItem("Get Variable"))
-            return spawnFromPayloadTitle("Variable:Get");
-        if (ImGui::MenuItem("Struct Define"))
-            return spawnFromPayloadTitle("Struct Define");
-        if (ImGui::MenuItem("Struct Create"))
-            return spawnFromPayloadTitle("Struct Create");
-        if (ImGui::MenuItem("Struct Get Field"))
-            return spawnFromPayloadTitle("Struct Get Field");
-        if (ImGui::MenuItem("Struct Set Field"))
-            return spawnFromPayloadTitle("Struct Set Field");
-        ImGui::EndMenu();
-    }
-
-    if (ImGui::BeginMenu("Logic"))
-    {
-        if (ImGui::MenuItem("Operator"))
-            return spawnFromPayloadTitle("Operator");
-        if (ImGui::MenuItem("Comparison"))
-            return spawnFromPayloadTitle("Comparison");
-        if (ImGui::MenuItem("Logic"))
-            return spawnFromPayloadTitle("Logic");
-        if (ImGui::MenuItem("Not"))
-            return spawnFromPayloadTitle("Not");
-        if (ImGui::MenuItem("Draw Grid"))
-            return spawnFromPayloadTitle("Draw Grid");
-        if (ImGui::MenuItem("Function"))
-            return spawnFromPayloadTitle("Function");
-        ImGui::EndMenu();
-    }
-
-    if (ImGui::BeginMenu("Flow"))
-    {
-        if (ImGui::MenuItem("Delay"))
-            return spawnFromPayloadTitle("Delay");
-        if (ImGui::MenuItem("Draw Rect"))
-            return spawnFromPayloadTitle("Draw Rect");
-        if (ImGui::MenuItem("Sequence"))
-            return spawnFromPayloadTitle("Sequence");
-        if (ImGui::MenuItem("Branch"))
-            return spawnFromPayloadTitle("Branch");
-        if (ImGui::MenuItem("Loop"))
-            return spawnFromPayloadTitle("Loop");
-        if (ImGui::MenuItem("For Each"))
-            return spawnFromPayloadTitle("For Each");
-        if (ImGui::MenuItem("Struct Delete"))
-            return spawnFromPayloadTitle("Struct Delete");
-        if (ImGui::MenuItem("Array Get"))
-            return spawnFromPayloadTitle("Array Get");
-        if (ImGui::MenuItem("Array Add"))
-            return spawnFromPayloadTitle("Array Add");
-        if (ImGui::MenuItem("Array Remove"))
-            return spawnFromPayloadTitle("Array Remove");
-        if (ImGui::MenuItem("While"))
-            return spawnFromPayloadTitle("While");
-        if (ImGui::MenuItem("Debug Print"))
-            return spawnFromPayloadTitle("Output");
-        ImGui::EndMenu();
-    }
-
-    return false;
-}
-
-
-void GraphEditor::DrawContextMenus()
-{
-    ed::Suspend();
-
-    if (m_openSpawnPopupRequested)
-    {
-        ImGui::SetNextWindowPos(m_spawnPopupScreenPos, ImGuiCond_Appearing);
-        ImGui::OpenPopup("##node_space_spawn_popup");
-        m_openSpawnPopupRequested = false;
-    }
-
-    if (ImGui::BeginPopup("##node_space_spawn_popup"))
-    {
-        ImGui::TextUnformatted("Create Node");
-        ImGui::Separator();
-
-        if (DrawSpawnNodeMenuContents(m_spawnPopupCanvasPos))
-            ImGui::CloseCurrentPopup();
-
-        ImGui::EndPopup();
-    }
-
-    ed::Resume();
 }
 
 void GraphEditor::DrawInspectorPanel()
@@ -525,13 +418,7 @@ void GraphEditor::CreateNewLink()
         lnk.type       = outPin->type;
         m_state.AddLink(lnk);
 
-        const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
-        const bool loopLayoutChanged = GraphEditorUtils::RefreshLoopNodeLayout(m_state);
-        const bool drawRectLayoutChanged = GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
-        const bool structLayoutChanged = GraphEditorUtils::RefreshStructNodeLayouts(m_state);
-        const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-        if (variableTypesChanged || loopLayoutChanged || drawRectLayoutChanged || structLayoutChanged || linksChanged)
-            m_state.MarkDirty();
+        RefreshGraphAndMarkDirty();
     }
 }
 
@@ -547,13 +434,7 @@ void GraphEditor::DeleteNodes(ed::NodeId nodeId)
 
     if (anyDeleted)
     {
-        const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
-        const bool loopLayoutChanged = GraphEditorUtils::RefreshLoopNodeLayout(m_state);
-        const bool drawRectLayoutChanged = GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
-        const bool structLayoutChanged = GraphEditorUtils::RefreshStructNodeLayouts(m_state);
-        const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-        if (variableTypesChanged || loopLayoutChanged || drawRectLayoutChanged || structLayoutChanged || linksChanged)
-            m_state.MarkDirty();
+        RefreshGraphAndMarkDirty();
     }
 }
 
@@ -569,11 +450,6 @@ void GraphEditor::DeleteLinks(ed::LinkId linkId)
 
     if (anyDeleted)
     {
-        const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
-        const bool loopLayoutChanged = GraphEditorUtils::RefreshLoopNodeLayout(m_state);
-        const bool drawRectLayoutChanged = GraphEditorUtils::RefreshDrawRectNodeLayout(m_state);
-        const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-        if (variableTypesChanged || loopLayoutChanged || drawRectLayoutChanged || linksChanged)
-            m_state.MarkDirty();
+        RefreshGraphAndMarkDirty();
     }
 }

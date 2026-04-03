@@ -11,49 +11,6 @@
 
 namespace ed = ax::NodeEditor;
 
-// Serialization helpers for pin types
-static const char* PinTypeToString(PinType t);
-static PinType PinTypeFromString(const std::string& s);
-
-static const char* NodeTypeToSaveToken(NodeType t)
-{
-    // Keep graph file format stable and single-token for parser safety.
-    // UI label for NodeType::Output is "Debug Print", but save token remains "Output".
-    if (t == NodeType::DrawRect)
-        return "DrawRect";
-    if (t == NodeType::DrawGrid)
-        return "DrawGrid";
-    if (t == NodeType::ForEach)
-        return "ForEach";
-    if (t == NodeType::ArrayGetAt)
-        return "ArrayGetAt";
-    if (t == NodeType::ArrayAddAt)
-        return "ArrayAddAt";
-    if (t == NodeType::ArrayRemoveAt)
-        return "ArrayRemoveAt";
-    if (t == NodeType::GridNodeSchema)
-        return "GridNodeSchema";
-    if (t == NodeType::GridNodeCreate)
-        return "GridNodeCreate";
-    if (t == NodeType::GridNodeUpdate)
-        return "GridNodeUpdate";
-    if (t == NodeType::GridNodeDelete)
-        return "GridNodeDelete";
-    if (t == NodeType::StructDefine)
-        return "StructDefine";
-    if (t == NodeType::StructCreate)
-        return "StructCreate";
-    if (t == NodeType::StructGetField)
-        return "StructGetField";
-    if (t == NodeType::StructSetField)
-        return "StructSetField";
-    if (t == NodeType::StructDelete)
-        return "StructDelete";
-    if (t == NodeType::Output)
-        return "Output";
-    return NodeTypeToString(t);
-}
-
 static std::string EncodeFieldValue(const std::string& value)
 {
     static constexpr char kHex[] = "0123456789ABCDEF";
@@ -90,21 +47,18 @@ static int HexToNibble(char c)
 
 static std::string DecodeFieldValue(const std::string& encoded)
 {
-    // Backward compatibility: accept older "esc:" prefix but do not require it.
-    const std::string& body = (encoded.rfind("esc:", 0) == 0) ? encoded.substr(4) : encoded;
-
-    if (body.find('%') == std::string::npos)
-        return body;
+    if (encoded.find('%') == std::string::npos)
+        return encoded;
 
     std::string out;
-    out.reserve(body.size());
+    out.reserve(encoded.size());
 
-    for (size_t i = 0; i < body.size(); ++i)
+    for (size_t i = 0; i < encoded.size(); ++i)
     {
-        if (body[i] == '%' && i + 2 < body.size())
+        if (encoded[i] == '%' && i + 2 < encoded.size())
         {
-            int hi = HexToNibble(body[i + 1]);
-            int lo = HexToNibble(body[i + 2]);
+            int hi = HexToNibble(encoded[i + 1]);
+            int lo = HexToNibble(encoded[i + 2]);
             if (hi >= 0 && lo >= 0)
             {
                 out.push_back(static_cast<char>((hi << 4) | lo));
@@ -113,7 +67,7 @@ static std::string DecodeFieldValue(const std::string& encoded)
             }
         }
 
-        out.push_back(body[i]);
+        out.push_back(encoded[i]);
     }
 
     return out;
@@ -276,7 +230,7 @@ void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n, bool resetValue
         }
         else
         {
-            // Keep backward compatibility with older/invalid values when not explicitly resetting.
+            // Normalize the current value when not explicitly resetting.
             if (targetType == PinType::Boolean)
             {
                 const bool b = ParseBoolValue(valueF->value);
@@ -321,7 +275,7 @@ void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n, bool resetValue
     else
     {
         // Keep Constant type set constrained to sane data values.
-        // Legacy/invalid values (Flow/Function/Any/unknown) are normalized to String.
+        // Invalid values (Flow/Function/Any/unknown) are normalized to String.
         typeF->value = "String";
         setTypeAndNormalize(PinType::String);
     }
@@ -345,31 +299,6 @@ void GraphSerializer::Load(GraphState& state, const char* path)
             std::string nodeTypeStr;
             int         pinCount;
             in >> nid >> nodeTypeStr;
-
-            // Backward compatibility for accidental multi-token save formats:
-            //   node <id> Debug Print <pinCount> ...
-            //   node <id> Draw Grid <pinCount> ...
-            //   node <id> Draw Rect <pinCount> ...
-            if (nodeTypeStr == "Debug")
-            {
-                std::string maybePrint;
-                in >> maybePrint;
-                if (maybePrint == "Print")
-                    nodeTypeStr = "Debug Print";
-                else
-                    nodeTypeStr = maybePrint;
-            }
-            else if (nodeTypeStr == "Draw")
-            {
-                std::string maybeKind;
-                in >> maybeKind;
-                if (maybeKind == "Grid")
-                    nodeTypeStr = "Draw Grid";
-                else if (maybeKind == "Rect")
-                    nodeTypeStr = "Draw Rect";
-                else
-                    nodeTypeStr = maybeKind;
-            }
 
             in >> pinCount;
 
@@ -471,31 +400,4 @@ void GraphSerializer::Load(GraphState& state, const char* path)
 
     state.GetIdGen().SetNext(maxId + 1);
     state.ClearDirty();
-}
-
-// ---- Serialization helpers ----
-
-static const char* PinTypeToString(PinType t)
-{
-    switch (t)
-    {
-        case PinType::Number:   return "Number";
-        case PinType::Boolean:  return "Boolean";
-        case PinType::String:   return "String";
-        case PinType::Array:    return "Array";
-        case PinType::Function: return "Function";
-        case PinType::Flow:     return "Flow";
-        default:                return "Any";
-    }
-}
-
-static PinType PinTypeFromString(const std::string& s)
-{
-    if (s == "Number")   return PinType::Number;
-    if (s == "Boolean")  return PinType::Boolean;
-    if (s == "String")   return PinType::String;
-    if (s == "Array")    return PinType::Array;
-    if (s == "Function") return PinType::Function;
-    if (s == "Flow")     return PinType::Flow;
-    return PinType::Any;
 }

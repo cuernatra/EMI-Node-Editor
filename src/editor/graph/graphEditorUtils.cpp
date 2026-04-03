@@ -1,6 +1,6 @@
 #include "graphEditorUtils.h"
-#include "graphSerializer.h"
 #include "core/graph/link.h"
+#include "core/registry/nodeRegistry.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -11,26 +11,6 @@
 
 namespace
 {
-float ParseInspectorFloat(const std::string& s)
-{
-    if (s.empty())
-        return 0.0f;
-
-    try
-    {
-        return std::stof(s);
-    }
-    catch (...)
-    {
-        return 0.0f;
-    }
-}
-
-bool ParseInspectorBool(const std::string& s)
-{
-    return s == "1" || s == "true" || s == "True";
-}
-
 std::string TrimCopy(const std::string& s)
 {
     size_t a = 0;
@@ -124,9 +104,6 @@ std::string BuildArrayString(const std::vector<std::string>& items)
     return out;
 }
 
-PinType VariableTypeFromString(const std::string& typeName);
-const char* VariableTypeToString(PinType type);
-
 struct StructFieldDef
 {
     std::string name;
@@ -150,7 +127,7 @@ std::vector<StructFieldDef> ParseStructFieldDefs(const std::string& text)
         StructFieldDef def;
         def.name = TrimCopy(item.substr(0, sep));
         const std::string typeName = TrimCopy(item.substr(sep + 1));
-        def.type = VariableTypeFromString(typeName);
+        def.type = ValuePinTypeFromString(typeName, PinType::Number);
         if (!def.name.empty())
             defs.push_back(def);
     }
@@ -162,7 +139,7 @@ std::string BuildStructFieldDefsString(const std::vector<StructFieldDef>& defs)
     std::vector<std::string> items;
     items.reserve(defs.size());
     for (const StructFieldDef& def : defs)
-        items.push_back(std::string("\"") + def.name + ":" + VariableTypeToString(def.type) + "\"");
+        items.push_back(std::string("\"") + def.name + ":" + ValuePinTypeToString(def.type) + "\"");
     return BuildArrayString(items);
 }
 
@@ -183,105 +160,8 @@ NodeField* EnsureField(std::vector<NodeField>& fields, const std::string& name, 
     return &fields.back();
 }
 
-static std::unordered_map<ImGuiID, bool> s_arrayItemOpenState;
-
 bool TryParseDouble(const std::string& s, double& out);
 bool ParseBoolLoose(const std::string& s);
-
-enum class ArrayItemType
-{
-    Number,
-    Boolean,
-    String,
-    Null,
-    Array
-};
-
-ArrayItemType DetectArrayItemType(const std::string& raw)
-{
-    const std::string v = TrimCopy(raw);
-    if (v == "null" || v == "Null")
-        return ArrayItemType::Null;
-    if (v == "true" || v == "True" || v == "false" || v == "False")
-        return ArrayItemType::Boolean;
-    if (v.size() >= 2 && ((v.front() == '"' && v.back() == '"') || (v.front() == '\'' && v.back() == '\'')))
-        return ArrayItemType::String;
-    if (v.size() >= 2 && v.front() == '[' && v.back() == ']')
-        return ArrayItemType::Array;
-
-    double number = 0.0;
-    if (TryParseDouble(v, number))
-        return ArrayItemType::Number;
-
-    return ArrayItemType::String;
-}
-
-const char* ArrayItemTypeToLabel(ArrayItemType t)
-{
-    switch (t)
-    {
-        case ArrayItemType::Number:  return "Number";
-        case ArrayItemType::Boolean: return "Boolean";
-        case ArrayItemType::String:  return "String";
-        case ArrayItemType::Null:    return "Null";
-        case ArrayItemType::Array:   return "Array";
-        default:                     return "String";
-    }
-}
-
-std::string ArrayItemPayload(const std::string& raw, ArrayItemType type)
-{
-    std::string v = TrimCopy(raw);
-    if (type == ArrayItemType::String)
-    {
-        if (v.size() >= 2 && ((v.front() == '"' && v.back() == '"') || (v.front() == '\'' && v.back() == '\'')))
-            return v.substr(1, v.size() - 2);
-        return v;
-    }
-    if (type == ArrayItemType::Null)
-        return "";
-    return v;
-}
-
-std::string BuildArrayItemFromPayload(ArrayItemType type, const std::string& payload)
-{
-    switch (type)
-    {
-        case ArrayItemType::Number:
-        {
-            double v = 0.0;
-            if (TryParseDouble(payload, v))
-                return std::to_string(v);
-            return "0.0";
-        }
-        case ArrayItemType::Boolean:
-            return ParseBoolLoose(payload) ? "true" : "false";
-        case ArrayItemType::String:
-            return "\"" + payload + "\"";
-        case ArrayItemType::Null:
-            return "null";
-        case ArrayItemType::Array:
-        {
-            const std::string trimmed = TrimCopy(payload);
-            if (trimmed.empty())
-                return "[]";
-            if (trimmed.front() == '[' && trimmed.back() == ']')
-                return trimmed;
-            return "[" + trimmed + "]";
-        }
-        default:
-            return payload;
-    }
-}
-
-PinType VariableTypeFromString(const std::string& typeName)
-{
-    if (typeName == "Any")     return PinType::Any;
-    if (typeName == "Boolean") return PinType::Boolean;
-    if (typeName == "String")  return PinType::String;
-    if (typeName == "Array")   return PinType::Array;
-    return PinType::Number;
-}
 
 bool TryParseDouble(const std::string& s, double& out)
 {
@@ -354,19 +234,6 @@ void NormalizeValueForPinType(PinType t, std::string& value)
     }
 }
 
-const char* VariableTypeToString(PinType type)
-{
-    switch (type)
-    {
-        case PinType::Any:     return "Any";
-        case PinType::Boolean: return "Boolean";
-        case PinType::String:  return "String";
-        case PinType::Array:   return "Array";
-        case PinType::Number:
-        default:               return "Number";
-    }
-}
-
 void RemovePinsByNameExcept(std::vector<Pin>& pins, const std::vector<std::string>& keepNames)
 {
     pins.erase(
@@ -390,6 +257,198 @@ const Pin* FindIncomingPinSource(const GraphState& state, const std::vector<Link
         return state.FindPin(l.startPinId);
     }
     return nullptr;
+}
+
+bool IsPinLinked(const GraphState& state, ed::PinId pinId)
+{
+    for (const Link& l : state.GetLinks())
+    {
+        if (!l.alive)
+            continue;
+        if (l.startPinId == pinId || l.endPinId == pinId)
+            return true;
+    }
+    return false;
+}
+
+enum class DescriptorSyncMode
+{
+    EnsureOnly,         // Ensure descriptor pins exist; keep extras.
+    PruneUnlinkedExtras // Ensure descriptor pins exist; drop extra pins if they are unlinked.
+};
+
+DescriptorSyncMode DescriptorSyncModeForNodeType(NodeType t)
+{
+    switch (t)
+    {
+        case NodeType::Sequence:
+            return DescriptorSyncMode::EnsureOnly; // expandable Then pins
+        default:
+            return DescriptorSyncMode::PruneUnlinkedExtras;
+    }
+}
+
+bool ShouldSkipDescriptorSync(NodeType t)
+{
+    switch (t)
+    {
+        case NodeType::Variable:
+        case NodeType::StructDefine:
+        case NodeType::StructCreate:
+            return true; // handled by bespoke refresh passes
+
+        default:
+            return false;
+    }
+}
+
+bool SyncPinsToDescriptor(GraphState& state,
+                         VisualNode& node,
+                         const NodeDescriptor& desc,
+                         bool isInput,
+                         std::vector<Pin>& pins,
+                         DescriptorSyncMode mode,
+                         bool& changed)
+{
+    std::vector<Pin> newPins;
+    newPins.reserve(pins.size());
+
+    std::vector<ed::PinId> usedIds;
+    usedIds.reserve(pins.size());
+
+    for (const PinDescriptor& pd : desc.pins)
+    {
+        if (pd.isInput != isInput)
+            continue;
+
+        Pin* existing = GraphEditorUtils::FindPinByName(pins, pd.name.c_str());
+        if (!existing)
+        {
+            newPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                node.id,
+                node.nodeType,
+                pd.name,
+                pd.type,
+                pd.isInput,
+                pd.isMultiInput
+            ));
+            changed = true;
+            continue;
+        }
+
+        Pin updated = *existing;
+        usedIds.push_back(updated.id);
+
+        if (updated.parentNodeId != node.id)
+        {
+            updated.parentNodeId = node.id;
+            changed = true;
+        }
+        if (updated.parentNodeType != node.nodeType)
+        {
+            updated.parentNodeType = node.nodeType;
+            changed = true;
+        }
+        if (updated.isInput != pd.isInput)
+        {
+            updated.isInput = pd.isInput;
+            changed = true;
+        }
+        if (updated.isMultiInput != pd.isMultiInput)
+        {
+            updated.isMultiInput = pd.isMultiInput;
+            changed = true;
+        }
+        if (updated.name != pd.name)
+        {
+            updated.name = pd.name;
+            changed = true;
+        }
+
+        // Avoid fighting dynamic typing:
+        // if the descriptor says Any, keep the current runtime-resolved type.
+        if (pd.type != PinType::Any && updated.type != pd.type)
+        {
+            updated.type = pd.type;
+            changed = true;
+        }
+
+        newPins.push_back(std::move(updated));
+    }
+
+    for (const Pin& oldPin : pins)
+    {
+        const bool used = std::any_of(usedIds.begin(), usedIds.end(), [&](ed::PinId id) { return id == oldPin.id; });
+        if (used)
+            continue;
+
+        if (mode == DescriptorSyncMode::EnsureOnly)
+        {
+            newPins.push_back(oldPin);
+            continue;
+        }
+
+        if (IsPinLinked(state, oldPin.id))
+        {
+            newPins.push_back(oldPin);
+            continue;
+        }
+
+        changed = true; // pruned
+    }
+
+    if (newPins.size() != pins.size())
+        changed = true;
+
+    pins = std::move(newPins);
+    return true;
+}
+
+bool SyncNodeToDescriptor(GraphState& state, VisualNode& node, const NodeDescriptor& desc)
+{
+    bool changed = false;
+
+    if (node.title != desc.label)
+    {
+        node.title = desc.label;
+        changed = true;
+    }
+
+    // Ensure descriptor fields exist and have correct types.
+    for (const FieldDescriptor& fd : desc.fields)
+    {
+        NodeField* f = GraphEditorUtils::FindField(node.fields, fd.name.c_str());
+        if (!f)
+        {
+            node.fields.push_back(NodeField{ fd.name, fd.valueType, fd.defaultValue });
+            changed = true;
+            continue;
+        }
+
+        // Do not force dynamic Any fields back to descriptor defaults every frame.
+        // This is critical for nodes like Constant where runtime/UI resolves the
+        // effective value type from a separate type selector.
+        if (fd.valueType != PinType::Any && f->valueType != fd.valueType)
+        {
+            f->valueType = fd.valueType;
+            f->value = fd.defaultValue;
+            changed = true;
+        }
+
+        if (fd.valueType != PinType::Any)
+        {
+            const std::string before = f->value;
+            NormalizeValueForPinType(fd.valueType, f->value);
+            if (f->value != before)
+                changed = true;
+        }
+    }
+
+    const DescriptorSyncMode mode = DescriptorSyncModeForNodeType(node.nodeType);
+    SyncPinsToDescriptor(state, node, desc, /*isInput=*/true, node.inPins, mode, changed);
+    SyncPinsToDescriptor(state, node, desc, /*isInput=*/false, node.outPins, mode, changed);
+    return changed;
 }
 }
 
@@ -453,439 +512,27 @@ Pin* FindPinByName(std::vector<Pin>& pins, const char* name)
     return nullptr;
 }
 
-bool DrawInspectorField(NodeField& field)
+bool RefreshNodesFromRegistryDescriptors(GraphState& state)
 {
     bool changed = false;
-    ImGui::PushID(field.name.c_str());
+    auto& nodes = state.GetNodes();
 
-    auto beginInspectorRow = [&](const char* label)
+    for (auto& n : nodes)
     {
-        const float rowStartX = ImGui::GetCursorPosX();
-        constexpr float kLabelColumnWidth = 90.0f;
+        if (!n.alive)
+            continue;
 
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted(label);
-        ImGui::SameLine(rowStartX + kLabelColumnWidth);
-        ImGui::SetNextItemWidth(-1.0f);
-    };
+        if (ShouldSkipDescriptorSync(n.nodeType))
+            continue;
 
-    switch (field.valueType)
-    {
-        case PinType::Number:
-        {
-            beginInspectorRow(field.name.c_str());
-            float v = ParseInspectorFloat(field.value);
-            if (ImGui::InputFloat("##value", &v, 0.0f, 0.0f, "%.3f"))
-            {
-                field.value = std::to_string(v);
-                changed = true;
-            }
-            break;
-        }
+        const NodeDescriptor* desc = NodeRegistry::Get().Find(n.nodeType);
+        if (!desc)
+            continue;
 
-        case PinType::Boolean:
-        {
-            beginInspectorRow(field.name.c_str());
-            bool v = ParseInspectorBool(field.value);
-            if (ImGui::Checkbox("##value", &v))
-            {
-                field.value = v ? "true" : "false";
-                changed = true;
-            }
-            break;
-        }
-
-        case PinType::String:
-        {
-            if (field.name == "Op")
-            {
-                const char* items[] = { "+", "-", "*", "/", "==", "!=", "<", "<=", ">", ">=", "AND", "OR" };
-                beginInspectorRow(field.name.c_str());
-                if (ImGui::BeginCombo("##op", field.value.c_str()))
-                {
-                    for (const char* item : items)
-                    {
-                        const bool isSelected = (field.value == item);
-                        if (ImGui::Selectable(item, isSelected))
-                        {
-                            field.value = item;
-                            changed = true;
-                        }
-                        if (isSelected)
-                            ImGui::SetItemDefaultFocus();
-                    }
-                    ImGui::EndCombo();
-                }
-            }
-            else if (field.name == "Type")
-            {
-                const char* items[] = { "Number", "Boolean", "String", "Array" };
-                beginInspectorRow(field.name.c_str());
-                if (ImGui::BeginCombo("##type", field.value.c_str()))
-                {
-                    for (const char* item : items)
-                    {
-                        const bool isSelected = (field.value == item);
-                        if (ImGui::Selectable(item, isSelected))
-                        {
-                            field.value = item;
-                            changed = true;
-                        }
-                        if (isSelected)
-                            ImGui::SetItemDefaultFocus();
-                    }
-                    ImGui::EndCombo();
-                }
-            }
-            else if (field.name == "Element Type")
-            {
-                const char* items[] = { "Any", "Number", "Boolean", "String", "Array" };
-                beginInspectorRow(field.name.c_str());
-                if (ImGui::BeginCombo("##elementType", field.value.c_str()))
-                {
-                    for (const char* item : items)
-                    {
-                        const bool isSelected = (field.value == item);
-                        if (ImGui::Selectable(item, isSelected))
-                        {
-                            field.value = item;
-                            changed = true;
-                        }
-                        if (isSelected)
-                            ImGui::SetItemDefaultFocus();
-                    }
-                    ImGui::EndCombo();
-                }
-            }
-            else
-            {
-                beginInspectorRow(field.name.c_str());
-                char buf[128] = {};
-                std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
-                if (ImGui::InputText("##value", buf, sizeof(buf)))
-                {
-                    field.value = buf;
-                    changed = true;
-                }
-            }
-            break;
-        }
-
-        case PinType::Array:
-        {
-            std::vector<std::string> items = ParseArrayItems(field.value);
-            bool localChanged = false;
-            int removeIndex = -1;
-
-            ImGui::TextUnformatted(field.name.c_str());
-            ImGui::SameLine();
-            ImGui::TextDisabled("[%d]", static_cast<int>(items.size()));
-
-            // Bulk type switch for all elements in this specific array field.
-            ImGui::SameLine();
-            const bool hasItems = !items.empty();
-            const ArrayItemType firstType = hasItems
-                ? DetectArrayItemType(items.front())
-                : ArrayItemType::Null;
-            bool mixedTypes = false;
-            for (size_t i = 1; i < items.size(); ++i)
-            {
-                if (DetectArrayItemType(items[i]) != firstType)
-                {
-                    mixedTypes = true;
-                    break;
-                }
-            }
-
-            const char* bulkPreview = hasItems
-                ? (mixedTypes ? "Mixed" : ArrayItemTypeToLabel(firstType))
-                : "(empty)";
-
-            ImGui::SetNextItemWidth(120.0f);
-            if (ImGui::BeginCombo("##allItemType", bulkPreview))
-            {
-                const ArrayItemType allTypes[] = {
-                    ArrayItemType::Number,
-                    ArrayItemType::Boolean,
-                    ArrayItemType::String,
-                    ArrayItemType::Array,
-                    ArrayItemType::Null
-                };
-
-                for (ArrayItemType t : allTypes)
-                {
-                    const bool selected = hasItems && !mixedTypes && (firstType == t);
-                    if (ImGui::Selectable(ArrayItemTypeToLabel(t), selected) && hasItems)
-                    {
-                        for (size_t i = 0; i < items.size(); ++i)
-                        {
-                            const ArrayItemType currentType = DetectArrayItemType(items[i]);
-                            const std::string payload = ArrayItemPayload(items[i], currentType);
-                            items[i] = BuildArrayItemFromPayload(t, payload);
-                        }
-                        localChanged = true;
-                    }
-                    if (selected)
-                        ImGui::SetItemDefaultFocus();
-                }
-                ImGui::EndCombo();
-            }
-
-            ImGui::Indent(10.0f);
-            for (int i = 0; i < static_cast<int>(items.size()); ++i)
-            {
-                ImGui::PushID(i);
-                ImGui::TextDisabled("%d", i);
-                ImGui::SameLine();
-
-                ArrayItemType itemType = DetectArrayItemType(items[static_cast<size_t>(i)]);
-                std::string payload = ArrayItemPayload(items[static_cast<size_t>(i)], itemType);
-                std::vector<std::string> nestedItemsPreview;
-                bool nestedOpen = false;
-                ImGuiID nestedId = 0;
-                if (itemType == ArrayItemType::Array)
-                {
-                    nestedItemsPreview = ParseArrayItems(items[static_cast<size_t>(i)]);
-                    nestedId = ImGui::GetID("##nestedOpen");
-                    nestedOpen = s_arrayItemOpenState[nestedId];
-                }
-
-                // Value editor first (wider), type selector second.
-                ImGui::PushItemWidth(-150.0f);
-                if (itemType == ArrayItemType::Boolean)
-                {
-                    bool b = ParseBoolLoose(payload);
-                    if (ImGui::Checkbox("##itemBool", &b))
-                    {
-                        items[static_cast<size_t>(i)] = b ? "true" : "false";
-                        localChanged = true;
-                    }
-                }
-                else if (itemType == ArrayItemType::Null)
-                {
-                    ImGui::TextDisabled("null");
-                }
-                else if (itemType == ArrayItemType::Array)
-                {
-                    if (ImGui::ArrowButton("##nestedArrow", nestedOpen ? ImGuiDir_Down : ImGuiDir_Right))
-                    {
-                        nestedOpen = !nestedOpen;
-                        s_arrayItemOpenState[nestedId] = nestedOpen;
-                    }
-                    ImGui::SameLine();
-                    ImGui::TextDisabled("Array [%d]", static_cast<int>(nestedItemsPreview.size()));
-                }
-                else
-                {
-                    char buf[192] = {};
-                    std::strncpy(buf, payload.c_str(), sizeof(buf) - 1);
-                    const char* itemWidgetId =
-                        (itemType == ArrayItemType::Array) ? "##itemArray" :
-                        (itemType == ArrayItemType::Number) ? "##itemNumber" :
-                        "##itemString";
-
-                    if (ImGui::InputText(itemWidgetId, buf, sizeof(buf)))
-                    {
-                        payload = buf;
-                        items[static_cast<size_t>(i)] = BuildArrayItemFromPayload(itemType, payload);
-                        localChanged = true;
-                    }
-                }
-                ImGui::PopItemWidth();
-
-                ImGui::SameLine();
-
-                ImGui::SetNextItemWidth(96.0f);
-                if (ImGui::BeginCombo("##itemType", ArrayItemTypeToLabel(itemType)))
-                {
-                    const ArrayItemType allTypes[] = {
-                        ArrayItemType::Number,
-                        ArrayItemType::Boolean,
-                        ArrayItemType::String,
-                        ArrayItemType::Array,
-                        ArrayItemType::Null
-                    };
-
-                    for (ArrayItemType t : allTypes)
-                    {
-                        const bool selected = (itemType == t);
-                        if (ImGui::Selectable(ArrayItemTypeToLabel(t), selected))
-                        {
-                            itemType = t;
-                            items[static_cast<size_t>(i)] = BuildArrayItemFromPayload(itemType, payload);
-                            localChanged = true;
-                        }
-                        if (selected)
-                            ImGui::SetItemDefaultFocus();
-                    }
-
-                    ImGui::EndCombo();
-                }
-
-                ImGui::SameLine();
-                if (ImGui::SmallButton("-") && removeIndex < 0)
-                    removeIndex = i;
-
-                if (itemType == ArrayItemType::Array && nestedOpen)
-                {
-                    std::vector<std::string> nestedItems = ParseArrayItems(items[static_cast<size_t>(i)]);
-                    bool nestedChanged = false;
-                    int nestedRemove = -1;
-
-                    ImGui::Indent(16.0f);
-                    for (int ni = 0; ni < static_cast<int>(nestedItems.size()); ++ni)
-                    {
-                        ImGui::PushID(ni);
-                        ImGui::TextDisabled("%d.%d", i, ni);
-                        ImGui::SameLine();
-
-                        ArrayItemType nestedType = DetectArrayItemType(nestedItems[static_cast<size_t>(ni)]);
-                        std::string nestedPayload = ArrayItemPayload(nestedItems[static_cast<size_t>(ni)], nestedType);
-
-                        ImGui::PushItemWidth(-150.0f);
-                        if (nestedType == ArrayItemType::Boolean)
-                        {
-                            bool b = ParseBoolLoose(nestedPayload);
-                            if (ImGui::Checkbox("##nestedBool", &b))
-                            {
-                                nestedItems[static_cast<size_t>(ni)] = b ? "true" : "false";
-                                nestedChanged = true;
-                            }
-                        }
-                        else if (nestedType == ArrayItemType::Null)
-                        {
-                            ImGui::TextDisabled("null");
-                        }
-                        else if (nestedType == ArrayItemType::Array)
-                        {
-                            const std::vector<std::string> nestedNested = ParseArrayItems(nestedItems[static_cast<size_t>(ni)]);
-                            ImGui::TextDisabled("Array [%d]", static_cast<int>(nestedNested.size()));
-                        }
-                        else
-                        {
-                            char nbuf[192] = {};
-                            std::strncpy(nbuf, nestedPayload.c_str(), sizeof(nbuf) - 1);
-                            const char* nestedWidgetId =
-                                (nestedType == ArrayItemType::Number) ? "##nestedNumber" :
-                                "##nestedString";
-
-                            if (ImGui::InputText(nestedWidgetId, nbuf, sizeof(nbuf)))
-                            {
-                                nestedPayload = nbuf;
-                                nestedItems[static_cast<size_t>(ni)] = BuildArrayItemFromPayload(nestedType, nestedPayload);
-                                nestedChanged = true;
-                            }
-                        }
-                        ImGui::PopItemWidth();
-
-                        ImGui::SameLine();
-                        ImGui::SetNextItemWidth(96.0f);
-                        if (ImGui::BeginCombo("##nestedType", ArrayItemTypeToLabel(nestedType)))
-                        {
-                            const ArrayItemType allTypes[] = {
-                                ArrayItemType::Number,
-                                ArrayItemType::Boolean,
-                                ArrayItemType::String,
-                                ArrayItemType::Array,
-                                ArrayItemType::Null
-                            };
-
-                            for (ArrayItemType t : allTypes)
-                            {
-                                const bool selected = (nestedType == t);
-                                if (ImGui::Selectable(ArrayItemTypeToLabel(t), selected))
-                                {
-                                    nestedType = t;
-                                    nestedItems[static_cast<size_t>(ni)] = BuildArrayItemFromPayload(nestedType, nestedPayload);
-                                    nestedChanged = true;
-                                }
-                                if (selected)
-                                    ImGui::SetItemDefaultFocus();
-                            }
-                            ImGui::EndCombo();
-                        }
-
-                        ImGui::SameLine();
-                        if (ImGui::SmallButton("-##nestedRemove") && nestedRemove < 0)
-                            nestedRemove = ni;
-
-                        ImGui::PopID();
-                    }
-
-                    if (nestedRemove >= 0)
-                    {
-                        nestedItems.erase(nestedItems.begin() + nestedRemove);
-                        nestedChanged = true;
-                    }
-
-                    if (ImGui::SmallButton("+ Add nested"))
-                    {
-                        const ArrayItemType nextNestedType = nestedItems.empty()
-                            ? ArrayItemType::Null
-                            : DetectArrayItemType(nestedItems.back());
-                        nestedItems.push_back(BuildArrayItemFromPayload(nextNestedType, ""));
-                        nestedChanged = true;
-                    }
-
-                    ImGui::Unindent(16.0f);
-
-                    if (nestedChanged)
-                    {
-                        items[static_cast<size_t>(i)] = BuildArrayString(nestedItems);
-                        localChanged = true;
-                    }
-                }
-                ImGui::PopID();
-            }
-
-            if (removeIndex >= 0)
-            {
-                items.erase(items.begin() + removeIndex);
-                localChanged = true;
-            }
-
-            if (ImGui::SmallButton("+ Add element"))
-            {
-                // First element starts as null; subsequent elements inherit previous element type.
-                const ArrayItemType nextType = items.empty()
-                    ? ArrayItemType::Null
-                    : DetectArrayItemType(items.back());
-                items.push_back(BuildArrayItemFromPayload(nextType, ""));
-                localChanged = true;
-            }
-
-            ImGui::Unindent(10.0f);
-
-            if (localChanged)
-            {
-                field.value = BuildArrayString(items);
-                changed = true;
-            }
-            break;
-        }
-
-        default:
-            ImGui::LabelText(field.name.c_str(), "%s", field.value.c_str());
-            break;
+        changed |= SyncNodeToDescriptor(state, n, *desc);
     }
 
-    ImGui::PopID();
     return changed;
-}
-
-void DrawInspectorReadOnlyField(const NodeField& field)
-{
-    const float rowStartX = ImGui::GetCursorPosX();
-    constexpr float kLabelColumnWidth = 90.0f;
-
-    ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted(field.name.c_str());
-    ImGui::SameLine(rowStartX + kLabelColumnWidth);
-
-    ImGui::SetNextItemWidth(-1.0f);
-    char buf[256] = {};
-    std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
-    ImGui::InputText("##readonly", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
 }
 
 bool RefreshVariableNodeTypes(GraphState& state)
@@ -894,6 +541,8 @@ bool RefreshVariableNodeTypes(GraphState& state)
 
     auto& nodes = state.GetNodes();
     const auto& links = state.GetLinks();
+
+    const NodeDescriptor* variableDesc = NodeRegistry::Get().Find(NodeType::Variable);
 
     struct VariableDef
     {
@@ -922,90 +571,38 @@ bool RefreshVariableNodeTypes(GraphState& state)
             changed = true;
         }
 
-        if (n.title != "Set Variable")
+        // Use registry descriptor to keep the Set-variable pin layout stable.
+        if (variableDesc)
         {
-            n.title = "Set Variable";
-            changed = true;
-        }
+            if (n.title != variableDesc->label)
+            {
+                n.title = variableDesc->label;
+                changed = true;
+            }
 
-        Pin* flowInPin = FindPinByName(n.inPins, "In");
-        if (!flowInPin)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "In",
-                PinType::Flow,
-                true
-            ));
-            flowInPin = &n.inPins.back();
-            changed = true;
-        }
-        else if (flowInPin->type != PinType::Flow)
-        {
-            flowInPin->type = PinType::Flow;
-            changed = true;
+            bool pinsChanged = false;
+            const DescriptorSyncMode mode = DescriptorSyncModeForNodeType(NodeType::Variable);
+            SyncPinsToDescriptor(state, n, *variableDesc, /*isInput=*/true, n.inPins, mode, pinsChanged);
+            SyncPinsToDescriptor(state, n, *variableDesc, /*isInput=*/false, n.outPins, mode, pinsChanged);
+            if (pinsChanged)
+                changed = true;
         }
 
         Pin* setPin = FindPinByName(n.inPins, "Default");
-        if (!setPin)
-            setPin = FindPinByName(n.inPins, "Set");
-        if (!setPin)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Default",
-                PinType::Any,
-                true
-            ));
-            setPin = &n.inPins.back();
-            changed = true;
-        }
-        else if (setPin->name != "Default")
-        {
-            setPin->name = "Default";
-            changed = true;
-        }
-
-        Pin* flowOutPin = FindPinByName(n.outPins, "Out");
-        if (!flowOutPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Out",
-                PinType::Flow,
-                false
-            ));
-            flowOutPin = &n.outPins.back();
-            changed = true;
-        }
-        else if (flowOutPin->type != PinType::Flow)
-        {
-            flowOutPin->type = PinType::Flow;
-            changed = true;
-        }
-
         Pin* valuePin = FindPinByName(n.outPins, "Value");
-        if (!valuePin)
+
+        // Ensure core fields exist (do not force Default field type; it is dynamic).
+        EnsureField(n.fields, "Variant", PinType::String, "Set", changed);
+        EnsureField(n.fields, "Name", PinType::String, "myVar", changed);
+        EnsureField(n.fields, "Type", PinType::String, "Number", changed);
+        if (!defaultField)
         {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Value",
-                PinType::Any,
-                false
-            ));
-            valuePin = &n.outPins.back();
+            n.fields.push_back(NodeField{ "Default", PinType::Number, "0.0" });
+            defaultField = &n.fields.back();
             changed = true;
         }
 
-        PinType resolvedType = VariableTypeFromString(typeField ? typeField->value : "Number");
+        PinType resolvedType = ValuePinTypeFromString(typeField ? typeField->value : "Number", PinType::Number);
         if (setPin)
         {
             if (const Pin* source = FindIncomingPinSource(state, links, *setPin))
@@ -1015,7 +612,7 @@ bool RefreshVariableNodeTypes(GraphState& state)
             }
         }
 
-        const char* resolvedTypeName = VariableTypeToString(resolvedType);
+        const char* resolvedTypeName = ValuePinTypeToString(resolvedType);
         if (typeField && typeField->value != resolvedTypeName)
         {
             typeField->value = resolvedTypeName;
@@ -1025,12 +622,28 @@ bool RefreshVariableNodeTypes(GraphState& state)
         if (defaultField)
         {
             const bool typeChanged = (defaultField->valueType != resolvedType);
+            // On file load, descriptor bootstrap may leave Variable Default field
+            // temporarily as String metadata even when logical variable type is
+            // Number/Boolean/Array. Treat that as metadata repair, not a user
+            // type-change, so persisted value is preserved.
+            const bool metadataRepairOnly =
+                typeChanged && (defaultField->valueType == PinType::String);
             defaultField->valueType = resolvedType;
 
             if (typeChanged)
             {
-                defaultField->value = DefaultValueForPinType(resolvedType);
-                changed = true;
+                if (metadataRepairOnly)
+                {
+                    const std::string before = defaultField->value;
+                    NormalizeValueForPinType(resolvedType, defaultField->value);
+                    if (defaultField->value != before)
+                        changed = true;
+                }
+                else
+                {
+                    defaultField->value = DefaultValueForPinType(resolvedType);
+                    changed = true;
+                }
             }
             else
             {
@@ -1102,9 +715,9 @@ bool RefreshVariableNodeTypes(GraphState& state)
             const auto it = definitions.find(resolvedName);
             const PinType getType = (it != definitions.end())
                 ? it->second.type
-                : VariableTypeFromString(typeField ? typeField->value : "Number");
+                : ValuePinTypeFromString(typeField ? typeField->value : "Number", PinType::Number);
 
-            const char* getTypeName = VariableTypeToString(getType);
+            const char* getTypeName = ValuePinTypeToString(getType);
             if (typeField && typeField->value != getTypeName)
             {
                 typeField->value = getTypeName;
@@ -1211,441 +824,40 @@ bool RefreshOutputNodeInputTypes(GraphState& state)
     return changed;
 }
 
-bool RefreshLoopNodeLayout(GraphState& state)
-{
-    bool changed = false;
-
-    auto& nodes = state.GetNodes();
-
-    for (auto& n : nodes)
-    {
-        if (!n.alive || n.nodeType != NodeType::Loop)
-            continue;
-
-        if (n.title != "Loop")
-        {
-            n.title = "Loop";
-            changed = true;
-        }
-
-        const size_t inBefore = n.inPins.size();
-        RemovePinsByNameExcept(n.inPins, { "In", "Start", "Count" });
-        if (n.inPins.size() != inBefore)
-            changed = true;
-
-        const size_t outBefore = n.outPins.size();
-        RemovePinsByNameExcept(n.outPins, { "Body", "Completed", "Index" });
-        if (n.outPins.size() != outBefore)
-            changed = true;
-
-        Pin* inPin = FindPinByName(n.inPins, "In");
-        if (!inPin)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "In",
-                PinType::Flow,
-                true
-            ));
-            inPin = &n.inPins.back();
-            changed = true;
-        }
-        else if (inPin->type != PinType::Flow)
-        {
-            inPin->type = PinType::Flow;
-            changed = true;
-        }
-
-        Pin* startPin = FindPinByName(n.inPins, "Start");
-        if (!startPin)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Start",
-                PinType::Number,
-                true
-            ));
-            startPin = &n.inPins.back();
-            changed = true;
-        }
-        else if (startPin->type != PinType::Number)
-        {
-            startPin->type = PinType::Number;
-            changed = true;
-        }
-
-        Pin* countPin = FindPinByName(n.inPins, "Count");
-        if (!countPin)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Count",
-                PinType::Number,
-                true
-            ));
-            countPin = &n.inPins.back();
-            changed = true;
-        }
-        else if (countPin->type != PinType::Number)
-        {
-            countPin->type = PinType::Number;
-            changed = true;
-        }
-
-        Pin* bodyPin = FindPinByName(n.outPins, "Body");
-        if (!bodyPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Body",
-                PinType::Flow,
-                false
-            ));
-            bodyPin = &n.outPins.back();
-            changed = true;
-        }
-        else if (bodyPin->type != PinType::Flow)
-        {
-            bodyPin->type = PinType::Flow;
-            changed = true;
-        }
-
-        Pin* completedPin = FindPinByName(n.outPins, "Completed");
-        if (!completedPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Completed",
-                PinType::Flow,
-                false
-            ));
-            completedPin = &n.outPins.back();
-            changed = true;
-        }
-        else if (completedPin->type != PinType::Flow)
-        {
-            completedPin->type = PinType::Flow;
-            changed = true;
-        }
-
-        Pin* indexPin = FindPinByName(n.outPins, "Index");
-        if (!indexPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Index",
-                PinType::Number,
-                false
-            ));
-            indexPin = &n.outPins.back();
-            changed = true;
-        }
-        else if (indexPin->type != PinType::Number)
-        {
-            indexPin->type = PinType::Number;
-            changed = true;
-        }
-
-        NodeField* startField = FindField(n.fields, "Start");
-        if (!startField)
-        {
-            n.fields.push_back(NodeField{ "Start", PinType::Number, "0" });
-            startField = &n.fields.back();
-            changed = true;
-        }
-        else
-        {
-            const bool typeChanged = (startField->valueType != PinType::Number);
-            startField->valueType = PinType::Number;
-            if (typeChanged)
-                changed = true;
-
-            const std::string before = startField->value;
-            NormalizeValueForPinType(PinType::Number, startField->value);
-            if (startField->value != before)
-                changed = true;
-        }
-
-        NodeField* countField = FindField(n.fields, "Count");
-        if (!countField)
-        {
-            n.fields.push_back(NodeField{ "Count", PinType::Number, "0" });
-            countField = &n.fields.back();
-            changed = true;
-        }
-        else
-        {
-            const bool typeChanged = (countField->valueType != PinType::Number);
-            countField->valueType = PinType::Number;
-            if (typeChanged)
-                changed = true;
-
-            const std::string before = countField->value;
-            NormalizeValueForPinType(PinType::Number, countField->value);
-            if (countField->value != before)
-                changed = true;
-        }
-    }
-
-    return changed;
-}
-
 bool RefreshForEachNodeLayout(GraphState& state)
 {
     bool changed = false;
-
     auto& nodes = state.GetNodes();
 
+    const NodeDescriptor* desc = NodeRegistry::Get().Find(NodeType::ForEach);
     for (auto& n : nodes)
     {
         if (!n.alive || n.nodeType != NodeType::ForEach)
             continue;
 
-        if (n.title != "For Each")
-        {
-            n.title = "For Each";
-            changed = true;
-        }
+        if (desc)
+            changed |= SyncNodeToDescriptor(state, n, *desc);
 
-        const size_t inBefore = n.inPins.size();
-        RemovePinsByNameExcept(n.inPins, { "In", "Array" });
-        if (n.inPins.size() != inBefore)
-            changed = true;
-
-        const size_t outBefore = n.outPins.size();
-        RemovePinsByNameExcept(n.outPins, { "Body", "Completed", "Element" });
-        if (n.outPins.size() != outBefore)
-            changed = true;
-
-        Pin* inPin = FindPinByName(n.inPins, "In");
-        if (!inPin)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "In",
-                PinType::Flow,
-                true
-            ));
-            inPin = &n.inPins.back();
-            changed = true;
-        }
-        else if (inPin->type != PinType::Flow)
-        {
-            inPin->type = PinType::Flow;
-            changed = true;
-        }
-
-        Pin* arrayPin = FindPinByName(n.inPins, "Array");
-        if (!arrayPin)
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Array",
-                PinType::Array,
-                true
-            ));
-            arrayPin = &n.inPins.back();
-            changed = true;
-        }
-        else if (arrayPin->type != PinType::Array)
-        {
-            arrayPin->type = PinType::Array;
-            changed = true;
-        }
-
-        Pin* bodyPin = FindPinByName(n.outPins, "Body");
-        if (!bodyPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Body",
-                PinType::Flow,
-                false
-            ));
-            bodyPin = &n.outPins.back();
-            changed = true;
-        }
-        else if (bodyPin->type != PinType::Flow)
-        {
-            bodyPin->type = PinType::Flow;
-            changed = true;
-        }
-
-        Pin* completedPin = FindPinByName(n.outPins, "Completed");
-        if (!completedPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Completed",
-                PinType::Flow,
-                false
-            ));
-            completedPin = &n.outPins.back();
-            changed = true;
-        }
-        else if (completedPin->type != PinType::Flow)
-        {
-            completedPin->type = PinType::Flow;
-            changed = true;
-        }
-
-        Pin* elementPin = FindPinByName(n.outPins, "Element");
         NodeField* elementTypeField = FindField(n.fields, "Element Type");
-        if (!elementTypeField)
+        if (elementTypeField)
         {
-            n.fields.push_back(NodeField{ "Element Type", PinType::String, "Any" });
-            elementTypeField = &n.fields.back();
-            changed = true;
-        }
-        else
-        {
-            if (elementTypeField->valueType != PinType::String)
-            {
-                elementTypeField->valueType = PinType::String;
-                changed = true;
-            }
-
-            const PinType parsedType = VariableTypeFromString(elementTypeField->value);
-            const std::string normalized = VariableTypeToString(parsedType);
+            const PinType parsedType = ValuePinTypeFromString(elementTypeField->value, PinType::Number);
+            const std::string normalized = ValuePinTypeToString(parsedType);
             if (elementTypeField->value != normalized)
             {
                 elementTypeField->value = normalized;
                 changed = true;
             }
-        }
 
-        const PinType elementType = VariableTypeFromString(elementTypeField ? elementTypeField->value : "Any");
-        if (!elementPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Element",
-                elementType,
-                false
-            ));
-            elementPin = &n.outPins.back();
-            changed = true;
-        }
-        else if (elementPin->type != elementType)
-        {
-            elementPin->type = elementType;
-            changed = true;
-        }
-
-        NodeField* arrayField = FindField(n.fields, "Array");
-        if (!arrayField)
-        {
-            n.fields.push_back(NodeField{ "Array", PinType::Array, "[]" });
-            changed = true;
-        }
-        else
-        {
-            if (arrayField->valueType != PinType::Array)
+            const PinType elementType = ValuePinTypeFromString(elementTypeField->value, PinType::Number);
+            if (Pin* elementPin = FindPinByName(n.outPins, "Element"))
             {
-                arrayField->valueType = PinType::Array;
-                changed = true;
+                if (elementPin->type != elementType)
+                {
+                    elementPin->type = elementType;
+                    changed = true;
+                }
             }
-
-            const std::string before = arrayField->value;
-            NormalizeValueForPinType(PinType::Array, arrayField->value);
-            if (arrayField->value != before)
-                changed = true;
-        }
-    }
-
-    return changed;
-}
-
-bool RefreshDrawRectNodeLayout(GraphState& state)
-{
-    bool changed = false;
-
-    auto& nodes = state.GetNodes();
-    for (auto& n : nodes)
-    {
-        if (!n.alive || n.nodeType != NodeType::DrawRect)
-            continue;
-
-        const size_t inBefore = n.inPins.size();
-        RemovePinsByNameExcept(n.inPins, { "In", "X", "Y", "W", "H", "R", "G", "B" });
-        if (n.inPins.size() != inBefore)
-            changed = true;
-
-        const size_t outBefore = n.outPins.size();
-        RemovePinsByNameExcept(n.outPins, { "Out" });
-        if (n.outPins.size() != outBefore)
-            changed = true;
-
-        auto ensureInput = [&](const char* name, PinType type)
-        {
-            Pin* pin = FindPinByName(n.inPins, name);
-            if (!pin)
-            {
-                n.inPins.push_back(MakePin(
-                    static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                    n.id,
-                    n.nodeType,
-                    name,
-                    type,
-                    true
-                ));
-                changed = true;
-            }
-            else if (pin->type != type)
-            {
-                pin->type = type;
-                changed = true;
-            }
-        };
-
-        ensureInput("In", PinType::Flow);
-        ensureInput("X", PinType::Number);
-        ensureInput("Y", PinType::Number);
-        ensureInput("W", PinType::Number);
-        ensureInput("H", PinType::Number);
-        ensureInput("R", PinType::Number);
-        ensureInput("G", PinType::Number);
-        ensureInput("B", PinType::Number);
-
-        Pin* outPin = FindPinByName(n.outPins, "Out");
-        if (!outPin)
-        {
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                n.id,
-                n.nodeType,
-                "Out",
-                PinType::Flow,
-                false
-            ));
-            changed = true;
-        }
-        else if (outPin->type != PinType::Flow)
-        {
-            outPin->type = PinType::Flow;
-            changed = true;
         }
     }
 
@@ -1675,7 +887,12 @@ bool RefreshStructNodeLayouts(GraphState& state)
 
         const std::vector<StructFieldDef> defs = ParseStructFieldDefs(fieldsField ? fieldsField->value : "[]");
         const std::string schemaName = (nameField && !nameField->value.empty()) ? nameField->value : "test";
-        n.title = "Struct " + schemaName;
+        const std::string wantedTitle = "Struct " + schemaName;
+        if (n.title != wantedTitle)
+        {
+            n.title = wantedTitle;
+            changed = true;
+        }
 
         RemovePinsByNameExcept(n.inPins, {});
         RemovePinsByNameExcept(n.outPins, { "Schema" });
@@ -1731,7 +948,12 @@ bool RefreshStructNodeLayouts(GraphState& state)
         if (n.nodeType == NodeType::StructCreate)
         {
             auto [structName, entry] = ensureSchemaFields(n, "test");
-            n.title = "Create " + structName;
+            const std::string wantedTitle = "Create " + structName;
+            if (n.title != wantedTitle)
+            {
+                n.title = wantedTitle;
+                changed = true;
+            }
 
             RemovePinsByNameExcept(n.inPins, { "Struct" });
             RemovePinsByNameExcept(n.outPins, { "Item" });
@@ -1769,6 +991,11 @@ bool RefreshStructNodeLayouts(GraphState& state)
                 n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Struct", PinType::String, true));
                 changed = true;
             }
+            else if (structPin->type != PinType::String)
+            {
+                structPin->type = PinType::String;
+                changed = true;
+            }
 
             for (const StructFieldDef& def : entry.defs)
             {
@@ -1785,7 +1012,10 @@ bool RefreshStructNodeLayouts(GraphState& state)
                 }
 
                 NodeField* valueField = EnsureField(n.fields, def.name, def.type, DefaultValueForPinType(def.type), changed);
+                const std::string before = valueField->value;
                 NormalizeValueForPinType(def.type, valueField->value);
+                if (valueField->value != before)
+                    changed = true;
             }
 
             Pin* itemPin = FindPinByName(n.outPins, "Item");
@@ -1797,144 +1027,6 @@ bool RefreshStructNodeLayouts(GraphState& state)
             else if (itemPin->type != PinType::Array)
             {
                 itemPin->type = PinType::Array;
-                changed = true;
-            }
-        }
-        else if (n.nodeType == NodeType::StructGetField)
-        {
-            auto [structName, entry] = ensureSchemaFields(n, "test");
-            NodeField* fieldField = EnsureField(n.fields, "Field", PinType::String, entry.defs.empty() ? "" : entry.defs.front().name, changed);
-            if (!entry.defs.empty())
-            {
-                const bool exists = std::any_of(entry.defs.begin(), entry.defs.end(), [&](const StructFieldDef& def){ return def.name == fieldField->value; });
-                if (!exists)
-                {
-                    fieldField->value = entry.defs.front().name;
-                    changed = true;
-                }
-            }
-
-            n.title = "Get " + structName + "." + fieldField->value;
-            RemovePinsByNameExcept(n.inPins, { "Item" });
-            RemovePinsByNameExcept(n.outPins, { "Value" });
-
-            PinType valueType = PinType::Any;
-            for (const StructFieldDef& def : entry.defs)
-                if (def.name == fieldField->value) { valueType = def.type; break; }
-
-            Pin* inPin = FindPinByName(n.inPins, "Item");
-            if (!inPin)
-            {
-                n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Item", PinType::Array, true));
-                changed = true;
-            }
-            Pin* outPin = FindPinByName(n.outPins, "Value");
-            if (!outPin)
-            {
-                n.outPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Value", valueType, false));
-                changed = true;
-            }
-            else if (outPin->type != valueType)
-            {
-                outPin->type = valueType;
-                changed = true;
-            }
-        }
-        else if (n.nodeType == NodeType::StructSetField)
-        {
-            auto [structName, entry] = ensureSchemaFields(n, "test");
-            NodeField* fieldField = EnsureField(n.fields, "Field", PinType::String, entry.defs.empty() ? "" : entry.defs.front().name, changed);
-            if (!entry.defs.empty())
-            {
-                const bool exists = std::any_of(entry.defs.begin(), entry.defs.end(), [&](const StructFieldDef& def){ return def.name == fieldField->value; });
-                if (!exists)
-                {
-                    fieldField->value = entry.defs.front().name;
-                    changed = true;
-                }
-            }
-
-            n.title = "Set " + structName + "." + fieldField->value;
-            RemovePinsByNameExcept(n.inPins, { "Item", "Value" });
-            RemovePinsByNameExcept(n.outPins, { "Out" });
-
-            PinType valueType = PinType::Any;
-            for (const StructFieldDef& def : entry.defs)
-                if (def.name == fieldField->value) { valueType = def.type; break; }
-
-            Pin* itemPin = FindPinByName(n.inPins, "Item");
-            if (!itemPin)
-            {
-                n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Item", PinType::Array, true));
-                changed = true;
-            }
-            Pin* valuePin = FindPinByName(n.inPins, "Value");
-            if (!valuePin)
-            {
-                n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Value", valueType, true));
-                changed = true;
-            }
-            else if (valuePin->type != valueType)
-            {
-                valuePin->type = valueType;
-                changed = true;
-            }
-            Pin* outPin = FindPinByName(n.outPins, "Out");
-            if (!outPin)
-            {
-                n.outPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Out", PinType::Array, false));
-                changed = true;
-            }
-            else if (outPin->type != PinType::Array)
-            {
-                outPin->type = PinType::Array;
-                changed = true;
-            }
-        }
-        else if (n.nodeType == NodeType::StructDelete)
-        {
-            n.title = "Struct Delete";
-            RemovePinsByNameExcept(n.inPins, { "In", "Array", "Id" });
-            RemovePinsByNameExcept(n.outPins, { "Out" });
-
-            // Backward compatibility: migrate legacy "Index" field to "Id".
-            if (NodeField* legacyIndex = FindField(n.fields, "Index"))
-            {
-                NodeField* idField = FindField(n.fields, "Id");
-                if (!idField)
-                {
-                    n.fields.push_back(NodeField{ "Id", PinType::Number, legacyIndex->value });
-                    changed = true;
-                }
-
-                n.fields.erase(
-                    std::remove_if(n.fields.begin(), n.fields.end(), [](const NodeField& f)
-                    {
-                        return f.name == "Index";
-                    }),
-                    n.fields.end()
-                );
-                changed = true;
-            }
-
-            EnsureField(n.fields, "Id", PinType::Number, "0", changed);
-
-            Pin* idPin = FindPinByName(n.inPins, "Id");
-            if (!idPin)
-            {
-                n.inPins.push_back(MakePin(
-                    static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
-                    n.id,
-                    n.nodeType,
-                    "Id",
-                    PinType::Number,
-                    true
-                ));
-                changed = true;
-            }
-            else if (idPin->type != PinType::Number)
-            {
-                idPin->type = PinType::Number;
                 changed = true;
             }
         }

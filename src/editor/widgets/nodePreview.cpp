@@ -1,9 +1,34 @@
 #include "nodePreview.h"
 #include "core/registry/nodeRegistry.h"
 #include "core/graph/pin.h"
+#include "editor/nodeColorCategories.h"
+#include "editor/settings.h"
 #include "imgui.h"
 #include "app/constants.h"
 #include <string>
+
+namespace
+{
+ImVec4 GetNodeCategoryHeaderColor(NodeType nodeType)
+{
+    switch (GetNodeColorCategory(nodeType))
+    {
+        case NodeColorCategory::Event:
+            return ImVec4(Settings::nodeHeaderEventColorR, Settings::nodeHeaderEventColorG, Settings::nodeHeaderEventColorB, Settings::nodeHeaderEventColorA);
+        case NodeColorCategory::Data:
+            return ImVec4(Settings::nodeHeaderDataColorR, Settings::nodeHeaderDataColorG, Settings::nodeHeaderDataColorB, Settings::nodeHeaderDataColorA);
+        case NodeColorCategory::Struct:
+            return ImVec4(Settings::nodeHeaderStructColorR, Settings::nodeHeaderStructColorG, Settings::nodeHeaderStructColorB, Settings::nodeHeaderStructColorA);
+        case NodeColorCategory::Logic:
+            return ImVec4(Settings::nodeHeaderLogicColorR, Settings::nodeHeaderLogicColorG, Settings::nodeHeaderLogicColorB, Settings::nodeHeaderLogicColorA);
+        case NodeColorCategory::Flow:
+            return ImVec4(Settings::nodeHeaderFlowColorR, Settings::nodeHeaderFlowColorG, Settings::nodeHeaderFlowColorB, Settings::nodeHeaderFlowColorA);
+        case NodeColorCategory::More:
+        default:
+            return ImVec4(Settings::nodeHeaderMoreColorR, Settings::nodeHeaderMoreColorG, Settings::nodeHeaderMoreColorB, Settings::nodeHeaderMoreColorA);
+    }
+}
+}
 
 void NodePreview::Draw(NodeType nodeType, const char* titleOverride)
 {
@@ -128,7 +153,7 @@ void NodePreview::Draw(NodeType nodeType, const char* titleOverride)
     const bool isInactivePreview = ImGui::GetStyle().Alpha < 0.99f;
     const ImU32 textColor   = ImGui::GetColorU32(isInactivePreview ? colors::textSecondary : colors::textPrimary);
     const ImU32 pinColor    = ImGui::GetColorU32(colors::accent);
-    const ImU32 headerColor = ImGui::GetColorU32(colors::elevated);
+    const ImU32 headerColor = ImGui::GetColorU32(GetNodeCategoryHeaderColor(nodeType));
     const ImU32 borderColorNormal = headerColor;
     const ImU32 borderColorHover = ImGui::GetColorU32(colors::accent);
 
