@@ -251,15 +251,14 @@ void EditorLayout::draw()
 
         ImGui::SetNextWindowPos(inspectorPos, ImGuiCond_Always);
         ImGui::SetNextWindowSize(inspectorSize, ImGuiCond_Always);
-        ImGui::SetNextWindowBgAlpha(0.70f);
+        ImGui::SetNextWindowBgAlpha(1.0f);
 
         // Separate topmost inspector window (kept fixed in place).
-        // Slight transparency only.
-        const ImVec4 overlayBg(colors::background.x, colors::background.y, colors::background.z, 0.70f);
-        const ImVec4 overlayBorder(colors::textSecondary.x, colors::textSecondary.y, colors::textSecondary.z, 0.95f);
+        const ImVec4 overlayBg = colors::background;
+        const ImVec4 overlayBorder(colors::textSecondary.x, colors::textSecondary.y, colors::textSecondary.z, 0.20f);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, overlayBg);
         ImGui::PushStyleColor(ImGuiCol_Border, overlayBorder);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 
         char inspectorWindowName[96];
@@ -315,16 +314,16 @@ void EditorLayout::draw()
 
         ImGui::SetNextWindowPos(settingsPos, ImGuiCond_Appearing);
         ImGui::SetNextWindowSize(settingsSize, ImGuiCond_Appearing);
-        ImGui::SetNextWindowBgAlpha(0.70f);
+        ImGui::SetNextWindowBgAlpha(1.0f);
         if (m_forceSettingsFocus)
             ImGui::SetNextWindowFocus();
         m_forceSettingsFocus = false;
 
-        const ImVec4 overlayBg(0.04f, 0.04f, 0.06f, 0.70f);
-        const ImVec4 overlayBorder(0.35f, 0.35f, 0.35f, 0.95f);
+        const ImVec4 overlayBg = colors::background;
+        const ImVec4 overlayBorder(colors::textSecondary.x, colors::textSecondary.y, colors::textSecondary.z, 0.20f);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, overlayBg);
         ImGui::PushStyleColor(ImGuiCol_Border, overlayBorder);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
 
         char settingsWindowName[96];
@@ -348,12 +347,12 @@ void EditorLayout::draw()
                 ImGui::TextUnformatted(label);
                 ImGui::SameLine();
 
-                ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-                ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-                ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-                ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 1.0f, 1.0f, 0.85f));
-                ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-                ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                ImGui::PushStyleColor(ImGuiCol_FrameBg, colors::surface);
+                ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, colors::elevated);
+                ImGui::PushStyleColor(ImGuiCol_FrameBgActive, colors::background);
+                ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(colors::textSecondary.x, colors::textSecondary.y, colors::textSecondary.z, 0.35f));
+                ImGui::PushStyleColor(ImGuiCol_SliderGrab, colors::transparent);
+                ImGui::PushStyleColor(ImGuiCol_SliderGrabActive, colors::transparent);
                 ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8.0f, 10.0f));
                 ImGui::PushStyleVar(ImGuiStyleVar_GrabMinSize, 16.0f);
                 ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
@@ -367,7 +366,7 @@ void EditorLayout::draw()
                 const float x = min.x + (max.x - min.x) * t;
 
                 ImDrawList* drawList = ImGui::GetWindowDrawList();
-                drawList->AddLine(ImVec2(x, min.y + 2.0f), ImVec2(x, max.y - 2.0f), IM_COL32(255, 255, 255, 235), 2.0f);
+                drawList->AddLine(ImVec2(x, min.y + 2.0f), ImVec2(x, max.y - 2.0f), colors::blue, 2.0f);
 
                 ImGui::PopStyleVar(3);
                 ImGui::PopStyleColor(6);
