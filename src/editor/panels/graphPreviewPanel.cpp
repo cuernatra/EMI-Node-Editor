@@ -112,6 +112,7 @@ struct PreviewEvaluator
     const std::vector<Link>& links;
     std::unordered_set<uintptr_t> activeEvalPins;
     std::unordered_map<uintptr_t, double> activeLoopIndices;
+    std::unordered_map<std::string, double> variableValues;
 
     const VisualNode* FindNodeByPin(ed::PinId pinId) const
     {
@@ -238,6 +239,28 @@ struct PreviewEvaluator
 
                 case NodeType::Not:
                     return EvalNamedInput(*srcNode, "A") == 0.0 ? 1.0 : 0.0;
+
+                case NodeType::Variable:
+                {
+                    const NodeField* variantField = FindField(*srcNode, "Variant");
+                    const std::string variant = variantField ? variantField->value : "Get";
+                    if (variant != "Get")
+                        return 0.0;
+
+                    const NodeField* nameField = FindField(*srcNode, "Name");
+                    if (!nameField)
+                        return 0.0;
+
+                    const auto it = variableValues.find(nameField->value);
+                    if (it != variableValues.end())
+                        return it->second;
+
+                    const NodeField* defaultField = FindField(*srcNode, "Default");
+                    double out = 0.0;
+                    if (defaultField && TryParseDouble(defaultField->value, out))
+                        return out;
+                    return 0.0;
+                }
 
                 default:
                     break;
@@ -467,6 +490,17 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
                 ++branchIndex;
             }
             return;
+        }
+        else if (targetNode->nodeType == NodeType::Variable)
+        {
+            const NodeField* variantField = FindField(*targetNode, "Variant");
+            const std::string variant = variantField ? variantField->value : "Set";
+            if (variant != "Get")
+            {
+                const NodeField* nameField = FindField(*targetNode, "Name");
+                if (nameField && !nameField->value.empty())
+                    evaluator.variableValues[nameField->value] = evalNamedInput(*targetNode, "Default");
+            }
         }
         else if (targetNode->nodeType == NodeType::DrawGrid)
         {

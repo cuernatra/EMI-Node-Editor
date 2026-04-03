@@ -545,15 +545,18 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
 bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* allNodes, const std::vector<Link>* allLinks)
 {
-    if (!n.positioned)
-    {
-        ed::SetNodePosition(n.id, n.initialPos);
-        n.positioned = true;
-    }
-
     const float contentWidth = MeasureNodeContentWidth(n);
 
     ed::BeginNode(n.id);
+
+    if (!n.positioned)
+    {
+        // Apply loaded/spawned position only after node exists in the editor.
+        // Doing this before BeginNode can be ignored by node-editor for fresh
+        // nodes, which then leaves nodes stacked at default position.
+        ed::SetNodePosition(n.id, n.initialPos);
+        n.positioned = true;
+    }
 
     const float headerHeight = 30.0f;
     const float headerPaddingX = 6.0f;
