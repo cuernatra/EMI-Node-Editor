@@ -66,22 +66,18 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
         return {};
     }
 
-    const bool isSequence = (type == NodeType::Sequence);
-    const bool isVariable = (type == NodeType::Variable);
-    const bool isStructCreate = (type == NodeType::StructCreate);
+    // Validate pin count: supportsVariablePins allows flexible counts, others require exact match
+    const bool pinCountValid = desc->supportsVariablePins
+        ? (pinIds.size() >= desc->pins.size())
+        : (pinIds.size() == desc->pins.size());
 
-    const bool variablePinsOk = !isVariable || (pinIds.size() == desc->pins.size() || pinIds.size() == 1);
-    const bool sequencePinsOk = !isSequence || (pinIds.size() >= desc->pins.size());
-    const bool structCreatePinsOk = !isStructCreate || (pinIds.size() >= 2);
-    const bool normalPinsOk = (isSequence || isVariable || isStructCreate) || (pinIds.size() == desc->pins.size());
-
-    if (!variablePinsOk || !sequencePinsOk || !structCreatePinsOk || !normalPinsOk)
+    if (!pinCountValid)
     {
         std::cerr << "CreateNodeFromTypeWithIds: Pin ID count mismatch\n";
         return {};
     }
 
-    assert((variablePinsOk && sequencePinsOk && structCreatePinsOk && normalPinsOk) && "Pin ID count mismatch");
+    assert(pinCountValid && "Pin ID count mismatch");
 
     VisualNode n;
     n.id         = ed::NodeId(nodeId);
@@ -91,6 +87,11 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
     n.positioned = true;
 
     int pinIndex = 0;
+
+    // Special handling for Variable nodes with single pin (Get variant)
+    const bool isVariable = (type == NodeType::Variable);
+    const bool isSequence = (type == NodeType::Sequence);
+    const bool isStructCreate = (type == NodeType::StructCreate);
 
     if (isVariable && pinIds.size() == 1)
     {
