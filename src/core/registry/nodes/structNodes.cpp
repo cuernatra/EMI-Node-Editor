@@ -61,6 +61,8 @@ bool DeserializeStructCreateNode(VisualNode& n, const NodeDescriptor& desc, cons
 
 void NodeRegistry::RegisterStructNodes()
 {
+    // Each Register(...) entry below follows NodeDescriptor order:
+    // type, label, pins, fields, compile, deserialize, category, paletteVariants, saveToken.
     Register({
         NodeType::StructDefine,
         "Struct Define",
@@ -73,7 +75,9 @@ void NodeRegistry::RegisterStructNodes()
         },
         CompileStructDefineNode,
         nullptr,
-        "Structs"
+        "Structs",
+        {},
+        "StructDefine"
     });
 
     Register({
@@ -90,6 +94,8 @@ void NodeRegistry::RegisterStructNodes()
         },
         CompileStructCreateNode,
         DeserializeStructCreateNode,
-        "Structs"
+        "Structs",
+        {},
+        "StructCreate"
     });
 }

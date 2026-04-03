@@ -315,6 +315,8 @@ Node* CompileOutputNode(GraphCompiler* compiler, const VisualNode& n)
 
 void NodeRegistry::RegisterDataNodes()
 {
+    // Each Register(...) entry below follows NodeDescriptor order:
+    // type, label, pins, fields, compile, deserialize, category, paletteVariants, saveToken.
     Register({
         NodeType::Constant,
         "Constant",
@@ -327,7 +329,9 @@ void NodeRegistry::RegisterDataNodes()
         },
         CompileConstantNode,
         nullptr,
-        "Data"
+        "Data",
+        {},
+        "Constant"
     });
 
     Register({
@@ -350,7 +354,8 @@ void NodeRegistry::RegisterDataNodes()
         {
             { "Set Variable", "Variable:Set" },
             { "Get Variable", "Variable:Get" }
-        }
+        },
+        "Variable"
     });
 
     Register({
@@ -367,7 +372,9 @@ void NodeRegistry::RegisterDataNodes()
         },
         CompileArrayGetNode,
         nullptr,
-        "Data"
+        "Data",
+        {},
+        "ArrayGet"
     });
 
     Register({
@@ -388,7 +395,9 @@ void NodeRegistry::RegisterDataNodes()
         },
         CompileArrayAddNode,
         nullptr,
-        "Data"
+        "Data",
+        {},
+        "ArrayAdd"
     });
 
     Register({
@@ -409,7 +418,9 @@ void NodeRegistry::RegisterDataNodes()
         },
         CompileArrayReplaceNode,
         nullptr,
-        "Data"
+        "Data",
+        {},
+        "ArrayReplace"
     });
 
     Register({
@@ -426,7 +437,9 @@ void NodeRegistry::RegisterDataNodes()
         },
         CompileArrayRemoveNode,
         nullptr,
-        "Data"
+        "Data",
+        {},
+        "ArrayRemove"
     });
 
     Register({
@@ -441,7 +454,9 @@ void NodeRegistry::RegisterDataNodes()
         },
         CompileArrayLengthNode,
         nullptr,
-        "Data"
+        "Data",
+        {},
+        "ArrayLength"
     });
 
     Register({
@@ -456,6 +471,8 @@ void NodeRegistry::RegisterDataNodes()
         },
         CompileOutputNode,
         nullptr,
-        "Flow"
+        "Flow",
+        {},
+        "Output"
     });
 }

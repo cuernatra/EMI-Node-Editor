@@ -31,6 +31,8 @@ Node* CompileFunctionNode(GraphCompiler* compiler, const VisualNode& n)
 
 void NodeRegistry::RegisterEventNodes()
 {
+    // Each Register(...) entry below follows NodeDescriptor order:
+    // type, label, pins, fields, compile, deserialize, category, paletteVariants, saveToken.
     Register({
         NodeType::Start,
         "Start",
@@ -40,7 +42,9 @@ void NodeRegistry::RegisterEventNodes()
         {},
         CompileScopeNode,
         nullptr,
-        "Events"
+        "Events",
+        {},
+        "Start"
     });
 
     Register({
@@ -69,7 +73,9 @@ void NodeRegistry::RegisterEventNodes()
         },
         CompileScopeNode,
         nullptr,
-        "Events"
+        "Events",
+        {},
+        "DrawRect"
     });
 
     Register({
@@ -98,7 +104,9 @@ void NodeRegistry::RegisterEventNodes()
         },
         CompileScopeNode,
         nullptr,
-        "Events"
+        "Events",
+        {},
+        "DrawGrid"
     });
 
     Register({
@@ -113,6 +121,8 @@ void NodeRegistry::RegisterEventNodes()
         },
         CompileFunctionNode,
         nullptr,
-        "Events"
+        "Events",
+        {},
+        "Function"
     });
 }

@@ -11,6 +11,7 @@ Use this checklist when adding a new node.
 - [ ] Keep `deserialize = nullptr` if the pin layout is fixed.
 - [ ] Build the project.
 - [ ] Run the tests.
+- [ ] Verify `saveToken` resolves back to the same `NodeType` through the registry.
 - [ ] Verify the node appears in the palette.
 - [ ] Verify the node saves and loads correctly.
 
