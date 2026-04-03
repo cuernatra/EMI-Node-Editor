@@ -71,7 +71,10 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
     n.nodeType   = type;
     n.title      = desc->label;
     n.initialPos = pos;
-    n.positioned = true;
+    // Loaded nodes should be positioned by renderer from serialized initialPos.
+    // If this is true here, node editor keeps default (often 0,0) and save will
+    // overwrite file positions with zeros.
+    n.positioned = false;
 
     if (desc->deserialize)
     {
