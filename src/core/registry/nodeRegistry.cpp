@@ -44,7 +44,9 @@ NodeRegistry::NodeRegistry()
             { "Exec", PinType::Flow, /*isInput=*/false }
         },
         {},
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStart(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStart(n); },
+        nullptr,
+        "Events"
     };
 
     // ------------------------------------------------------------------
@@ -62,7 +64,9 @@ descriptors_[NodeType::Constant] = {
         { "Type",  PinType::String, "Number" },
         { "Value", PinType::Any, "0.0" }
     },
-    [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildConstant(n); }
+    [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildConstant(n); },
+    nullptr,
+    "Data"
 };
 
     // ------------------------------------------------------------------
@@ -83,7 +87,9 @@ descriptors_[NodeType::Constant] = {
             { "A",  PinType::Number, "0.0" },
             { "B",  PinType::Number, "0.0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildOperator(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildOperator(n); },
+        nullptr,
+        "Logic"
     };
 
     // ------------------------------------------------------------------
@@ -104,7 +110,9 @@ descriptors_[NodeType::Constant] = {
             { "A",  PinType::Number, "0.0" },
             { "B",  PinType::Number, "0.0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildComparison(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildComparison(n); },
+        nullptr,
+        "Logic"
     };
 
     // ------------------------------------------------------------------
@@ -125,7 +133,9 @@ descriptors_[NodeType::Constant] = {
             { "A",  PinType::Boolean, "false" },
             { "B",  PinType::Boolean, "false" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildLogic(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildLogic(n); },
+        nullptr,
+        "Logic"
     };
 
     // ------------------------------------------------------------------
@@ -143,7 +153,9 @@ descriptors_[NodeType::Constant] = {
         {
             { "A",  PinType::Boolean, "false" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildNot(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildNot(n); },
+        nullptr,
+        "Logic"
     };
 
     // ------------------------------------------------------------------
@@ -173,7 +185,9 @@ descriptors_[NodeType::Constant] = {
             { "G", PinType::Number, "180.0" },
             { "B", PinType::Number, "255.0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildDrawRect(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildDrawRect(n); },
+        nullptr,
+        "Flow"
     };
 
     // ------------------------------------------------------------------
@@ -203,7 +217,9 @@ descriptors_[NodeType::Constant] = {
             { "G", PinType::Number, "30.0" },
             { "B", PinType::Number, "38.0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildDrawGrid(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildDrawGrid(n); },
+        nullptr,
+        "Logic"
     };
 
     // ------------------------------------------------------------------
@@ -220,7 +236,9 @@ descriptors_[NodeType::Constant] = {
         {
             { "Duration", PinType::Number, "1000.0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildDelay(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildDelay(n); },
+        nullptr,
+        "Flow"
     };
 
     // ------------------------------------------------------------------
@@ -256,7 +274,8 @@ descriptors_[NodeType::Constant] = {
             }
 
             return true;
-        }
+        },
+        "Flow"
     };
 
     // ------------------------------------------------------------------
@@ -272,7 +291,9 @@ descriptors_[NodeType::Constant] = {
             { "False",     PinType::Flow,    /*isInput=*/false }
         },
         {},
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildBranch(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildBranch(n); },
+        nullptr,
+        "Flow"
     };
 
     // ------------------------------------------------------------------
@@ -293,7 +314,9 @@ descriptors_[NodeType::Constant] = {
             { "Start", PinType::Number, "0" },
             { "Count", PinType::Number, "0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildLoop(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildLoop(n); },
+        nullptr,
+        "Flow"
     };
 
     // ------------------------------------------------------------------
@@ -313,7 +336,9 @@ descriptors_[NodeType::Constant] = {
             { "Element Type", PinType::String, "Any" },
             { "Array", PinType::Array, "[]" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildForEach(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildForEach(n); },
+        nullptr,
+        "Flow"
     };
 
     // ------------------------------------------------------------------
@@ -332,7 +357,9 @@ descriptors_[NodeType::Constant] = {
             { "Array", PinType::Array, "[]" },
             { "Index", PinType::Number, "0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayGetAt(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayGetAt(n); },
+        nullptr,
+        "Data"
     };
 
     // ------------------------------------------------------------------
@@ -355,7 +382,9 @@ descriptors_[NodeType::Constant] = {
             { "Add Type", PinType::String, "Number" },
             { "Add Value", PinType::Any, "0.0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayAddAt(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayAddAt(n); },
+        nullptr,
+        "Flow"
     };
 
     // ------------------------------------------------------------------
@@ -378,7 +407,9 @@ descriptors_[NodeType::Constant] = {
             { "Replace Type", PinType::String, "Number" },
             { "Replace Value", PinType::Any, "0.0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayReplaceAt(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayReplaceAt(n); },
+        nullptr,
+        "Flow"
     };
 
     // ------------------------------------------------------------------
@@ -397,7 +428,9 @@ descriptors_[NodeType::Constant] = {
         {
             { "Index", PinType::Number, "0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayRemoveAt(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayRemoveAt(n); },
+        nullptr,
+        "Flow"
     };
 
     // ------------------------------------------------------------------
@@ -413,7 +446,9 @@ descriptors_[NodeType::Constant] = {
         {
             { "Array", PinType::Array, "[]" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayLength(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildArrayLength(n); },
+        nullptr,
+        "Data"
     };
 
 
@@ -431,7 +466,9 @@ descriptors_[NodeType::Constant] = {
             { "Struct Name", PinType::String, "test" },
             { "Fields", PinType::Array, "[\"id:Number\", \"type:String\"]" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStructDefine(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStructDefine(n); },
+        nullptr,
+        "Structs"
     };
 
     // ------------------------------------------------------------------
@@ -494,7 +531,8 @@ descriptors_[NodeType::Constant] = {
                 n.fields.push_back(MakeNodeField(fd));
 
             return true;
-        }
+        },
+        "Structs"
     };
 
 
@@ -511,7 +549,9 @@ descriptors_[NodeType::Constant] = {
             { "Completed", PinType::Flow,    /*isInput=*/false }
         },
         {},
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildWhile(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildWhile(n); },
+        nullptr,
+        "Flow"
     };
 
     // ------------------------------------------------------------------
@@ -559,6 +599,11 @@ descriptors_[NodeType::Constant] = {
             }
 
             return PopulateExactPinsAndFields(n, desc, pinIds);
+        },
+        "Data",
+        {
+            { "Set Variable", "Variable:Set" },
+            { "Get Variable", "Variable:Get" }
         }
     };
 
@@ -575,7 +620,9 @@ descriptors_[NodeType::Constant] = {
         {
             { "Name", PinType::String, "myFunction" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildFunction(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildFunction(n); },
+        nullptr,
+        "Logic"
     };
 
     // ------------------------------------------------------------------
@@ -592,52 +639,10 @@ descriptors_[NodeType::Constant] = {
         {
             { "Label", PinType::String, "result" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildOutput(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildOutput(n); },
+        nullptr,
+        "Flow"
     };
-
-    auto setCategory = [&](NodeType type, const char* category)
-    {
-        auto it = descriptors_.find(type);
-        if (it != descriptors_.end())
-            it->second.category = category;
-    };
-
-    setCategory(NodeType::Start, "Events");
-
-    setCategory(NodeType::Constant, "Data");
-    setCategory(NodeType::Variable, "Data");
-    setCategory(NodeType::ArrayGetAt, "Data");
-    setCategory(NodeType::ArrayLength, "Data");
-
-    setCategory(NodeType::StructDefine, "Structs");
-    setCategory(NodeType::StructCreate, "Structs");
-
-    setCategory(NodeType::Operator, "Logic");
-    setCategory(NodeType::Comparison, "Logic");
-    setCategory(NodeType::Logic, "Logic");
-    setCategory(NodeType::Not, "Logic");
-    setCategory(NodeType::DrawGrid, "Logic");
-    setCategory(NodeType::Function, "Logic");
-
-    setCategory(NodeType::Delay, "Flow");
-    setCategory(NodeType::DrawRect, "Flow");
-    setCategory(NodeType::Sequence, "Flow");
-    setCategory(NodeType::Branch, "Flow");
-    setCategory(NodeType::Loop, "Flow");
-    setCategory(NodeType::ForEach, "Flow");
-    setCategory(NodeType::ArrayAddAt, "Flow");
-    setCategory(NodeType::ArrayRemoveAt, "Flow");
-    setCategory(NodeType::While, "Flow");
-    setCategory(NodeType::Output, "Flow");
-
-    auto variableIt = descriptors_.find(NodeType::Variable);
-    if (variableIt != descriptors_.end())
-    {
-        variableIt->second.paletteVariants = {
-            { "Set Variable", "Variable:Set" },
-            { "Get Variable", "Variable:Get" }
-        };
-    }
 }
 
 // ---------------------------------------------------------------------------
