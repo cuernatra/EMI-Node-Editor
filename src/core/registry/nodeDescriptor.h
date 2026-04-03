@@ -64,6 +64,17 @@ struct FieldDescriptor
 };
 
 /**
+ * @brief Optional palette representation override for a node type.
+ * Allows one node type to appear multiple times in the palette with
+ * different labels/payloads (e.g. Variable:Set, Variable:Get).
+ */
+struct PaletteVariant
+{
+    std::string displayLabel;  ///< Tile label shown in palette UI
+    std::string payloadTitle;  ///< Drag payload title consumed by spawn logic
+};
+
+/**
  * @brief Complete static definition of a node type
  * One immutable descriptor per NodeType; all instances share it and differ only in runtime state.
  */
@@ -75,6 +86,8 @@ struct NodeDescriptor
     std::vector<FieldDescriptor> fields;   ///< Editable fields (empty for nodes without constants)
     CompileCallback              compile;      ///< Optional: Compiles this node to AST (nullptr = not compilable)
     DeserializeCallback          deserialize;  ///< Optional: Custom pin reconstruction from saved IDs (nullptr = standard exact-match path)
+    std::string                  category = "More";  ///< Palette section name
+    std::vector<PaletteVariant>  paletteVariants;     ///< Optional palette variants (empty = single default tile)
 };
 
 #endif // NODE_DESCRIPTOR_H
