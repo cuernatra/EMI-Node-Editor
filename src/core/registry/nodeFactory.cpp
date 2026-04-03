@@ -66,23 +66,6 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
         return {};
     }
 
-    const bool isSequence = (type == NodeType::Sequence);
-    const bool isVariable = (type == NodeType::Variable);
-    const bool isStructCreate = (type == NodeType::StructCreate);
-
-    const bool variablePinsOk = !isVariable || (pinIds.size() == desc->pins.size() || pinIds.size() == 1);
-    const bool sequencePinsOk = !isSequence || (pinIds.size() >= desc->pins.size());
-    const bool structCreatePinsOk = !isStructCreate || (pinIds.size() >= 2);
-    const bool normalPinsOk = (isSequence || isVariable || isStructCreate) || (pinIds.size() == desc->pins.size());
-
-    if (!variablePinsOk || !sequencePinsOk || !structCreatePinsOk || !normalPinsOk)
-    {
-        std::cerr << "CreateNodeFromTypeWithIds: Pin ID count mismatch\n";
-        return {};
-    }
-
-    assert((variablePinsOk && sequencePinsOk && structCreatePinsOk && normalPinsOk) && "Pin ID count mismatch");
-
     VisualNode n;
     n.id         = ed::NodeId(nodeId);
     n.nodeType   = type;
@@ -90,94 +73,28 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
     n.initialPos = pos;
     n.positioned = true;
 
-    int pinIndex = 0;
-
-    if (isVariable && pinIds.size() == 1)
+    if (desc->deserialize)
     {
-        // Variable Get variant is intentionally a reduced layout (Value out only).
-        n.outPins.push_back(MakePin(
-            static_cast<uint32_t>(pinIds[0]), n.id, n.nodeType,
-            "Value", PinType::Any, false));
-
-        // Still needs descriptor fields.
-        for (const FieldDescriptor& fd : desc->fields)
-            n.fields.push_back(MakeNodeField(fd));
-
-        // Force Variant to Get.
-        for (NodeField& f : n.fields)
+        if (!desc->deserialize(n, *desc, pinIds))
         {
-            if (f.name == "Variant")
-            {
-                f.value = "Get";
-                break;
-            }
+            std::cerr << "CreateNodeFromTypeWithIds: deserialization failed\n";
+            return {};
         }
-    }
-    else if (isStructCreate && pinIds.size() != desc->pins.size())
-    {
-        // Struct Create has dynamic schema-driven input pins.
-        // Keep all saved pin IDs so links can be restored, then layout refresh
-        // will normalize names/types from loaded schema fields.
-        if (!pinIds.empty())
-        {
-            n.inPins.push_back(MakePin(
-                static_cast<uint32_t>(pinIds[0]),
-                n.id,
-                n.nodeType,
-                "Struct",
-                PinType::String,
-                true
-            ));
-
-            for (size_t i = 1; i + 1 < pinIds.size(); ++i)
-            {
-                n.inPins.push_back(MakePin(
-                    static_cast<uint32_t>(pinIds[i]),
-                    n.id,
-                    n.nodeType,
-                    "Field " + std::to_string(i),
-                    PinType::Any,
-                    true
-                ));
-            }
-
-            if (pinIds.size() >= 2)
-            {
-                n.outPins.push_back(MakePin(
-                    static_cast<uint32_t>(pinIds.back()),
-                    n.id,
-                    n.nodeType,
-                    "Item",
-                    PinType::Array,
-                    false
-                ));
-            }
-        }
-
-        for (const FieldDescriptor& fd : desc->fields)
-            n.fields.push_back(MakeNodeField(fd));
     }
     else
     {
+        if (pinIds.size() != desc->pins.size())
+        {
+            std::cerr << "CreateNodeFromTypeWithIds: Pin ID count mismatch\n";
+            return {};
+        }
+
+        assert(pinIds.size() == desc->pins.size() && "Pin ID count mismatch");
+
+        int pinIndex = 0;
         PopulateFromDescriptor(n, *desc, [&]() -> uint32_t {
             return static_cast<uint32_t>(pinIds[pinIndex++]);
         });
-    }
-
-    if (isSequence)
-    {
-        for (; pinIndex < static_cast<int>(pinIds.size()); ++pinIndex)
-        {
-            const int thenIndex = static_cast<int>(n.outPins.size());
-            n.outPins.push_back(MakePin(
-                static_cast<uint32_t>(pinIds[pinIndex]),
-                n.id,
-                n.nodeType,
-                "Then " + std::to_string(thenIndex),
-                PinType::Flow,
-                false
-            ));
-        }
     }
 
     return n;
