@@ -66,7 +66,6 @@ struct NodeDescriptor
     std::vector<PinDescriptor>   pins;     ///< All pins in draw order (inputs then outputs)
     std::vector<FieldDescriptor> fields;   ///< Editable fields (empty for nodes without constants)
     CompileCallback              compile;  ///< Optional: Compiles this node to AST (nullptr = not compilable)
-    bool                         supportsVariablePins = false;  ///< Nodes that accept variable pin counts (e.g., Sequence, Variable, StructCreate)
 };
 
 #endif // NODE_DESCRIPTOR_H

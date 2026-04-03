@@ -208,8 +208,7 @@ descriptors_[NodeType::Constant] = {
             { "Then 0", PinType::Flow, /*isInput=*/false }
         },
         {},
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildSequence(n); },
-        true  // supportsVariablePins: can add more Then outputs
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildSequence(n); }
     };
 
     // ------------------------------------------------------------------
@@ -402,8 +401,7 @@ descriptors_[NodeType::Constant] = {
             { "Struct Name", PinType::String, "test" },
             { "Schema Fields", PinType::Array, "[]" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStructCreate(n); },
-        true  // supportsVariablePins: dynamic input pins from schema
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStructCreate(n); }
     };
 
 
@@ -440,8 +438,7 @@ descriptors_[NodeType::Constant] = {
             { "Type",    PinType::String, "Number" },
             { "Default", PinType::String, "0.0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildVariable(n); },
-        true  // supportsVariablePins: can be either Set or Get variant
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildVariable(n); }
     };
 
     // ------------------------------------------------------------------
