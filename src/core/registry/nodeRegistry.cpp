@@ -1,5 +1,6 @@
 #include "nodeRegistry.h"
 #include <cctype>
+#include <stdexcept>
 #include <string_view>
 #include <unordered_map>
 
@@ -17,37 +18,6 @@ std::string RemoveWhitespace(std::string_view s)
     return out;
 }
 
-std::string DefaultSaveTokenForType(NodeType type)
-{
-    switch (type)
-    {
-        case NodeType::Start: return "Start";
-        case NodeType::Constant: return "Constant";
-        case NodeType::Operator: return "Operator";
-        case NodeType::Comparison: return "Comparison";
-        case NodeType::Logic: return "Logic";
-        case NodeType::Not: return "Not";
-        case NodeType::DrawRect: return "DrawRect";
-        case NodeType::DrawGrid: return "DrawGrid";
-        case NodeType::Delay: return "Delay";
-        case NodeType::Sequence: return "Sequence";
-        case NodeType::Branch: return "Branch";
-        case NodeType::Loop: return "Loop";
-        case NodeType::ForEach: return "ForEach";
-        case NodeType::ArrayGetAt: return "ArrayGet";
-        case NodeType::ArrayAddAt: return "ArrayAdd";
-        case NodeType::ArrayReplaceAt: return "ArrayReplace";
-        case NodeType::ArrayRemoveAt: return "ArrayRemove";
-        case NodeType::ArrayLength: return "ArrayLength";
-        case NodeType::StructDefine: return "StructDefine";
-        case NodeType::StructCreate: return "StructCreate";
-        case NodeType::While: return "While";
-        case NodeType::Variable: return "Variable";
-        case NodeType::Function: return "Function";
-        case NodeType::Output: return "Output";
-        default: return "Unknown";
-    }
-}
 }
 
 NodeRegistry::NodeRegistry()
@@ -61,8 +31,15 @@ NodeRegistry::NodeRegistry()
 
 void NodeRegistry::Register(NodeDescriptor descriptor)
 {
+    // This registration uses the NodeDescriptor structure directly:
+    // type, label, pins, fields, compile, deserialize, category, paletteVariants, saveToken.
     if (descriptor.saveToken.empty())
-        descriptor.saveToken = DefaultSaveTokenForType(descriptor.type);
+    {
+        throw std::invalid_argument(
+            "NodeRegistry::Register: descriptor '" + descriptor.label +
+            "' is missing required saveToken"
+        );
+    }
 
     descriptors_[descriptor.type] = std::move(descriptor);
 }

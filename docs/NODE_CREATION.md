@@ -13,7 +13,7 @@ For a routine node, edit:
 ## File ownership
 
 - `src/core/graph/types.h` owns the `NodeType` enum.
-- `src/core/registry/nodeDescriptor.h` owns the node metadata shape.
+- `src/core/registry/nodeDescriptor.h` defines the full node structure: pins, fields, callbacks, palette variants, and save token.
 - `src/core/registry/nodes/*.cpp` owns the node recipe and its compile/deserialization callbacks.
 - `src/editor/*` should only be edited when the node needs special UI behavior.
 
@@ -39,6 +39,7 @@ A normal node is defined by:
 4. Keep the callback readable by using helpers from `nodeCompileHelpers.h`.
 5. Set `saveToken` explicitly.
 6. Build and run tests.
+7. Verify `saveToken` round-trips through registry lookup.
 
 ## Category map
 
@@ -86,4 +87,5 @@ Node* CompileMyNode(GraphCompiler* compiler, const VisualNode& n)
 
 - Do not add new node-specific methods to `GraphCompiler` for routine nodes.
 - Do not rely on a fallback `saveToken`.
+- Do not leave `saveToken` empty and expect the registry to fill it in.
 - Do not move node-specific logic into editor panels unless the node truly needs special UI.

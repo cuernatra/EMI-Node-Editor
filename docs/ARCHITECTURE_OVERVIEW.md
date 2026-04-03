@@ -59,15 +59,18 @@ Files:
 
 Responsibilities:
 
-- Define each node recipe.
+- Define each node recipe and the full node structure.
 - Map `NodeType` to descriptor data.
 - Create runtime node instances.
 - Provide compile and deserialize callbacks for nodes.
+
+Think of `NodeDescriptor` as the schema for a node: if you want to know what the node is, what pins it has, what fields it exposes, how it compiles, and how it is saved, this is the file-level contract.
 
 Important rule:
 
 - Every node descriptor must define `saveToken` explicitly.
 - The registry should not invent fallback serialization names.
+- The registry tests verify token round-tripping and catch missing descriptor tokens early.
 
 ## 5. Compiler layer
 
@@ -107,11 +110,13 @@ For a routine node addition:
 3. Add a named compile callback in that same file.
 4. Set `saveToken`.
 5. Build and run tests.
+6. Confirm the token resolves back to the same `NodeType` in registry tests.
 
 For a dynamic-pin node:
 
 1. Do the steps above.
 2. Add a named deserialize callback in the same category file.
+3. Confirm save/load preserves the dynamic pin layout.
 
 ## File ownership summary
 

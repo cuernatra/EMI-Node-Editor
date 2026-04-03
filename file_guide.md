@@ -20,7 +20,7 @@ Core file ownership boundaries:
 - `core/graph/types.h`: shared node and pin type lists.
 - `core/graph/nodeField.h`: runtime per-node editable field values.
 - `core/graph/visualNode.h`: runtime state for one node on the graph.
-- `core/registry/nodeDescriptor.h`: the node recipe, including pins, fields, and compile logic.
+- `core/registry/nodeDescriptor.h`: the node structure definition and contract. It says what the node is, which pins and fields it has, how it compiles, how it deserializes, and which save token it uses.
 - `core/registry/nodeRegistry.*`: looks up node recipes by type or token.
 - `core/registry/nodeFactory.*`: builds live `VisualNode` objects from recipes.
 
@@ -58,6 +58,7 @@ For most node changes, the main work happens in `src/core/registry/nodes/`.
 - For a normal node change, you usually edit two files.
 - The usual files are `src/core/graph/types.h` and one file in `src/core/registry/nodes/`.
 - Every node recipe must set `saveToken`. It is the stable save/load name for the node.
+- The registry fails fast if `saveToken` is missing; there is no fallback token generation path.
 - To add a node, give it a type, add it to the right category file, write the named compile callback there, then build and test.
 - To remove a node, delete its recipe and remove its type.
 - Keep the inspector drop-downs simple. Do not use the node-canvas popup helper there, because it can crash outside the canvas.
@@ -124,6 +125,7 @@ Use this when node compile logic is a direct expression/call/indexer using exist
 
 7) Validate
 - Build and run tests.
+- The tests now check that all registered node types have compile callbacks and that save tokens round-trip through the registry.
 - Check that the node appears in the left palette and can be dragged into the graph.
 - Save the graph, reload it, and confirm the node comes back correctly.
 
@@ -133,7 +135,7 @@ Files you usually should NOT edit for normal node creation:
 - `src/editor/renderer/nodeRenderer.cpp`
 - `src/editor/panels/leftPanel.cpp`
 
-Simple compile lambda pattern:
+Simple compile callback pattern:
 
 ```cpp
 [](GraphCompiler* compiler, const VisualNode& n) -> Node*

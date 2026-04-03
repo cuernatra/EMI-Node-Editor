@@ -78,6 +78,8 @@ Node* CompileWhileNode(GraphCompiler* compiler, const VisualNode& n)
 
 void NodeRegistry::RegisterFlowNodes()
 {
+    // Each Register(...) entry below follows NodeDescriptor order:
+    // type, label, pins, fields, compile, deserialize, category, paletteVariants, saveToken.
     Register({
         NodeType::Delay,
         "Delay",
@@ -91,7 +93,9 @@ void NodeRegistry::RegisterFlowNodes()
         },
         CompileDelayNode,
         nullptr,
-        "Flow"
+        "Flow",
+        {},
+        "Delay"
     });
 
     Register({
@@ -104,7 +108,9 @@ void NodeRegistry::RegisterFlowNodes()
         {},
         CompileSequenceNode,
         DeserializeSequenceNode,
-        "Flow"
+        "Flow",
+        {},
+        "Sequence"
     });
 
     Register({
@@ -119,7 +125,9 @@ void NodeRegistry::RegisterFlowNodes()
         {},
         CompileBranchNode,
         nullptr,
-        "Flow"
+        "Flow",
+        {},
+        "Branch"
     });
 
     Register({
@@ -139,7 +147,9 @@ void NodeRegistry::RegisterFlowNodes()
         },
         CompileLoopNode,
         nullptr,
-        "Flow"
+        "Flow",
+        {},
+        "Loop"
     });
 
     Register({
@@ -158,7 +168,9 @@ void NodeRegistry::RegisterFlowNodes()
         },
         CompileForEachNode,
         nullptr,
-        "Flow"
+        "Flow",
+        {},
+        "ForEach"
     });
 
     Register({
@@ -173,6 +185,8 @@ void NodeRegistry::RegisterFlowNodes()
         {},
         CompileWhileNode,
         nullptr,
-        "Flow"
+        "Flow",
+        {},
+        "While"
     });
 }
