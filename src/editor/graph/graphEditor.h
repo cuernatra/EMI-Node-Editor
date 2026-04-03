@@ -121,4 +121,5 @@ private:
     ed::EditorContext* m_ctx;  ///< The imgui-node-editor context
     GraphState& m_state;       ///< Reference to the graph state
     bool m_initialAutoStartHandled = false; ///< Ensures empty-graph Start auto-spawn runs only once at startup
+    bool m_initialCompatibilityRefreshDone = false; ///< Runs one post-load normalization pass, then refreshes only on edits
 };

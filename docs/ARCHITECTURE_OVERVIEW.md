@@ -32,6 +32,18 @@ Responsibilities:
 - Save and load graphs.
 - Show the palette, inspector, preview, and console.
 
+Renderer boundary inside editor layer:
+
+- `src/editor/renderer/fieldWidgetRenderer.*` handles reusable field widgets (editable and read-only) that do not require link graph context.
+- `src/editor/renderer/nodeRenderer.*` handles node-level orchestration: pin layout, deferred pin placement, and link-aware field rules.
+- Keep generic field drawing helpers in fieldWidgetRenderer; keep graph-aware branching in nodeRenderer.
+
+Custom field-render extension point:
+
+- Add new field special-cases in `NodeRendererSpecialCases` (`nodeRenderer.h/.cpp`) as `Handle*` functions.
+- Use `FieldRenderContext& context` in handler signatures and implementation.
+- Chain new handlers through `HandleCustomFieldRendering` so unsupported fields still fall back to generic `DrawField`.
+
 Rule:
 
 - Editor code should not own node semantics unless it is unavoidable for presentation.
@@ -63,8 +75,10 @@ Responsibilities:
 - Map `NodeType` to descriptor data.
 - Create runtime node instances.
 - Provide compile and deserialize callbacks for nodes.
+- Provide layout hints such as `deferredInputPins` and `renderStyle` for the editor.
 
 Think of `NodeDescriptor` as the schema for a node: if you want to know what the node is, what pins it has, what fields it exposes, how it compiles, and how it is saved, this is the file-level contract.
+It also carries editor layout hints so the UI can keep special-case positioning near the node definition instead of hardcoding more `NodeType` checks in renderer code.
 
 Important rule:
 
@@ -117,6 +131,12 @@ For a dynamic-pin node:
 1. Do the steps above.
 2. Add a named deserialize callback in the same category file.
 3. Confirm save/load preserves the dynamic pin layout.
+
+For a node with custom layout:
+
+1. Set `deferredInputPins` for any pins that should be drawn beside fields.
+2. Reuse an existing `renderStyle` when the node fits an existing layout group.
+3. Only add a new `renderStyle` when the node needs a new presentation shape.
 
 ## File ownership summary
 

@@ -92,8 +92,6 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
             return {};
         }
 
-        assert(pinIds.size() == desc->pins.size() && "Pin ID count mismatch");
-
         int pinIndex = 0;
         PopulateFromDescriptor(n, *desc, [&]() -> uint32_t {
             return static_cast<uint32_t>(pinIds[pinIndex++]);

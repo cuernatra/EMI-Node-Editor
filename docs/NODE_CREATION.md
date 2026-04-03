@@ -30,6 +30,8 @@ A normal node is defined by:
 - `category`
 - `paletteVariants` if the same node type appears more than once in the palette
 - `saveToken`
+- `deferredInputPins` (optional) for fields that should draw with inline input pins
+- `renderStyle` for renderer/editor layout grouping
 
 ## Steps
 
@@ -38,8 +40,19 @@ A normal node is defined by:
 3. Write a named compile callback at the top of that same file.
 4. Keep the callback readable by using helpers from `nodeCompileHelpers.h`.
 5. Set `saveToken` explicitly.
-6. Build and run tests.
-7. Verify `saveToken` round-trips through registry lookup.
+6. Reuse an existing `renderStyle` and set `deferredInputPins` only when needed.
+7. Build and run tests.
+8. Verify `saveToken` round-trips through registry lookup.
+
+## Descriptor checklist
+
+When adding a node descriptor, confirm all of the following are set intentionally:
+
+- `saveToken`: required and stable for serialization
+- `renderStyle`: pick the closest existing style; add a new style only for truly new layout behavior
+- `deferredInputPins`: include only input pin names that should render inline with their field row
+
+If `deferredInputPins` contains a non-existent input pin name, registry validation fails at startup.
 
 ## Category map
 
@@ -58,6 +71,21 @@ Examples of dynamic pin nodes in this project:
 - Variable
 - Sequence
 - StructCreate
+
+## When editor renderer edits are needed
+
+Most node work should stay in `src/core/registry/nodes/*.cpp`.
+Edit renderer files only if a node needs custom node-canvas field behavior.
+
+- Add reusable field widgets in `src/editor/renderer/fieldWidgetRenderer.*`.
+- Add node/link-aware custom field handling in `NodeRendererSpecialCases` inside `src/editor/renderer/nodeRenderer.*`.
+- Handler signatures should use `FieldRenderContext& context`.
+- Register new handlers in `HandleCustomFieldRendering`.
+
+Before editing renderer files, try descriptor-first UI control:
+
+- For inline pin+field rows, configure `deferredInputPins`.
+- For existing layout families, reuse current `renderStyle` values.
 
 ## Good rules
 

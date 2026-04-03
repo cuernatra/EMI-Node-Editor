@@ -462,13 +462,48 @@ void DrawFieldReadOnly(const NodeField& field, FieldWidgetLayout layout)
 	if (layout == FieldWidgetLayout::Inspector)
 	{
 		BeginInspectorRow(field.name.c_str());
+        ImGui::PushID(field.name.c_str());
 		char buf[256] = {};
 		std::strncpy(buf, field.value.c_str(), sizeof(buf) - 1);
 		ImGui::InputText("##readonly", buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+        ImGui::PopID();
 		return;
 	}
 
-	ImGui::LabelText(field.name.c_str(), "%s", field.value.c_str());
+    ImGui::TextUnformatted(field.name.c_str());
+    ImGui::SameLine();
+    ImGui::TextDisabled("%s", field.value.c_str());
+}
+
+void DrawArrayFieldPreviewReadOnly(const NodeField& field, int previewCount)
+{
+    const std::vector<std::string> items = ParseArrayItems(field.value);
+
+    ImGui::TextUnformatted(field.name.c_str());
+    ImGui::SameLine();
+
+    std::string preview = "[";
+    const int visible = std::min(static_cast<int>(items.size()), std::max(previewCount, 0));
+    for (int i = 0; i < visible; ++i)
+    {
+        if (i > 0)
+            preview += ", ";
+
+        std::string token = TrimArrayToken(items[static_cast<size_t>(i)]);
+        if (token.size() > 12)
+            token = token.substr(0, 12) + "...";
+        preview += token;
+    }
+
+    if (static_cast<int>(items.size()) > visible)
+    {
+        if (visible > 0)
+            preview += ", ";
+        preview += "...";
+    }
+    preview += "]";
+
+    ImGui::TextDisabled("%s [%d] %s", field.name.c_str(), static_cast<int>(items.size()), preview.c_str());
 }
 
 bool DrawField(NodeField& field, FieldWidgetLayout layout)

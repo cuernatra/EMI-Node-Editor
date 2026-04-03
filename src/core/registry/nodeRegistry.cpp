@@ -1,5 +1,6 @@
 #include "nodeRegistry.h"
 #include <cctype>
+#include <algorithm>
 #include <stdexcept>
 #include <string_view>
 #include <unordered_map>
@@ -32,13 +33,29 @@ NodeRegistry::NodeRegistry()
 void NodeRegistry::Register(NodeDescriptor descriptor)
 {
     // This registration uses the NodeDescriptor structure directly:
-    // type, label, pins, fields, compile, deserialize, category, paletteVariants, saveToken.
+    // type, label, pins, fields, compile, deserialize, category, paletteVariants, saveToken, deferredInputPins, renderStyle.
     if (descriptor.saveToken.empty())
     {
         throw std::invalid_argument(
             "NodeRegistry::Register: descriptor '" + descriptor.label +
             "' is missing required saveToken"
         );
+    }
+
+    for (const std::string& pinName : descriptor.deferredInputPins)
+    {
+        const auto pinIt = std::find_if(descriptor.pins.begin(), descriptor.pins.end(), [&](const PinDescriptor& pin)
+        {
+            return pin.isInput && pin.name == pinName;
+        });
+
+        if (pinIt == descriptor.pins.end())
+        {
+            throw std::invalid_argument(
+                "NodeRegistry::Register: descriptor '" + descriptor.label +
+                "' references unknown deferred input pin '" + pinName + "'"
+            );
+        }
     }
 
     descriptors_[descriptor.type] = std::move(descriptor);

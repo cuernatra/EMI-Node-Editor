@@ -5,6 +5,8 @@
 #include "editor/renderer/nodeRenderer.h"
 #include "editor/renderer/linkRenderer.h"
 #include "core/registry/nodeFactory.h"
+#include "core/registry/nodeDescriptor.h"
+#include "core/registry/nodeRegistry.h"
 #include "editor/spawnPayload.h"
 #include "editor/panels/inspectorPanel.h"
 #include "imgui.h"
@@ -63,8 +65,9 @@ void GraphEditor::DrawNodeCanvas()
                 if (type != NodeType::Unknown)
                 {
                     VisualNode newNode = CreateNodeFromType(type, m_state.GetIdGen(), canvasPos);
+                    const NodeDescriptor* desc = NodeRegistry::Get().Find(type);
 
-                    if (type == NodeType::Variable && !variableVariant.empty())
+                    if (desc && desc->renderStyle == NodeRenderStyle::Variable && !variableVariant.empty())
                     {
                         if (NodeField* variant = GraphEditorUtils::FindField(newNode.fields, "Variant"))
                             variant->value = (variableVariant == "Get") ? "Get" : "Set";
@@ -135,6 +138,11 @@ void GraphEditor::DrawNodeCanvas()
         m_state.MarkDirty();
     }
 
+    // Legacy/compat graphs can contain links that become invalid after node
+    // layout refresh or dynamic pin normalization. Prune before drawing links
+    // so node-editor never receives dangling pin IDs.
+    GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
+
     // Draw all links
     DrawLinks(m_state.GetLinks());
 
@@ -174,7 +182,11 @@ void GraphEditor::DrawNodeCanvas()
         }
     }
 
-    RefreshGraphAndMarkDirty();
+    if (!m_initialCompatibilityRefreshDone)
+    {
+        RefreshGraphAndMarkDirty();
+        m_initialCompatibilityRefreshDone = true;
+    }
 
     ed::End();
 }
@@ -191,7 +203,8 @@ void GraphEditor::RefreshGraphAndMarkDirty()
 
     for (const auto& n : nodesRef)
     {
-        if (!n.alive || n.nodeType != NodeType::StructDefine)
+        const NodeDescriptor* desc = NodeRegistry::Get().Find(n.nodeType);
+        if (!n.alive || !desc || desc->renderStyle != NodeRenderStyle::StructDefine)
             continue;
 
         ++aliveStructDefineCount;

@@ -9,11 +9,44 @@
 #include "renderer/pinRenderer.h"
 #include "settings.h"
 #include "../ui/theme.h"
+#include <nlohmann/json.hpp>
 #include <chrono>
+#include <fstream>
 #include <utility>
+
+namespace
+{
+void StripNodePositionsFromEditorSettings(const char* settingsPath)
+{
+    std::ifstream in(settingsPath);
+    if (!in.is_open())
+        return;
+
+    try
+    {
+        nlohmann::json settings = nlohmann::json::parse(in);
+        in.close();
+
+        // Keep session-level data (view/selection), but clear per-node cached
+        // locations so graph.txt remains the authoritative node layout source.
+        if (settings.is_object() && settings.contains("nodes"))
+            settings.erase("nodes");
+
+        std::ofstream out(settingsPath, std::ios::trunc);
+        if (out.is_open())
+            out << settings.dump();
+    }
+    catch (const nlohmann::json::exception&)
+    {
+        // Ignore malformed editor settings; node-editor will recreate defaults.
+    }
+}
+}
 
 MainEditor::MainEditor()
 {
+    StripNodePositionsFromEditorSettings("node_editor.json");
+
     ed::Config config;
     config.SettingsFile = "node_editor.json";
     config.CanvasSizeMode = ed::CanvasSizeMode::CenterOnly;
@@ -134,6 +167,10 @@ void MainEditor::draw()
     {
         m_graphState->Clear();
         m_graphState->MarkDirty();
+
+        // Clear per-node cached layout from node-editor settings when graph is
+        // explicitly cleared so stale node positions are not retained.
+        StripNodePositionsFromEditorSettings("node_editor.json");
     }
 
     ImGui::SameLine();
@@ -201,6 +238,12 @@ void MainEditor::draw()
         ed::SetCurrentEditor(m_editorContext);
         GraphSerializer::Save(*m_graphState, "graph.txt");
         ed::SetCurrentEditor(nullptr);
+
+        // If the graph is empty after save, ensure node position cache is also
+        // removed from node-editor settings for this session.
+        if (!m_graphState->HasAliveNodes())
+            StripNodePositionsFromEditorSettings("node_editor.json");
+
         m_graphState->ClearDirty();
     }
 }

@@ -31,6 +31,16 @@ Core file ownership boundaries:
     - `editor/panels/`: the side panels, top bar, console, inspector, and preview
     - `editor/renderer/`: drawing for nodes, pins, links, and field controls
 
+Renderer ownership split:
+- `src/editor/renderer/fieldWidgetRenderer.*`
+  - Owns generic field widgets and read-only field display helpers.
+  - Should not depend on graph-link context to decide behavior.
+- `src/editor/renderer/nodeRenderer.*`
+  - Owns node layout, pin placement, and link-aware field behavior.
+  - Calls fieldWidgetRenderer helpers for reusable field UI.
+  - Custom field special-cases live in `NodeRendererSpecialCases` and use `FieldRenderContext& context`.
+  - New custom handlers must be chained through `HandleCustomFieldRendering`.
+
 - `src/app/`
   - Application shell: SFML window loop and top-level layout.
   - `app/app.*`: main loop, ImGui-SFML setup, and frame drawing
@@ -96,9 +106,12 @@ Use this when node compile logic is a direct expression/call/indexer using exist
   - `pins`
   - `fields`
   - named compile callback
-  - deserialize lambda (`nullptr` unless needed)
+  - named deserialize callback (`nullptr` unless needed)
   - `category`
   - optional `paletteVariants`
+  - `saveToken`
+  - optional `deferredInputPins`
+  - `renderStyle`
 
 4) Write named compile callback in the same file
 - Prefer helpers from `nodeCompileHelpers.h`:
@@ -116,6 +129,8 @@ Use this when node compile logic is a direct expression/call/indexer using exist
 - `FieldDescriptor` can include a list of choices for drop-downs.
 - If you set `options`, the node body and inspector show a combo box automatically.
 - If a field has the same name as an input pin, the inspector handles read-only behavior automatically when that pin is connected.
+- For node-canvas inline pin+field behavior, set `deferredInputPins` instead of adding renderer branches.
+- Reuse an existing `renderStyle` whenever possible so routine nodes do not require renderer edits.
 - This means most node UI behavior lives in `src/core/registry/nodes/*.cpp` without changing editor renderer files.
 
 6) Set a stable save token
