@@ -1,6 +1,34 @@
 #include "../nodeRegistry.h"
 #include "nodeCompileHelpers.h"
 
+namespace
+{
+Node* CompileScopeNode(GraphCompiler*, const VisualNode&)
+{
+    return MakeNode(Token::Scope);
+}
+
+Node* CompileFunctionNode(GraphCompiler* compiler, const VisualNode& n)
+{
+    const std::string* nameStr = FindField(n, "Name");
+    const std::string funcName = nameStr ? *nameStr : "__fn";
+
+    Node* params = MakeNode(Token::CallParams);
+    for (const Pin& pin : n.inPins)
+    {
+        if (pin.type == PinType::Flow) continue;
+        Node* arg = compiler->BuildExpr(pin);
+        if (compiler->HasError) { delete params; return nullptr; }
+        params->children.push_back(arg);
+    }
+
+    Node* call = MakeNode(Token::FunctionCall);
+    call->children.push_back(MakeIdNode(funcName));
+    call->children.push_back(params);
+    return call;
+}
+}
+
 void NodeRegistry::RegisterEventNodes()
 {
     Register({
@@ -10,7 +38,7 @@ void NodeRegistry::RegisterEventNodes()
             { "Exec", PinType::Flow, false }
         },
         {},
-        [](GraphCompiler*, const VisualNode&) -> Node* { return MakeNode(Token::Scope); },
+        CompileScopeNode,
         nullptr,
         "Events"
     });
@@ -39,7 +67,7 @@ void NodeRegistry::RegisterEventNodes()
             { "G", PinType::Number, "180.0" },
             { "B", PinType::Number, "255.0" }
         },
-        [](GraphCompiler*, const VisualNode&) -> Node* { return MakeNode(Token::Scope); },
+        CompileScopeNode,
         nullptr,
         "Events"
     });
@@ -68,7 +96,7 @@ void NodeRegistry::RegisterEventNodes()
             { "G", PinType::Number, "30.0" },
             { "B", PinType::Number, "38.0" }
         },
-        [](GraphCompiler*, const VisualNode&) -> Node* { return MakeNode(Token::Scope); },
+        CompileScopeNode,
         nullptr,
         "Events"
     });
@@ -83,25 +111,7 @@ void NodeRegistry::RegisterEventNodes()
         {
             { "Name", PinType::String, "myFunction" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) -> Node*
-        {
-            const std::string* nameStr = FindField(n, "Name");
-            const std::string funcName = nameStr ? *nameStr : "__fn";
-
-            Node* params = MakeNode(Token::CallParams);
-            for (const Pin& pin : n.inPins)
-            {
-                if (pin.type == PinType::Flow) continue;
-                Node* arg = compiler->BuildExpr(pin);
-                if (compiler->HasError) { delete params; return nullptr; }
-                params->children.push_back(arg);
-            }
-
-            Node* call = MakeNode(Token::FunctionCall);
-            call->children.push_back(MakeIdNode(funcName));
-            call->children.push_back(params);
-            return call;
-        },
+        CompileFunctionNode,
         nullptr,
         "Events"
     });

@@ -44,7 +44,8 @@ Core file ownership boundaries:
 For most node changes, the main work happens in `src/core/registry/nodes/`.
 
 - Add or remove `NodeType` values in `src/core/graph/types.h`.
-- Add or remove node recipes and compile code in the category files under `src/core/registry/nodes/`.
+- Add or remove node recipes in the category files under `src/core/registry/nodes/`.
+- Put named compile and deserialize callbacks at the top of the same category file, above the `Register` calls.
 - Reuse the shared helpers in `src/core/registry/nodes/nodeCompileHelpers.h`.
 - Do not add new node-specific `GraphCompiler::BuildX` methods.
 
@@ -56,8 +57,8 @@ For most node changes, the main work happens in `src/core/registry/nodes/`.
 
 - For a normal node change, you usually edit two files.
 - The usual files are `src/core/graph/types.h` and one file in `src/core/registry/nodes/`.
-- If you want the node to keep the same saved name, set `saveToken` in the node recipe. If you do not set it, the program makes one for you.
-- To add a node, give it a type, add it to the right category file, write the compile code there, then build and test.
+- Every node recipe must set `saveToken`. It is the stable save/load name for the node.
+- To add a node, give it a type, add it to the right category file, write the named compile callback there, then build and test.
 - To remove a node, delete its recipe and remove its type.
 - Keep the inspector drop-downs simple. Do not use the node-canvas popup helper there, because it can crash outside the canvas.
 - For array values in the inspector, use the normal inspector controls or plain text editing. Do not use the node-editor popup helper there.
@@ -93,12 +94,12 @@ Use this when node compile logic is a direct expression/call/indexer using exist
   - `label`
   - `pins`
   - `fields`
-  - compile lambda
+  - named compile callback
   - deserialize lambda (`nullptr` unless needed)
   - `category`
   - optional `paletteVariants`
 
-4) Write compile lambda in the descriptor
+4) Write named compile callback in the same file
 - Prefer helpers from `nodeCompileHelpers.h`:
   - `FindInputPin`, `FindField`
   - `BuildNumberInput`, `BuildArrayInput`, `BuildOutputValue`, etc.
@@ -118,8 +119,8 @@ Use this when node compile logic is a direct expression/call/indexer using exist
 
 6) Set a stable save token
 - File: same descriptor block
-- Set `saveToken` when label may change or has spaces.
-- If omitted, the registry derives a default token automatically.
+- Set `saveToken` explicitly for every node.
+- Do not rely on a fallback token. Missing `saveToken` should fail fast.
 
 7) Validate
 - Build and run tests.
@@ -255,7 +256,7 @@ Recommended local commands before PR:
 1) Node types define how they compile
    - `src/core/registry/nodeDescriptor.h`
   - `src/core/registry/nodes/*.cpp`
-  Each `NodeType` has a `NodeDescriptor`, including a compile lambda that uses compiler primitives and shared helpers.
+  Each `NodeType` has a `NodeDescriptor`, including a named compile callback that uses compiler primitives and shared helpers.
 
 2) `GraphCompiler` builds an AST from the visual graph
    - `src/core/compiler/graphCompiler.*`
