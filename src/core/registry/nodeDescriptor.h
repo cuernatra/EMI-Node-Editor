@@ -23,6 +23,7 @@
 class GraphCompiler;
 class Node;
 struct VisualNode;
+struct NodeDescriptor;
 
 // TODO: tarviiks tätä
 
@@ -31,6 +32,13 @@ struct VisualNode;
  * Eliminates need for large switch statements by storing compilation logic with the descriptor.
  */
 using CompileCallback = std::function<Node*(GraphCompiler*, const VisualNode&)>;
+
+/**
+ * @brief Callback for deserializing a node from saved pin IDs.
+ * Used by nodes with dynamic or non-standard pin layouts (Variable, Sequence, StructCreate).
+ * Returns false on failure. nullptr = use standard pin-count-must-match path.
+ */
+using DeserializeCallback = std::function<bool(VisualNode&, const NodeDescriptor&, const std::vector<int>&)>;
 
 /**
  * @brief Static definition of a pin on a node type
@@ -65,7 +73,8 @@ struct NodeDescriptor
     std::string                  label;    ///< Display title shown in node header
     std::vector<PinDescriptor>   pins;     ///< All pins in draw order (inputs then outputs)
     std::vector<FieldDescriptor> fields;   ///< Editable fields (empty for nodes without constants)
-    CompileCallback              compile;  ///< Optional: Compiles this node to AST (nullptr = not compilable)
+    CompileCallback              compile;      ///< Optional: Compiles this node to AST (nullptr = not compilable)
+    DeserializeCallback          deserialize;  ///< Optional: Custom pin reconstruction from saved IDs (nullptr = standard exact-match path)
 };
 
 #endif // NODE_DESCRIPTOR_H

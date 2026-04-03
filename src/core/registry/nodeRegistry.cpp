@@ -1,5 +1,31 @@
 #include "nodeRegistry.h"
 #include "../compiler/graphCompiler.h"
+#include "../graph/visualNode.h"
+
+namespace
+{
+bool PopulateExactPinsAndFields(VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds)
+{
+    if (pinIds.size() != desc.pins.size())
+        return false;
+
+    size_t pinIndex = 0;
+    for (const PinDescriptor& pd : desc.pins)
+    {
+        const uint32_t pinId = static_cast<uint32_t>(pinIds[pinIndex++]);
+        Pin p = MakePin(pinId, n.id, desc.type, pd.name, pd.type, pd.isInput, pd.isMultiInput);
+        if (pd.isInput)
+            n.inPins.push_back(p);
+        else
+            n.outPins.push_back(p);
+    }
+
+    for (const FieldDescriptor& fd : desc.fields)
+        n.fields.push_back(MakeNodeField(fd));
+
+    return true;
+}
+}
 
 // ---------------------------------------------------------------------------
 // Registry population
@@ -208,7 +234,29 @@ descriptors_[NodeType::Constant] = {
             { "Then 0", PinType::Flow, /*isInput=*/false }
         },
         {},
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildSequence(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildSequence(n); },
+        [](VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds) -> bool {
+            if (pinIds.size() < desc.pins.size())
+                return false;
+
+            if (!PopulateExactPinsAndFields(n, desc, std::vector<int>(pinIds.begin(), pinIds.begin() + desc.pins.size())))
+                return false;
+
+            for (size_t i = desc.pins.size(); i < pinIds.size(); ++i)
+            {
+                const int thenIndex = static_cast<int>(n.outPins.size());
+                n.outPins.push_back(MakePin(
+                    static_cast<uint32_t>(pinIds[i]),
+                    n.id,
+                    desc.type,
+                    "Then " + std::to_string(thenIndex),
+                    PinType::Flow,
+                    false
+                ));
+            }
+
+            return true;
+        }
     };
 
     // ------------------------------------------------------------------
@@ -401,7 +449,52 @@ descriptors_[NodeType::Constant] = {
             { "Struct Name", PinType::String, "test" },
             { "Schema Fields", PinType::Array, "[]" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStructCreate(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildStructCreate(n); },
+        [](VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds) -> bool {
+            if (pinIds.size() == desc.pins.size())
+                return PopulateExactPinsAndFields(n, desc, pinIds);
+
+            // Struct Create has dynamic schema-driven input pins.
+            // Keep all saved pin IDs so links can be restored, then layout refresh
+            // will normalize names/types from loaded schema fields.
+            if (pinIds.size() < 2)
+                return false;
+
+            n.inPins.push_back(MakePin(
+                static_cast<uint32_t>(pinIds[0]),
+                n.id,
+                desc.type,
+                "Struct",
+                PinType::String,
+                true
+            ));
+
+            for (size_t i = 1; i + 1 < pinIds.size(); ++i)
+            {
+                n.inPins.push_back(MakePin(
+                    static_cast<uint32_t>(pinIds[i]),
+                    n.id,
+                    desc.type,
+                    "Field " + std::to_string(i),
+                    PinType::Any,
+                    true
+                ));
+            }
+
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(pinIds.back()),
+                n.id,
+                desc.type,
+                "Item",
+                PinType::Array,
+                false
+            ));
+
+            for (const FieldDescriptor& fd : desc.fields)
+                n.fields.push_back(MakeNodeField(fd));
+
+            return true;
+        }
     };
 
 
@@ -438,7 +531,35 @@ descriptors_[NodeType::Constant] = {
             { "Type",    PinType::String, "Number" },
             { "Default", PinType::String, "0.0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildVariable(n); }
+        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildVariable(n); },
+        [](VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds) -> bool {
+            if (pinIds.size() == 1)
+            {
+                n.outPins.push_back(MakePin(
+                    static_cast<uint32_t>(pinIds[0]),
+                    n.id,
+                    desc.type,
+                    "Value",
+                    PinType::Any,
+                    false
+                ));
+
+                for (const FieldDescriptor& fd : desc.fields)
+                    n.fields.push_back(MakeNodeField(fd));
+
+                for (NodeField& f : n.fields)
+                {
+                    if (f.name == "Variant")
+                    {
+                        f.value = "Get";
+                        break;
+                    }
+                }
+                return true;
+            }
+
+            return PopulateExactPinsAndFields(n, desc, pinIds);
+        }
     };
 
     // ------------------------------------------------------------------
