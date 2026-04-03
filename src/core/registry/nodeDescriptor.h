@@ -25,8 +25,6 @@ class Node;
 struct VisualNode;
 struct NodeDescriptor;
 
-// TODO: tarviiks tätä
-
 /**
  * @brief Callback for compiling a visual node to AST
  * Eliminates need for large switch statements by storing compilation logic with the descriptor.
@@ -61,6 +59,7 @@ struct FieldDescriptor
     std::string name;          ///< Display label for the field
     PinType     valueType;     ///< Data type (drives widget selection)
     std::string defaultValue;  ///< Initial value (stored as string, parsed on use)
+    std::vector<std::string> options; ///< Optional fixed choice list for dropdown rendering
 };
 
 /**

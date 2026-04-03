@@ -1,5 +1,5 @@
 #include "../nodeRegistry.h"
-#include "../../compiler/graphCompiler.h"
+#include "nodeCompileHelpers.h"
 
 void NodeRegistry::RegisterLogicNodes()
 {
@@ -14,13 +14,34 @@ void NodeRegistry::RegisterLogicNodes()
             { "Result", PinType::Number, false }
         },
         {
-            { "Op", PinType::String, "+" },
+            { "Op", PinType::String, "+", { "+", "-", "*", "/" } },
             { "A", PinType::Number, "0.0" },
             { "B", PinType::Number, "0.0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildOperator(n); },
+        [](GraphCompiler* compiler, const VisualNode& n) -> Node*
+        {
+            const Pin* pinA = FindInputPin(n, "A");
+            const Pin* pinB = FindInputPin(n, "B");
+            if (!pinA || !pinB)
+            {
+                compiler->Error("Operator node needs A and B inputs");
+                return nullptr;
+            }
+
+            const std::string* opStr = FindField(n, "Op");
+            const Token tok = ParseOperatorToken(opStr);
+            if (tok == Token::None)
+            {
+                compiler->Error("Unknown operator: " + (opStr ? *opStr : "?"));
+                return nullptr;
+            }
+
+            Node* lhs = BuildNumberOperand(compiler, n, *pinA, "A");
+            Node* rhs = BuildNumberOperand(compiler, n, *pinB, "B");
+            return compiler->EmitBinaryOp(tok, lhs, rhs);
+        },
         nullptr,
-        "Logic"
+        "Flow"
     });
 
     Register({
@@ -34,11 +55,32 @@ void NodeRegistry::RegisterLogicNodes()
             { "Result", PinType::Boolean, false }
         },
         {
-            { "Op", PinType::String, ">=" },
+            { "Op", PinType::String, ">=", { "==", "!=", "<", "<=", ">", ">=" } },
             { "A", PinType::Number, "0.0" },
             { "B", PinType::Number, "0.0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildComparison(n); },
+        [](GraphCompiler* compiler, const VisualNode& n) -> Node*
+        {
+            const Pin* pinA = FindInputPin(n, "A");
+            const Pin* pinB = FindInputPin(n, "B");
+            if (!pinA || !pinB)
+            {
+                compiler->Error("Comparison node needs A and B inputs");
+                return nullptr;
+            }
+
+            const std::string* opStr = FindField(n, "Op");
+            const Token tok = ParseComparisonToken(opStr);
+            if (tok == Token::None)
+            {
+                compiler->Error("Unknown comparison: " + (opStr ? *opStr : "?"));
+                return nullptr;
+            }
+
+            Node* lhs = BuildNumberOperand(compiler, n, *pinA, "A");
+            Node* rhs = BuildNumberOperand(compiler, n, *pinB, "B");
+            return compiler->EmitBinaryOp(tok, lhs, rhs);
+        },
         nullptr,
         "Logic"
     });
@@ -54,11 +96,32 @@ void NodeRegistry::RegisterLogicNodes()
             { "Result", PinType::Boolean, false }
         },
         {
-            { "Op", PinType::String, "AND" },
+            { "Op", PinType::String, "AND", { "AND", "OR" } },
             { "A", PinType::Boolean, "false" },
             { "B", PinType::Boolean, "false" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildLogic(n); },
+        [](GraphCompiler* compiler, const VisualNode& n) -> Node*
+        {
+            const Pin* pinA = FindInputPin(n, "A");
+            const Pin* pinB = FindInputPin(n, "B");
+            if (!pinA || !pinB)
+            {
+                compiler->Error("Logic node needs A and B inputs");
+                return nullptr;
+            }
+
+            const std::string* opStr = FindField(n, "Op");
+            const Token tok = ParseLogicToken(opStr);
+            if (tok == Token::None)
+            {
+                compiler->Error("Unknown logic op: " + (opStr ? *opStr : "?"));
+                return nullptr;
+            }
+
+            Node* lhs = BuildBoolOperand(compiler, n, *pinA, "A");
+            Node* rhs = BuildBoolOperand(compiler, n, *pinB, "B");
+            return compiler->EmitBinaryOp(tok, lhs, rhs);
+        },
         nullptr,
         "Logic"
     });
@@ -75,7 +138,18 @@ void NodeRegistry::RegisterLogicNodes()
         {
             { "A", PinType::Boolean, "false" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildNot(n); },
+        [](GraphCompiler* compiler, const VisualNode& n) -> Node*
+        {
+            const Pin* pinA = FindInputPin(n, "A");
+            if (!pinA)
+            {
+                compiler->Error("Not node needs A input");
+                return nullptr;
+            }
+
+            Node* operand = BuildBoolOperand(compiler, n, *pinA, "A");
+            return compiler->EmitUnaryOp(Token::Not, operand);
+        },
         nullptr,
         "Logic"
     });

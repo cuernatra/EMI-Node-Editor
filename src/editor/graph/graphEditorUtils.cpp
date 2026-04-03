@@ -421,9 +421,15 @@ bool SyncNodeToDescriptor(GraphState& state, VisualNode& node, const NodeDescrip
         NodeField* f = GraphEditorUtils::FindField(node.fields, fd.name.c_str());
         if (!f)
         {
-            node.fields.push_back(NodeField{ fd.name, fd.valueType, fd.defaultValue });
+            node.fields.push_back(NodeField{ fd.name, fd.valueType, fd.defaultValue, fd.options });
             changed = true;
             continue;
+        }
+
+        if (f->options != fd.options)
+        {
+            f->options = fd.options;
+            changed = true;
         }
 
         // Do not force dynamic Any fields back to descriptor defaults every frame.

@@ -1,6 +1,9 @@
 #pragma once
 
-#include "core/registry/fieldWidget.h"
+#include "core/graph/nodeField.h"
+
+#include <string>
+#include <vector>
 
 enum class FieldWidgetLayout
 {
@@ -19,3 +22,9 @@ bool DrawField(NodeField& field, FieldWidgetLayout layout);
 
 /// Render a read-only view of a field (no edits).
 void DrawFieldReadOnly(const NodeField& field, FieldWidgetLayout layout);
+
+/// Split a bracketed array string into top-level items.
+std::vector<std::string> ParseArrayItems(const std::string& text);
+
+/// Build a bracketed array string from already-trimmed items.
+std::string BuildArrayString(const std::vector<std::string>& items);

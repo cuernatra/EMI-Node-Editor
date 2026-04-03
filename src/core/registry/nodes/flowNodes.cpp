@@ -1,31 +1,5 @@
 #include "../nodeRegistry.h"
-#include "../../compiler/graphCompiler.h"
-#include "../../graph/visualNode.h"
-
-namespace
-{
-bool PopulateExactPinsAndFields(VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds)
-{
-    if (pinIds.size() != desc.pins.size())
-        return false;
-
-    size_t pinIndex = 0;
-    for (const PinDescriptor& pd : desc.pins)
-    {
-        const uint32_t pinId = static_cast<uint32_t>(pinIds[pinIndex++]);
-        Pin p = MakePin(pinId, n.id, desc.type, pd.name, pd.type, pd.isInput, pd.isMultiInput);
-        if (pd.isInput)
-            n.inPins.push_back(p);
-        else
-            n.outPins.push_back(p);
-    }
-
-    for (const FieldDescriptor& fd : desc.fields)
-        n.fields.push_back(MakeNodeField(fd));
-
-    return true;
-}
-}
+#include "nodeCompileHelpers.h"
 
 void NodeRegistry::RegisterFlowNodes()
 {
@@ -40,7 +14,27 @@ void NodeRegistry::RegisterFlowNodes()
         {
             { "Duration", PinType::Number, "1000.0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildDelay(n); },
+        [](GraphCompiler* compiler, const VisualNode& n) -> Node*
+        {
+            Node* durationExpr = nullptr;
+            const Pin* durationPin = FindInputPin(n, "Duration");
+            if (durationPin)
+            {
+                if (const PinSource* src = compiler->Resolve(*durationPin))
+                {
+                    durationExpr = compiler->BuildNode(*src->node, src->pinIdx);
+                    if (compiler->HasError) return nullptr;
+                }
+            }
+            if (!durationExpr)
+            {
+                const std::string* durStr = FindField(n, "Duration");
+                double ms = 1000.0;
+                if (durStr) { try { ms = std::stod(*durStr); } catch (...) { ms = 1000.0; } }
+                durationExpr = MakeNumberLiteral(ms);
+            }
+            return compiler->EmitFunctionCall("delay", { durationExpr });
+        },
         nullptr,
         "Flow"
     });
@@ -53,7 +47,7 @@ void NodeRegistry::RegisterFlowNodes()
             { "Then 0", PinType::Flow, false }
         },
         {},
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildSequence(n); },
+        [](GraphCompiler*, const VisualNode&) -> Node* { return MakeNode(Token::Scope); },
         [](VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds) -> bool {
             if (pinIds.size() < desc.pins.size())
                 return false;
@@ -90,7 +84,7 @@ void NodeRegistry::RegisterFlowNodes()
             { "False", PinType::Flow, false }
         },
         {},
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildBranch(n); },
+        [](GraphCompiler* compiler, const VisualNode& n) { return BuildBranchNode(compiler, n); },
         nullptr,
         "Flow"
     });
@@ -110,7 +104,7 @@ void NodeRegistry::RegisterFlowNodes()
             { "Start", PinType::Number, "0" },
             { "Count", PinType::Number, "0" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildLoop(n); },
+        [](GraphCompiler* compiler, const VisualNode& n) { return BuildLoopNode(compiler, n); },
         nullptr,
         "Flow"
     });
@@ -126,10 +120,10 @@ void NodeRegistry::RegisterFlowNodes()
             { "Element", PinType::Any, false }
         },
         {
-            { "Element Type", PinType::String, "Any" },
+            { "Element Type", PinType::String, "Any", { "Any", "Number", "Boolean", "String", "Array" } },
             { "Array", PinType::Array, "[]" }
         },
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildForEach(n); },
+        [](GraphCompiler* compiler, const VisualNode& n) { return BuildForEachNode(compiler, n); },
         nullptr,
         "Flow"
     });
@@ -144,7 +138,7 @@ void NodeRegistry::RegisterFlowNodes()
             { "Completed", PinType::Flow, false }
         },
         {},
-        [](GraphCompiler* compiler, const VisualNode& n) { return compiler->BuildWhile(n); },
+        [](GraphCompiler* compiler, const VisualNode& n) { return BuildWhileNode(compiler, n); },
         nullptr,
         "Flow"
     });
