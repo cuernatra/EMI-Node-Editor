@@ -439,6 +439,10 @@ float MeasureNodeContentWidth(const VisualNode& n, const NodeDescriptor* desc)
         maxWidth = std::max(maxWidth, MeasureFieldWidth(renderStyle, field));
     }
 
+    // Make Rect Click and Sequence nodes just a bit wider so title/text spacing is cleaner.
+    if (n.nodeType == NodeType::PreviewPickRect || n.nodeType == NodeType::Sequence)
+        maxWidth += 14.0f;
+
     return maxWidth;
 }
 

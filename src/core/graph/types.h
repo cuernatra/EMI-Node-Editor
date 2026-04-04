@@ -37,6 +37,7 @@ enum class NodeType
     ArrayLength, ///< Array item count
     StructDefine, ///< Define struct schema
     StructCreate, ///< Create struct instance
+    PreviewPickRect, ///< Preview-picked rectangle position
     While,       ///< While loop
     Variable,    ///< Variable get/set
     Function,    ///< Function define/call

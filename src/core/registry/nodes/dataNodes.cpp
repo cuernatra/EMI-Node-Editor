@@ -311,6 +311,11 @@ Node* CompileOutputNode(GraphCompiler* compiler, const VisualNode& n)
 
     return scope;
 }
+
+Node* CompilePreviewPickRectNode(GraphCompiler*, const VisualNode&)
+{
+    return nullptr;
+}
 }
 
 void NodeRegistry::RegisterDataNodes()
@@ -470,6 +475,24 @@ void NodeRegistry::RegisterDataNodes()
         "ArrayLength",
         {},
         NodeRenderStyle::Array
+    });
+
+    Register({
+        NodeType::PreviewPickRect,
+        "Rect Click",
+        {
+            { "Out", PinType::Flow, false },
+            { "X", PinType::Number, false },
+            { "Y", PinType::Number, false }
+        },
+        {},
+        CompilePreviewPickRectNode,
+        nullptr,
+        "Data",
+        {},
+        "PreviewPickRect",
+        {},
+        NodeRenderStyle::Default
     });
 
     Register({

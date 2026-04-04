@@ -55,6 +55,11 @@ EditorLayout::EditorLayout()
     EMI::SetRuntimeLog(m_consoleEmiLogger.get());
     EMI::SetScriptLog(m_consoleEmiLogger.get());
 
+    m_graphPreviewPanel.setLogSink([this](const std::string& message)
+    {
+        m_consolePanel.addLogText(message);
+    });
+
     m_consolePanel.addLog("Console initialized. Welcome to EMI Visual Programming Tool!");
 }
 

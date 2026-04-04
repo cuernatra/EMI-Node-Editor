@@ -8,7 +8,9 @@
 #include <cmath>
 #include <cstdlib>
 #include <functional>
+#include <iostream>
 #include <limits>
+#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -139,12 +141,35 @@ struct PreviewEvaluator
         bool isArray() const { return kind == Kind::Array; }
     };
 
+    static std::string ToDebugString(const PreviewValue& value)
+    {
+        if (value.kind == PreviewValue::Kind::Number)
+        {
+            std::ostringstream ss;
+            ss << value.number;
+            return ss.str();
+        }
+
+        std::string out = "[";
+        for (size_t i = 0; i < value.array.size(); ++i)
+        {
+            if (i > 0)
+                out += ", ";
+            out += ToDebugString(value.array[i]);
+        }
+        out += "]";
+        return out;
+    }
+
     const GraphState& state;
     const std::vector<Link>& links;
     std::unordered_set<uintptr_t> activeEvalPins;
     std::unordered_map<uintptr_t, double> activeLoopIndices;
     std::unordered_map<uintptr_t, PreviewValue> activeForEachElements;
     std::unordered_map<std::string, PreviewValue> variableValues;
+    bool hasPickedRect = false;
+    double pickedRectX = 0.0;
+    double pickedRectY = 0.0;
 
     static std::string TrimCopy(const std::string& s)
     {
@@ -504,6 +529,18 @@ struct PreviewEvaluator
                     return PreviewValue::Array(std::move(fields));
                 }
 
+                case NodeType::PreviewPickRect:
+                {
+                    const Pin* srcPin = state.FindPin(link.startPinId);
+                    if (!srcPin)
+                        return PreviewValue::Number(0.0);
+                    if (srcPin->name == "X")
+                        return PreviewValue::Number(hasPickedRect ? pickedRectX : 0.0);
+                    if (srcPin->name == "Y")
+                        return PreviewValue::Number(hasPickedRect ? pickedRectY : 0.0);
+                    return PreviewValue::Number(0.0);
+                }
+
                 default:
                     break;
             }
@@ -564,11 +601,18 @@ void GraphPreviewPanel::close()
     }
 
     m_hasPlaybackStart = false;
+    m_hasPendingPick = false;
+    m_hasPickedRect = false;
 }
 
 bool GraphPreviewPanel::isOpen() const
 {
     return m_window && m_window->isOpen();
+}
+
+void GraphPreviewPanel::setLogSink(std::function<void(const std::string&)> sink)
+{
+    m_logSink = std::move(sink);
 }
 
 void GraphPreviewPanel::restartPlayback()
@@ -595,6 +639,12 @@ void GraphPreviewPanel::update(const GraphState& state)
         {
             close();
             return;
+        }
+        if (event.type == sf::Event::MouseButtonPressed
+            && event.mouseButton.button == sf::Mouse::Left)
+        {
+            m_hasPendingPick = true;
+            m_pendingPickPixel = sf::Vector2i(event.mouseButton.x, event.mouseButton.y);
         }
     }
 
@@ -623,9 +673,23 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
     if (!m_window)
         return;
 
+    auto emitPreviewStdout = [](const std::string& line)
+    {
+        std::cout << line << std::endl;
+    };
+
+    auto emitConsoleDebugPrint = [this](const std::string& line)
+    {
+        if (m_logSink)
+            m_logSink(line);
+    };
+
     const auto& nodes = state.GetNodes();
     const auto& links = state.GetLinks();
     PreviewEvaluator evaluator{ state, links };
+    evaluator.hasPickedRect = m_hasPickedRect;
+    evaluator.pickedRectX = static_cast<double>(m_pickedRectX);
+    evaluator.pickedRectY = static_cast<double>(m_pickedRectY);
     auto evalNamedInput = [&](const VisualNode& node, const char* name) -> double
     {
         return evaluator.EvalNamedInput(node, name);
@@ -668,9 +732,9 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
     }
 
     std::unordered_set<uintptr_t> activeFlowOutputs;
-    std::function<void(ed::PinId, long long&, int, ActiveGridContext)> appendFlowChain;
+    std::function<void(ed::PinId, long long&, int, ActiveGridContext, bool)> appendFlowChain;
 
-    appendFlowChain = [&](ed::PinId flowOutputPinId, long long& timeCursor, int depth, ActiveGridContext activeGrid)
+    appendFlowChain = [&](ed::PinId flowOutputPinId, long long& timeCursor, int depth, ActiveGridContext activeGrid, bool emitOutputLogs)
     {
         const uintptr_t flowKey = static_cast<uintptr_t>(flowOutputPinId.Get());
         if (!activeFlowOutputs.insert(flowKey).second)
@@ -707,7 +771,7 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
                 for (int i = 0; i < count; ++i)
                 {
                     evaluator.activeLoopIndices[loopId] = static_cast<double>(start + i);
-                    appendFlowChain(bodyOut->id, loopCursor, depth + 1, activeGrid);
+                    appendFlowChain(bodyOut->id, loopCursor, depth + 1, activeGrid, emitOutputLogs);
                 }
             }
 
@@ -715,7 +779,7 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
 
             timeCursor = loopCursor;
             if (completedOut)
-                appendFlowChain(completedOut->id, timeCursor, depth + 1, activeGrid);
+                appendFlowChain(completedOut->id, timeCursor, depth + 1, activeGrid, emitOutputLogs);
             return;
         }
         else if (targetNode->nodeType == NodeType::ForEach)
@@ -731,14 +795,14 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
                 for (const auto& elem : arrayValue.array)
                 {
                     evaluator.activeForEachElements[foreachId] = elem;
-                    appendFlowChain(bodyOut->id, foreachCursor, depth + 1, activeGrid);
+                    appendFlowChain(bodyOut->id, foreachCursor, depth + 1, activeGrid, emitOutputLogs);
                 }
                 evaluator.activeForEachElements.erase(foreachId);
                 timeCursor = foreachCursor;
             }
 
             if (completedOut)
-                appendFlowChain(completedOut->id, timeCursor, depth + 1, activeGrid);
+                appendFlowChain(completedOut->id, timeCursor, depth + 1, activeGrid, emitOutputLogs);
             return;
         }
         else if (targetNode->nodeType == NodeType::Sequence)
@@ -750,7 +814,7 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
                     continue;
 
                 long long branchCursor = timeCursor + static_cast<long long>(branchIndex) * 1000000LL;
-                appendFlowChain(outPin.id, branchCursor, depth + 1, activeGrid);
+                appendFlowChain(outPin.id, branchCursor, depth + 1, activeGrid, emitOutputLogs);
                 ++branchIndex;
             }
             return;
@@ -763,7 +827,7 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
                 : FindOutputPin(*targetNode, "False");
 
             if (selectedOut)
-                appendFlowChain(selectedOut->id, timeCursor, depth + 1, activeGrid);
+                appendFlowChain(selectedOut->id, timeCursor, depth + 1, activeGrid, emitOutputLogs);
 
             return;
         }
@@ -905,6 +969,29 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
             );
             commands.push_back(cmd);
         }
+        else if (targetNode->nodeType == NodeType::Output && emitOutputLogs)
+        {
+            const NodeField* labelField = FindField(*targetNode, "Label");
+            const std::string label = (labelField && !labelField->value.empty())
+                ? labelField->value
+                : "result";
+
+            const auto value = evaluator.EvalValueNamedInput(*targetNode, "Value");
+            const std::string previewLine =
+                "[Preview Debug Print] " +
+                label +
+                ": " +
+                PreviewEvaluator::ToDebugString(value);
+
+            emitPreviewStdout(previewLine);
+            emitConsoleDebugPrint(
+                "[Debug Print] " +
+                label +
+                ": " +
+                PreviewEvaluator::ToDebugString(value) +
+                "\n"
+            );
+        }
 
         const Pin* outFlow = FindOutputPin(*targetNode, "Out");
         if (!outFlow)
@@ -920,7 +1007,7 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
         }
 
         if (outFlow)
-            appendFlowChain(outFlow->id, timeCursor, depth + 1, activeGrid);
+            appendFlowChain(outFlow->id, timeCursor, depth + 1, activeGrid, emitOutputLogs);
     };
 
     bool usedFlowExecution = false;
@@ -942,7 +1029,7 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
         if (startOut)
         {
             long long timeCursor = 0;
-            appendFlowChain(startOut->id, timeCursor, 0, ActiveGridContext{});
+            appendFlowChain(startOut->id, timeCursor, 0, ActiveGridContext{}, false);
             usedFlowExecution = true;
         }
     }
@@ -1053,6 +1140,87 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
         transform.offsetY = margin + (fitHeight - contentHeight * transform.scale) * 0.5f - minY * transform.scale;
     }
 
+    if (m_hasPendingPick)
+    {
+        m_hasPendingPick = false;
+        m_hasPickedRect = false;
+        bool pickedThisFrame = false;
+
+        const float clickX = static_cast<float>(m_pendingPickPixel.x);
+        const float clickY = static_cast<float>(m_pendingPickPixel.y);
+        const float invScale = (transform.scale > 0.000001f) ? (1.0f / transform.scale) : 1.0f;
+        const float worldClickX = (clickX - transform.offsetX) * invScale;
+        const float worldClickY = (clickY - transform.offsetY) * invScale;
+
+        for (auto it = commands.rbegin(); it != commands.rend(); ++it)
+        {
+            const ScheduledCommand& cmd = *it;
+            if (cmd.timeMs > elapsedMs || cmd.isGrid)
+                continue;
+
+            const float worldMinX = cmd.rect.x;
+            const float worldMinY = cmd.rect.y;
+            const float worldMaxX = cmd.rect.x + std::max(0.0f, cmd.rect.width);
+            const float worldMaxY = cmd.rect.y + std::max(0.0f, cmd.rect.height);
+
+            if (worldClickX >= worldMinX && worldClickX <= worldMaxX
+                && worldClickY >= worldMinY && worldClickY <= worldMaxY)
+            {
+                m_hasPickedRect = true;
+                pickedThisFrame = true;
+                m_pickedRectX = cmd.rect.x;
+                m_pickedRectY = cmd.rect.y;
+                break;
+            }
+        }
+
+        if (!pickedThisFrame)
+        {
+            m_pickedRectX = worldClickX;
+            m_pickedRectY = worldClickY;
+            // Expose click world-position even when no rect hit occurs.
+            m_hasPickedRect = true;
+        }
+
+        {
+            std::ostringstream clickMsg;
+            clickMsg
+                << "[Preview Rect Click] hit="
+                << (pickedThisFrame ? "true" : "false")
+                << " x="
+                << m_pickedRectX
+                << " y="
+                << m_pickedRectY;
+            emitPreviewStdout(clickMsg.str());
+        }
+
+        evaluator.hasPickedRect = m_hasPickedRect;
+        evaluator.pickedRectX = static_cast<double>(m_pickedRectX);
+        evaluator.pickedRectY = static_cast<double>(m_pickedRectY);
+
+        // Allow click-triggered traversal each click, even if same flow output
+        // was already traversed earlier in this frame.
+        activeFlowOutputs.clear();
+
+        for (const auto& node : nodes)
+        {
+            if (!node.alive || node.nodeType != NodeType::PreviewPickRect)
+                continue;
+
+            const Pin* outFlow = FindOutputPin(node, "Out");
+            if (!outFlow)
+                continue;
+
+            long long clickCursor = elapsedMs;
+            appendFlowChain(outFlow->id, clickCursor, 0, ActiveGridContext{}, true);
+        }
+
+        std::stable_sort(commands.begin(), commands.end(), [](const ScheduledCommand& a, const ScheduledCommand& b)
+        {
+            return a.orderKey < b.orderKey;
+        });
+    }
+
     for (const auto& cmd : commands)
     {
         if (cmd.timeMs > elapsedMs)
@@ -1092,4 +1260,5 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
         rect.setOutlineColor(kPreviewRectOutline);
         m_window->draw(rect);
     }
+
 }

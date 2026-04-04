@@ -5,7 +5,11 @@
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Graphics/VertexArray.hpp>
 #include <SFML/System/Clock.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <functional>
 #include <memory>
+#include <string>
+#include <vector>
 
 /**
  * @brief Separate SFML preview window driven by graph nodes.
@@ -18,6 +22,7 @@ public:
     bool isOpen() const;
     void restartPlayback();
     void update(const GraphState& state);
+    void setLogSink(std::function<void(const std::string&)> sink);
 
 private:
     struct GridDrawCommand
@@ -45,4 +50,13 @@ private:
     std::unique_ptr<sf::RenderWindow> m_window;
     sf::Clock m_playbackClock;
     bool m_hasPlaybackStart = false;
+
+    bool m_hasPendingPick = false;
+    sf::Vector2i m_pendingPickPixel{ 0, 0 };
+
+    bool m_hasPickedRect = false;
+    float m_pickedRectX = 0.0f;
+    float m_pickedRectY = 0.0f;
+
+    std::function<void(const std::string&)> m_logSink;
 };
