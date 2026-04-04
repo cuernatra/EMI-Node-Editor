@@ -1,12 +1,5 @@
-/**
- * @file graphState.h
- * @brief Central graph data store and state management
- * 
- * Maintains the complete graph state: nodes, links, ID generation,
- * and compilation status. Provides CRUD operations for graph elements
- * and accessors for various subsystems.
- * 
- */
+/** @file graphState.h */
+/** @brief Owns nodes, links, ids, and compile status for the graph editor. */
 
 #pragma once
 
@@ -18,155 +11,78 @@
 
 namespace ed = ax::NodeEditor;
 
-/**
- * @brief Central container for all graph state
- * 
- * Encapsulates the complete visual graph:
- * - Collection of VisualNodes with their pins and fields
- * - Collection of Links connecting pins
- * - ID generator for creating unique element IDs
- * - Compilation status and messages
- * 
- * Provides a clean interface for editor operations while keeping
- * the internal data structure private.
- * 
- */
+/** @brief Mutable container for editor graph data and status flags. */
 class GraphState
 {
 public:
-    /**
-     * @brief Initialize empty graph state
-     */
+    /** @brief Construct empty graph state. */
     GraphState();
 
     // Graph data access
-    /**
-     * @brief Get mutable reference to all nodes
-     * @return Vector of all nodes in the graph
-     */
+    /** @brief Access mutable node storage. */
     std::vector<VisualNode>& GetNodes() { return m_nodes; }
     
-    /**
-     * @brief Get mutable reference to all links
-     * @return Vector of all links in the graph
-     */
+    /** @brief Access mutable link storage. */
     std::vector<Link>& GetLinks() { return m_links; }
     
-    /**
-     * @brief Get const reference to all nodes
-     * @return Vector of all nodes in the graph
-     */
+    /** @brief Access read-only node storage. */
     const std::vector<VisualNode>& GetNodes() const { return m_nodes; }
     
-    /**
-     * @brief Get const reference to all links
-     * @return Vector of all links in the graph
-     */
+    /** @brief Access read-only link storage. */
     const std::vector<Link>& GetLinks() const { return m_links; }
 
-    /**
-     * @brief Clear all nodes and links from the graph
-     * 
-     * Removes all graph elements. Compilation status is preserved.
-     */
+    /** @brief Remove all nodes and links and reset compile status. */
     void Clear();
 
     // Node management
-    /**
-     * @brief Add a new node to the graph
-     * @param node The node to add (copied)
-     */
+    /** @brief Add a node. */
     void AddNode(const VisualNode& node);
     
-    /**
-     * @brief Delete a node and all its connected links
-     * @param nodeId The ID of the node to delete
-     */
+    /** @brief Soft-delete node and remove its links. */
     void DeleteNode(ed::NodeId nodeId);
 
-    /**
-     * @brief Find a pin by ID
-     * @param pinId The pin ID to look up
-     * @return Pointer to pin, or nullptr if not found
-     */
+    /** @brief Find pin by id, or nullptr. */
     const Pin* FindPin(ed::PinId pinId) const;
     
-    /**
-     * @brief Remove all links connected to a node's pins
-     * @param n The node whose links should be removed
-     */
+    /** @brief Remove links touching any pin on the given node. */
     void RemoveLinksForNode(const VisualNode& n);
 
     // Link management
-    /**
-     * @brief Add a new link to the graph
-     * @param link The link to add (copied)
-     */
+    /** @brief Add a link. */
     void AddLink(const Link& link);
     
-    /**
-     * @brief Delete a link from the graph
-     * @param linkId The ID of the link to delete
-     */
+    /** @brief Delete a link by id. */
     void DeleteLink(ed::LinkId linkId);
 
-    /**
-     * @brief Mark graph state as changed
-     */
+    /** @brief Mark graph as modified. */
     void MarkDirty() { m_dirty = true; }
 
-    /**
-     * @brief Check if graph state has unsaved changes
-     */
+    /** @brief Return true when graph has unsaved changes. */
     bool IsDirty() const { return m_dirty; }
 
-    /**
-     * @brief Clear dirty flag after saving
-     */
+    /** @brief Clear modified flag. */
     void ClearDirty() { m_dirty = false; }
 
     // Compile status
-    /**
-     * @brief Check if last compilation succeeded
-     * @return true if last compilation was successful
-     */
+    /** @brief Return last compile success flag. */
     bool IsCompileSuccess() const { return m_compileSuccess; }
     
-    /**
-     * @brief Get the last compilation message
-     * @return Success result or error message from last compilation
-     */
+    /** @brief Return latest compile result message. */
     const std::string& GetCompileMessage() const { return m_compileMessage; }
     
-    /**
-     * @brief Update compilation status and message
-     * @param success Whether compilation succeeded
-     * @param message Result or error message to display
-     */
+    /** @brief Set compile status and message. */
     void SetCompileStatus(bool success, const std::string& message);
 
-    /**
-     * @brief Get the ID generator
-     * @return Reference to the ID generator for creating new elements
-     */
+    /** @brief Access id generator. */
     IdGen& GetIdGen() { return m_idGen; }
 
-    /**
-     * @brief Check if the graph contains a Debug Print node (NodeType::Output)
-     * @return true if at least one Debug Print node exists
-     * 
-     * Required for compilation - at least one Debug Print sink must be present.
-     */
+    /** @brief Return true when at least one Output node exists. */
     bool HasOutputNode() const;
 
-    /**
-     * @brief Check if the graph contains at least one alive node of given type
-     */
+    /** @brief Return true when graph has an alive node of the given type. */
     bool HasNodeType(NodeType type) const;
 
-    /**
-     * @brief Check if graph has any alive nodes
-     */
+    /** @brief Return true when graph has any alive nodes. */
     bool HasAliveNodes() const;
 
 private:
