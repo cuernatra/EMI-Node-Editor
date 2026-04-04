@@ -298,6 +298,7 @@ bool ShouldSkipDescriptorSync(NodeRenderStyle style)
         case NodeRenderStyle::Variable:
         case NodeRenderStyle::StructDefine:
         case NodeRenderStyle::StructCreate:
+        case NodeRenderStyle::Function:
             return true; // handled by bespoke refresh passes
 
         default:
@@ -682,6 +683,23 @@ bool RefreshVariableNodeTypes(GraphState& state)
             resolvedTypeName
         };
     }
+
+    /*for (const auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Function)
+            continue;
+
+        for (const NodeField& of : n.fields)
+        {
+            if (of.name.rfind("Param", 0) != 0 || of.value.empty())
+                continue;
+
+            definitions[of.value] = VariableDef{
+                PinType::Any,
+                "Any"
+            };
+        }
+    }*/
 
     for (auto& n : nodes)
     {
@@ -1174,36 +1192,7 @@ bool RefreshStructNodeLayouts(GraphState& state)
     return changed;
 }
 
-bool RunAllLayoutRefreshes(GraphState& state)
-{
-    using LayoutRefreshFn = bool(*)(GraphState&);
-    struct LayoutRefreshEntry
-    {
-        NodeType type;
-        LayoutRefreshFn fn;
-    };
-
-    static const LayoutRefreshEntry kLayoutRefreshTable[] = {
-        { NodeType::Variable,     RefreshVariableNodeTypes },
-        { NodeType::ForEach,      RefreshForEachNodeLayout },
-        { NodeType::Output,       RefreshOutputNodeInputTypes },
-        { NodeType::StructDefine, RefreshStructNodeLayouts },
-        { NodeType::StructCreate, RefreshStructNodeLayouts },
-    };
-
-    bool changed = false;
-    std::unordered_set<LayoutRefreshFn> seen;
-    for (const LayoutRefreshEntry& entry : kLayoutRefreshTable)
-    {
-        (void)entry.type;
-        if (seen.insert(entry.fn).second)
-            changed |= entry.fn(state);
-    }
-
-    return changed;
-}
-
-bool RefreshCallFunctionNodeLayout(GraphState & state)
+bool RefreshCallFunctionNodeLayout(GraphState& state)
 {
     bool changed = false;
     auto& nodes = state.GetNodes();
@@ -1303,6 +1292,36 @@ bool RefreshCallFunctionNodeLayout(GraphState & state)
             resultPin->type = PinType::Number;
             changed = true;
         }
+    }
+
+    return changed;
+}
+
+bool RunAllLayoutRefreshes(GraphState& state)
+{
+    using LayoutRefreshFn = bool(*)(GraphState&);
+    struct LayoutRefreshEntry
+    {
+        NodeType type;
+        LayoutRefreshFn fn;
+    };
+
+    static const LayoutRefreshEntry kLayoutRefreshTable[] = {
+        { NodeType::Variable,     RefreshVariableNodeTypes },
+        { NodeType::ForEach,      RefreshForEachNodeLayout },
+        { NodeType::Output,       RefreshOutputNodeInputTypes },
+        { NodeType::StructDefine, RefreshStructNodeLayouts },
+        { NodeType::StructCreate, RefreshStructNodeLayouts },
+        { NodeType::CallFunction, RefreshCallFunctionNodeLayout },
+    };
+
+    bool changed = false;
+    std::unordered_set<LayoutRefreshFn> seen;
+    for (const LayoutRefreshEntry& entry : kLayoutRefreshTable)
+    {
+        (void)entry.type;
+        if (seen.insert(entry.fn).second)
+            changed |= entry.fn(state);
     }
 
     return changed;

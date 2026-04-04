@@ -1,3 +1,4 @@
+
 #include "graphEditor.h"
 #include "graphState.h"
 #include "graphSerializer.h"
@@ -131,7 +132,7 @@ void GraphEditor::DrawNodeCanvas()
         GraphEditorUtils::DisconnectNonAnyLinksForPins(m_state, changedPins);
     }
 
-    if (anyChanged) 
+    if (anyChanged)
     {
         m_state.MarkDirty();
     }
@@ -182,16 +183,9 @@ void GraphEditor::RefreshGraphAndMarkDirty()
     // descriptor sync can add/remove pins, layout refresh can rename/retype pins,
     // and only then should we prune invalid links.
     const bool descriptorLayoutChanged = GraphEditorUtils::RefreshNodesFromRegistryDescriptors(m_state);
-    const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
-    const bool forEachLayoutChanged = GraphEditorUtils::RefreshForEachNodeLayout(m_state);
-    const bool structLayoutChanged = structLikelyDirty
-        ? GraphEditorUtils::RefreshStructNodeLayouts(m_state)
-        : false;
-    const bool callFunctionLayoutChanged = GraphEditorUtils::RefreshCallFunctionNodeLayout(m_state);
-    const bool outputInputTypesChanged = GraphEditorUtils::RefreshOutputNodeInputTypes(m_state);
+    const bool layoutChanged = GraphEditorUtils::RunAllLayoutRefreshes(m_state);
     const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-    if (descriptorLayoutChanged || variableTypesChanged || forEachLayoutChanged || structLayoutChanged
-        || outputInputTypesChanged || linksChanged || callFunctionLayoutChanged)
+    if (descriptorLayoutChanged || layoutChanged || linksChanged)
         m_state.MarkDirty();
 }
 
@@ -288,7 +282,7 @@ void GraphEditor::CreateNewLink()
         return;
 
     const Pin* startPin = m_state.FindPin(startPinId);
-    const Pin* endPin   = m_state.FindPin(endPinId);
+    const Pin* endPin = m_state.FindPin(endPinId);
 
     if (!startPin || !endPin || !Pin::CanConnect(*startPin, *endPin))
     {
@@ -303,7 +297,7 @@ void GraphEditor::CreateNewLink()
     // - Any only from For Each "Element" output (nested array iteration wiring)
     // Reject all other Any/non-array sources to avoid runtime crashes.
     const Pin* outPinPreview = !startPin->isInput ? startPin : endPin;
-    const Pin* inPinPreview  = startPin->isInput ? startPin : endPin;
+    const Pin* inPinPreview = startPin->isInput ? startPin : endPin;
     const bool isNestedForEachElementSource =
         outPinPreview
         && outPinPreview->type == PinType::Any
@@ -324,9 +318,9 @@ void GraphEditor::CreateNewLink()
     if (ed::AcceptNewItem())
     {
         ed::PinId outPinId = !startPin->isInput ? startPinId : endPinId;
-        ed::PinId inPinId  = startPin->isInput ? startPinId : endPinId;
+        ed::PinId inPinId = startPin->isInput ? startPinId : endPinId;
         const Pin* outPin = !startPin->isInput ? startPin : endPin;
-        const Pin* inPin  = startPin->isInput ? startPin : endPin;
+        const Pin* inPin = startPin->isInput ? startPin : endPin;
 
         std::vector<Link> filteredLinks;
         filteredLinks.reserve(m_state.GetLinks().size());
@@ -363,26 +357,26 @@ void GraphEditor::CreateNewLink()
         auto& links = m_state.GetLinks();
         links.erase(
             std::remove_if(links.begin(), links.end(), [&](const Link& l)
-            {
-                if (!l.alive)
-                    return true;
+                {
+                    if (!l.alive)
+                        return true;
 
-                if (replaceExistingFromOutput && l.startPinId == outPinId)
-                    return true;
+                    if (replaceExistingFromOutput && l.startPinId == outPinId)
+                        return true;
 
-                if (replaceExistingToInput && l.endPinId == inPinId)
-                    return true;
+                    if (replaceExistingToInput && l.endPinId == inPinId)
+                        return true;
 
-                return false;
-            }),
+                    return false;
+                }),
             links.end()
         );
 
         Link lnk;
-        lnk.id         = m_state.GetIdGen().NewLink();
+        lnk.id = m_state.GetIdGen().NewLink();
         lnk.startPinId = outPinId;
-        lnk.endPinId   = inPinId;
-        lnk.type       = outPin->type;
+        lnk.endPinId = inPinId;
+        lnk.type = outPin->type;
         m_state.AddLink(lnk);
 
         RefreshGraphAndMarkDirty();

@@ -93,7 +93,8 @@ enum class NodeRenderStyle
     Array,
     Draw,
     StructDefine,
-    StructCreate
+    StructCreate,
+    Function
 };
 
 /**

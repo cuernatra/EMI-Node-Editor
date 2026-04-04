@@ -545,6 +545,22 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
     funcDecl->children.push_back(body);
 
     Node* root = MakeNode(Token::Scope);
+    for (const VisualNode& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Function)
+            continue;
+
+        Node* userFunc = BuildNode(n);
+        if (HasError)
+        {
+            delete root;
+            delete funcDecl;
+            return nullptr;
+        }
+        if (userFunc)
+            root->children.push_back(userFunc);
+    }
+
     root->children.push_back(funcDecl);
     return root;
 }

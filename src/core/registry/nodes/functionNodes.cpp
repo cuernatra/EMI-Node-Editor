@@ -96,7 +96,7 @@ void NodeRegistry::RegisterFunctionNodes()
         {},
         "Function",
         {},
-        NodeRenderStyle::Default
+        NodeRenderStyle::Function
         });
 
     Register({
@@ -116,6 +116,6 @@ void NodeRegistry::RegisterFunctionNodes()
         {},
         "CallFunction",
         {},
-        NodeRenderStyle::Default
+        NodeRenderStyle::Function
         });
 }

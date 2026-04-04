@@ -596,6 +596,20 @@ bool HandleVariableField(NodeField& field, FieldRenderContext& context)
                 if (std::find(setVariableNames.begin(), setVariableNames.end(), variableName) == setVariableNames.end())
                     setVariableNames.push_back(variableName);
             }
+            /*for (const VisualNode& other : *context.allNodes)
+            {
+                if (!other.alive || other.nodeType != NodeType::Function)
+                    continue;
+
+                for (const NodeField& of : other.fields)
+                {
+                    if (of.name.rfind("Param", 0) != 0 || of.value.empty())
+                        continue;
+
+                    if (std::find(setVariableNames.begin(), setVariableNames.end(), of.value) == setVariableNames.end())
+                        setVariableNames.push_back(of.value);
+                }
+            }*/
         }
 
         if (setVariableNames.empty())
