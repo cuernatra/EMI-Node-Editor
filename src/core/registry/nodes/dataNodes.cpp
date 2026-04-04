@@ -314,7 +314,9 @@ Node* CompileOutputNode(GraphCompiler* compiler, const VisualNode& n)
 
 Node* CompilePreviewPickRectNode(GraphCompiler*, const VisualNode&)
 {
-    return nullptr;
+    // Preview-only event node: no runtime AST emission required,
+    // but return a valid no-op scope so registry/compiler validation passes.
+    return MakeNode(Token::Scope);
 }
 }
 
