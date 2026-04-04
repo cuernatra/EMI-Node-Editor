@@ -26,6 +26,7 @@ void GraphState::DeleteNode(ed::NodeId nodeId)
 
     if (it != m_nodes.end())
     {
+        // Node deletion is soft (alive=false) so editor references remain stable this frame.
         RemoveLinksForNode(*it);
         it->alive = false;
         m_dirty = true;

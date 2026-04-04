@@ -5,9 +5,8 @@
 #include <vector>
 
 /**
- * @brief Render all active links in the node editor.
+ * @brief Draw all live links on the node canvas.
  *
- * Must be called within an ed::Begin() / ed::End() block.
- * Only draws links marked as alive=true.
+ * Call inside ed::Begin()/ed::End().
  */
 void DrawLinks(const std::vector<Link>& links);

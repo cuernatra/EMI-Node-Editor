@@ -9,10 +9,9 @@
 #include <vector>
 
 /**
- * @brief Editable field shown on a node instance.
+ * @brief Editable value stored on a node instance.
  *
- * The descriptor defines the field shape, but each node stores its own live
- * value here so edits stay local to that instance.
+ * Each node keeps its own value, so changing one node does not change others.
  */
 struct NodeField
 {
@@ -23,7 +22,7 @@ struct NodeField
 };
 
 /**
- * @brief Build a runtime field instance from a descriptor-like value.
+ * @brief Build a node field from descriptor data.
  *
  * The input type must expose: name, valueType, defaultValue, options.
  */

@@ -12,7 +12,7 @@ void Load()
 {
     std::ifstream file(k_path);
     if (!file.is_open())
-        return; // No settings file yet — first launch, defaults are used
+        return; // First run or no settings file: keep defaults.
 
     try
     {
@@ -64,8 +64,7 @@ void Load()
         nodeHeaderMoreColorB = s.value("nodeHeaderMoreColorB", nodeHeaderMoreColorB);
         nodeHeaderMoreColorA = s.value("nodeHeaderMoreColorA", nodeHeaderMoreColorA);
 
-        // Add new settings here:
-        // myNewSetting = s.value("myNewSetting", myNewSetting);
+        // Add new settings here.
     }
     catch (const nlohmann::json::exception& e)
     {
@@ -123,8 +122,7 @@ void Save()
     s["nodeHeaderMoreColorB"] = nodeHeaderMoreColorB;
     s["nodeHeaderMoreColorA"] = nodeHeaderMoreColorA;
 
-    // Add new settings here:
-    // s["myNewSetting"] = myNewSetting;
+    // Add new settings here.
 
     std::ofstream file(k_path);
     if (!file.is_open())

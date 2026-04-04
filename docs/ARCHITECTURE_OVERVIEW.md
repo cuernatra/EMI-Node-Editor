@@ -31,6 +31,10 @@ Responsibilities:
 - Draw the graph editor UI.
 - Save and load graphs.
 - Show the palette, inspector, preview, and console.
+- Run the graph refresh pipeline each frame:
+	- descriptor sync (`RefreshNodesFromRegistryDescriptors`)
+	- ordered layout refresh dispatch (`RunAllLayoutRefreshes`)
+	- link validation/pruning (`SyncLinkTypesAndPruneInvalid`)
 
 Renderer boundary inside editor layer:
 
@@ -47,6 +51,12 @@ Custom field-render extension point:
 Rule:
 
 - Editor code should not own node semantics unless it is unavoidable for presentation.
+
+Graph refresh extension point:
+
+- `src/editor/graph/graphEditorUtils.cpp` owns an ordered layout refresh dispatch table.
+- Add custom layout behavior for an already-registered node by adding one refresh helper and one table entry in that file.
+- Keep compatibility with old graph files by preserving existing legacy repair logic inside refresh helpers (for example variable type repair and struct pin/schema rebinding).
 
 ## 3. Core graph layer
 

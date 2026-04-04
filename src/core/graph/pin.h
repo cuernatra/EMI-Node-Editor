@@ -1,5 +1,5 @@
 /** @file pin.h */
-/** @brief Pin types, styles, and helpers for the graph editor. */
+/** @brief Pin data and helper functions for graph connections. */
 
 #ifndef PIN_H
 #define PIN_H
@@ -14,41 +14,41 @@ namespace ed = ax::NodeEditor;
 
 
 
-/** @brief Connection point on a node. */
+/** @brief One input or output connection point on a node. */
 struct Pin
 {
-    ed::PinId   id{};                                      ///< Unique ID (imgui-node-editor handle)
-    ed::NodeId  parentNodeId{};                            ///< ID of the owning VisualNode
-    NodeType    parentNodeType = NodeType::Unknown;       ///< Type of the owning node
-    std::string name;                                     ///< Display label
-    PinType     type       = PinType::Any;                ///< Data type this pin accepts/produces
-    bool        isInput    = true;                        ///< true = input pin, false = output pin
-    bool        isMultiInput = false;                     ///< Allow multiple incoming connections
+    ed::PinId   id{};                                      ///< Unique pin id.
+    ed::NodeId  parentNodeId{};                            ///< Owning node id.
+    NodeType    parentNodeType = NodeType::Unknown;       ///< Owning node type.
+    std::string name;                                     ///< Label shown in UI.
+    PinType     type       = PinType::Any;                ///< Data type accepted/produced.
+    bool        isInput    = true;                        ///< true=input, false=output.
+    bool        isMultiInput = false;                     ///< Allow multiple incoming wires.
 
-    /** @brief Returns true if output can connect to input. */
+    /** @brief Returns true when an output pin can connect to an input pin. */
     static bool CanConnect(const Pin& output, const Pin& input);
 };
 
-/** @brief Creates and returns a pin instance. */
+/** @brief Create a pin struct with the given values. */
 Pin MakePin(uint32_t id, ed::NodeId parentNodeId, NodeType parentNodeType,
             std::string name, PinType type, bool isInput,
             bool isMultiInput = false);
 
-/** @brief Stable, single-token string for serialization/logging. */
+/** @brief Convert pin type to save/log string token. */
 const char* PinTypeToString(PinType t);
 
-/** @brief Parse PinType from a string token (unknown -> Any). */
+/** @brief Parse pin type token (unknown -> Any). */
 PinType PinTypeFromString(std::string_view s);
 
 /**
- * @brief True if PinType is a value type (not Flow/Function).
+ * @brief True for value-carrying pin types (not Flow/Function).
  *
  * Value types are those that can be stored in NodeField and edited in the inspector.
  */
 bool IsValuePinType(PinType t);
 
 /**
- * @brief Parse a value pin type token.
+ * @brief Parse a value-type token.
  *
  * Unlike PinTypeFromString, this never returns Flow/Function.
  * Unknown/non-value tokens return fallback (default Number).
@@ -56,7 +56,7 @@ bool IsValuePinType(PinType t);
 PinType ValuePinTypeFromString(std::string_view s, PinType fallback = PinType::Number);
 
 /**
- * @brief Convert a value pin type to a stable token.
+ * @brief Convert value pin type to stable string token.
  *
  * Non-value types return "Number".
  */

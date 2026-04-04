@@ -87,6 +87,18 @@ Before editing renderer files, try descriptor-first UI control:
 - For inline pin+field rows, configure `deferredInputPins`.
 - For existing layout families, reuse current `renderStyle` values.
 
+## Custom dynamic layout behavior (editor graph pass)
+
+If a node needs per-frame graph-aware layout/type repair that cannot be handled by
+descriptor fields alone, use the graph refresh extension point:
+
+1. Add a named helper in `src/editor/graph/graphEditorUtils.cpp`.
+2. Add one entry to the ordered layout refresh table used by `RunAllLayoutRefreshes`.
+3. Do not add new calls in `graphEditor.cpp`; it already runs the dispatcher.
+
+This keeps custom layout behavior for already-registered node types as a one-file
+editor change and preserves refresh order determinism.
+
 ## Good rules
 
 - Keep compile logic close to the descriptor.

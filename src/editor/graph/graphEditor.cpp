@@ -24,6 +24,7 @@ GraphEditor::~GraphEditor()
 
 void GraphEditor::Draw()
 {
+    // The node editor API uses a global current context per frame.
     ed::SetCurrentEditor(m_ctx);
 
     DrawNodeCanvas();
@@ -33,11 +34,11 @@ void GraphEditor::Draw()
 
 void GraphEditor::DrawNodeCanvas()
 {
+    // Main canvas pass: spawn handling, node/link draw, then post-pass normalization.
     ed::Begin("MainGraph");
 
     ed::Suspend();
 
-    // Handle drag-drop spawn
     const ImGuiPayload* pl = ImGui::GetDragDropPayload();
     if (pl && pl->IsDataType("SPAWN_NODE"))
     {
@@ -83,6 +84,7 @@ void GraphEditor::DrawNodeCanvas()
     {
         if (!m_state.HasAliveNodes())
         {
+            // New empty graphs get a Start node so compile/run has a clear entrypoint.
             const ImVec2 windowPos = ImGui::GetWindowPos();
             const ImVec2 windowSize = ImGui::GetWindowSize();
             const ImVec2 targetScreenPos(
@@ -97,7 +99,6 @@ void GraphEditor::DrawNodeCanvas()
         m_initialAutoStartHandled = true;
     }
 
-    // Draw all nodes
     bool anyChanged = false;
     for (auto& n : m_state.GetNodes())
     {
@@ -135,10 +136,8 @@ void GraphEditor::DrawNodeCanvas()
         m_state.MarkDirty();
     }
 
-    // Draw all links
     DrawLinks(m_state.GetLinks());
 
-    // Handle creation and deletion
     if (ed::BeginDelete())
     {
         ed::LinkId linkId;
@@ -153,9 +152,7 @@ void GraphEditor::DrawNodeCanvas()
         CreateNewLink();
     ed::EndCreate();
 
-    // UX rule:
-    // If user clicks the same already-selected single node again,
-    // deselect it (so inspector closes instead of becoming dim/stacked).
+    // Clicking the same single selected node again toggles selection off.
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
     {
         const ed::NodeId hoveredNode = ed::GetHoveredNode();
@@ -181,50 +178,13 @@ void GraphEditor::DrawNodeCanvas()
 
 void GraphEditor::RefreshGraphAndMarkDirty()
 {
-    static std::vector<VisualNode>* s_lastNodesPtr = nullptr;
-    static size_t s_lastAliveStructDefineCount = 0;
-    static size_t s_lastAliveStructShapeHash = 0;
-
-    auto& nodesRef = m_state.GetNodes();
-    size_t aliveStructDefineCount = 0;
-    size_t aliveStructShapeHash = 1469598103934665603ull; // FNV offset basis
-
-    for (const auto& n : nodesRef)
-    {
-        if (!n.alive || n.nodeType != NodeType::StructDefine)
-            continue;
-
-        ++aliveStructDefineCount;
-
-        // Mix stable, cheap shape inputs only (avoid full schema parsing every frame).
-        aliveStructShapeHash ^= static_cast<size_t>(n.id.Get());
-        aliveStructShapeHash *= 1099511628211ull;
-        aliveStructShapeHash ^= n.fields.size();
-        aliveStructShapeHash *= 1099511628211ull;
-        aliveStructShapeHash ^= n.inPins.size();
-        aliveStructShapeHash *= 1099511628211ull;
-        aliveStructShapeHash ^= n.outPins.size();
-        aliveStructShapeHash *= 1099511628211ull;
-    }
-
-    const bool structLikelyDirty =
-        (s_lastNodesPtr != &nodesRef)
-        || (s_lastAliveStructDefineCount != aliveStructDefineCount)
-        || (s_lastAliveStructShapeHash != aliveStructShapeHash);
-
-    s_lastNodesPtr = &nodesRef;
-    s_lastAliveStructDefineCount = aliveStructDefineCount;
-    s_lastAliveStructShapeHash = aliveStructShapeHash;
-
+    // Keep order stable:
+    // descriptor sync can add/remove pins, layout refresh can rename/retype pins,
+    // and only then should we prune invalid links.
     const bool descriptorLayoutChanged = GraphEditorUtils::RefreshNodesFromRegistryDescriptors(m_state);
-    const bool variableTypesChanged = GraphEditorUtils::RefreshVariableNodeTypes(m_state);
-    const bool forEachLayoutChanged = GraphEditorUtils::RefreshForEachNodeLayout(m_state);
-    const bool structLayoutChanged = structLikelyDirty
-        ? GraphEditorUtils::RefreshStructNodeLayouts(m_state)
-        : false;
-    const bool outputInputTypesChanged = GraphEditorUtils::RefreshOutputNodeInputTypes(m_state);
+    const bool layoutChanged = GraphEditorUtils::RunAllLayoutRefreshes(m_state);
     const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-    if (descriptorLayoutChanged || variableTypesChanged || forEachLayoutChanged || structLayoutChanged || outputInputTypesChanged || linksChanged)
+    if (descriptorLayoutChanged || layoutChanged || linksChanged)
         m_state.MarkDirty();
 }
 
@@ -253,7 +213,7 @@ void GraphEditor::HandleDeleteShortcutFallback()
         (deleteKeyIndex >= 0 && ImGui::IsKeyPressed(deleteKeyIndex, false)) ||
         (backspaceKeyIndex >= 0 && ImGui::IsKeyPressed(backspaceKeyIndex, false));
 
-    // Block only when user is actively editing text.
+    // Do not steal Delete/Backspace while typing in a text field.
     if (!deletePressed || ImGui::GetIO().WantTextInput)
         return;
 
@@ -281,7 +241,7 @@ void GraphEditor::HandleDeleteShortcutFallback()
 
     if (anyDeleted)
     {
-        GraphEditorUtils::RefreshVariableNodeTypes(m_state);
+        GraphEditorUtils::RunAllLayoutRefreshes(m_state);
         GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
         m_state.MarkDirty();
     }
@@ -297,7 +257,7 @@ bool GraphEditor::TryGetSingleSelectedNodeId(uintptr_t& outId) const
 
     std::vector<ed::NodeId> selectedNodes(static_cast<size_t>(selectedCount));
     const int selectedNodeCount = ed::GetSelectedNodes(selectedNodes.data(), selectedCount);
-    // Inspector is shown only when exactly one node is selected.
+    // Inspector is single-node only to avoid ambiguous multi-edit behavior.
     if (selectedNodeCount != 1)
         return false;
 

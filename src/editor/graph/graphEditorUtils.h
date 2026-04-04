@@ -1,12 +1,7 @@
 #pragma once
 
-/**
- * Helper functions for graph editor logic.
- *
- * This file keeps small shared rules and utility code out of GraphEditor.
- * Put things here when they are about graph rules or shared helper work,
- * not direct canvas drawing.
- */
+/** @file graphEditorUtils.h */
+/** @brief Shared graph normalization and helper utilities for editor flows. */
 #include "graphState.h"
 #include "core/graph/visualNode.h"
 #include "imgui.h"
@@ -26,10 +21,7 @@ Pin* FindPinByName(std::vector<Pin>& pins, const char* name);
 // This makes node layouts largely automatic for newly registered node types.
 bool RefreshNodesFromRegistryDescriptors(GraphState& state);
 
-bool RefreshVariableNodeTypes(GraphState& state);
-bool RefreshOutputNodeInputTypes(GraphState& state);
-bool RefreshForEachNodeLayout(GraphState& state);
-bool RefreshStructNodeLayouts(GraphState& state);
+bool RunAllLayoutRefreshes(GraphState& state);
 bool SyncLinkTypesAndPruneInvalid(GraphState& state);
 void DisconnectNonAnyLinksForPins(GraphState& state, const std::vector<ed::PinId>& pinIds);
 }

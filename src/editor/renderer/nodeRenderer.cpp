@@ -394,10 +394,8 @@ bool IsDeferredInputPin(const NodeDescriptor* desc, const Pin& pin)
     if (!desc)
         return false;
 
-    // StructCreate schema-field pins are drawn inline with their field widgets in
-    // HandleStructStyleField. They are dynamic (not known at descriptor time), so
-    // they cannot be listed in deferredInputPins statically. Defer everything
-    // except the "Struct" schema-connection pin.
+    // StructCreate adds input pins at runtime.
+    // We treat all those pins as deferred, except the main "Struct" pin.
     if (desc->renderStyle == NodeRenderStyle::StructCreate && pin.name != "Struct")
         return true;
 
@@ -410,7 +408,7 @@ float MeasureFieldWidth(NodeRenderStyle renderStyle, const NodeField& field)
     float widgetWidth = 82.0f;
     float spacing = ImGui::GetStyle().ItemSpacing.x;
 
-    // Keep Constant node much narrower in graph view.
+    // Keep Constant nodes narrower in graph view.
     if (renderStyle == NodeRenderStyle::Constant)
     {
         widgetWidth = 58.0f;
@@ -506,8 +504,8 @@ void DrawPin(const Pin& pin, float contentWidth, const std::vector<Link>* allLin
     ImGui::PopStyleColor();
 }
 
-// These structs are defined before NodeRendererSpecialCases so FieldRenderContext
-// can hold references to them without forward declarations.
+// Keep these structs above NodeRendererSpecialCases so FieldRenderContext can
+// reference them directly.
 struct NodeRenderFlags
 {
     bool isGetVariable      = false;
@@ -544,17 +542,16 @@ struct DeferredPinState
 
 namespace NodeRendererSpecialCases
 {
-// Everything a Handle* function needs to draw or modify a field.
-// See nodeRenderer.h for the full guide on adding custom rendering.
+// Shared data/helpers passed to custom field handlers.
 struct FieldRenderContext
 {
     VisualNode& node;
     const std::vector<VisualNode>* allNodes;
 
-    const NodeRenderFlags& flags;       // node type / style classification
-    bool& changed;                      // set true when a field value is modified
-    bool& drawNodeColorTextChanged;     // set true when the color text field changes
-    DeferredPinState& deferred;         // tracks which deferred input pins were drawn
+    const NodeRenderFlags& flags;       // What kind of node we are drawing.
+    bool& changed;                      // Set true when any UI edit changes data.
+    bool& drawNodeColorTextChanged;     // Tracks direct edits to Color text field.
+    DeferredPinState& deferred;         // Tracks deferred pins already drawn inline.
 
     std::function<void(NodeField&, const char*)>        drawFieldWithConnectionRule;
     std::function<void(NodeField&, const char*, bool*)> drawDeferredPinAndField;
@@ -934,9 +931,8 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
     if (!n.positioned)
     {
-        // Apply loaded/spawned position only after node exists in the editor.
-        // Doing this before BeginNode can be ignored by node-editor for fresh
-        // nodes, which then leaves nodes stacked at default position.
+        // Set initial position after BeginNode.
+        // If set too early, node-editor may ignore it for fresh nodes.
         ed::SetNodePosition(n.id, n.initialPos);
         n.positioned = true;
     }
@@ -948,8 +944,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const float headerWidth = contentWidth + headerPaddingX * 2.0f;
     const ImVec2 headerMin = ImGui::GetCursorScreenPos();
 
-    // Match header fill with actual node body margins using node-editor style
-    // padding, so all node types align evenly instead of fixed magic expansion.
+    // Use node-editor padding values so header/body edges line up cleanly.
     const auto& nodeStyle = ed::GetStyle();
     const float headerLeftInset = nodeStyle.NodePadding.x;
     const float headerRightInset = nodeStyle.NodePadding.z;
@@ -974,7 +969,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     const float titleY = headerColorMin.y + std::max(0.0f, (headerColorMax.y - headerColorMin.y - titleSize.y) * 0.5f);
     drawList->AddText(titleFont, titleFontSize, ImVec2(titleX, titleY), ImGui::GetColorU32(colors::textPrimary), n.title.c_str());
     ImGui::SetCursorScreenPos(ImVec2(headerMin.x, headerMin.y + headerHeight));
-    // Reserve horizontal space so node width matches measured content width.
+    // Reserve width so the node uses the measured content width.
     ImGui::Dummy(ImVec2(headerWidth, 0.0f));
     ImGui::Spacing();
 
@@ -983,7 +978,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     bool drawNodeColorTextChanged = false;
     DeferredPinState deferredPins;
 
-    // Helper: draw a single named input pin (used by deferred-pin logic below).
+    // Helper: draw one input pin by name.
     auto drawDeferredPinByName = [&](const char* pinName)
     {
         for (const Pin& pin : n.inPins)
@@ -996,9 +991,8 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         }
     };
 
-    // ── Phase 2: Non-deferred input pins ─────────────────────────────────────
-    // Pins listed in NodeDescriptor::deferredInputPins are skipped here; they
-    // will be drawn inline beside their matching field widget in phase 3.
+    // Phase 2: draw regular input pins.
+    // Deferred pins are skipped here and drawn next to fields.
     for (const Pin& pin : n.inPins)
     {
         if (IsDeferredInputPin(desc, pin))
@@ -1008,8 +1002,8 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
     if (!n.fields.empty())
     {
-        // Returns true when the named input pin has an active link.
-        // Used by field handlers to switch between editable and read-only.
+        // True when the input pin with this name is currently linked.
+        // Linked pins make matching fields read-only.
         auto isInputPinConnected = [&](const char* pinName) -> bool
         {
             if (!allLinks)
@@ -1063,22 +1057,19 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             isInputPinConnected
         };
 
-        // ── Phase 3: Fields ───────────────────────────────────────────────────
-        // Each field is offered to HandleCustomFieldRendering first (see
-        // nodeRenderer.h for how to add new custom behavior). If no handler
-        // claims the field, it falls through to the generic DrawField widget.
+        // Phase 3: draw fields.
+        // Try custom rendering first; otherwise fall back to default field widget.
         ImGui::Spacing();
         ImGui::PushID((int)n.id.Get());
         for (NodeField& field : n.fields)
         {
             if (field.name == "Variant")
-                continue; // internal bookkeeping — never shown in the node body
+                continue; // Internal metadata field; hidden from node body.
 
             if (NodeRendererSpecialCases::HandleCustomFieldRendering(field, specialCtx))
                 continue;
 
-            // Generic fallback: if a field has a same-named input pin and that
-            // pin is connected, show the value as read-only.
+            // Default behavior: same-name linked input => read-only field display.
             if (isInputPinConnected(field.name.c_str()))
                 DrawFieldReadOnly(field, FieldWidgetLayout::Compact);
             else
@@ -1088,9 +1079,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         ImGui::Spacing();
     }
 
-    // ── Phase 4: Deferred input pins ─────────────────────────────────────────
-    // Some pins are drawn inline with their matching field (phase 3). Any that
-    // weren't reached there are drawn here as plain pins below the field rows.
+    // Phase 4: draw any deferred pins that were not drawn beside fields.
     DrawDeferredPinsIfMissing(renderFlags, deferredPins, drawDeferredPinByName);
 
     if (renderFlags.isDrawNode)
@@ -1105,7 +1094,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     if (renderStyle == NodeRenderStyle::Sequence)
         changed |= DrawSequenceStyleControls(n, idGen);
 
-    // ── Phase 5: Output pins ──────────────────────────────────────────────────
+    // Phase 5: draw output pins.
     for (const Pin& pin : n.outPins)
         DrawPin(pin, contentWidth, allLinks);
 

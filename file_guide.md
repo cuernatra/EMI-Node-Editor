@@ -31,6 +31,11 @@ Core file ownership boundaries:
     - `editor/panels/`: the side panels, top bar, console, inspector, and preview
     - `editor/renderer/`: drawing for nodes, pins, links, and field controls
 
+Graph refresh pipeline ownership:
+- `editor/graph/graphEditor.cpp` runs the fixed three-pass refresh order each frame.
+- `editor/graph/graphEditorUtils.cpp` owns the ordered per-node layout refresh dispatcher (`RunAllLayoutRefreshes`).
+- For custom dynamic layout behavior on an already-registered node type, add a helper and one table entry in `graphEditorUtils.cpp`.
+
 Renderer ownership split:
 - `src/editor/renderer/fieldWidgetRenderer.*`
   - Owns generic field widgets and read-only field display helpers.
@@ -67,6 +72,7 @@ For most node changes, the main work happens in `src/core/registry/nodes/`.
 
 - For a normal node change, you usually edit two files.
 - The usual files are `src/core/graph/types.h` and one file in `src/core/registry/nodes/`.
+- For custom dynamic layout behavior on an existing node type, you usually edit one editor file: `src/editor/graph/graphEditorUtils.cpp`.
 - Every node recipe must set `saveToken`. It is the stable save/load name for the node.
 - The registry fails fast if `saveToken` is missing; there is no fallback token generation path.
 - To add a node, give it a type, add it to the right category file, write the named compile callback there, then build and test.

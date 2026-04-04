@@ -7,7 +7,7 @@ void PinResolver::Build(const std::vector<VisualNode>& nodes,
     nodeById_.clear();
     flowOutputToTarget_.clear();
 
-    // Index all nodes by ID first.
+    // First pass: index alive nodes and pins.
     std::unordered_map<ed::PinId, PinSource> outputPinToSource;
     std::unordered_map<ed::PinId, FlowTarget> flowInputPinToTarget;
 
@@ -29,7 +29,7 @@ void PinResolver::Build(const std::vector<VisualNode>& nodes,
         }
     }
 
-    // For each live link, map endPinId (input) -> source node + pin index.
+    // Second pass: use links to connect input pins to their source outputs.
     for (const Link& lnk : links)
     {
         if (!lnk.alive) continue;
@@ -39,7 +39,7 @@ void PinResolver::Build(const std::vector<VisualNode>& nodes,
         {
             inputToSource_[lnk.endPinId] = srcIt->second;
 
-            // Track execution flow wiring (output flow pin -> downstream flow input).
+            // Also track flow-to-flow wiring for execution order lookup.
             const PinSource& source = srcIt->second;
             if (source.node
                 && source.pinIdx >= 0

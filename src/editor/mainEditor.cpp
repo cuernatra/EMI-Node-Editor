@@ -19,7 +19,7 @@ MainEditor::MainEditor()
     config.CanvasSizeMode = ed::CanvasSizeMode::CenterOnly;
     m_editorContext = ed::CreateEditor(&config);
 
-    // Apply editor pin shape settings from pin module.
+    // Apply pin style settings from pin renderer module.
     ed::SetCurrentEditor(m_editorContext);
     ApplyEditorPinStyle(ed::GetStyle());
     ed::SetCurrentEditor(nullptr);
@@ -35,7 +35,7 @@ MainEditor::MainEditor()
 
     GraphSerializer::Load(*m_graphState, "graph.txt");
 
-    // load settings
+    // Load persisted UI/theme settings.
     Settings::Load();
 }
 
@@ -49,19 +49,19 @@ MainEditor::~MainEditor()
 
     flushPendingCompileLogs();
 
-    // save settings
+    // Save UI/theme settings.
     Settings::Save();
 
-    // Set context as current before saving (needed for ed::GetNodePosition)
+    // Set context before save so node positions can be queried correctly.
     ed::SetCurrentEditor(m_editorContext);
     
-    // Save graph state to disk
+    // Save graph to disk.
     GraphSerializer::Save(*m_graphState, "graph.txt");
     
-    // Clear current context
+    // Clear current editor context.
     ed::SetCurrentEditor(nullptr);
     
-    // Clean up resources
+    // Release resources.
     m_graphEditor.reset();
     ed::DestroyEditor(m_editorContext);
     m_editorContext = nullptr;
@@ -79,8 +79,7 @@ void MainEditor::draw()
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::topPanelButtonHover);
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::surface);
 
-    // Top toolbar on a single row:
-    // [Compile] [Result only] [Clear] [compile status message..........] [+]
+    // Top toolbar row.
     if (ImGui::Button("Compile"))
     {
         if (m_compileInProgress)
@@ -90,8 +89,7 @@ void MainEditor::draw()
         }
         else
         {
-        // Notify listeners immediately on click (before potentially long compile/execute),
-        // so preview window can open right away.
+        // Notify listeners immediately so preview UI can react right away.
         if (m_compileCallback)
             m_compileCallback();
 
@@ -193,7 +191,7 @@ void MainEditor::draw()
     );
     ed::SetCurrentEditor(nullptr);
 
-    // Draw the node editor canvas
+    // Draw graph canvas.
     m_graphEditor->Draw();
 
     if (m_graphState->IsDirty())
