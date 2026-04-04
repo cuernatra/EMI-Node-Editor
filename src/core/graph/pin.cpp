@@ -10,7 +10,7 @@
 bool Pin::CanConnect(const Pin& output, const Pin& input)
 {
     if (output.isInput || !input.isInput)
-        return false; // direction mismatch
+        return false; // wrong direction
 
     if (output.type == PinType::Any || input.type == PinType::Any)
         return true;

@@ -5,45 +5,22 @@
 
 namespace ed = ax::NodeEditor;
 
-/**
- * @brief Simple ID generator for graph elements
- * 
- * Generates unique sequential IDs for nodes, pins, and links in the visual graph editor.
- * Uses a single shared counter to ensure all IDs are unique across different element types.
- * 
- * @note IDs start at 1 and increment monotonically. ID 0 is reserved as invalid.
- * 
- */
+/** @brief Small counter that gives unique ids for nodes, pins, and links. */
 struct IdGen
 {
-    /// Next available ID value (starts at 1)
+    /// Next id to return.
     int next = 1;
 
-    /**
-     * @brief Set the next ID value to be generated
-     * @param v The value to set as the next ID
-     * 
-     * Useful for deserializing graphs where you need to ensure new IDs
-     * don't conflict with existing ones.
-     */
+    /** @brief Set next id (used after loading saved graphs). */
     void SetNext(int v) { next = v; }
 
-    /**
-     * @brief Generate a new unique node ID
-     * @return A unique NodeId for use in the node editor
-     */
+    /** @brief Create new node id. */
     ed::NodeId NewNode() { return ed::NodeId(next++); }
     
-    /**
-     * @brief Generate a new unique pin ID
-     * @return A unique PinId for use in the node editor
-     */
+    /** @brief Create new pin id. */
     ed::PinId  NewPin()  { return ed::PinId(next++); }
     
-    /**
-     * @brief Generate a new unique link ID
-     * @return A unique LinkId for use in the node editor
-     */
+    /** @brief Create new link id. */
     ed::LinkId NewLink() { return ed::LinkId(next++); }
 };
 

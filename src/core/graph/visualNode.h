@@ -1,5 +1,5 @@
 /** @file visualNode.h */
-/** @brief Visual node data and rendering entry points. */
+/** @brief Runtime node data used by the graph editor and compiler. */
 
 #ifndef VISUALNODE_H
 #define VISUALNODE_H
@@ -10,23 +10,23 @@
 #include <vector>
 #include <string>
 
-/** @brief Runtime instance of a graph node. */
+/** @brief One live node instance in the graph. */
 struct VisualNode
 {
     ed::NodeId  id{};                         
-    NodeType    nodeType  = NodeType::Unknown;  ///< Node type from registry
+    NodeType    nodeType  = NodeType::Unknown;  ///< Node type.
 
     std::vector<Pin>       inPins;    
-    std::vector<Pin>       outPins;   ///< Output pins (branch/loop may have multiple)
-    std::vector<NodeField> fields;    ///< Editable constant/parameter values
+    std::vector<Pin>       outPins;   ///< Output pins.
+    std::vector<NodeField> fields;    ///< Editable field values.
 
-    std::string title;                ///< Display name shown in node header
+    std::string title;                ///< Node title shown in UI.
 
     ImVec2 initialPos{0, 0}; 
     bool   positioned = false; 
-    bool   alive      = true;         ///< false marks node for deletion
+    bool   alive      = true;         ///< False means logically deleted.
 };
 
-// Rendering helpers live on the editor side (see editor/renderer/nodeRenderer.h).
+// Drawing code lives in editor/renderer.
 
 #endif // VISUALNODE_H

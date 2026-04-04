@@ -2,46 +2,46 @@
 
 #include <functional>
 
-// Shared graph enums (duplicated until call sites are migrated).
+// Shared graph enums.
 
 enum class PinType
 {
-    Number,    ///< Numeric values (doubles)
-    Boolean,   ///< Boolean true/false
-    String,    ///< String values
-    Array,     ///< Array/list data structures
-    Function,  ///< Function references
-    Flow,      ///< Execution flow (control flow)
-    Any        ///< Wildcard type - accepts any connection
+    Number,    ///< Number value
+    Boolean,   ///< true/false value
+    String,    ///< Text value
+    Array,     ///< List/array value
+    Function,  ///< Function reference
+    Flow,      ///< Execution flow signal
+    Any        ///< Wildcard type
 };
 
 enum class NodeType
 {
-    Start,       ///< Event start node (flow entry)
+    Start,       ///< Graph entry node
     Constant,    ///< Constant value node
-    Operator,    ///< Arithmetic/string operators (+, -, *, /)
-    Comparison,  ///< Comparison operators (==, !=, <, >)
-    Logic,       ///< Logical operators (and, or, not)
-    Not,         ///< Boolean negation
-    DrawRect,    ///< Preview rectangle drawing node
-    DrawGrid,    ///< Preview grid drawing node
-    Delay,       ///< Flow delay/order testing node
-    Sequence,    ///< Flow sequence splitter (In -> Then 0..N)
-    Branch,      ///< Conditional branching (if/else)
-    Loop,        ///< Iteration (for/while loops)
-    ForEach,     ///< Iterate over array elements
-    ArrayGetAt,  ///< Read value from array by index
-    ArrayAddAt,  ///< Insert value to array at index
-    ArrayReplaceAt, ///< Replace value in array at index
-    ArrayRemoveAt, ///< Remove value from array at index
-    ArrayLength, ///< Number of items in array
-    StructDefine, ///< Defines a named struct schema with custom fields
-    StructCreate, ///< Creates one instance of a named struct
+    Operator,    ///< Math/string operation
+    Comparison,  ///< Comparison operation
+    Logic,       ///< Logic operation
+    Not,         ///< Boolean negate
+    DrawRect,    ///< Draw rectangle preview
+    DrawGrid,    ///< Draw grid preview
+    Delay,       ///< Delay in flow
+    Sequence,    ///< One input, many ordered outputs
+    Branch,      ///< If/else branching
+    Loop,        ///< Counted loop
+    ForEach,     ///< Loop through array items
+    ArrayGetAt,  ///< Read array value at index
+    ArrayAddAt,  ///< Insert array value at index
+    ArrayReplaceAt, ///< Replace array value at index
+    ArrayRemoveAt, ///< Remove array value at index
+    ArrayLength, ///< Array item count
+    StructDefine, ///< Define struct schema
+    StructCreate, ///< Create struct instance
     While,       ///< While loop
     Variable,    ///< Variable get/set
-    Function,    ///< Function definition/call
-    Output,      ///< Graph output/return value
-    Unknown      ///< Uninitialized or invalid type
+    Function,    ///< Function define/call
+    Output,      ///< Graph return/output
+    Unknown      ///< Unknown type
 };
 
 namespace std {
