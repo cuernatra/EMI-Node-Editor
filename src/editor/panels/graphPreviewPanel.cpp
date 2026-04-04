@@ -108,11 +108,209 @@ const VisualNode* FindNodeById(const GraphState& state, ed::NodeId nodeId)
 
 struct PreviewEvaluator
 {
+    struct PreviewValue
+    {
+        enum class Kind
+        {
+            Number,
+            Array
+        };
+
+        Kind kind = Kind::Number;
+        double number = 0.0;
+        std::vector<PreviewValue> array;
+
+        static PreviewValue Number(double v)
+        {
+            PreviewValue out;
+            out.kind = Kind::Number;
+            out.number = v;
+            return out;
+        }
+
+        static PreviewValue Array(std::vector<PreviewValue> values = {})
+        {
+            PreviewValue out;
+            out.kind = Kind::Array;
+            out.array = std::move(values);
+            return out;
+        }
+
+        bool isArray() const { return kind == Kind::Array; }
+    };
+
     const GraphState& state;
     const std::vector<Link>& links;
     std::unordered_set<uintptr_t> activeEvalPins;
     std::unordered_map<uintptr_t, double> activeLoopIndices;
-    std::unordered_map<std::string, double> variableValues;
+    std::unordered_map<uintptr_t, PreviewValue> activeForEachElements;
+    std::unordered_map<std::string, PreviewValue> variableValues;
+
+    static std::string TrimCopy(const std::string& s)
+    {
+        size_t a = 0;
+        size_t b = s.size();
+        while (a < b && std::isspace(static_cast<unsigned char>(s[a]))) ++a;
+        while (b > a && std::isspace(static_cast<unsigned char>(s[b - 1]))) --b;
+        return s.substr(a, b - a);
+    }
+
+    static std::vector<std::string> SplitTopLevelArrayItems(const std::string& text)
+    {
+        std::vector<std::string> out;
+        std::string current;
+        int bracketDepth = 0;
+        bool inQuote = false;
+        char quoteChar = '\0';
+        bool escape = false;
+
+        auto pushCurrent = [&]() {
+            out.push_back(TrimCopy(current));
+            current.clear();
+        };
+
+        for (char ch : text)
+        {
+            if (escape)
+            {
+                current.push_back(ch);
+                escape = false;
+                continue;
+            }
+
+            if (inQuote)
+            {
+                current.push_back(ch);
+                if (ch == '\\') escape = true;
+                else if (ch == quoteChar) inQuote = false;
+                continue;
+            }
+
+            if (ch == '"' || ch == '\'')
+            {
+                inQuote = true;
+                quoteChar = ch;
+                current.push_back(ch);
+                continue;
+            }
+
+            if (ch == '[') ++bracketDepth;
+            else if (ch == ']') bracketDepth = std::max(0, bracketDepth - 1);
+
+            if (ch == ',' && bracketDepth == 0)
+            {
+                pushCurrent();
+                continue;
+            }
+
+            current.push_back(ch);
+        }
+
+        pushCurrent();
+        return out;
+    }
+
+    static double ToNumber(const PreviewValue& value)
+    {
+        if (value.kind == PreviewValue::Kind::Number)
+            return value.number;
+        return static_cast<double>(value.array.size());
+    }
+
+    static PreviewValue ParseLiteral(const std::string& raw)
+    {
+        const std::string s = TrimCopy(raw);
+        if (s.empty())
+            return PreviewValue::Number(0.0);
+
+        if (s == "true" || s == "True")
+            return PreviewValue::Number(1.0);
+        if (s == "false" || s == "False")
+            return PreviewValue::Number(0.0);
+
+        if (s.front() == '[' && s.back() == ']')
+        {
+            const std::string inner = s.substr(1, s.size() - 2);
+            const std::vector<std::string> items = SplitTopLevelArrayItems(inner);
+            std::vector<PreviewValue> parsed;
+            parsed.reserve(items.size());
+            for (const std::string& item : items)
+            {
+                if (item.empty())
+                    continue;
+                parsed.push_back(ParseLiteral(item));
+            }
+            return PreviewValue::Array(std::move(parsed));
+        }
+
+        double out = 0.0;
+        if (TryParseDouble(s, out))
+            return PreviewValue::Number(out);
+
+        return PreviewValue::Number(0.0);
+    }
+
+    static PreviewValue ParseTypedLiteral(const std::string& typeName, const std::string& valueText)
+    {
+        if (typeName == "Array")
+            return ParseLiteral(valueText);
+        if (typeName == "Boolean")
+            return PreviewValue::Number((valueText == "true" || valueText == "True" || valueText == "1") ? 1.0 : 0.0);
+        if (typeName == "Number")
+            return ParseLiteral(valueText);
+        return PreviewValue::Number(0.0);
+    }
+
+    bool ResolveInputVariableName(const VisualNode& node, const char* inputName, std::string& outName) const
+    {
+        const Pin* pin = FindInputPin(node, inputName);
+        if (!pin)
+            return false;
+
+        for (const auto& link : links)
+        {
+            if (!link.alive || link.endPinId != pin->id)
+                continue;
+
+            const VisualNode* srcNode = FindNodeByPin(link.startPinId);
+            if (!srcNode || srcNode->nodeType != NodeType::Variable)
+                return false;
+
+            const NodeField* variantField = FindField(*srcNode, "Variant");
+            const std::string variant = variantField ? variantField->value : "Get";
+            if (variant != "Get")
+                return false;
+
+            const NodeField* nameField = FindField(*srcNode, "Name");
+            if (!nameField || nameField->value.empty())
+                return false;
+
+            outName = nameField->value;
+            return true;
+        }
+
+        return false;
+    }
+
+    PreviewValue& EnsureArrayVariable(const std::string& name)
+    {
+        PreviewValue& v = variableValues[name];
+        if (v.kind != PreviewValue::Kind::Array)
+        {
+            v.kind = PreviewValue::Kind::Array;
+            v.number = 0.0;
+            v.array.clear();
+        }
+        return v;
+    }
+
+    bool HasIncomingLink(ed::PinId inputPinId) const
+    {
+        for (const auto& link : links)
+            if (link.alive && link.endPinId == inputPinId)
+                return true;
+        return false;
+    }
 
     const VisualNode* FindNodeByPin(ed::PinId pinId) const
     {
@@ -139,24 +337,28 @@ struct PreviewEvaluator
         return nullptr;
     }
 
-    double EvalNamedInput(const VisualNode& node, const char* name)
+    PreviewValue EvalValueNamedInput(const VisualNode& node, const char* name)
     {
         const Pin* pin = FindInputPin(node, name);
         if (pin)
-            return EvalPin(node, *pin);
+            return EvalValuePin(node, *pin);
 
         const NodeField* field = FindField(node, name);
-        double out = 0.0;
-        if (field && TryParseDouble(field->value, out))
-            return out;
-        return 0.0;
+        if (field)
+            return ParseLiteral(field->value);
+        return PreviewValue::Number(0.0);
     }
 
-    double EvalPin(const VisualNode& owner, const Pin& pin)
+    double EvalNamedInput(const VisualNode& node, const char* name)
+    {
+        return ToNumber(EvalValueNamedInput(node, name));
+    }
+
+    PreviewValue EvalValuePin(const VisualNode& owner, const Pin& pin)
     {
         const uintptr_t evalKey = static_cast<uintptr_t>(pin.id.Get());
         if (!activeEvalPins.insert(evalKey).second)
-            return 0.0;
+            return PreviewValue::Number(0.0);
 
         struct ScopedErase
         {
@@ -184,18 +386,29 @@ struct PreviewEvaluator
                         const uintptr_t loopId = static_cast<uintptr_t>(srcNode->id.Get());
                         const auto it = activeLoopIndices.find(loopId);
                         if (it != activeLoopIndices.end())
+                            return PreviewValue::Number(it->second);
+                    }
+                    return PreviewValue::Number(0.0);
+                }
+
+                case NodeType::ForEach:
+                {
+                    const Pin* srcPin = state.FindPin(link.startPinId);
+                    if (srcPin && srcPin->name == "Element")
+                    {
+                        const uintptr_t foreachId = static_cast<uintptr_t>(srcNode->id.Get());
+                        const auto it = activeForEachElements.find(foreachId);
+                        if (it != activeForEachElements.end())
                             return it->second;
                     }
-                    return 0.0;
+                    return PreviewValue::Number(0.0);
                 }
 
                 case NodeType::Constant:
                 {
+                    const NodeField* typeField = FindField(*srcNode, "Type");
                     const NodeField* valueField = FindField(*srcNode, "Value");
-                    double out = 0.0;
-                    if (valueField && TryParseDouble(valueField->value, out))
-                        return out;
-                    return 0.0;
+                    return ParseTypedLiteral(typeField ? typeField->value : "Number", valueField ? valueField->value : "0");
                 }
 
                 case NodeType::Operator:
@@ -204,11 +417,11 @@ struct PreviewEvaluator
                     const std::string op = opField ? opField->value : "+";
                     const double a = EvalNamedInput(*srcNode, "A");
                     const double b = EvalNamedInput(*srcNode, "B");
-                    if (op == "+") return a + b;
-                    if (op == "-") return a - b;
-                    if (op == "*") return a * b;
-                    if (op == "/") return std::abs(b) < 0.000001 ? 0.0 : a / b;
-                    return 0.0;
+                    if (op == "+") return PreviewValue::Number(a + b);
+                    if (op == "-") return PreviewValue::Number(a - b);
+                    if (op == "*") return PreviewValue::Number(a * b);
+                    if (op == "/") return PreviewValue::Number(std::abs(b) < 0.000001 ? 0.0 : a / b);
+                    return PreviewValue::Number(0.0);
                 }
 
                 case NodeType::Comparison:
@@ -217,13 +430,13 @@ struct PreviewEvaluator
                     const std::string op = opField ? opField->value : "==";
                     const double a = EvalNamedInput(*srcNode, "A");
                     const double b = EvalNamedInput(*srcNode, "B");
-                    if (op == "==") return a == b ? 1.0 : 0.0;
-                    if (op == "!=") return a != b ? 1.0 : 0.0;
-                    if (op == "<")  return a < b ? 1.0 : 0.0;
-                    if (op == "<=") return a <= b ? 1.0 : 0.0;
-                    if (op == ">")  return a > b ? 1.0 : 0.0;
-                    if (op == ">=") return a >= b ? 1.0 : 0.0;
-                    return 0.0;
+                    if (op == "==") return PreviewValue::Number(a == b ? 1.0 : 0.0);
+                    if (op == "!=") return PreviewValue::Number(a != b ? 1.0 : 0.0);
+                    if (op == "<")  return PreviewValue::Number(a < b ? 1.0 : 0.0);
+                    if (op == "<=") return PreviewValue::Number(a <= b ? 1.0 : 0.0);
+                    if (op == ">")  return PreviewValue::Number(a > b ? 1.0 : 0.0);
+                    if (op == ">=") return PreviewValue::Number(a >= b ? 1.0 : 0.0);
+                    return PreviewValue::Number(0.0);
                 }
 
                 case NodeType::Logic:
@@ -232,34 +445,63 @@ struct PreviewEvaluator
                     const std::string op = opField ? opField->value : "AND";
                     const bool a = EvalNamedInput(*srcNode, "A") != 0.0;
                     const bool b = EvalNamedInput(*srcNode, "B") != 0.0;
-                    if (op == "AND") return (a && b) ? 1.0 : 0.0;
-                    if (op == "OR")  return (a || b) ? 1.0 : 0.0;
-                    return 0.0;
+                    if (op == "AND") return PreviewValue::Number((a && b) ? 1.0 : 0.0);
+                    if (op == "OR")  return PreviewValue::Number((a || b) ? 1.0 : 0.0);
+                    return PreviewValue::Number(0.0);
                 }
 
                 case NodeType::Not:
-                    return EvalNamedInput(*srcNode, "A") == 0.0 ? 1.0 : 0.0;
+                    return PreviewValue::Number(EvalNamedInput(*srcNode, "A") == 0.0 ? 1.0 : 0.0);
 
                 case NodeType::Variable:
                 {
                     const NodeField* variantField = FindField(*srcNode, "Variant");
                     const std::string variant = variantField ? variantField->value : "Get";
                     if (variant != "Get")
-                        return 0.0;
+                        return PreviewValue::Number(0.0);
 
                     const NodeField* nameField = FindField(*srcNode, "Name");
                     if (!nameField)
-                        return 0.0;
+                        return PreviewValue::Number(0.0);
 
                     const auto it = variableValues.find(nameField->value);
                     if (it != variableValues.end())
                         return it->second;
 
+                    const NodeField* typeField = FindField(*srcNode, "Type");
                     const NodeField* defaultField = FindField(*srcNode, "Default");
-                    double out = 0.0;
-                    if (defaultField && TryParseDouble(defaultField->value, out))
-                        return out;
-                    return 0.0;
+                    return ParseTypedLiteral(typeField ? typeField->value : "Number", defaultField ? defaultField->value : "0");
+                }
+
+                case NodeType::ArrayGetAt:
+                {
+                    const PreviewValue arrayValue = EvalValueNamedInput(*srcNode, "Array");
+                    const int index = static_cast<int>(std::llround(EvalNamedInput(*srcNode, "Index")));
+                    if (!arrayValue.isArray() || index < 0 || index >= static_cast<int>(arrayValue.array.size()))
+                        return PreviewValue::Number(0.0);
+                    return arrayValue.array[static_cast<size_t>(index)];
+                }
+
+                case NodeType::ArrayLength:
+                {
+                    const PreviewValue arrayValue = EvalValueNamedInput(*srcNode, "Array");
+                    return PreviewValue::Number(arrayValue.isArray() ? static_cast<double>(arrayValue.array.size()) : 0.0);
+                }
+
+                case NodeType::StructCreate:
+                {
+                    std::vector<PreviewValue> fields;
+                    fields.reserve(srcNode->inPins.size());
+                    for (const Pin& inPin : srcNode->inPins)
+                    {
+                        if (inPin.type == PinType::Flow)
+                            continue;
+                        if (inPin.name == "Struct" || inPin.name == "Schema" ||
+                            inPin.name == "Struct Name" || inPin.name == "Schema Fields")
+                            continue;
+                        fields.push_back(EvalValuePin(*srcNode, inPin));
+                    }
+                    return PreviewValue::Array(std::move(fields));
                 }
 
                 default:
@@ -268,10 +510,9 @@ struct PreviewEvaluator
         }
 
         const NodeField* field = FindField(owner, pin.name.c_str());
-        double out = 0.0;
-        if (field && TryParseDouble(field->value, out))
-            return out;
-        return 0.0;
+        if (field)
+            return ParseLiteral(field->value);
+        return PreviewValue::Number(0.0);
     }
 };
 }
@@ -477,6 +718,29 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
                 appendFlowChain(completedOut->id, timeCursor, depth + 1, activeGrid);
             return;
         }
+        else if (targetNode->nodeType == NodeType::ForEach)
+        {
+            const Pin* bodyOut = FindOutputPin(*targetNode, "Body");
+            const Pin* completedOut = FindOutputPin(*targetNode, "Completed");
+            const auto arrayValue = evaluator.EvalValueNamedInput(*targetNode, "Array");
+
+            if (bodyOut && arrayValue.kind == PreviewEvaluator::PreviewValue::Kind::Array)
+            {
+                const uintptr_t foreachId = static_cast<uintptr_t>(targetNode->id.Get());
+                long long foreachCursor = timeCursor;
+                for (const auto& elem : arrayValue.array)
+                {
+                    evaluator.activeForEachElements[foreachId] = elem;
+                    appendFlowChain(bodyOut->id, foreachCursor, depth + 1, activeGrid);
+                }
+                evaluator.activeForEachElements.erase(foreachId);
+                timeCursor = foreachCursor;
+            }
+
+            if (completedOut)
+                appendFlowChain(completedOut->id, timeCursor, depth + 1, activeGrid);
+            return;
+        }
         else if (targetNode->nodeType == NodeType::Sequence)
         {
             int branchIndex = 0;
@@ -491,6 +755,18 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
             }
             return;
         }
+        else if (targetNode->nodeType == NodeType::Branch)
+        {
+            const bool condition = evalNamedInput(*targetNode, "Condition") != 0.0;
+            const Pin* selectedOut = condition
+                ? FindOutputPin(*targetNode, "True")
+                : FindOutputPin(*targetNode, "False");
+
+            if (selectedOut)
+                appendFlowChain(selectedOut->id, timeCursor, depth + 1, activeGrid);
+
+            return;
+        }
         else if (targetNode->nodeType == NodeType::Variable)
         {
             const NodeField* variantField = FindField(*targetNode, "Variant");
@@ -499,7 +775,74 @@ void GraphPreviewPanel::renderDrawCommands(const GraphState& state)
             {
                 const NodeField* nameField = FindField(*targetNode, "Name");
                 if (nameField && !nameField->value.empty())
-                    evaluator.variableValues[nameField->value] = evalNamedInput(*targetNode, "Default");
+                    evaluator.variableValues[nameField->value] = evaluator.EvalValueNamedInput(*targetNode, "Default");
+            }
+        }
+        else if (targetNode->nodeType == NodeType::ArrayAddAt)
+        {
+            std::string arrayVarName;
+            if (evaluator.ResolveInputVariableName(*targetNode, "Array", arrayVarName))
+            {
+                auto& arrayVar = evaluator.EnsureArrayVariable(arrayVarName);
+                int insertIndex = static_cast<int>(std::llround(evalNamedInput(*targetNode, "Index")));
+                insertIndex = std::clamp(insertIndex, 0, static_cast<int>(arrayVar.array.size()));
+
+                const Pin* valuePin = FindInputPin(*targetNode, "Value");
+                PreviewEvaluator::PreviewValue value;
+                if (valuePin && evaluator.HasIncomingLink(valuePin->id))
+                {
+                    value = evaluator.EvalValueNamedInput(*targetNode, "Value");
+                }
+                else
+                {
+                    const NodeField* addType = FindField(*targetNode, "Add Type");
+                    const NodeField* addValue = FindField(*targetNode, "Add Value");
+                    value = PreviewEvaluator::ParseTypedLiteral(addType ? addType->value : "Number", addValue ? addValue->value : "0");
+                }
+
+                arrayVar.array.insert(arrayVar.array.begin() + insertIndex, value);
+            }
+        }
+        else if (targetNode->nodeType == NodeType::ArrayReplaceAt)
+        {
+            std::string arrayVarName;
+            if (evaluator.ResolveInputVariableName(*targetNode, "Array", arrayVarName))
+            {
+                auto& arrayVar = evaluator.EnsureArrayVariable(arrayVarName);
+                int index = static_cast<int>(std::llround(evalNamedInput(*targetNode, "Index")));
+
+                const Pin* valuePin = FindInputPin(*targetNode, "Value");
+                PreviewEvaluator::PreviewValue value;
+                if (valuePin && evaluator.HasIncomingLink(valuePin->id))
+                {
+                    value = evaluator.EvalValueNamedInput(*targetNode, "Value");
+                }
+                else
+                {
+                    const NodeField* replaceType = FindField(*targetNode, "Replace Type");
+                    const NodeField* replaceValue = FindField(*targetNode, "Replace Value");
+                    value = PreviewEvaluator::ParseTypedLiteral(replaceType ? replaceType->value : "Number", replaceValue ? replaceValue->value : "0");
+                }
+
+                if (index >= 0 && index < static_cast<int>(arrayVar.array.size()))
+                {
+                    arrayVar.array[static_cast<size_t>(index)] = value;
+                }
+                else if (index == static_cast<int>(arrayVar.array.size()))
+                {
+                    arrayVar.array.push_back(value);
+                }
+            }
+        }
+        else if (targetNode->nodeType == NodeType::ArrayRemoveAt)
+        {
+            std::string arrayVarName;
+            if (evaluator.ResolveInputVariableName(*targetNode, "Array", arrayVarName))
+            {
+                auto& arrayVar = evaluator.EnsureArrayVariable(arrayVarName);
+                const int index = static_cast<int>(std::llround(evalNamedInput(*targetNode, "Index")));
+                if (index >= 0 && index < static_cast<int>(arrayVar.array.size()))
+                    arrayVar.array.erase(arrayVar.array.begin() + index);
             }
         }
         else if (targetNode->nodeType == NodeType::DrawGrid)
