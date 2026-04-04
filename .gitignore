@@ -7,3 +7,4 @@ out/
 *.ilk
 CMakeFiles/
 CMakeCache.txt
+.vscode/
