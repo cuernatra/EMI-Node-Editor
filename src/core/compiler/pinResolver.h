@@ -1,13 +1,5 @@
-/**
- * @file pinResolver.h
- * @brief Pin connection resolution for recursive AST building
- * 
- * Pre-processes link lists into fast lookups mapping input pins to their
- * source (output pin on upstream node). GraphCompiler uses this to
- * recursively build AST subtrees: "what expression feeds this input pin?"
- * 
- * @author Jenny
- */
+/** @file pinResolver.h */
+/** @brief Fast lookup tables for pin connections used by compiler code. */
 
 #pragma once
 #include "../graph/visualNode.h"
@@ -18,7 +10,7 @@
 
 namespace ed = ax::NodeEditor;
 
-// Hash specialization for ed::PinId to use as unordered_map key
+// Allow NodeId/PinId as unordered_map keys.
 namespace std {
 template<>
 struct hash<ed::PinId>
@@ -41,108 +33,45 @@ struct hash<ed::NodeId>
 
 namespace ed = ax::NodeEditor;
 
-/**
- * @brief Identifies the source of a connected input pin
- * 
- * Represents where an input pin's value comes from:
- * - node: The upstream VisualNode with the output pin
- * - pinIdx: Index into node->outPins (which output pin on that node)
- * 
- * Used during recursive AST building to traverse from outputs back
- * through inputs, accumulating the expression tree.
- * 
- * @author Jenny
- */
+/** @brief Source info for one connected input pin. */
 struct PinSource
 {
-    const VisualNode* node    = nullptr;  ///< Source node (nullptr if unconnected)
-    int               pinIdx  = 0;        ///< Index into node->outPins
+    const VisualNode* node    = nullptr;  ///< Upstream node.
+    int               pinIdx  = 0;        ///< Index in node->outPins.
 };
 
-/**
- * @brief Identifies where a flow output pin continues execution.
- */
+/** @brief Target info for one connected flow output pin. */
 struct FlowTarget
 {
-    const VisualNode* node   = nullptr;  ///< Downstream node receiving the flow signal
-    int               pinIdx = 0;        ///< Index into node->inPins (the flow input that is connected)
+    const VisualNode* node   = nullptr;  ///< Downstream node.
+    int               pinIdx = 0;        ///< Index in node->inPins.
 };
 
 
-/**
- * @brief Fast lookup for input pin → source mappings
- * 
- * Pre-processes the link list into a hash map for O(1) lookups during
- * recursive AST construction. GraphCompiler queries this to find:
- * "what AST subtree should I build for this input pin?"
- * 
- * Also provides node ID → VisualNode* lookups for convenience.
- * 
- * Usage:
- * @code
- * PinResolver resolver;
- * resolver.Build(nodes, links);
- * 
- * const PinSource* src = resolver.Resolve(inputPinId);
- * if (src && src->node) {
- *     // Found upstream node feeding this input
- *     const Pin& srcPin = src->node->outPins[src->pinIdx];
- * }
- * @endcode
- * 
- * @author Jenny 
- */
+/** @brief Builds and serves pin lookup maps for compile passes. */
 class PinResolver
 {
 public:
-    /**
-     * @brief Build resolver maps from graph data
-     * @param nodes All nodes in the graph
-     * @param links All connections between pins
-     * 
-     * Populates internal hash maps:
-     * - inputToSource_: inputPinId → (sourceNode, sourcePinIndex)
-     * - nodeById_: nodeId → VisualNode*
-     * 
-     * Call this once before calling Resolve() or FindNode().
-     */
+    /** @brief Rebuild lookup tables from current nodes and links. */
     void Build(const std::vector<VisualNode>& nodes,
                const std::vector<Link>&       links);
 
-    /**
-     * @brief Find the source of an input pin
-     * @param inputPinId The input pin to look up
-     * @return Pointer to PinSource, or nullptr if unconnected
-     * 
-     * Returns nullptr for disconnected inputs or invalid pin IDs.
-     * The returned pointer is valid until the next Build() call.
-     */
+    /** @brief Resolve input pin source, or nullptr if disconnected. */
     const PinSource* Resolve(ed::PinId inputPinId) const;
 
-    /**
-     * @brief Find downstream target of a flow output pin.
-     * @param flowOutputPinId Output flow pin ID
-     * @return Pointer to FlowTarget, or nullptr if not connected
-     */
+    /** @brief Resolve flow output target, or nullptr if disconnected. */
     const FlowTarget* ResolveFlow(ed::PinId flowOutputPinId) const;
 
-    /**
-     * @brief Find a node by its ID
-     * @param nodeId The node ID to look up
-     * @return Pointer to VisualNode, or nullptr if not found
-     * 
-     * Convenience function for node lookups during AST traversal.
-     * The returned pointer is valid until the next Build() call.
-     */
+    /** @brief Find node by id, or nullptr if missing. */
     const VisualNode* FindNode(ed::NodeId nodeId) const;
 
 private:
-    // inputPinId -> PinSource
+    // input pin -> source output info
     std::unordered_map<ed::PinId, PinSource> inputToSource_;
 
-    // nodeId -> VisualNode*
+    // node id -> node pointer
     std::unordered_map<ed::NodeId, const VisualNode*> nodeById_;
 
-    // flow output pin ID -> downstream flow input target
+    // flow output pin -> downstream flow input target
     std::unordered_map<ed::PinId, FlowTarget> flowOutputToTarget_;
 };

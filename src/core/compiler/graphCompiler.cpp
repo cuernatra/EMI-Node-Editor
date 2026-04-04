@@ -155,6 +155,7 @@ const Pin* GraphCompiler::GetOutputPinByName(const VisualNode& n, const char* na
 
 void GraphCompiler::CollectFlowReachableFromOutput(ed::PinId flowOutputPinId)
 {
+    // Walk execution links and remember which nodes can run from this output.
     const uintptr_t outKey = static_cast<uintptr_t>(flowOutputPinId.Get());
     if (!activeFlowOutputs_.insert(outKey).second)
         return;
@@ -185,6 +186,7 @@ void GraphCompiler::CollectFlowReachableFromOutput(ed::PinId flowOutputPinId)
 
 void GraphCompiler::AppendFlowChainFromOutput(ed::PinId flowOutputPinId, Node* targetScope)
 {
+    // Follow one flow output and append every reachable statement to targetScope.
     const uintptr_t outKey = static_cast<uintptr_t>(flowOutputPinId.Get());
     if (!activeFlowOutputs_.insert(outKey).second)
     {
@@ -217,6 +219,7 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
     {
         case NodeType::Sequence:
         {
+            // Sequence forwards execution through each "Then" output in order.
             for (const Pin& outPin : n.outPins)
             {
                 if (outPin.type != PinType::Flow)
@@ -230,6 +233,7 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
 
         case NodeType::Branch:
         {
+            // Branch compiles to an if/else and follows both flow outputs.
             Node* ifNode = BuildBranchNode(this, n);
             if (HasError || !ifNode)
             {
@@ -264,6 +268,7 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
 
         case NodeType::Loop:
         {
+            // Loop has a body path and a completed path.
             Node* forNode = BuildLoopNode(this, n);
             if (HasError || !forNode)
             {
@@ -320,6 +325,7 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
 
         case NodeType::While:
         {
+            // While has repeated body execution and optional completed continuation.
             Node* whileNode = BuildWhileNode(this, n);
             if (HasError || !whileNode)
             {
@@ -349,6 +355,7 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
 
         case NodeType::ForEach:
         {
+            // ForEach mirrors loop behavior: body first, then completed continuation.
             Node* forNode = BuildForEachNode(this, n);
             if (HasError || !forNode)
             {
@@ -391,6 +398,7 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
             break;
     }
 
+    // Regular node: compile one statement, then continue through the next flow output.
     Node* stmt = BuildNode(n);
     if (HasError)
     {
