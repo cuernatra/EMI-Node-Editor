@@ -1,6 +1,6 @@
 /**
- * @brief Main editor controller
- * Coordinates graph state, rendering, serialization, and compilation.
+ * @brief Top-level editor controller.
+ * Handles graph state, drawing, save/load, and compile flow.
  */
 
 #pragma once
@@ -19,50 +19,49 @@
 namespace ed = ax::NodeEditor;
 
 /**
- * @brief Main editor orchestrator
- * Manages graph state, canvas rendering, serialization, and compilation.
- * Owns the node editor context.
+ * @brief Main editor object used by the app loop.
+ * Owns the node-editor context and graph subsystems.
  */
 class MainEditor
 {
 public:
-    /// Initialize editor; loads saved graph if exists.
+    /// Build editor state and load saved graph if present.
     MainEditor();
     
-    /// Clean up and save current graph state.
+    /// Save state and release editor resources.
     ~MainEditor();
 
-    /// Render editor UI and canvas (called every frame).
+    /// Draw editor UI and graph canvas each frame.
     void draw();
 
     /// Render inspector contents for selected node.
     void drawInspectorPanel();
 
-    /// Handle shared shortcuts (e.g. Delete) even when overlay windows are focused.
+    /// Handle shared shortcuts even when overlay windows have focus.
     void handleSharedShortcuts();
 
-    /// Check whether any existing node is currently selected.
+    /// Return true when at least one alive node is selected.
     bool hasSelectedNode() const;
 
     /// Try to get currently selected node id (only when exactly one alive node is selected).
     bool tryGetSingleSelectedNodeId(uintptr_t& outId) const;
 
-    /// Check whether graph currently contains a Start node.
+    /// Return true when graph has a Start node.
     bool hasStartNode() const;
 
-    /// Check whether graph contains at least one Variable node.
+    /// Return true when graph has at least one Variable node.
     bool hasVariables() const;
 
-    /// Forward compile status messages to an external log sink.
+    /// Set receiver for compile log lines.
     void setCompileLogSink(std::function<void(const std::string&)> sink);
 
-    /// Set callback invoked after Compile button runs compilation.
+    /// Set callback invoked when Compile is triggered.
     void setCompileCallback(std::function<void()> cb);
 
-    /// Expose graph state for read-only auxiliary views like preview panels.
+    /// Read-only access for other editor panels.
     const GraphState& getGraphState() const;
 
-    /// Sync live node positions from node editor so previews can use current layout.
+    /// Copy live node positions from node-editor into graph state.
     void syncNodePositionsForPreview();
 
     void flushPendingCompileLogs();
@@ -70,15 +69,15 @@ public:
 
 private:
 
-    ed::EditorContext* m_editorContext = nullptr;  ///< imgui-node-editor context
-    std::unique_ptr<GraphState> m_graphState;      ///< Graph data (must be constructed before GraphEditor)
-    std::unique_ptr<GraphEditor> m_graphEditor;    ///< Canvas renderer (holds reference to m_graphState)
+    ed::EditorContext* m_editorContext = nullptr;  ///< imgui-node-editor context.
+    std::unique_ptr<GraphState> m_graphState;      ///< Graph data.
+    std::unique_ptr<GraphEditor> m_graphEditor;    ///< Graph canvas renderer.
     std::function<void(const std::string&)> m_uiCompileLogSink;
     std::mutex m_pendingCompileLogsMutex;
     std::vector<std::string> m_pendingCompileLogs;
     std::future<GraphCompilation::CompileResult> m_compileFuture;
     bool m_compileInProgress = false;
-    std::unique_ptr<GraphCompilation> m_compiler;  ///< Graph compilation and execution engine
+    std::unique_ptr<GraphCompilation> m_compiler;  ///< Graph compile/execute engine.
     std::function<void()> m_compileCallback;
-    bool m_resultOnlyCompile = true;               ///< If true, compile status stays minimal while terminal prints result
+    bool m_resultOnlyCompile = true;               ///< If true, keep compile status output minimal.
 };

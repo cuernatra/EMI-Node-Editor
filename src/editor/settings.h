@@ -2,9 +2,9 @@
 
 /**
  * @file settings.h
- * @brief Persistent application settings
+ * @brief Persistent editor settings.
  *
- * Loads and saves settings to settings.json in the working directory.
+ * Loads/saves values from settings.json in the working directory.
  * Call Settings::Load() on startup and Settings::Save() on shutdown.
  *
  * Adding a new setting:
@@ -72,7 +72,5 @@ namespace Settings
     inline float nodeHeaderMoreColorB = 0.360f;
     inline float nodeHeaderMoreColorA = 1.000f;
  
-    // -------------------------------------------------------------------------
-    // Add new settings below, following the same pattern
-    // -------------------------------------------------------------------------
+    // Add new settings below using the same load/save pattern.
 }

@@ -2,6 +2,7 @@
 
 #include "core/registry/nodeDescriptor.h"
 
+// Maps descriptor category labels to color groups used for node headers.
 enum class NodeColorCategory
 {
     Event,
