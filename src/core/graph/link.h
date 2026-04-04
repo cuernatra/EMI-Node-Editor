@@ -7,10 +7,6 @@
 
 namespace ed = ax::NodeEditor;
 
-// ---------------------------------------------------------------------------
-// Link
-// ---------------------------------------------------------------------------
-
 /** @brief One wire between an output pin and an input pin. */
 struct Link
 {
@@ -29,10 +25,6 @@ struct Link
     /// False means logically deleted.
     bool alive = true;
 };
-
-// ---------------------------------------------------------------------------
-// Link utilities
-// ---------------------------------------------------------------------------
 
 /**
  * @brief Return true if a new link would make a cycle.

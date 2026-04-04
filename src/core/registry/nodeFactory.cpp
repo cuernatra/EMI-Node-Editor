@@ -4,28 +4,28 @@
 #include <cassert>
 #include <iostream>
 
-// Internal helpers
+// Internal helpers.
 
-// Populate node's pins and fields from descriptor.
-// IdSource is a callable that returns uint32 (supports new ID generation or loading from disk).
+// Fill node pins/fields from descriptor.
+// IdSource returns the next pin id (new ids or loaded ids).
 template<typename IdSource>
 static void PopulateFromDescriptor(VisualNode& n, const NodeDescriptor& desc, IdSource pinIdSource)
 {
-    // Create pins from descriptor templates (unique ID, parent ID, metadata).
+    // Build pins from descriptor templates.
     for (const PinDescriptor& pd : desc.pins)
     {
-        uint32_t pid = pinIdSource();  // Get next available ID (NEW or from array)
+        uint32_t pid = pinIdSource();
         Pin p = MakePin(pid, n.id, desc.type,
                         pd.name, pd.type, pd.isInput, pd.isMultiInput);
 
-        // Separate inputs and outputs (editor needs them split for rendering).
+        // Keep input/output lists separate for editor usage.
         if (pd.isInput)
             n.inPins.push_back(p);
         else
             n.outPins.push_back(p);
     }
 
-    // Create fields from descriptor templates (editable values with defaults).
+    // Build editable fields with default values.
     for (const FieldDescriptor& fd : desc.fields)
         n.fields.push_back(MakeNodeField(fd));
 }
@@ -50,10 +50,6 @@ VisualNode CreateNodeFromType(NodeType type, IdGen& gen, ImVec2 pos)
     return n;
 }
 
-// ---------------------------------------------------------------------------
-// CreateNodeFromTypeWithIds
-// ---------------------------------------------------------------------------
-
 VisualNode CreateNodeFromTypeWithIds(NodeType type,
                                      int nodeId,
                                      const std::vector<int>& pinIds,
@@ -71,9 +67,8 @@ VisualNode CreateNodeFromTypeWithIds(NodeType type,
     n.nodeType   = type;
     n.title      = desc->label;
     n.initialPos = pos;
-    // Loaded nodes should be positioned by renderer from serialized initialPos.
-    // If this is true here, node editor keeps default (often 0,0) and save will
-    // overwrite file positions with zeros.
+    // Loaded nodes are positioned later from saved initialPos.
+    // Setting this true here can force bad default positions to be resaved.
     n.positioned = false;
 
     if (desc->deserialize)

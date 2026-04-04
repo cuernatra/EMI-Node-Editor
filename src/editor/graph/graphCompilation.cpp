@@ -8,7 +8,7 @@
 #include <string>
 #include <utility>
 
-// Compile pipeline in plain terms:
+// Compile pipeline:
 // 1) Convert node graph to AST.
 // 2) Compile AST into VM bytecode.
 // 3) Run generated entrypoint `__graph__()`.

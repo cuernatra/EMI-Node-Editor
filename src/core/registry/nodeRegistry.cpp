@@ -32,8 +32,7 @@ NodeRegistry::NodeRegistry()
 
 void NodeRegistry::Register(NodeDescriptor descriptor)
 {
-    // This registration uses the NodeDescriptor structure directly:
-    // type, label, pins, fields, compile, deserialize, category, paletteVariants, saveToken, deferredInputPins, renderStyle.
+    // Save token is required for reliable load/spawn lookup.
     if (descriptor.saveToken.empty())
     {
         throw std::invalid_argument(

@@ -12,6 +12,8 @@
 
 namespace ed = ax::NodeEditor;
 
+// We store each field as one text token in the save file.
+// Special characters are escaped so loading gives back the exact same text.
 static std::string EncodeFieldValue(const std::string& value)
 {
     static constexpr char kHex[] = "0123456789ABCDEF";
@@ -111,6 +113,8 @@ void GraphSerializer::Save(const GraphState& state, const char* path)
     std::ofstream out(path, std::ios::trunc);
     if (!out.is_open()) return;
 
+    // Write nodes first, then links.
+    // On load, we rebuild the graph from these lines.
     for (const auto& n : state.GetNodes())
     {
         if (!n.alive) continue;
@@ -206,9 +210,7 @@ void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n, bool resetValue
 {
     if (n.nodeType != NodeType::Constant) return;
 
-    // Keep field order deterministic for UI: Type first, then Value.
-    // This ensures that if user changes Type, Value widget/reset is reflected
-    // immediately in the same render pass.
+    // Keep field order predictable in UI: Type first, Value second.
     size_t typeIdx = n.fields.size();
     size_t valueIdx = n.fields.size();
     for (size_t i = 0; i < n.fields.size(); ++i)
@@ -234,7 +236,6 @@ void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n, bool resetValue
         }
         else
         {
-            // Normalize the current value when not explicitly resetting.
             if (targetType == PinType::Boolean)
             {
                 const bool b = ParseBoolValue(valueF->value);
@@ -253,7 +254,6 @@ void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n, bool resetValue
                 if (valueF->value.empty())
                     valueF->value = "[]";
             }
-            // String keeps current text as-is.
         }
 
         valueF->valueType = targetType;
@@ -278,8 +278,7 @@ void GraphSerializer::ApplyConstantTypeFromFields(VisualNode& n, bool resetValue
     }
     else
     {
-        // Keep Constant type set constrained to sane data values.
-        // Invalid values (Flow/Function/Any/unknown) are normalized to String.
+        // If a saved type is invalid, fall back to String.
         typeF->value = "String";
         setTypeAndNormalize(PinType::String);
     }
@@ -290,6 +289,7 @@ void GraphSerializer::Load(GraphState& state, const char* path)
     std::ifstream in(path);
     if (!in.is_open()) return;
 
+    // Loading replaces the current graph.
     state.Clear();
 
     int maxId = 0;
@@ -309,7 +309,7 @@ void GraphSerializer::Load(GraphState& state, const char* path)
             NodeType nodeType = NodeRegistry::Get().FindByToken(nodeTypeStr);
             if (nodeType == NodeType::Unknown)
             {
-                // Unknown node type in save file: skip gracefully.
+                // If this app version does not know the node type, skip it and continue.
                 float pxDummy, pyDummy;
                 for (int i = 0; i < pinCount; ++i) { int skip; in >> skip; }
                 int fieldCountSkip; in >> fieldCountSkip;
@@ -354,7 +354,7 @@ void GraphSerializer::Load(GraphState& state, const char* path)
 
             VisualNode n = CreateNodeFromTypeWithIds(nodeType, nid, pinIds, ImVec2(px, py));
 
-            // Apply loaded field values
+            // Copy saved field values into matching fields.
             for (auto& [name, val] : fieldValues)
             {
                 bool applied = false;
@@ -368,9 +368,7 @@ void GraphSerializer::Load(GraphState& state, const char* path)
                     }
                 }
 
-                // Struct Create has schema-driven dynamic fields that may not exist
-                // yet at this stage. Preserve unknown fields so layout refresh can
-                // re-type/rebind them without losing saved values on reload.
+                // Keep extra StructCreate fields so later refresh logic can reconnect them.
                 if (!applied && n.nodeType == NodeType::StructCreate)
                     n.fields.push_back(NodeField{ name, PinType::Any, val });
             }

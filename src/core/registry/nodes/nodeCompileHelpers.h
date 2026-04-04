@@ -9,6 +9,7 @@
 
 namespace
 {
+// Small helper builders shared by node compile callbacks.
 inline Node* MakeNode(Token t)
 {
     Node* node = new Node();
@@ -50,6 +51,7 @@ inline const std::string* FindField(const VisualNode& n, const char* name)
 
 inline bool PopulateExactPinsAndFields(VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds)
 {
+    // Standard load path: pin id count must exactly match descriptor pin count.
     if (pinIds.size() != desc.pins.size())
         return false;
 
@@ -176,6 +178,7 @@ inline Node* BuildNumberInput(GraphCompiler* compiler, const VisualNode& n, cons
 
 inline Node* BuildTypedFieldValue(GraphCompiler* compiler, const VisualNode& n, const char* typeFieldName, const char* valueFieldName)
 {
+    // Convert a Type + Value field pair into an AST literal node.
     const std::string* typeText = FindField(n, typeFieldName);
     const std::string* valueText = FindField(n, valueFieldName);
 
@@ -197,6 +200,7 @@ inline Node* BuildTypedFieldValue(GraphCompiler* compiler, const VisualNode& n, 
 
 inline Node* BuildOutputValue(GraphCompiler* compiler, const VisualNode& n, const Pin& valuePin)
 {
+    // Build output value from link when present; otherwise fall back to local/default source.
     if (compiler->Resolve(valuePin))
         return compiler->BuildExpr(valuePin);
 

@@ -315,8 +315,7 @@ Node* CompileOutputNode(GraphCompiler* compiler, const VisualNode& n)
 
 void NodeRegistry::RegisterDataNodes()
 {
-    // Each Register(...) entry below follows NodeDescriptor order:
-    // type, label, pins, fields, compile, deserialize, category, paletteVariants, saveToken, deferredInputPins, renderStyle.
+    // Register(...) fields follow NodeDescriptor member order.
     Register({
         NodeType::Constant,
         "Constant",
