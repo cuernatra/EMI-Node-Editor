@@ -795,13 +795,66 @@ bool HandleStructStyleField(NodeField& field, FieldRenderContext& context)
     return false;
 }
 
+bool HandleCallFunctionField(NodeField& field, FieldRenderContext& context)
+{
+    if (context.node.nodeType != NodeType::CallFunction)
+        return false;
+
+    if (field.name != "Name")
+        return false;
+
+    std::vector<std::string> functionNames;
+
+    if (context.allNodes)
+    {
+        for (const VisualNode& other : *context.allNodes)
+        {
+            if (!other.alive || other.nodeType != NodeType::Function)
+                continue;
+
+            for (const NodeField& of : other.fields)
+            {
+                if (of.name == "Name" && !of.value.empty())
+                {
+                    if (std::find(functionNames.begin(), functionNames.end(), of.value) == functionNames.end())
+                        functionNames.push_back(of.value);
+                    break;
+                }
+            }
+        }
+    }
+
+    if (functionNames.empty())
+    {
+        ImGui::TextUnformatted("Function");
+        ImGui::SameLine();
+        ImGui::TextDisabled("(none)");
+    }
+    else
+    {
+        if (std::find(functionNames.begin(), functionNames.end(), field.value) == functionNames.end())
+        {
+            field.value = functionNames.front();
+            context.changed = true;
+        }
+
+        ImGui::TextUnformatted("Function");
+        ImGui::SameLine();
+        context.changed |= NodePopupComboDynamic(
+            "##CallFunctionCombo", field.value, functionNames, 110.0f);
+    }
+
+    return true;
+}
+
 bool HandleCustomFieldRendering(NodeField& field, FieldRenderContext& context)
 {
     return HandleVariableField(field, context)
         || HandleFlowStyleField(field, context)
         || HandleArrayStyleField(field, context)
         || HandleDrawStyleField(field, context)
-        || HandleStructStyleField(field, context);
+        || HandleStructStyleField(field, context)
+        || HandleCallFunctionField(field, context);  // LISÄÄ
 }
 }
 
@@ -902,6 +955,44 @@ bool DrawSequenceStyleControls(VisualNode& n, IdGen* idGen)
         {
             n.outPins.pop_back();
             changed = true;
+        }
+    }
+
+    return changed;
+}
+
+bool DrawFunctionStyleControls(VisualNode& n, IdGen* idGen)
+{
+    if (!idGen)
+        return false;
+
+    bool changed = false;
+
+    if (ImGui::SmallButton("+ Param"))
+    {
+        int paramIndex = 0;
+        for (const NodeField& f : n.fields)
+            if (f.name.rfind("Param", 0) == 0)
+                paramIndex++;
+
+        n.fields.push_back(NodeField{
+            "Param" + std::to_string(paramIndex),
+            PinType::String,
+            "param" + std::to_string(paramIndex)
+            });
+        changed = true;
+    }
+
+    if (ImGui::SmallButton("- Param"))
+    {
+        for (int i = static_cast<int>(n.fields.size()) - 1; i >= 0; --i)
+        {
+            if (n.fields[i].name.rfind("Param", 0) == 0)
+            {
+                n.fields.erase(n.fields.begin() + i);
+                changed = true;
+                break;
+            }
         }
     }
 
@@ -1104,6 +1195,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
     if (renderStyle == NodeRenderStyle::Sequence)
         changed |= DrawSequenceStyleControls(n, idGen);
+
+    if (n.nodeType == NodeType::Function)
+        changed |= DrawFunctionStyleControls(n, idGen);
 
     // ── Phase 5: Output pins ──────────────────────────────────────────────────
     for (const Pin& pin : n.outPins)

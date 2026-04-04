@@ -89,6 +89,7 @@ private:
     void RegisterLogicNodes();
     void RegisterFlowNodes();
     void RegisterStructNodes();
+    void RegisterFunctionNodes();
 
     std::unordered_map<NodeType, NodeDescriptor> descriptors_;  ///< NodeType → descriptor map
 };

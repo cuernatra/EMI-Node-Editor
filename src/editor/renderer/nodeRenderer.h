@@ -40,6 +40,7 @@ bool HandleFlowStyleField (NodeField& field, FieldRenderContext& context);
 bool HandleArrayStyleField(NodeField& field, FieldRenderContext& context);
 bool HandleDrawStyleField (NodeField& field, FieldRenderContext& context);
 bool HandleStructStyleField(NodeField& field, FieldRenderContext& context);
+bool HandleCallFunctionField(NodeField& field, FieldRenderContext& context);
 
 // Main dispatcher — chains all Handle* functions above in order.
 bool HandleCustomFieldRendering(NodeField& field, FieldRenderContext& context);

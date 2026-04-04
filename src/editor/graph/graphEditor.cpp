@@ -222,9 +222,11 @@ void GraphEditor::RefreshGraphAndMarkDirty()
     const bool structLayoutChanged = structLikelyDirty
         ? GraphEditorUtils::RefreshStructNodeLayouts(m_state)
         : false;
+    const bool callFunctionLayoutChanged = GraphEditorUtils::RefreshCallFunctionNodeLayout(m_state);
     const bool outputInputTypesChanged = GraphEditorUtils::RefreshOutputNodeInputTypes(m_state);
     const bool linksChanged = GraphEditorUtils::SyncLinkTypesAndPruneInvalid(m_state);
-    if (descriptorLayoutChanged || variableTypesChanged || forEachLayoutChanged || structLayoutChanged || outputInputTypesChanged || linksChanged)
+    if (descriptorLayoutChanged || variableTypesChanged || forEachLayoutChanged || structLayoutChanged
+        || outputInputTypesChanged || linksChanged || callFunctionLayoutChanged)
         m_state.MarkDirty();
 }
 

@@ -39,7 +39,8 @@ enum class NodeType
     StructCreate, ///< Creates one instance of a named struct
     While,       ///< While loop
     Variable,    ///< Variable get/set
-    Function,    ///< Function definition/call
+    Function,    ///< Function definition
+    CallFunction, ///< Function call
     Output,      ///< Graph output/return value
     Unknown      ///< Uninitialized or invalid type
 };

@@ -926,40 +926,40 @@ bool RefreshStructNodeLayouts(GraphState& state)
     }
 
     auto ensureSchemaFields = [&](VisualNode& n, const std::string& defaultName) -> std::pair<std::string, StructDefEntry>
-    {
-        EnsureField(n.fields, "Struct Name", PinType::String, defaultName, changed);
-        EnsureField(n.fields, "Schema Fields", PinType::Array, "[]", changed);
-
-        // Reacquire pointers after EnsureField mutations to avoid dangling refs.
-        NodeField* nameField = GraphEditorUtils::FindField(n.fields, "Struct Name");
-        NodeField* schemaField = GraphEditorUtils::FindField(n.fields, "Schema Fields");
-
-        std::string structName = (nameField && !nameField->value.empty()) ? nameField->value : defaultName;
-        auto it = definitions.find(structName);
-        if (it == definitions.end() && !definitions.empty())
         {
-            structName = definitions.begin()->first;
-            if (nameField)
+            EnsureField(n.fields, "Struct Name", PinType::String, defaultName, changed);
+            EnsureField(n.fields, "Schema Fields", PinType::Array, "[]", changed);
+
+            // Reacquire pointers after EnsureField mutations to avoid dangling refs.
+            NodeField* nameField = GraphEditorUtils::FindField(n.fields, "Struct Name");
+            NodeField* schemaField = GraphEditorUtils::FindField(n.fields, "Schema Fields");
+
+            std::string structName = (nameField && !nameField->value.empty()) ? nameField->value : defaultName;
+            auto it = definitions.find(structName);
+            if (it == definitions.end() && !definitions.empty())
             {
-                nameField->value = structName;
+                structName = definitions.begin()->first;
+                if (nameField)
+                {
+                    nameField->value = structName;
+                    changed = true;
+                }
+                it = definitions.find(structName);
+            }
+
+            StructDefEntry entry;
+            if (it != definitions.end())
+                entry = it->second;
+
+            const std::string targetSchema = entry.schemaText.empty() ? "[]" : entry.schemaText;
+            if (schemaField && schemaField->value != targetSchema)
+            {
+                schemaField->value = targetSchema;
                 changed = true;
             }
-            it = definitions.find(structName);
-        }
 
-        StructDefEntry entry;
-        if (it != definitions.end())
-            entry = it->second;
-
-        const std::string targetSchema = entry.schemaText.empty() ? "[]" : entry.schemaText;
-        if (schemaField && schemaField->value != targetSchema)
-        {
-            schemaField->value = targetSchema;
-            changed = true;
-        }
-
-        return { structName, entry };
-    };
+            return { structName, entry };
+        };
 
     for (auto& n : nodes)
     {
@@ -1022,34 +1022,34 @@ bool RefreshStructNodeLayouts(GraphState& state)
                 claimedInputPinIds.insert(static_cast<uintptr_t>(structPin->id.Get()));
 
             auto isSchemaFieldName = [&](const std::string& pinName) -> bool
-            {
-                return std::any_of(
-                    entry.defs.begin(),
-                    entry.defs.end(),
-                    [&](const StructFieldDef& def) { return def.name == pinName; }
-                );
-            };
+                {
+                    return std::any_of(
+                        entry.defs.begin(),
+                        entry.defs.end(),
+                        [&](const StructFieldDef& def) { return def.name == pinName; }
+                    );
+                };
 
             auto findReusableLegacyInputPin = [&]() -> Pin*
-            {
-                for (Pin& p : n.inPins)
                 {
-                    if (p.name == "Struct")
-                        continue;
+                    for (Pin& p : n.inPins)
+                    {
+                        if (p.name == "Struct")
+                            continue;
 
-                    const uintptr_t pid = static_cast<uintptr_t>(p.id.Get());
-                    if (claimedInputPinIds.find(pid) != claimedInputPinIds.end())
-                        continue;
+                        const uintptr_t pid = static_cast<uintptr_t>(p.id.Get());
+                        if (claimedInputPinIds.find(pid) != claimedInputPinIds.end())
+                            continue;
 
-                    // Prefer legacy placeholders produced by older deserialization
-                    // ("Field N"). Fall back to any non-schema, non-Struct input.
-                    const bool isLegacyPlaceholder = (p.name.rfind("Field ", 0) == 0);
-                    const bool isSchemaNamed = isSchemaFieldName(p.name);
-                    if (isLegacyPlaceholder || !isSchemaNamed)
-                        return &p;
-                }
-                return nullptr;
-            };
+                        // Prefer legacy placeholders produced by older deserialization
+                        // ("Field N"). Fall back to any non-schema, non-Struct input.
+                        const bool isLegacyPlaceholder = (p.name.rfind("Field ", 0) == 0);
+                        const bool isSchemaNamed = isSchemaFieldName(p.name);
+                        if (isLegacyPlaceholder || !isSchemaNamed)
+                            return &p;
+                    }
+                    return nullptr;
+                };
 
             for (const StructFieldDef& def : entry.defs)
             {
@@ -1094,25 +1094,25 @@ bool RefreshStructNodeLayouts(GraphState& state)
             {
                 n.inPins.erase(
                     std::remove_if(n.inPins.begin(), n.inPins.end(), [&](const Pin& p)
-                    {
-                        if (p.name == "Struct")
-                            return false;
+                        {
+                            if (p.name == "Struct")
+                                return false;
 
-                        const bool existsInSchema = std::any_of(
-                            entry.defs.begin(),
-                            entry.defs.end(),
-                            [&](const StructFieldDef& def) { return def.name == p.name; }
-                        );
+                            const bool existsInSchema = std::any_of(
+                                entry.defs.begin(),
+                                entry.defs.end(),
+                                [&](const StructFieldDef& def) { return def.name == p.name; }
+                            );
 
-                        if (existsInSchema)
-                            return false;
+                            if (existsInSchema)
+                                return false;
 
-                        if (IsPinLinked(state, p.id))
-                            return false;
+                            if (IsPinLinked(state, p.id))
+                                return false;
 
-                        changed = true;
-                        return true;
-                    }),
+                            changed = true;
+                            return true;
+                        }),
                     n.inPins.end()
                 );
             }
@@ -1128,6 +1128,111 @@ bool RefreshStructNodeLayouts(GraphState& state)
                 itemPin->type = PinType::Array;
                 changed = true;
             }
+        }
+    }
+
+    return changed;
+}
+
+bool RefreshCallFunctionNodeLayout(GraphState & state)
+{
+    bool changed = false;
+    auto& nodes = state.GetNodes();
+
+    // Kerää Function-nodejen parametrit
+    struct FunctionDef { std::vector<std::string> params; };
+    std::unordered_map<std::string, FunctionDef> functionDefs;
+
+    for (const auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Function)
+            continue;
+
+        const NodeField* nameField = FindField(n.fields, "Name");
+        if (!nameField || nameField->value.empty())
+            continue;
+
+        FunctionDef def;
+        for (int i = 0; ; ++i)
+        {
+            const NodeField* p = FindField(n.fields,
+                ("Param" + std::to_string(i)).c_str());
+            if (!p || p->value.empty()) break;
+            def.params.push_back(p->value);
+        }
+        functionDefs[nameField->value] = def;
+    }
+
+    // Päivitä CallFunction-nodet
+    for (auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::CallFunction)
+            continue;
+
+        const NodeField* nameField = FindField(n.fields, "Name");
+        const std::string funcName = nameField ? nameField->value : "";
+
+        // Päivitä parametripinit funktion määrittelystä
+        auto it = functionDefs.find(funcName);
+        if (it != functionDefs.end())
+        {
+            const auto& params = it->second.params;
+
+            // Poista vanhat parametripinit paitsi In
+            std::vector<std::string> keepPins = { "In" };
+            for (const auto& p : params)
+                keepPins.push_back(p);
+
+            const size_t inBefore = n.inPins.size();
+            RemovePinsByNameExcept(n.inPins, keepPins);
+            if (n.inPins.size() != inBefore)
+                changed = true;
+
+            // Lisää puuttuvat parametripinit
+            for (const auto& paramName : params)
+            {
+                if (!FindPinByName(n.inPins, paramName.c_str()))
+                {
+                    n.inPins.push_back(MakePin(
+                        static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                        n.id, n.nodeType, paramName, PinType::Any, true));
+                    changed = true;
+                }
+            }
+
+            // Päivitä parametripinien tyypit kytkennän mukaan
+            for (auto& pin : n.inPins)
+            {
+                if (pin.name == "In" || pin.type == PinType::Flow)
+                    continue;
+
+                PinType resolvedType = PinType::Any;
+                for (const Link& l : state.GetLinks())
+                {
+                    if (!l.alive || l.endPinId != pin.id)
+                        continue;
+                    const Pin* src = state.FindPin(l.startPinId);
+                    if (src && src->type != PinType::Flow && src->type != PinType::Any)
+                    {
+                        resolvedType = src->type;
+                        break;
+                    }
+                }
+
+                if (pin.type != resolvedType)
+                {
+                    pin.type = resolvedType;
+                    changed = true;
+                }
+            }
+        }
+
+        // Result-pini tyyppi
+        Pin* resultPin = FindPinByName(n.outPins, "Result");
+        if (resultPin && resultPin->type != PinType::Number)
+        {
+            resultPin->type = PinType::Number;
+            changed = true;
         }
     }
 

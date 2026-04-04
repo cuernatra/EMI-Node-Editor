@@ -687,3 +687,9 @@ Node* GraphCompiler::BuildArrayLiteralNode(const std::string& text) const
 
     return arr;
 }
+
+// ???????????????????????????
+void GraphCompiler::AppendFlowFromPin(const Pin& outputPin, Node* targetScope)
+{
+    AppendFlowChainFromOutput(outputPin.id, targetScope);
+}

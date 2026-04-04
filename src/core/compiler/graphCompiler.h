@@ -106,6 +106,7 @@ public:
     Node* BuildExpr(const Pin& inputPin);        ///< Recursively builds AST expression from a pin's connected output
     Node* BuildNode(const VisualNode& n, int outPinIdx = 0);  ///< Builds AST node by looking up and invoking descriptor's compile callback
     Node* BuildArrayLiteralNode(const std::string& text) const; ///< Parses "[a, b, ...]" text into AST array literal
+    void AppendFlowFromPin(const Pin& outputPin, Node* targetScope); ///???????????????
 
 private:
     PinResolver resolver_;  ///< Analyzes pin connections and resolves input sources
