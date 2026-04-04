@@ -26,10 +26,7 @@ Pin* FindPinByName(std::vector<Pin>& pins, const char* name);
 // This makes node layouts largely automatic for newly registered node types.
 bool RefreshNodesFromRegistryDescriptors(GraphState& state);
 
-bool RefreshVariableNodeTypes(GraphState& state);
-bool RefreshOutputNodeInputTypes(GraphState& state);
-bool RefreshForEachNodeLayout(GraphState& state);
-bool RefreshStructNodeLayouts(GraphState& state);
+bool RunAllLayoutRefreshes(GraphState& state);
 bool SyncLinkTypesAndPruneInvalid(GraphState& state);
 void DisconnectNonAnyLinksForPins(GraphState& state, const std::vector<ed::PinId>& pinIds);
 }

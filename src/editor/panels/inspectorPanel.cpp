@@ -506,9 +506,7 @@ void InspectorPanel::draw(GraphState& state, uintptr_t selectedNodeRawId)
 		GraphSerializer::ApplyConstantTypeFromFields(*selectedNode, /*resetValueOnTypeChange=*/true);
 
 		GraphEditorUtils::RefreshNodesFromRegistryDescriptors(state);
-		GraphEditorUtils::RefreshVariableNodeTypes(state);
-		GraphEditorUtils::RefreshForEachNodeLayout(state);
-		GraphEditorUtils::RefreshStructNodeLayouts(state);
+		GraphEditorUtils::RunAllLayoutRefreshes(state);
 		GraphEditorUtils::SyncLinkTypesAndPruneInvalid(state);
 		state.MarkDirty();
 	}

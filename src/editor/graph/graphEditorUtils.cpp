@@ -875,8 +875,46 @@ bool RefreshForEachNodeLayout(GraphState& state)
 
 bool RefreshStructNodeLayouts(GraphState& state)
 {
-    bool changed = false;
     auto& nodes = state.GetNodes();
+
+    static const std::vector<VisualNode>* s_lastNodesPtr = nullptr;
+    static size_t s_lastAliveStructDefineCount = 0;
+    static size_t s_lastAliveStructShapeHash = 0;
+
+    size_t aliveStructDefineCount = 0;
+    size_t aliveStructShapeHash = 1469598103934665603ull; // FNV offset basis
+
+    for (const auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::StructDefine)
+            continue;
+
+        ++aliveStructDefineCount;
+
+        // Mix stable, cheap shape inputs only (avoid full schema parsing every frame).
+        aliveStructShapeHash ^= static_cast<size_t>(n.id.Get());
+        aliveStructShapeHash *= 1099511628211ull;
+        aliveStructShapeHash ^= n.fields.size();
+        aliveStructShapeHash *= 1099511628211ull;
+        aliveStructShapeHash ^= n.inPins.size();
+        aliveStructShapeHash *= 1099511628211ull;
+        aliveStructShapeHash ^= n.outPins.size();
+        aliveStructShapeHash *= 1099511628211ull;
+    }
+
+    const bool structLikelyDirty =
+        (s_lastNodesPtr != &nodes)
+        || (s_lastAliveStructDefineCount != aliveStructDefineCount)
+        || (s_lastAliveStructShapeHash != aliveStructShapeHash);
+
+    s_lastNodesPtr = &nodes;
+    s_lastAliveStructDefineCount = aliveStructDefineCount;
+    s_lastAliveStructShapeHash = aliveStructShapeHash;
+
+    if (!structLikelyDirty)
+        return false;
+
+    bool changed = false;
 
     struct StructDefEntry
     {
@@ -1129,6 +1167,35 @@ bool RefreshStructNodeLayouts(GraphState& state)
                 changed = true;
             }
         }
+    }
+
+    return changed;
+}
+
+bool RunAllLayoutRefreshes(GraphState& state)
+{
+    using LayoutRefreshFn = bool(*)(GraphState&);
+    struct LayoutRefreshEntry
+    {
+        NodeType type;
+        LayoutRefreshFn fn;
+    };
+
+    static const LayoutRefreshEntry kLayoutRefreshTable[] = {
+        { NodeType::Variable,     RefreshVariableNodeTypes },
+        { NodeType::ForEach,      RefreshForEachNodeLayout },
+        { NodeType::Output,       RefreshOutputNodeInputTypes },
+        { NodeType::StructDefine, RefreshStructNodeLayouts },
+        { NodeType::StructCreate, RefreshStructNodeLayouts },
+    };
+
+    bool changed = false;
+    std::unordered_set<LayoutRefreshFn> seen;
+    for (const LayoutRefreshEntry& entry : kLayoutRefreshTable)
+    {
+        (void)entry.type;
+        if (seen.insert(entry.fn).second)
+            changed |= entry.fn(state);
     }
 
     return changed;
