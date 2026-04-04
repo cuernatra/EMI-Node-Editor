@@ -1,12 +1,7 @@
 #pragma once
 
-/**
- * Helper functions for graph editor logic.
- *
- * This file keeps small shared rules and utility code out of GraphEditor.
- * Put things here when they are about graph rules or shared helper work,
- * not direct canvas drawing.
- */
+/** @file graphEditorUtils.h */
+/** @brief Shared graph normalization and helper utilities for editor flows. */
 #include "graphState.h"
 #include "core/graph/visualNode.h"
 #include "imgui.h"

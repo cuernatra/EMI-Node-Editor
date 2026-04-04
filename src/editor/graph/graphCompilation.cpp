@@ -8,17 +8,15 @@
 #include <string>
 #include <utility>
 
-// Pimpl implementation details
+// Compile pipeline in plain terms:
+// 1) Convert node graph to AST.
+// 2) Compile AST into VM bytecode.
+// 3) Run generated entrypoint `__graph__()`.
 class GraphCompilation::Impl
 {
 public:
     std::unique_ptr<VM> vm;
 
-    /**
-     * @brief Initializes the Pimpl implementation with a VM instance.
-     *
-     * @author Jenny
-     */
     Impl()
     {
         vm = std::make_unique<VM>();
@@ -27,21 +25,11 @@ public:
     ~Impl() = default;
 };
 
-/**
- * @brief Constructs a GraphCompilation instance and initializes the implementation.
- *
- * @author Jenny
- */
 GraphCompilation::GraphCompilation()
     : m_impl(std::make_unique<Impl>())
 {
 }
 
-/**
- * @brief Destroys the GraphCompilation instance.
- *
- * @author Jenny
- */
 GraphCompilation::~GraphCompilation() = default;
 
 void GraphCompilation::SetLogSink(LogSink sink)
@@ -126,7 +114,7 @@ GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
         return makeCancelled();
     }
 
-    // Debug Print is optional: graphs may be valid without explicit output nodes.
+    // Output nodes are optional. We keep a warning because users often expect console output.
     bool hasOutputNode = false;
     for (const auto& n : nodes)
     {
@@ -142,7 +130,7 @@ GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
         m_logSink("[WARN] No Debug Print node found. Graph will run without console output.\n");
     }
 
-    // Compile visual graph to AST
+    // Stage 1: build AST from the current graph snapshot.
     GraphCompiler gc;
     Node* ast = gc.Compile(nodes, links);
 
@@ -173,10 +161,10 @@ GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
 
     constexpr const char* kCompileUnitName = "__graph_unit__";
 
-    // Clear previous graph unit from VM
+    // Stage 2: remove previous graph unit so reruns use only fresh code.
     m_impl->vm->RemoveUnit(kCompileUnitName);
 
-    // Compile AST to VM bytecode
+    // Stage 3: compile AST into VM bytecode.
     m_impl->vm->CompileAST(kCompileUnitName, ast);
 
     if (m_forceStopRequested.load())
@@ -184,7 +172,7 @@ GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
         return makeCancelled();
     }
 
-    // Execute the compiled graph function
+    // Stage 4: execute generated graph entrypoint.
     constexpr const char* kRunGraphScript = "__graph__();";
     void* printHandle = m_impl->vm->CompileTemporary(kRunGraphScript);
     if (!printHandle || !m_impl->vm->WaitForResult(printHandle))

@@ -1,12 +1,5 @@
-/**
- * @file graphCompilation.h
- * @brief Graph-to-code compilation bridge
- * 
- * Provides high-level interface for compiling the visual node graph
- * into executable EMI-Script code. Acts as a bridge between the editor
- * and the core GraphCompiler, managing EMI environment and execution.
- * 
- */
+/** @file graphCompilation.h */
+/** @brief Compile and execute graph snapshots. */
 
 #pragma once
 
@@ -20,17 +13,7 @@ class GraphState;
 struct VisualNode;
 struct Link;
 
-/**
- * @brief High-level graph compilation and execution interface
- * 
- * Manages the EMI-Script VM environment and provides a simple compilation
- * interface for the editor. Validates the graph, compiles to AST, and
- * prepares for EMI's internal ASTWalker compilation.
- * 
- * Currently creates and prints the AST. Future integration will use
- * EMI's Parser::ParseAST() and internal execution APIs.
- * 
- */
+/** @brief Bridges editor graph data to compiler/VM execution. */
 class GraphCompilation
 {
 public:
@@ -42,35 +25,13 @@ public:
         std::string message;
     };
 
-    /**
-     * @brief Initialize the EMI environment for compilation
-     * 
-     * Creates an EMI::VMHandle for script compilation and execution.
-     * Must be called before CompileGraph().
-     */
+    /** @brief Initialize compilation runtime resources. */
     GraphCompilation();
 
-    /**
-     * @brief Clean up the EMI environment
-     */
+    /** @brief Release compilation runtime resources. */
     ~GraphCompilation();
 
-    /**
-     * @brief Compile and execute the graph
-     * @param state The graph state to compile and execute; updated with results
-     * 
-     * Performs the following steps:
-     * 1. Pre-validate graph (check for Debug Print node)
-     * 2. Compile visual graph to EMI-Script AST via GraphCompiler
-     * 3. TODO: Compile AST with EMI's internal Parser::ParseAST (ASTWalker)
-     * 4. TODO: Extract and execute the __graph__ function
-     * 5. TODO: Retrieve return value and update state
-     * 
-     * Currently creates and prints AST for debugging. Future integration
-     * will use EMI's internal compilation and execution APIs.
-     * All compilation and runtime errors are caught and stored
-     * in the graph state for display to the user.
-     */
+    /** @brief Compile and execute using mutable editor state. */
     void CompileGraph(GraphState& state, bool resultOnly = false);
 
     /// Compile and execute from immutable graph snapshots (thread-friendly API).
