@@ -10,6 +10,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+// This file holds shared graph rules used by editor flows.
+// Keep canvas drawing in GraphEditor and reusable graph normalization here.
 namespace
 {
 std::string TrimCopy(const std::string& s)
