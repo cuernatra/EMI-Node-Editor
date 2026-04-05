@@ -11,7 +11,6 @@
 #include <limits>
 #include <queue>
 #include <random>
-#include <thread>
 #include <vector>
 
 // ---------------------------------------------------------------------------
@@ -109,38 +108,6 @@ static std::vector<PathCell> RunAStarPath(
     return path;
 }
 
-// ---------------------------------------------------------------------------
-// Rendering helpers
-// ---------------------------------------------------------------------------
-
-static void DrawFrame()
-{
-    RenderPanel* panel = GetNativeRenderPanel();
-    if (!panel) return;
-
-    const AStarRuntimeState& s = s_astar;
-    panel->clearGrid(s.w, s.h);
-
-    // Walls — grey
-    for (int y = 0; y < s.h; ++y)
-        for (int x = 0; x < s.w; ++x)
-            if (s.walls[static_cast<size_t>(y * s.w + x)])
-                panel->drawCell(x, y, 75, 75, 75);
-
-    // Path — blue
-    for (size_t i = s.pathStep; i < s.path.size(); ++i)
-    {
-        const PathCell& c = s.path[i];
-        if ((c.x == s.goalX && c.y == s.goalY) || (c.x == s.agentX && c.y == s.agentY))
-            continue;
-        panel->drawCell(c.x, c.y, 0, 100, 220);
-    }
-
-    // Goal — green, agent — red
-    panel->drawCell(s.goalX,  s.goalY,  0,   180, 60);
-    panel->drawCell(s.agentX, s.agentY, 220, 50,  50);
-    panel->renderGrid(); // no-op but keeps symmetry with the original
-}
 
 // ---------------------------------------------------------------------------
 // Wall generation
@@ -251,11 +218,6 @@ static void astar_step_impl()
     Retarget();
 }
 
-static void astar_render_impl()
-{
-    if (!GetNativeRenderPanel() || !s_astar.initialized) return;
-    DrawFrame();
-}
 
 static void astar_retarget_impl()
 {
@@ -286,53 +248,67 @@ static bool astar_needs_retarget_impl()
     return s_astar.pathStep >= s_astar.path.size();
 }
 
-// Poll mouse state and paint/erase walls in the live A* grid.
-// Left button  → place wall at cursor cell and recompute path.
-// Right button → erase wall at cursor cell and recompute path.
-static void astar_interact_impl()
+// Read the wall flag at (x, y). Returns 1.0 if wall, 0.0 if open.
+static double astar_getwall_impl(double x, double y)
 {
-    RenderPanel* panel = GetNativeRenderPanel();
-    if (!panel || !s_astar.initialized) return;
-
-    AStarRuntimeState& s = s_astar;
-    const int x = panel->getMouseX();
-    const int y = panel->getMouseY();
-    if (x < 0 || y < 0 || x >= s.w || y >= s.h) return;
-
-    const size_t i = static_cast<size_t>(y * s.w + x);
-
-    if (panel->isMouseButtonDown(0))
-    {
-        // Don't wall-off the agent's current cell.
-        if (x == s.agentX && y == s.agentY) return;
-        if (s.walls[i] == 1) return; // already a wall, skip recompute
-        s.walls[i] = 1;
-        s.path     = RunAStarPath(s.w, s.h, s.agentX, s.agentY, s.goalX, s.goalY, s.walls);
-        s.pathStep = 1;
-        if (s.path.size() < 2) Retarget();
-    }
-    else if (panel->isMouseButtonDown(1))
-    {
-        if (s.walls[i] == 0) return; // already empty, skip recompute
-        s.walls[i] = 0;
-        s.path     = RunAStarPath(s.w, s.h, s.agentX, s.agentY, s.goalX, s.goalY, s.walls);
-        s.pathStep = 1;
-    }
+    if (!s_astar.initialized) return 0.0;
+    const AStarRuntimeState& s = s_astar;
+    const int ix = std::clamp(static_cast<int>(std::llround(x)), 0, s.w - 1);
+    const int iy = std::clamp(static_cast<int>(std::llround(y)), 0, s.h - 1);
+    return static_cast<double>(s.walls[static_cast<size_t>(iy * s.w + ix)]);
 }
 
-// Blocking all-in-one loop — lets a single NativeCall node run the whole demo.
-static void astarpathfinder_impl(double gridW, double gridH,
-                                 double startX, double startY,
-                                 double goalX,  double goalY)
+// Set or clear the wall at (x, y), then recompute the path.
+// isWall != 0 places a wall; isWall == 0 removes it.
+// Called by the graph's mouse interaction branch nodes.
+static void astar_setwall_impl(double x, double y, double isWall)
 {
-    astar_init_impl(gridW, gridH, startX, startY, goalX, goalY);
-    while (!IsRuntimeInterruptRequested())
-    {
-        astar_step_impl();
-        astar_render_impl();
-        for (int i = 0; i < 5 && !IsRuntimeInterruptRequested(); ++i)
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
+    if (!s_astar.initialized) return;
+    AStarRuntimeState& s = s_astar;
+    const int ix = std::clamp(static_cast<int>(std::llround(x)), 0, s.w - 1);
+    const int iy = std::clamp(static_cast<int>(std::llround(y)), 0, s.h - 1);
+
+    // Never wall off the agent's current cell.
+    if (ix == s.agentX && iy == s.agentY) return;
+
+    const size_t i = static_cast<size_t>(iy * s.w + ix);
+    const uint8_t newVal = (isWall != 0.0) ? 1 : 0;
+    if (s.walls[i] == newVal) return; // no change, skip recompute
+
+    s.walls[i] = newVal;
+    s.path     = RunAStarPath(s.w, s.h, s.agentX, s.agentY, s.goalX, s.goalY, s.walls);
+    s.pathStep = 1;
+    if (s.path.size() < 2) Retarget();
+}
+
+
+// Number of path cells remaining (path.size() - pathStep).
+// Used by the graph's path-drawing loop as its Count.
+static double astar_getpathlen_impl()
+{
+    if (!s_astar.initialized) return 0.0;
+    const AStarRuntimeState& s = s_astar;
+    return (s.pathStep < s.path.size())
+        ? static_cast<double>(s.path.size() - s.pathStep)
+        : 0.0;
+}
+
+// X coordinate of the path cell at offset `index` from pathStep.
+static double astar_getpathcell_x_impl(double index)
+{
+    if (!s_astar.initialized) return 0.0;
+    const AStarRuntimeState& s = s_astar;
+    const size_t i = s.pathStep + static_cast<size_t>(std::max(0LL, std::llround(index)));
+    return (i < s.path.size()) ? static_cast<double>(s.path[i].x) : 0.0;
+}
+
+// Y coordinate of the path cell at offset `index` from pathStep.
+static double astar_getpathcell_y_impl(double index)
+{
+    if (!s_astar.initialized) return 0.0;
+    const AStarRuntimeState& s = s_astar;
+    const size_t i = s.pathStep + static_cast<size_t>(std::max(0LL, std::llround(index)));
+    return (i < s.path.size()) ? static_cast<double>(s.path[i].y) : 0.0;
 }
 
 // ---------------------------------------------------------------------------
@@ -341,9 +317,9 @@ static void astarpathfinder_impl(double gridW, double gridH,
 
 EMI_REGISTER(astar_init,           astar_init_impl)
 EMI_REGISTER(astar_step,           astar_step_impl)
-EMI_REGISTER(astar_render,         astar_render_impl)
-EMI_REGISTER(astar_retarget,       astar_retarget_impl)
 EMI_REGISTER(astar_get,            astar_get_impl)
-EMI_REGISTER(astar_needs_retarget, astar_needs_retarget_impl)
-EMI_REGISTER(astar_interact,       astar_interact_impl)
-EMI_REGISTER(astarpathfinder,      astarpathfinder_impl)
+EMI_REGISTER(astar_getwall,        astar_getwall_impl)
+EMI_REGISTER(astar_setwall,        astar_setwall_impl)
+EMI_REGISTER(astar_getpathlen,     astar_getpathlen_impl)
+EMI_REGISTER(astar_getpathcell_x,  astar_getpathcell_x_impl)
+EMI_REGISTER(astar_getpathcell_y,  astar_getpathcell_y_impl)

@@ -33,6 +33,7 @@ add_executable(emi-editor
   core/registry/nodes/flowNodes.cpp
   core/registry/nodes/structNodes.cpp
   core/registry/nodes/demoNodes.cpp
+  core/registry/nodes/renderNodes.cpp
   core/compiler/graphCompiler.cpp
   core/compiler/pinResolver.cpp
 

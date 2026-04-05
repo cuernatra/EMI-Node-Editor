@@ -29,6 +29,7 @@ NodeRegistry::NodeRegistry()
     RegisterFlowNodes();
     RegisterStructNodes();
     RegisterDemoNodes();
+    RegisterRenderNodes();
 }
 
 void NodeRegistry::Register(NodeDescriptor descriptor)

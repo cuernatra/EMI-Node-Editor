@@ -27,6 +27,9 @@ enum class NodeType
     NativeGet,   ///< Read value from a registered native function
     DrawRect,    ///< Draw rectangle preview
     DrawGrid,    ///< Draw grid preview
+    DrawCell,    ///< Draw one grid cell (calls drawcell native)
+    ClearGrid,   ///< Clear the render grid (calls cleargrid native)
+    RenderGrid,  ///< Flush the render grid (calls rendergrid native)
     Delay,       ///< Delay in flow
     Sequence,    ///< One input, many ordered outputs
     Branch,      ///< If/else branching

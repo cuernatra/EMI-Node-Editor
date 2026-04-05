@@ -27,6 +27,7 @@ add_executable(tests
     ../src/core/registry/nodes/eventNodes.cpp
     ../src/core/registry/nodes/flowNodes.cpp
     ../src/core/registry/nodes/logicNodes.cpp
+    ../src/core/registry/nodes/renderNodes.cpp
     ../src/core/registry/nodes/structNodes.cpp
     ../src/core/registry/nodes/demoNodes.cpp
     ../src/core/graph/pin.cpp

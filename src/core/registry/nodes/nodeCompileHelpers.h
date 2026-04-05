@@ -354,6 +354,23 @@ inline Node* BuildBranchNode(GraphCompiler* compiler, const VisualNode& n)
     Node* ifNode = MakeNode(Token::If);
     Node* condExpr = compiler->BuildExpr(*conditionPin);
     if (compiler->HasError) { delete ifNode; return nullptr; }
+
+    // If the connected source pin carries a Number or Any value, wrap with != 0
+    // so that native functions returning 1.0/0.0 work as boolean conditions.
+    const PinSource* condSrc = compiler->Resolve(*conditionPin);
+    if (condSrc && condSrc->node && condSrc->pinIdx >= 0 &&
+        condSrc->pinIdx < static_cast<int>(condSrc->node->outPins.size()))
+    {
+        const PinType srcType = condSrc->node->outPins[static_cast<size_t>(condSrc->pinIdx)].type;
+        if (srcType == PinType::Number || srcType == PinType::Any)
+        {
+            Node* notEq = MakeNode(Token::NotEqual);
+            notEq->children.push_back(condExpr);
+            notEq->children.push_back(MakeNumberLiteral(0.0));
+            condExpr = notEq;
+        }
+    }
+
     ifNode->children.push_back(condExpr);
 
     ifNode->children.push_back(MakeNode(Token::Scope));

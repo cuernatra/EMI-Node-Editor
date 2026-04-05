@@ -35,6 +35,7 @@ Node* CompileNativeCallNode(GraphCompiler* compiler, const VisualNode& n)
             return nullptr;
     }
 
+    // Always emit as an expression so the value can be used if desired
     return compiler->EmitFunctionCall(funcName, std::move(args));
 }
 
@@ -87,7 +88,8 @@ void NodeRegistry::RegisterDemoNodes()
             { "Arg3", PinType::Number, true  },
             { "Arg4", PinType::Number, true  },
             { "Arg5", PinType::Number, true  },
-            { "Out",  PinType::Flow,   false }
+            { "Out",  PinType::Flow,   false },
+            { "Value", PinType::Any,   false }
         },
         {
             { "Function", PinType::String, "" },
