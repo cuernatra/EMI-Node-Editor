@@ -41,12 +41,22 @@ MainEditor::MainEditor()
 
 MainEditor::~MainEditor()
 {
-    // Ensure any running compilation is force-stopped before waiting.
+
+    // Ensure any running compilation is force-stopped before waiting, with timeout.
     if (m_compileFuture.valid())
     {
         if (m_compiler)
             m_compiler->RequestForceStop();
-        m_compileFuture.wait();
+        using namespace std::chrono_literals;
+        if (m_compileFuture.wait_for(1s) != std::future_status::ready)
+        {
+            // Timed out waiting for compilation to finish; skip waiting to avoid hang.
+            // The thread will be abandoned, but the process will exit cleanly.
+        }
+        else
+        {
+            m_compileFuture.get();
+        }
         m_compileInProgress = false;
     }
 
