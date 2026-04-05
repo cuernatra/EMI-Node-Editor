@@ -118,12 +118,7 @@ void VM::CompileAST(const char* name, Node* ast)
 
 void VM::Interrupt()
 {
-	RequestRuntimeInterrupt();
-}
 
-void VM::ClearInterrupt()
-{
-	ClearRuntimeInterrupt();
 }
 
 std::string VM::FindLibrary(const char*) const
@@ -644,20 +639,20 @@ void Runner::Run()
 						Error() << "Index type does not match the expression";
 						goto start;
 					}
-					const double nextIndex = index.as<double>() + 1.0;
-					index = nextIndex;
+					index = index.as<double>() + 1.0;
 
 					bool result = false;
 					switch (cmp.getType())
 					{
+					case VariableType::Number: {
+						result = index.as<double>() < cmp.as<double>();
+					} break;
+
 					case VariableType::Array: {
-						result = nextIndex < cmp.as<Array>()->size();
+						result = index.as<double>() < cmp.as<Array>()->size();
 					} break;
 
 					default:
-						// For "for each" style iteration, non-array values are yielded once
-						// as-is (instead of numeric range semantics).
-						result = (nextIndex == 0.0);
 						break;
 					}
 
@@ -675,25 +670,26 @@ void Runner::Run()
 						Error() << "Index type does not match the expression";
 						goto start;
 					}
-					const double nextIndex = index.as<double>() + 1.0;
-					index = nextIndex;
+					index = index.as<double>() + 1.0;
 
 					bool result = false;
 					switch (cmp.getType())
 					{
-					case VariableType::Array: {
-						result = nextIndex < cmp.as<Array>()->size();
+					case VariableType::Number: {
+						result = index.as<double>() < cmp.as<double>();
 						if (result) {
-							var = cmp.as<Array>()->data()[static_cast<size_t>(nextIndex)];
+							var = index;
+						}
+					} break;
+
+					case VariableType::Array: {
+						result = index.as<double>() < cmp.as<Array>()->size();
+						if (result) {
+							var = cmp.as<Array>()->data()[static_cast<size_t>(index.as<double>())];
 						}
 					} break;
 
 					default:
-						// Non-array value: pass it through once as current element.
-						result = (nextIndex == 0.0);
-						if (result) {
-							var = cmp;
-						}
 						break;
 					}
 

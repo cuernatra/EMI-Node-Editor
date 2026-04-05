@@ -2,18 +2,18 @@
 #include "TypeConverters.h"
 
 #ifdef DEBUG
-constexpr const char* print_first = "\xE2\x94\x9C\xE2\x94\x80\xE2\x94\x80";
-constexpr const char* print_last  = "\xE2\x94\x94\xE2\x94\x80\xE2\x94\x80";
-constexpr const char* print_add   = "\xE2\x94\x82   ";
+constexpr unsigned char print_first[] = { 195, 196, 196, 0 };
+constexpr unsigned char print_last[] = { 192, 196, 196, 0 };
+constexpr unsigned char print_add[] = { 179, 32, 32, 32, 0 };
 
 void Node::print(const std::string& prefix, bool isLast)
 {
 	gCompileLogger() << prefix;
-	gCompileLogger() << (isLast ? print_last : print_first);
+	gCompileLogger() << (isLast ? (char*)print_last : (char*)print_first);
 	gCompileLogger() << TokensToName[type] << ": " << VariantToStr(this) << "\n";
 
 	for (auto& node : children) {
-		node->print(prefix + (isLast ? "    " : print_add), node == children.back());
+		node->print(prefix + (isLast ? "    " : (char*)print_add), node == children.back());
 	}
 }
 #endif

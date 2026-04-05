@@ -49,10 +49,6 @@ void GraphCompilation::RequestForceStop()
 void GraphCompilation::ClearForceStopRequest()
 {
     m_forceStopRequested.store(false);
-    if (m_impl && m_impl->vm)
-    {
-        m_impl->vm->ClearInterrupt();
-    }
 }
 
 void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
@@ -66,11 +62,6 @@ GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
     const std::vector<Link>& links,
     bool resultOnly)
 {
-    if (m_impl && m_impl->vm)
-    {
-        m_impl->vm->ClearInterrupt();
-    }
-
     auto makeCancelled = [&]() -> CompileResult
     {
         const std::string status = "[WARN] Compile force-stopped by user\n";

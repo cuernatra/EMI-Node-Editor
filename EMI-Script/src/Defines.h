@@ -2,7 +2,6 @@
 #define _DEFINES_H_GUARD
 #pragma once
 #include "Logger.h"
-#include <atomic>
 
 #ifdef _DEBUG
 #define DEBUG
@@ -61,27 +60,6 @@ inline LogService& gScriptLogger()
 {
 	static LogService log;
 	return log;
-}
-
-inline std::atomic<bool>& gRuntimeInterruptRequested()
-{
-	static std::atomic<bool> requested{ false };
-	return requested;
-}
-
-inline void RequestRuntimeInterrupt()
-{
-	gRuntimeInterruptRequested().store(true);
-}
-
-inline void ClearRuntimeInterrupt()
-{
-	gRuntimeInterruptRequested().store(false);
-}
-
-inline bool IsRuntimeInterruptRequested()
-{
-	return gRuntimeInterruptRequested().load();
 }
 
 #define X(x) x,
