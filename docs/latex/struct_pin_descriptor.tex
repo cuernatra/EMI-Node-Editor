@@ -1,0 +1,75 @@
+\doxysection{Pin\+Descriptor Struct Reference}
+\hypertarget{struct_pin_descriptor}{}\label{struct_pin_descriptor}\index{PinDescriptor@{PinDescriptor}}
+
+
+Static definition of a pin on a node type Used by factory to create \doxylink{struct_pin}{Pin} objects with correct name, type, and direction.  
+
+
+
+
+{\ttfamily \+\#include $<$node\+Descriptor.\+h$>$}
+
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+std::\+string \doxymbox{\hyperlink{struct_pin_descriptor_a62591a87021e224b26bc6e311269d458}{name}}
+\begin{DoxyCompactList}\small\item\em Display label for the pin. \end{DoxyCompactList}\item 
+\doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{Pin\+Type}} \doxymbox{\hyperlink{struct_pin_descriptor_a7106e9db7059f7297aa903f58253c7de}{type}}
+\begin{DoxyCompactList}\small\item\em Data type the pin handles. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{struct_pin_descriptor_a177c84f9a9217d02516585529a5e193e}{is\+Input}}
+\begin{DoxyCompactList}\small\item\em true = input, false = output \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{struct_pin_descriptor_abba6e294d6aebfac36c415441719edd5}{is\+Multi\+Input}} = false
+\begin{DoxyCompactList}\small\item\em Allow multiple incoming connections. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Static definition of a pin on a node type Used by factory to create \doxylink{struct_pin}{Pin} objects with correct name, type, and direction. 
+
+\label{doc-variable-members}
+\Hypertarget{struct_pin_descriptor_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{struct_pin_descriptor_a177c84f9a9217d02516585529a5e193e}\index{PinDescriptor@{PinDescriptor}!isInput@{isInput}}
+\index{isInput@{isInput}!PinDescriptor@{PinDescriptor}}
+\doxysubsubsection{\texorpdfstring{isInput}{isInput}}
+{\footnotesize\ttfamily \label{struct_pin_descriptor_a177c84f9a9217d02516585529a5e193e} 
+bool Pin\+Descriptor::\+is\+Input}
+
+
+
+true = input, false = output 
+
+\Hypertarget{struct_pin_descriptor_abba6e294d6aebfac36c415441719edd5}\index{PinDescriptor@{PinDescriptor}!isMultiInput@{isMultiInput}}
+\index{isMultiInput@{isMultiInput}!PinDescriptor@{PinDescriptor}}
+\doxysubsubsection{\texorpdfstring{isMultiInput}{isMultiInput}}
+{\footnotesize\ttfamily \label{struct_pin_descriptor_abba6e294d6aebfac36c415441719edd5} 
+bool Pin\+Descriptor::\+is\+Multi\+Input = false}
+
+
+
+Allow multiple incoming connections. 
+
+\Hypertarget{struct_pin_descriptor_a62591a87021e224b26bc6e311269d458}\index{PinDescriptor@{PinDescriptor}!name@{name}}
+\index{name@{name}!PinDescriptor@{PinDescriptor}}
+\doxysubsubsection{\texorpdfstring{name}{name}}
+{\footnotesize\ttfamily \label{struct_pin_descriptor_a62591a87021e224b26bc6e311269d458} 
+std::\+string Pin\+Descriptor::\+name}
+
+
+
+Display label for the pin. 
+
+\Hypertarget{struct_pin_descriptor_a7106e9db7059f7297aa903f58253c7de}\index{PinDescriptor@{PinDescriptor}!type@{type}}
+\index{type@{type}!PinDescriptor@{PinDescriptor}}
+\doxysubsubsection{\texorpdfstring{type}{type}}
+{\footnotesize\ttfamily \label{struct_pin_descriptor_a7106e9db7059f7297aa903f58253c7de} 
+\doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{Pin\+Type}} Pin\+Descriptor::\+type}
+
+
+
+Data type the pin handles. 
+
+
+
+The documentation for this struct was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+registry/\+\doxymbox{\hyperlink{node_descriptor_8h}{node\+Descriptor.\+h}}\end{DoxyCompactItemize}

@@ -1,0 +1,55 @@
+\doxysection{Node\+Preview Class Reference}
+\hypertarget{class_node_preview}{}\label{class_node_preview}\index{NodePreview@{NodePreview}}
+
+
+Renders a small preview of a node type.  
+
+
+
+
+{\ttfamily \+\#include $<$node\+Preview.\+h$>$}
+
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \doxymbox{\hyperlink{class_node_preview_abb1fdfeb8d2a9f229923d347c42effa6}{Draw}} (\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} node\+Type, const char \texorpdfstring{$\ast$}{*}title\+Override=nullptr)
+\begin{DoxyCompactList}\small\item\em Draw a small preview of a node type. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Renders a small preview of a node type. 
+
+Draws a miniature representation of a node showing:\+
+\begin{DoxyItemize}
+\item Node body with title
+\item Input pins on the left (tiny circles)
+\item Output pins on the right (tiny circles)
+\item Field labels if space allows
+\end{DoxyItemize}
+
+Used in the left panel palette to show what each draggable node type looks like before user drags it to canvas. 
+
+\label{doc-func-members}
+\Hypertarget{class_node_preview_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_node_preview_abb1fdfeb8d2a9f229923d347c42effa6}\index{NodePreview@{NodePreview}!Draw@{Draw}}
+\index{Draw@{Draw}!NodePreview@{NodePreview}}
+\doxysubsubsection{\texorpdfstring{Draw()}{Draw()}}
+{\footnotesize\ttfamily \label{class_node_preview_abb1fdfeb8d2a9f229923d347c42effa6} 
+void Node\+Preview::\+\+Draw (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}}}]{node\+Type}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{title\+Override}{ = {\ttfamily nullptr}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Draw a small preview of a node type. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em node\+Type} & The type of node to preview\\
+\hline
+\end{DoxyParams}
+Queries the node registry to get pin/\+field information, then draws a scaled-\/down version. Safe to call repeatedly. 
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+editor/\+widgets/\+\doxymbox{\hyperlink{node_preview_8h}{node\+Preview.\+h}}\item 
+src/\+editor/\+widgets/\+\doxymbox{\hyperlink{node_preview_8cpp}{node\+Preview.\+cpp}}\end{DoxyCompactItemize}

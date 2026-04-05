@@ -1,0 +1,33 @@
+\doxysection{src/\+core/\+compiler/\+graph\+Compiler.h File Reference}
+\hypertarget{graph_compiler_8h}{}\label{graph_compiler_8h}\index{src/core/compiler/graphCompiler.h@{src/core/compiler/graphCompiler.h}}
+
+
+Graph-\/to-\/\+AST compilation for EMI-\/\+Script execution.  
+
+
+{\ttfamily \+\#include "{}../\+graph/\+visual\+Node.\+h"{}}\newline
+{\ttfamily \+\#include "{}../\+graph/\+link.\+h"{}}\newline
+{\ttfamily \+\#include "{}pin\+Resolver.\+h"{}}\newline
+{\ttfamily \+\#include "{}Parser/\+\+Node.\+h"{}}\newline
+{\ttfamily \+\#include "{}Parser/\+\+Lexer.\+h"{}}\newline
+{\ttfamily \+\#include $<$string$>$}\newline
+{\ttfamily \+\#include $<$vector$>$}\newline
+{\ttfamily \+\#include $<$unordered\+\_\+set$>$}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \doxymbox{\hyperlink{class_graph_compiler}{Graph\+Compiler}}
+\begin{DoxyCompactList}\small\item\em Compiles visual graphs to EMI-\/\+Script AST. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Graph-\/to-\/\+AST compilation for EMI-\/\+Script execution. 
+
+Converts visual node graphs to EMI-\/\+Script AST (Abstract Syntax Tree) for compilation and execution via the EMI runtime.
+
+Compilation flow:\+
+\begin{DoxyEnumerate}
+\item \doxylink{class_pin_resolver}{Pin\+Resolver} analyzes graph connectivity and maps input pins to sources
+\item \doxylink{class_graph_compiler}{Graph\+Compiler} recursively builds AST nodes from visual nodes
+\item Generated AST is wrapped in a function and returned to caller TODO:\+ 4. AST will be compiled via EMI\textquotesingle{}s Parser::\+\+Parse\+AST with Compile\+Options::\+\+Ptr TODO:\+ 5. VM will execute with result recoverable via Get\+Return\+Value 
+\end{DoxyEnumerate}

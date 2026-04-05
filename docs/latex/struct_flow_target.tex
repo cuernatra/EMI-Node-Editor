@@ -1,0 +1,51 @@
+\doxysection{Flow\+Target Struct Reference}
+\hypertarget{struct_flow_target}{}\label{struct_flow_target}\index{FlowTarget@{FlowTarget}}
+
+
+Identifies where a flow output pin continues execution.  
+
+
+
+
+{\ttfamily \+\#include $<$pin\+Resolver.\+h$>$}
+
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{struct_flow_target_ad88164939c7cbf1c58e01cae71a7aa6c}{node}} = nullptr
+\begin{DoxyCompactList}\small\item\em Downstream node receiving the flow signal. \end{DoxyCompactList}\item 
+int \doxymbox{\hyperlink{struct_flow_target_a7e97dbdf64a761858788027add7b464e}{pin\+Idx}} = 0
+\begin{DoxyCompactList}\small\item\em Index into node-\/\texorpdfstring{$>$}{>}in\+Pins (the flow input that is connected). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Identifies where a flow output pin continues execution. 
+
+\label{doc-variable-members}
+\Hypertarget{struct_flow_target_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{struct_flow_target_ad88164939c7cbf1c58e01cae71a7aa6c}\index{FlowTarget@{FlowTarget}!node@{node}}
+\index{node@{node}!FlowTarget@{FlowTarget}}
+\doxysubsubsection{\texorpdfstring{node}{node}}
+{\footnotesize\ttfamily \label{struct_flow_target_ad88164939c7cbf1c58e01cae71a7aa6c} 
+const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}}\texorpdfstring{$\ast$}{*} Flow\+Target::\+node = nullptr}
+
+
+
+Downstream node receiving the flow signal. 
+
+\Hypertarget{struct_flow_target_a7e97dbdf64a761858788027add7b464e}\index{FlowTarget@{FlowTarget}!pinIdx@{pinIdx}}
+\index{pinIdx@{pinIdx}!FlowTarget@{FlowTarget}}
+\doxysubsubsection{\texorpdfstring{pinIdx}{pinIdx}}
+{\footnotesize\ttfamily \label{struct_flow_target_a7e97dbdf64a761858788027add7b464e} 
+int Flow\+Target::\+pin\+Idx = 0}
+
+
+
+Index into node-\/\texorpdfstring{$>$}{>}in\+Pins (the flow input that is connected). 
+
+
+
+The documentation for this struct was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+compiler/\+\doxymbox{\hyperlink{pin_resolver_8h}{pin\+Resolver.\+h}}\end{DoxyCompactItemize}

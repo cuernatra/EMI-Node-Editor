@@ -1,15 +1,5 @@
-/**
- * @file nodeDescriptor.h
- * @brief Static node type definitions and descriptors
- * 
- * Defines the structure of node types via descriptors that specify:
- * - Pin configuration (names, types, directions)
- * - Editable fields (names, types, defaults)
- * - Display information (labels)
- * 
- * These descriptors are templates used by the factory to create node instances.
- * 
- */
+/** @file nodeDescriptor.h */
+/** @brief Static node templates used to build runtime node instances. */
 
 #ifndef NODE_DESCRIPTOR_H
 #define NODE_DESCRIPTOR_H
@@ -19,53 +9,95 @@
 #include <vector>
 #include <functional>
 
-// Forward declarations for compile callback
+// Forward declarations used by callbacks.
 class GraphCompiler;
 class Node;
 struct VisualNode;
-
-// TODO: tarviiks tätä
+struct NodeDescriptor;
 
 /**
- * @brief Callback for compiling a visual node to AST
- * Eliminates need for large switch statements by storing compilation logic with the descriptor.
+ * @brief Callback that compiles one node into AST.
+ *
+ * Storing compile logic on the descriptor avoids large switch statements.
  */
 using CompileCallback = std::function<Node*(GraphCompiler*, const VisualNode&)>;
 
 /**
- * @brief Static definition of a pin on a node type
- * Used by factory to create Pin objects with correct name, type, and direction.
+ * @brief Callback for loading nodes that use non-standard pin layouts.
+ *
+ * Return false on failure. nullptr means use default exact-pin-count loading.
+ */
+using DeserializeCallback = std::function<bool(VisualNode&, const NodeDescriptor&, const std::vector<int>&)>;
+
+/**
+ * @brief Static definition of one pin in a node template.
  */
 struct PinDescriptor
 {
-    std::string name;          ///< Display label for the pin
-    PinType     type;          ///< Data type the pin handles
-    bool        isInput;       ///< true = input, false = output
-    bool        isMultiInput = false;  ///< Allow multiple incoming connections
+    std::string name;          ///< Pin label.
+    PinType     type;          ///< Pin data type.
+    bool        isInput;       ///< true=input, false=output.
+    bool        isMultiInput = false;  ///< Allow multiple incoming links.
 };
 
 /**
- * @brief Static definition of an editable field on a node type
- * valueType determines the ImGui widget: Number→InputFloat, Boolean→Checkbox, String→InputText.
+ * @brief Static definition of one editable field in a node template.
  */
 struct FieldDescriptor
 {
-    std::string name;          ///< Display label for the field
-    PinType     valueType;     ///< Data type (drives widget selection)
-    std::string defaultValue;  ///< Initial value (stored as string, parsed on use)
+    std::string name;          ///< Field label.
+    PinType     valueType;     ///< Field data type.
+    std::string defaultValue;  ///< Default text value.
+    std::vector<std::string> options; ///< Optional dropdown options.
 };
 
 /**
- * @brief Complete static definition of a node type
- * One immutable descriptor per NodeType; all instances share it and differ only in runtime state.
+ * @brief Optional extra palette tile for a node type.
+ *
+ * Lets one type appear multiple times with different labels/payloads.
+ */
+struct PaletteVariant
+{
+    std::string displayLabel;  ///< Tile label.
+    std::string payloadTitle;  ///< Drag payload title.
+};
+
+/**
+ * @brief Render grouping hint used by editor UI.
+ */
+enum class NodeRenderStyle
+{
+    Default,
+    Constant,
+    Variable,
+    Sequence,
+    Delay,
+    Loop,
+    ForEach,
+    Binary,
+    Unary,
+    Array,
+    Draw,
+    StructDefine,
+    StructCreate
+};
+
+/**
+ * @brief Full template for one node type.
  */
 struct NodeDescriptor
 {
-    NodeType                     type;     ///< The node type this describes
-    std::string                  label;    ///< Display title shown in node header
-    std::vector<PinDescriptor>   pins;     ///< All pins in draw order (inputs then outputs)
-    std::vector<FieldDescriptor> fields;   ///< Editable fields (empty for nodes without constants)
-    CompileCallback              compile;  ///< Optional: Compiles this node to AST (nullptr = not compilable)
+    NodeType                     type;     ///< Node type key.
+    std::string                  label;    ///< Node header label.
+    std::vector<PinDescriptor>   pins;     ///< Pins in draw order.
+    std::vector<FieldDescriptor> fields;   ///< Editable fields.
+    CompileCallback              compile;      ///< Optional compile callback.
+    DeserializeCallback          deserialize;  ///< Optional custom load callback.
+    std::string                  category = "More";  ///< Palette category.
+    std::vector<PaletteVariant>  paletteVariants;     ///< Optional extra palette tiles.
+    std::string                  saveToken;  ///< Stable save token.
+    std::vector<std::string>     deferredInputPins; ///< Inputs rendered inline with fields.
+    NodeRenderStyle              renderStyle = NodeRenderStyle::Default; ///< UI render group.
 };
 
 #endif // NODE_DESCRIPTOR_H

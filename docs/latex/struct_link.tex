@@ -1,0 +1,89 @@
+\doxysection{Link Struct Reference}
+\hypertarget{struct_link}{}\label{struct_link}\index{Link@{Link}}
+
+
+Represents a connection (edge) between two pins in the node graph.  
+
+
+
+
+{\ttfamily \+\#include $<$link.\+h$>$}
+
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+ed::\+\+Link\+Id \doxymbox{\hyperlink{struct_link_a8e842ac885c8b320f014d134b8be11c0}{id}} \{\}
+\begin{DoxyCompactList}\small\item\em Unique identifier for this link in the node editor. \end{DoxyCompactList}\item 
+ed::\+\+Pin\+Id \doxymbox{\hyperlink{struct_link_a0f17d0a278c4d50bbc438b8ffff4d116}{start\+Pin\+Id}} \{\}
+\begin{DoxyCompactList}\small\item\em Source pin (output) of the connection. \end{DoxyCompactList}\item 
+ed::\+\+Pin\+Id \doxymbox{\hyperlink{struct_link_ae4c4c6f0f676042f8a418abf86a78a6a}{end\+Pin\+Id}} \{\}
+\begin{DoxyCompactList}\small\item\em Destination pin (input) of the connection. \end{DoxyCompactList}\item 
+\doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{Pin\+Type}} \doxymbox{\hyperlink{struct_link_a003c8a584ce10bbb2f1f2db05ed59c77}{type}} = \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5aed36a1ef76a59ee3f15180e0441188ad}{Pin\+Type::\+\+Any}}
+\begin{DoxyCompactList}\small\item\em Data type flowing through this link (used for color-\/coding). \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{struct_link_a6a027a26889af3cacf04579ab49cf2de}{alive}} = true
+\begin{DoxyCompactList}\small\item\em Whether this link is active (false marks it for deletion). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Represents a connection (edge) between two pins in the node graph. 
+
+A \doxylink{struct_link}{Link} connects an output pin to an input pin, with a specific data type that determines the visual appearance of the connection wire. Links can be marked as inactive (alive=false) for deletion. 
+
+\label{doc-variable-members}
+\Hypertarget{struct_link_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{struct_link_a6a027a26889af3cacf04579ab49cf2de}\index{Link@{Link}!alive@{alive}}
+\index{alive@{alive}!Link@{Link}}
+\doxysubsubsection{\texorpdfstring{alive}{alive}}
+{\footnotesize\ttfamily \label{struct_link_a6a027a26889af3cacf04579ab49cf2de} 
+bool Link::\+alive = true}
+
+
+
+Whether this link is active (false marks it for deletion). 
+
+\Hypertarget{struct_link_ae4c4c6f0f676042f8a418abf86a78a6a}\index{Link@{Link}!endPinId@{endPinId}}
+\index{endPinId@{endPinId}!Link@{Link}}
+\doxysubsubsection{\texorpdfstring{endPinId}{endPinId}}
+{\footnotesize\ttfamily \label{struct_link_ae4c4c6f0f676042f8a418abf86a78a6a} 
+ed::\+\+Pin\+Id Link::\+end\+Pin\+Id \{\}}
+
+
+
+Destination pin (input) of the connection. 
+
+\Hypertarget{struct_link_a8e842ac885c8b320f014d134b8be11c0}\index{Link@{Link}!id@{id}}
+\index{id@{id}!Link@{Link}}
+\doxysubsubsection{\texorpdfstring{id}{id}}
+{\footnotesize\ttfamily \label{struct_link_a8e842ac885c8b320f014d134b8be11c0} 
+ed::\+\+Link\+Id Link::\+id \{\}}
+
+
+
+Unique identifier for this link in the node editor. 
+
+\Hypertarget{struct_link_a0f17d0a278c4d50bbc438b8ffff4d116}\index{Link@{Link}!startPinId@{startPinId}}
+\index{startPinId@{startPinId}!Link@{Link}}
+\doxysubsubsection{\texorpdfstring{startPinId}{startPinId}}
+{\footnotesize\ttfamily \label{struct_link_a0f17d0a278c4d50bbc438b8ffff4d116} 
+ed::\+\+Pin\+Id Link::\+start\+Pin\+Id \{\}}
+
+
+
+Source pin (output) of the connection. 
+
+\Hypertarget{struct_link_a003c8a584ce10bbb2f1f2db05ed59c77}\index{Link@{Link}!type@{type}}
+\index{type@{type}!Link@{Link}}
+\doxysubsubsection{\texorpdfstring{type}{type}}
+{\footnotesize\ttfamily \label{struct_link_a003c8a584ce10bbb2f1f2db05ed59c77} 
+\doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{Pin\+Type}} Link::\+type = \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5aed36a1ef76a59ee3f15180e0441188ad}{Pin\+Type::\+\+Any}}}
+
+
+
+Data type flowing through this link (used for color-\/coding). 
+
+
+
+The documentation for this struct was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+graph/\+\doxymbox{\hyperlink{link_8h}{link.\+h}}\end{DoxyCompactItemize}

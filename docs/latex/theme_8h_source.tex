@@ -1,0 +1,37 @@
+\doxysection{theme.\+h}
+\hypertarget{theme_8h_source}{}\label{theme_8h_source}\index{src/ui/theme.h@{src/ui/theme.h}}
+\doxymbox{\hyperlink{theme_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#ifndef\ UI\_THEME\_H}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#define\ UI\_THEME\_H}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ <imgui.h>}}
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespacecolors}{colors}}}
+\DoxyCodeLine{00016\ \{}
+\DoxyCodeLine{00017\ \ \ \ \ \textcolor{keyword}{const}\ ImVec4\ \doxymbox{\hyperlink{namespacecolors_a9af96d051a6b166e5a49f400eacebc22}{transparent}}\ =\ ImVec4(0.0f,\ 0.0f,\ 0.0f,\ 0.0f);\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keyword}{const}\ ImVec4\ \doxymbox{\hyperlink{namespacecolors_acf1fa7891e383b9e91e49ae5c49c717f}{background}}\ =\ ImVec4(18.0f\ /\ 255.0f,\ 18.0f\ /\ 255.0f,\ 18.0f\ /\ 255.0f,\ 1.0f);\ \ \ \ \ }
+\DoxyCodeLine{00019\ \ \ \ \ \textcolor{keyword}{const}\ ImVec4\ \doxymbox{\hyperlink{namespacecolors_a412df72e568e0389e754a4f0972f6199}{surface}}\ =\ ImVec4(24.0f\ /\ 255.0f,\ 24.0f\ /\ 255.0f,\ 24.0f\ /\ 255.0f,\ 1.0f);\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{keyword}{const}\ ImVec4\ \doxymbox{\hyperlink{namespacecolors_acc86fd4c6b9467e9b87a3184c0993a26}{elevated}}\ =\ ImVec4(40.0f\ /\ 255.0f,\ 40.0f\ /\ 255.0f,\ 40.0f\ /\ 255.0f,\ 1.0f);\ \ \ \ \ \ \ }
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keyword}{const}\ ImVec4\ \doxymbox{\hyperlink{namespacecolors_a3b5f9cd1751624319f4ca25a6722db56}{accent}}\ =\ ImVec4(78.0f\ /\ 255.0f,\ 161.0f\ /\ 255.0f,\ 255.0f\ /\ 255.0f,\ 1.0f);\ \ \ \ \ \ \ }
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keyword}{const}\ ImVec4\ \doxymbox{\hyperlink{namespacecolors_af25aa633df77e3ee3ba2139cec38840b}{textPrimary}}\ =\ ImVec4(212.0f\ /\ 255.0f,\ 212.0f\ /\ 255.0f,\ 212.0f\ /\ 255.0f,\ 1.0f);\ }
+\DoxyCodeLine{00023\ \ \ \ \ \textcolor{keyword}{const}\ ImVec4\ \doxymbox{\hyperlink{namespacecolors_a46827498e58f5b43221bbf2d6b6c714b}{textSecondary}}\ =\ ImVec4(140.0f\ /\ 255.0f,\ 140.0f\ /\ 255.0f,\ 140.0f\ /\ 255.0f,\ 1.0f);\ }
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keyword}{const}\ ImVec4\ \doxymbox{\hyperlink{namespacecolors_a47d55ea25440aade97901a6d4fb6d50c}{green}}\ =\ ImVec4(0.2f,\ 0.8f,\ 0.2f,\ 1.0f);\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keyword}{const}\ ImVec4\ \doxymbox{\hyperlink{namespacecolors_a61b539f2b279568e91ed0c0cda8e42dd}{error}}\ =\ ImVec4(1.0f,\ 0.3f,\ 0.3f,\ 1.0f);\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keyword}{const}\ ImVec4\ \doxymbox{\hyperlink{namespacecolors_af065fa008e79726dc665f939d8e71f82}{gray}}\ \ =\ ImVec4(0.4f,\ 0.4f,\ 0.4f,\ 1.0f);\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keyword}{const}\ ImVec4\ \doxymbox{\hyperlink{namespacecolors_a6db1527dc70f0e90b9027a79931ebc6c}{lightGray}}\ =\ ImVec4(0.6f,\ 0.6f,\ 0.6f,\ 1.0f);\ \ \ \ }
+\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keyword}{const}\ ImVec4\ \doxymbox{\hyperlink{namespacecolors_ac05c6293f360e810690b86e2f5286794}{topPanelButtonHover}}\ =\ ImVec4(32.0f\ /\ 255.0f,\ 32.0f\ /\ 255.0f,\ 32.0f\ /\ 255.0f,\ 1.0f);\ }
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keyword}{const}\ ImU32\ \doxymbox{\hyperlink{namespacecolors_ac59ab1d006d90bb42fe9a41758d83120}{blue}}\ =\ IM\_COL32(78,\ 161,\ 255,\ 255);\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00031\ \}}
+\DoxyCodeLine{00032\ }
+\DoxyCodeLine{00037\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceui_fonts}{uiFonts}}}
+\DoxyCodeLine{00038\ \{}
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keyword}{inline}\ ImFont*\ \doxymbox{\hyperlink{namespaceui_fonts_a99d8affa6465cf65a157a92ea1bf6ac8}{terminal}}\ =\ \textcolor{keyword}{nullptr};\ }
+\DoxyCodeLine{00040\ \}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

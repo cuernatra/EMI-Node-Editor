@@ -1,0 +1,121 @@
+\doxysection{Visual\+Node Struct Reference}
+\hypertarget{struct_visual_node}{}\label{struct_visual_node}\index{VisualNode@{VisualNode}}
+
+
+Visual node data and rendering entry points.  
+
+
+
+
+{\ttfamily \+\#include $<$visual\+Node.\+h$>$}
+
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+ed::\+\+Node\+Id \doxymbox{\hyperlink{struct_visual_node_abcdb2524634d386c378b979a2fce7f93}{id}} \{\}
+\item 
+\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} \doxymbox{\hyperlink{struct_visual_node_afbec97aa8a8659dcca30db6e18c8b62b}{node\+Type}} = \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16a88183b946cc5f0e8c96b2e66e1c74a7e}{Node\+Type::\+\+Unknown}}
+\begin{DoxyCompactList}\small\item\em Node type from registry. \end{DoxyCompactList}\item 
+std::\+vector$<$ \doxymbox{\hyperlink{struct_pin}{Pin}} $>$ \doxymbox{\hyperlink{struct_visual_node_a7d82897c2aa2585184fc660503bfe96b}{in\+Pins}}
+\item 
+std::\+vector$<$ \doxymbox{\hyperlink{struct_pin}{Pin}} $>$ \doxymbox{\hyperlink{struct_visual_node_a6dc9a9c361a59515cff7d7b85514e9b9}{out\+Pins}}
+\begin{DoxyCompactList}\small\item\em Output pins (branch/\+loop may have multiple). \end{DoxyCompactList}\item 
+std::\+vector$<$ \doxymbox{\hyperlink{struct_node_field}{Node\+Field}} $>$ \doxymbox{\hyperlink{struct_visual_node_a2af80030ec977b295228065e802ac176}{fields}}
+\begin{DoxyCompactList}\small\item\em Editable constant/\+parameter values. \end{DoxyCompactList}\item 
+std::\+string \doxymbox{\hyperlink{struct_visual_node_ab033e1125ef69fe1060df6b0a11346ca}{title}}
+\begin{DoxyCompactList}\small\item\em Display name shown in node header. \end{DoxyCompactList}\item 
+Im\+Vec2 \doxymbox{\hyperlink{struct_visual_node_a4b8327097e50e622b99e71dc08826905}{initial\+Pos}} \{0, 0\}
+\item 
+bool \doxymbox{\hyperlink{struct_visual_node_ab62263d162ceabba5a68d2fe0efa50b1}{positioned}} = false
+\item 
+bool \doxymbox{\hyperlink{struct_visual_node_ad787dd557c577f39ff55825a2daa9a1d}{alive}} = true
+\begin{DoxyCompactList}\small\item\em false marks node for deletion \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Visual node data and rendering entry points. 
+
+Runtime instance of a graph node. 
+
+\label{doc-variable-members}
+\Hypertarget{struct_visual_node_doc-variable-members}
+\doxysubsection{Member Data Documentation}
+\Hypertarget{struct_visual_node_ad787dd557c577f39ff55825a2daa9a1d}\index{VisualNode@{VisualNode}!alive@{alive}}
+\index{alive@{alive}!VisualNode@{VisualNode}}
+\doxysubsubsection{\texorpdfstring{alive}{alive}}
+{\footnotesize\ttfamily \label{struct_visual_node_ad787dd557c577f39ff55825a2daa9a1d} 
+bool Visual\+Node::\+alive = true}
+
+
+
+false marks node for deletion 
+
+\Hypertarget{struct_visual_node_a2af80030ec977b295228065e802ac176}\index{VisualNode@{VisualNode}!fields@{fields}}
+\index{fields@{fields}!VisualNode@{VisualNode}}
+\doxysubsubsection{\texorpdfstring{fields}{fields}}
+{\footnotesize\ttfamily \label{struct_visual_node_a2af80030ec977b295228065e802ac176} 
+std::\+vector$<$\doxymbox{\hyperlink{struct_node_field}{Node\+Field}}$>$ Visual\+Node::\+fields}
+
+
+
+Editable constant/\+parameter values. 
+
+\Hypertarget{struct_visual_node_abcdb2524634d386c378b979a2fce7f93}\index{VisualNode@{VisualNode}!id@{id}}
+\index{id@{id}!VisualNode@{VisualNode}}
+\doxysubsubsection{\texorpdfstring{id}{id}}
+{\footnotesize\ttfamily \label{struct_visual_node_abcdb2524634d386c378b979a2fce7f93} 
+ed::\+\+Node\+Id Visual\+Node::\+id \{\}}
+
+\Hypertarget{struct_visual_node_a4b8327097e50e622b99e71dc08826905}\index{VisualNode@{VisualNode}!initialPos@{initialPos}}
+\index{initialPos@{initialPos}!VisualNode@{VisualNode}}
+\doxysubsubsection{\texorpdfstring{initialPos}{initialPos}}
+{\footnotesize\ttfamily \label{struct_visual_node_a4b8327097e50e622b99e71dc08826905} 
+Im\+Vec2 Visual\+Node::\+initial\+Pos \{0, 0\}}
+
+\Hypertarget{struct_visual_node_a7d82897c2aa2585184fc660503bfe96b}\index{VisualNode@{VisualNode}!inPins@{inPins}}
+\index{inPins@{inPins}!VisualNode@{VisualNode}}
+\doxysubsubsection{\texorpdfstring{inPins}{inPins}}
+{\footnotesize\ttfamily \label{struct_visual_node_a7d82897c2aa2585184fc660503bfe96b} 
+std::\+vector$<$\doxymbox{\hyperlink{struct_pin}{Pin}}$>$ Visual\+Node::\+in\+Pins}
+
+\Hypertarget{struct_visual_node_afbec97aa8a8659dcca30db6e18c8b62b}\index{VisualNode@{VisualNode}!nodeType@{nodeType}}
+\index{nodeType@{nodeType}!VisualNode@{VisualNode}}
+\doxysubsubsection{\texorpdfstring{nodeType}{nodeType}}
+{\footnotesize\ttfamily \label{struct_visual_node_afbec97aa8a8659dcca30db6e18c8b62b} 
+\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} Visual\+Node::\+node\+Type = \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16a88183b946cc5f0e8c96b2e66e1c74a7e}{Node\+Type::\+\+Unknown}}}
+
+
+
+Node type from registry. 
+
+\Hypertarget{struct_visual_node_a6dc9a9c361a59515cff7d7b85514e9b9}\index{VisualNode@{VisualNode}!outPins@{outPins}}
+\index{outPins@{outPins}!VisualNode@{VisualNode}}
+\doxysubsubsection{\texorpdfstring{outPins}{outPins}}
+{\footnotesize\ttfamily \label{struct_visual_node_a6dc9a9c361a59515cff7d7b85514e9b9} 
+std::\+vector$<$\doxymbox{\hyperlink{struct_pin}{Pin}}$>$ Visual\+Node::\+out\+Pins}
+
+
+
+Output pins (branch/\+loop may have multiple). 
+
+\Hypertarget{struct_visual_node_ab62263d162ceabba5a68d2fe0efa50b1}\index{VisualNode@{VisualNode}!positioned@{positioned}}
+\index{positioned@{positioned}!VisualNode@{VisualNode}}
+\doxysubsubsection{\texorpdfstring{positioned}{positioned}}
+{\footnotesize\ttfamily \label{struct_visual_node_ab62263d162ceabba5a68d2fe0efa50b1} 
+bool Visual\+Node::\+positioned = false}
+
+\Hypertarget{struct_visual_node_ab033e1125ef69fe1060df6b0a11346ca}\index{VisualNode@{VisualNode}!title@{title}}
+\index{title@{title}!VisualNode@{VisualNode}}
+\doxysubsubsection{\texorpdfstring{title}{title}}
+{\footnotesize\ttfamily \label{struct_visual_node_ab033e1125ef69fe1060df6b0a11346ca} 
+std::\+string Visual\+Node::\+title}
+
+
+
+Display name shown in node header. 
+
+
+
+The documentation for this struct was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+graph/\+\doxymbox{\hyperlink{visual_node_8h}{visual\+Node.\+h}}\end{DoxyCompactItemize}

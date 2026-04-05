@@ -3,23 +3,14 @@
 #include <unordered_set>
 #include <vector>
 
-// ---------------------------------------------------------------------------
-// WouldCreateCycle
-//
-// Runs a DFS from 'startPin' (output) to see if we can reach the node that
-// owns 'endPin' (input) by following existing links.  If we can, adding this
-// new link would form a cycle.
-//
-// NOTE: This operates on pin IDs.  It assumes output pin -> input pin
-// directionality mirrors node -> node edges.  For a heterogeneous graph you
-// may want a separate node-level adjacency structure; this is sufficient for
-// a standard expression/flow graph where each node has one output.
-// ---------------------------------------------------------------------------
+// Cycle check used before adding a new link.
+// If walking existing links from endPin can reach startPin,
+// adding startPin -> endPin would close a loop.
 
 bool WouldCreateCycle(const std::vector<Link>& links,
                       ed::PinId startPin, ed::PinId endPin)
 {
-    // Build adjacency: outputPinId -> [inputPinIds]
+    // Build quick lookup: output pin -> connected input pins.
     std::unordered_map<uintptr_t, std::vector<uintptr_t>> adj;
     for (const auto& lnk : links)
     {
@@ -27,7 +18,7 @@ bool WouldCreateCycle(const std::vector<Link>& links,
         adj[lnk.startPinId.Get()].push_back(lnk.endPinId.Get());
     }
 
-    // DFS from endPin — if we reach startPin, a cycle would form.
+    // Walk from endPin. Reaching startPin means a cycle.
     std::unordered_set<uintptr_t> visited;
     std::vector<uintptr_t> stack;
     stack.push_back(endPin.Get());
@@ -53,18 +44,3 @@ bool WouldCreateCycle(const std::vector<Link>& links,
     return false;
 }
 
-// ---------------------------------------------------------------------------
-// DrawLinks
-// ---------------------------------------------------------------------------
-
-void DrawLinks(const std::vector<Link>& links)
-{
-    for (const auto& lnk : links)
-    {
-        if (!lnk.alive) continue;
-
-        ImVec4 col = lnk.GetColor();
-        ed::Link(lnk.id, lnk.startPinId, lnk.endPinId,
-                 col, /* thickness */ 2.0f);
-    }
-}

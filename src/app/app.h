@@ -10,7 +10,7 @@
 
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Clock.hpp>
-#include "ui.h"
+#include "editorLayout.h"
 
 #ifndef APP_H
 #define APP_H
@@ -59,6 +59,11 @@ private:
     */
     void loadFont();
 
+    /**
+    * @brief Apply custom ImGui style settings
+    */
+    void applyImGuiStyle();
+
     /// SFML window for rendering
     sf::RenderWindow m_window;
     
@@ -66,7 +71,7 @@ private:
     sf::Clock m_deltaClock;
     
     /// Main UI compositor that manages all editor panels
-    Ui m_ui;
+    EditorLayout m_ui;
 };
 
 #endif

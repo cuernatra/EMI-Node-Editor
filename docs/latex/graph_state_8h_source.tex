@@ -1,0 +1,77 @@
+\doxysection{graph\+State.\+h}
+\hypertarget{graph_state_8h_source}{}\label{graph_state_8h_source}\index{src/editor/graph/graphState.h@{src/editor/graph/graphState.h}}
+\doxymbox{\hyperlink{graph_state_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{visual_node_8h}{core/graph/visualNode.h}}"{}}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{link_8h}{core/graph/link.h}}"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{id_gen_8h}{core/graph/idGen.h}}"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{namespace\ }ed\ =\ ax::NodeEditor;}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00034\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_state_a84a5826adf817367d0d3db8f36d49adb}{GraphState}}}
+\DoxyCodeLine{00035\ \{}
+\DoxyCodeLine{00036\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00040\ \ \ \ \ \doxymbox{\hyperlink{class_graph_state_a84a5826adf817367d0d3db8f36d49adb}{GraphState}}();}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{comment}{//\ Graph\ data\ access}}
+\DoxyCodeLine{00047\ \ \ \ \ std::vector<VisualNode>\&\ \doxymbox{\hyperlink{class_graph_state_a63b31aaee4de42e0cf6108c39f96d11b}{GetNodes}}()\ \{\ \textcolor{keywordflow}{return}\ m\_nodes;\ \}}
+\DoxyCodeLine{00048\ \ \ \ \ }
+\DoxyCodeLine{00053\ \ \ \ \ std::vector<Link>\&\ \doxymbox{\hyperlink{class_graph_state_acb729685eddcb0551df3502cd77228a5}{GetLinks}}()\ \{\ \textcolor{keywordflow}{return}\ m\_links;\ \}}
+\DoxyCodeLine{00054\ \ \ \ \ }
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keyword}{const}\ std::vector<VisualNode>\&\ \doxymbox{\hyperlink{class_graph_state_af1c625864aea00d9508faf6bc3677f03}{GetNodes}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_nodes;\ \}}
+\DoxyCodeLine{00060\ \ \ \ \ }
+\DoxyCodeLine{00065\ \ \ \ \ \textcolor{keyword}{const}\ std::vector<Link>\&\ \doxymbox{\hyperlink{class_graph_state_a704543f9dd096eff99d93d69f0a85e84}{GetLinks}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_links;\ \}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00072\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_state_a2d1f9444e8d44b91812de52c5a653ba1}{Clear}}();}
+\DoxyCodeLine{00073\ }
+\DoxyCodeLine{00074\ \ \ \ \ \textcolor{comment}{//\ Node\ management}}
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_state_ac9c0a6a747919e89764b7e16e9783bad}{AddNode}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ node);}
+\DoxyCodeLine{00080\ \ \ \ \ }
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_state_a09557036dba81829249c8176a35cab53}{DeleteNode}}(ed::NodeId\ nodeId);}
+\DoxyCodeLine{00086\ }
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_pin}{Pin}}*\ \doxymbox{\hyperlink{class_graph_state_aff356bb0298d811a3747bb6480042be8}{FindPin}}(ed::PinId\ pinId)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00093\ \ \ \ \ }
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_state_a59b6cbbc3425826de32de91b1979b479}{RemoveLinksForNode}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_visual_node}{VisualNode}}\&\ n);}
+\DoxyCodeLine{00099\ }
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{comment}{//\ Link\ management}}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_state_a6cbaa5310cffa70fed2659b2b3cbd357}{AddLink}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_link}{Link}}\&\ link);}
+\DoxyCodeLine{00106\ \ \ \ \ }
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_state_af23d2e53182e6e6bb2f1541b02981fe5}{DeleteLink}}(ed::LinkId\ linkId);}
+\DoxyCodeLine{00112\ }
+\DoxyCodeLine{00116\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_state_a21ee73698ebd67414b41aa19a65c24c9}{MarkDirty}}()\ \{\ m\_dirty\ =\ \textcolor{keyword}{true};\ \}}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_graph_state_a92dafa44293c9db1470a0a4fbd184041}{IsDirty}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_dirty;\ \}}
+\DoxyCodeLine{00122\ }
+\DoxyCodeLine{00126\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_state_a2a786bbf508bb054af412209f753871b}{ClearDirty}}()\ \{\ m\_dirty\ =\ \textcolor{keyword}{false};\ \}}
+\DoxyCodeLine{00127\ }
+\DoxyCodeLine{00128\ \ \ \ \ \textcolor{comment}{//\ Compile\ status}}
+\DoxyCodeLine{00133\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_graph_state_acf1010198ab9befe197b90a201dce3ef}{IsCompileSuccess}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_compileSuccess;\ \}}
+\DoxyCodeLine{00134\ \ \ \ \ }
+\DoxyCodeLine{00139\ \ \ \ \ \textcolor{keyword}{const}\ std::string\&\ \doxymbox{\hyperlink{class_graph_state_a569f7c96fe2f03f1335d0fd2deb92d3f}{GetCompileMessage}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_compileMessage;\ \}}
+\DoxyCodeLine{00140\ \ \ \ \ }
+\DoxyCodeLine{00146\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_state_aa7a66ba7455cc961dd2546e9e09c3dda}{SetCompileStatus}}(\textcolor{keywordtype}{bool}\ success,\ \textcolor{keyword}{const}\ std::string\&\ message);}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00152\ \ \ \ \ \doxymbox{\hyperlink{struct_id_gen}{IdGen}}\&\ \doxymbox{\hyperlink{class_graph_state_a56dd6225f37c06f91086343687cd53a1}{GetIdGen}}()\ \{\ \textcolor{keywordflow}{return}\ m\_idGen;\ \}}
+\DoxyCodeLine{00153\ }
+\DoxyCodeLine{00160\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_graph_state_ad9257ced9432e848e49dcac095a0be18}{HasOutputNode}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00161\ }
+\DoxyCodeLine{00165\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_graph_state_a443744edaef51eaf9b355c8d9a38974d}{HasNodeType}}(\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{NodeType}}\ type)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00166\ }
+\DoxyCodeLine{00170\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_graph_state_a1cb69d2f190f7aa429fcea3653cac42b}{HasAliveNodes}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00171\ }
+\DoxyCodeLine{00172\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00173\ \ \ \ \ std::vector<VisualNode>\ m\_nodes;\ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00174\ \ \ \ \ std::vector<Link>\ m\_links;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00175\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_compileSuccess\ =\ \textcolor{keyword}{false};\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00176\ \ \ \ \ std::string\ m\_compileMessage;\ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00177\ \ \ \ \ \doxymbox{\hyperlink{struct_id_gen}{IdGen}}\ m\_idGen;}
+\DoxyCodeLine{00178\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_dirty\ =\ \textcolor{keyword}{false};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00179\ \};}
+
+\end{DoxyCode}

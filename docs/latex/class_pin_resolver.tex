@@ -1,0 +1,136 @@
+\doxysection{Pin\+Resolver Class Reference}
+\hypertarget{class_pin_resolver}{}\label{class_pin_resolver}\index{PinResolver@{PinResolver}}
+
+
+Fast lookup for input pin → source mappings.  
+
+
+
+
+{\ttfamily \+\#include $<$pin\+Resolver.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{class_pin_resolver_a696fd1cd6dc0bbee2ce1df14fe731e70}{Build}} (const std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \&nodes, const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \&links)
+\begin{DoxyCompactList}\small\item\em Build resolver maps from graph data. \end{DoxyCompactList}\item 
+const \doxymbox{\hyperlink{struct_pin_source}{Pin\+Source}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_pin_resolver_acad91c351bd282d82d963204f3f4f2c5}{Resolve}} (ed::\+\+Pin\+Id input\+Pin\+Id) const
+\begin{DoxyCompactList}\small\item\em Find the source of an input pin. \end{DoxyCompactList}\item 
+const \doxymbox{\hyperlink{struct_flow_target}{Flow\+Target}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_pin_resolver_a2cafa6aa7e0f9ce9c0d8e76de717fc38}{Resolve\+Flow}} (ed::\+\+Pin\+Id flow\+Output\+Pin\+Id) const
+\begin{DoxyCompactList}\small\item\em Find downstream target of a flow output pin. \end{DoxyCompactList}\item 
+const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_pin_resolver_a980ce6b2c4d87143b0722aff031caaf4}{Find\+Node}} (ed::\+\+Node\+Id node\+Id) const
+\begin{DoxyCompactList}\small\item\em Find a node by its ID. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Fast lookup for input pin → source mappings. 
+
+Pre-\/processes the link list into a hash map for O(1) lookups during recursive AST construction. \doxylink{class_graph_compiler}{Graph\+Compiler} queries this to find:\+ "{}what AST subtree should I build for this input pin?"{}
+
+Also provides node ID → Visual\+Node\texorpdfstring{$\ast$}{*} lookups for convenience.
+
+Usage:\+ 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{PinResolver\ resolver;}
+\DoxyCodeLine{resolver.\doxymbox{\hyperlink{class_pin_resolver_a696fd1cd6dc0bbee2ce1df14fe731e70}{Build}}(nodes,\ links);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keyword}{const}\ PinSource*\ src\ =\ resolver.\doxymbox{\hyperlink{class_pin_resolver_acad91c351bd282d82d963204f3f4f2c5}{Resolve}}(inputPinId);}
+\DoxyCodeLine{\textcolor{keywordflow}{if}\ (src\ \&\&\ src-\/>\doxymbox{\hyperlink{struct_pin_source_acf555808ecb7167be2507d52a4c4d934}{node}})\ \{}
+\DoxyCodeLine{\ \ \ \ \textcolor{comment}{//\ Found\ upstream\ node\ feeding\ this\ input}}
+\DoxyCodeLine{\ \ \ \ \textcolor{keyword}{const}\ Pin\&\ srcPin\ =\ src-\/>\doxymbox{\hyperlink{struct_pin_source_acf555808ecb7167be2507d52a4c4d934}{node}}-\/>\doxymbox{\hyperlink{struct_visual_node_a6dc9a9c361a59515cff7d7b85514e9b9}{outPins}}[src-\/>\doxymbox{\hyperlink{struct_pin_source_a04359342efa836cd440f0b9c57fdde68}{pinIdx}}];}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+\begin{DoxyAuthor}{Author}
+Jenny 
+\end{DoxyAuthor}
+
+
+\label{doc-func-members}
+\Hypertarget{class_pin_resolver_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_pin_resolver_a696fd1cd6dc0bbee2ce1df14fe731e70}\index{PinResolver@{PinResolver}!Build@{Build}}
+\index{Build@{Build}!PinResolver@{PinResolver}}
+\doxysubsubsection{\texorpdfstring{Build()}{Build()}}
+{\footnotesize\ttfamily \label{class_pin_resolver_a696fd1cd6dc0bbee2ce1df14fe731e70} 
+void Pin\+Resolver::\+\+Build (\begin{DoxyParamCaption}\item[{const std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \&}]{nodes}{, }\item[{const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \&}]{links}{}\end{DoxyParamCaption})}
+
+
+
+Build resolver maps from graph data. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em nodes} & All nodes in the graph \\
+\hline
+{\em links} & All connections between pins\\
+\hline
+\end{DoxyParams}
+Populates internal hash maps:\+
+\begin{DoxyItemize}
+\item input\+To\+Source\+\_\+:\+ input\+Pin\+Id → (source\+Node, source\+Pin\+Index)
+\item node\+By\+Id\+\_\+:\+ node\+Id → Visual\+Node\texorpdfstring{$\ast$}{*}
+\end{DoxyItemize}
+
+Call this once before calling \doxylink{class_pin_resolver_acad91c351bd282d82d963204f3f4f2c5}{Resolve()} or \doxylink{class_pin_resolver_a980ce6b2c4d87143b0722aff031caaf4}{Find\+Node()}. \Hypertarget{class_pin_resolver_a980ce6b2c4d87143b0722aff031caaf4}\index{PinResolver@{PinResolver}!FindNode@{FindNode}}
+\index{FindNode@{FindNode}!PinResolver@{PinResolver}}
+\doxysubsubsection{\texorpdfstring{FindNode()}{FindNode()}}
+{\footnotesize\ttfamily \label{class_pin_resolver_a980ce6b2c4d87143b0722aff031caaf4} 
+const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \texorpdfstring{$\ast$}{*} Pin\+Resolver::\+\+Find\+Node (\begin{DoxyParamCaption}\item[{ed::\+\+Node\+Id}]{node\+Id}{}\end{DoxyParamCaption}) const}
+
+
+
+Find a node by its ID. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em node\+Id} & The node ID to look up \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Pointer to \doxylink{struct_visual_node}{Visual\+Node}, or nullptr if not found
+\end{DoxyReturn}
+Convenience function for node lookups during AST traversal. The returned pointer is valid until the next \doxylink{class_pin_resolver_a696fd1cd6dc0bbee2ce1df14fe731e70}{Build()} call. \Hypertarget{class_pin_resolver_acad91c351bd282d82d963204f3f4f2c5}\index{PinResolver@{PinResolver}!Resolve@{Resolve}}
+\index{Resolve@{Resolve}!PinResolver@{PinResolver}}
+\doxysubsubsection{\texorpdfstring{Resolve()}{Resolve()}}
+{\footnotesize\ttfamily \label{class_pin_resolver_acad91c351bd282d82d963204f3f4f2c5} 
+const \doxymbox{\hyperlink{struct_pin_source}{Pin\+Source}} \texorpdfstring{$\ast$}{*} Pin\+Resolver::\+\+Resolve (\begin{DoxyParamCaption}\item[{ed::\+\+Pin\+Id}]{input\+Pin\+Id}{}\end{DoxyParamCaption}) const}
+
+
+
+Find the source of an input pin. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em input\+Pin\+Id} & The input pin to look up \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Pointer to \doxylink{struct_pin_source}{Pin\+Source}, or nullptr if unconnected
+\end{DoxyReturn}
+Returns nullptr for disconnected inputs or invalid pin IDs. The returned pointer is valid until the next \doxylink{class_pin_resolver_a696fd1cd6dc0bbee2ce1df14fe731e70}{Build()} call. \Hypertarget{class_pin_resolver_a2cafa6aa7e0f9ce9c0d8e76de717fc38}\index{PinResolver@{PinResolver}!ResolveFlow@{ResolveFlow}}
+\index{ResolveFlow@{ResolveFlow}!PinResolver@{PinResolver}}
+\doxysubsubsection{\texorpdfstring{ResolveFlow()}{ResolveFlow()}}
+{\footnotesize\ttfamily \label{class_pin_resolver_a2cafa6aa7e0f9ce9c0d8e76de717fc38} 
+const \doxymbox{\hyperlink{struct_flow_target}{Flow\+Target}} \texorpdfstring{$\ast$}{*} Pin\+Resolver::\+\+Resolve\+Flow (\begin{DoxyParamCaption}\item[{ed::\+\+Pin\+Id}]{flow\+Output\+Pin\+Id}{}\end{DoxyParamCaption}) const}
+
+
+
+Find downstream target of a flow output pin. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em flow\+Output\+Pin\+Id} & Output flow pin ID \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Pointer to \doxylink{struct_flow_target}{Flow\+Target}, or nullptr if not connected 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+core/\+compiler/\+\doxymbox{\hyperlink{pin_resolver_8h}{pin\+Resolver.\+h}}\item 
+src/\+core/\+compiler/\+\doxymbox{\hyperlink{pin_resolver_8cpp}{pin\+Resolver.\+cpp}}\end{DoxyCompactItemize}

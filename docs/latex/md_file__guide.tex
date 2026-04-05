@@ -1,0 +1,122 @@
+\chapter{AO\+\_\+\+Emi file guide (developer) }
+\hypertarget{md_file__guide}{}\label{md_file__guide}\index{AO\_Emi file guide (developer)@{AO\_Emi file guide (developer)}}
+\label{md_file__guide_autotoc_md3}%
+\Hypertarget{md_file__guide_autotoc_md3}%
+\hypertarget{md_file__guide_autotoc_md4}{}\doxysection{\texorpdfstring{Principles}{Principles}}\label{md_file__guide_autotoc_md4}
+
+\begin{DoxyItemize}
+\item Keep logic and UI separate.
+\item {\ttfamily src/\+core} should not contain Im\+Gui UI rendering.
+\item Theme values (colors/\+fonts) live in {\ttfamily src/\+ui} (do not hardcode UI colors in random files).
+\end{DoxyItemize}\hypertarget{md_file__guide_autotoc_md5}{}\doxysection{\texorpdfstring{High-\/level architecture}{High-\/level architecture}}\label{md_file__guide_autotoc_md5}
+
+\begin{DoxyItemize}
+\item {\ttfamily src/\+core/\+}
+\begin{DoxyItemize}
+\item Owns the graph model and compilation logic.
+\item Main parts:\+
+\begin{DoxyItemize}
+\item {\ttfamily core/\+graph/\+}:\+ graph data types (nodes, pins, links, ids)
+\item {\ttfamily core/\+registry/\+}:\+ node type definitions (descriptors) + node factory
+\item {\ttfamily core/\+compiler/\+}:\+ graph → EMI-\/\+Script AST compilation
+\end{DoxyItemize}
+\end{DoxyItemize}
+\item {\ttfamily src/\+editor/\+}
+\begin{DoxyItemize}
+\item Owns editor state + all UI rendering.
+\item Main parts:\+
+\begin{DoxyItemize}
+\item {\ttfamily editor/\+graph/\+}:\+ editor-\/side graph state, serialization, and compile bridge
+\item {\ttfamily editor/\+panels/\+}:\+ Im\+Gui panels (left palette, top bar, console, inspector, preview)
+\item {\ttfamily editor/\+renderer/\+}:\+ Im\+Gui + node-\/editor rendering (nodes, pins, links, field widgets)
+\item {\ttfamily editor/\+widgets/\+}:\+ small shared UI widgets (example:\+ node preview)
+\end{DoxyItemize}
+\end{DoxyItemize}
+\item {\ttfamily src/\+app/\+}
+\begin{DoxyItemize}
+\item Application shell:\+ SFML window loop + top-\/level layout.
+\item {\ttfamily app/\+app.\texorpdfstring{$\ast$}{*}}:\+ main loop, Im\+Gui-\/\+SFML init, per-\/frame draw
+\item {\ttfamily app/\+editor\+Layout.\texorpdfstring{$\ast$}{*}}:\+ layout compositor that places panels + main editor
+\end{DoxyItemize}
+\item {\ttfamily src/\+ui/\+}
+\begin{DoxyItemize}
+\item Theme tokens only (colors, shared fonts). No panels/\+widgets.
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md_file__guide_autotoc_md6}{}\doxysection{\texorpdfstring{How to add a new node (short checklist)}{How to add a new node (short checklist)}}\label{md_file__guide_autotoc_md6}
+1) Must:\+ add a new {\ttfamily \doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}}
+\begin{DoxyItemize}
+\item File:\+ {\ttfamily \doxylink{types_8h}{src/\+core/\+graph/\+types.\+h}}
+\end{DoxyItemize}
+
+2) Must:\+ register the node type (this makes it appear in the editor)
+\begin{DoxyItemize}
+\item File:\+ {\ttfamily \doxylink{node_registry_8cpp}{src/\+core/\+registry/\+node\+Registry.\+cpp}}
+\item Add a {\ttfamily \doxylink{struct_node_descriptor}{Node\+Descriptor}} entry:\+
+\begin{DoxyItemize}
+\item {\ttfamily label} (title shown in the node header)
+\item {\ttfamily pins} (name/\+type/\+input-\/output)
+\item {\ttfamily fields} (editable values stored as strings)
+\item compile callback (usually {\ttfamily compiler-\/\texorpdfstring{$>$}{>}Build\+Your\+Node(n)})
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+3) Optional:\+ special-\/case node creation
+\begin{DoxyItemize}
+\item Usually nothing to do:\+ {\ttfamily src/\+core/\+registry/\+node\+Factory.\texorpdfstring{$\ast$}{*}} creates pins/\+fields from the descriptor.
+\item Only needed for dynamic pin layouts (variable pin count, schema-\/driven pins, etc.).
+\end{DoxyItemize}
+
+4) Must (to compile):\+ implement compilation
+\begin{DoxyItemize}
+\item Files:\+
+\begin{DoxyItemize}
+\item {\ttfamily \doxylink{graph_compiler_8h}{src/\+core/\+compiler/\+graph\+Compiler.\+h}} (declare {\ttfamily Build\+Your\+Node})
+\item {\ttfamily \doxylink{graph_compiler_8cpp}{src/\+core/\+compiler/\+graph\+Compiler.\+cpp}} (implement {\ttfamily Build\+Your\+Node})
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+5) Optional:\+ custom UI behavior
+\begin{DoxyItemize}
+\item File:\+ {\ttfamily \doxylink{node_renderer_8cpp}{src/\+editor/\+renderer/\+node\+Renderer.\+cpp}}
+\item Most nodes “just work” because pins/\+fields come from the descriptor.
+\item Add code here only if you need a custom widget/\+behavior.
+\end{DoxyItemize}
+
+Notes:\+
+\begin{DoxyItemize}
+\item The left palette auto-\/enumerates all registered node descriptors. You do not manually add nodes to the palette. Unknown/\+unclassified nodes end up under the “\+More” section.
+\end{DoxyItemize}\hypertarget{md_file__guide_autotoc_md7}{}\doxysection{\texorpdfstring{Compiler + AST overview (conceptual)}{Compiler + AST overview (conceptual)}}\label{md_file__guide_autotoc_md7}
+\hypertarget{md_file__guide_autotoc_md8}{}\doxysubsection{\texorpdfstring{What “compile” means here}{What “compile” means here}}\label{md_file__guide_autotoc_md8}
+
+\begin{DoxyItemize}
+\item You draw a graph of nodes.
+\item The compiler turns that graph into something the EMI runtime can execute.
+\end{DoxyItemize}\hypertarget{md_file__guide_autotoc_md9}{}\doxysubsection{\texorpdfstring{What is an AST?}{What is an AST?}}\label{md_file__guide_autotoc_md9}
+
+\begin{DoxyItemize}
+\item AST = “\+Abstract Syntax Tree”.
+\item Think of it as a structured version of code. Example:\+ instead of the text {\ttfamily 1 + 2}, the AST is a tree:\+ {\ttfamily Add(Number(1), Number(2))}.
+\item In this project we build the AST directly (we do not generate source code text).
+\end{DoxyItemize}\hypertarget{md_file__guide_autotoc_md10}{}\doxysubsection{\texorpdfstring{Pipeline (end-\/to-\/end)}{Pipeline (end-\/to-\/end)}}\label{md_file__guide_autotoc_md10}
+1) Node types define how they compile
+\begin{DoxyItemize}
+\item {\ttfamily \doxylink{node_descriptor_8h}{src/\+core/\+registry/\+node\+Descriptor.\+h}}
+\item {\ttfamily \doxylink{node_registry_8cpp}{src/\+core/\+registry/\+node\+Registry.\+cpp}} Each {\ttfamily \doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} has a {\ttfamily \doxylink{struct_node_descriptor}{Node\+Descriptor}}, including a compile callback like {\ttfamily compiler-\/\texorpdfstring{$>$}{>}Build\+Operator(node)}.
+\end{DoxyItemize}
+
+2) {\ttfamily \doxylink{class_graph_compiler}{Graph\+Compiler}} builds an AST from the visual graph
+\begin{DoxyItemize}
+\item {\ttfamily src/\+core/\+compiler/\+graph\+Compiler.\texorpdfstring{$\ast$}{*}}
+\item {\ttfamily src/\+core/\+compiler/\+pin\+Resolver.\texorpdfstring{$\ast$}{*}} {\ttfamily \doxylink{class_pin_resolver}{Pin\+Resolver}} answers:\+ “for this input pin, what output is it connected to?”. {\ttfamily \doxylink{class_graph_compiler}{Graph\+Compiler}} uses that to recursively build expressions and flow statements.
+\end{DoxyItemize}
+
+3) {\ttfamily \doxylink{class_graph_compilation}{Graph\+Compilation}} runs it in the VM
+\begin{DoxyItemize}
+\item {\ttfamily src/\+editor/\+graph/\+graph\+Compilation.\texorpdfstring{$\ast$}{*}} It calls {\ttfamily Graph\+Compiler::\+\+Compile(nodes, links)}, feeds the AST into the VM, then runs {\ttfamily \+\_\+\+\_\+graph\+\_\+\+\_\+();}.
+\end{DoxyItemize}
+
+Notes:\+
+\begin{DoxyItemize}
+\item The compiled graph is wrapped into a function named {\ttfamily \+\_\+\+\_\+graph\+\_\+\+\_\+} ({\ttfamily \doxylink{class_graph_compiler_a69ba3634f83a3df08374d72558541c33}{Graph\+Compiler::\+k\+Graph\+Function\+Name}}).
+\item If something fails, {\ttfamily \doxylink{class_graph_compiler}{Graph\+Compiler}} sets {\ttfamily Has\+Error} + a message, and the editor shows it in the console. 
+\end{DoxyItemize}

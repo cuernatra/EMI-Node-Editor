@@ -1,0 +1,371 @@
+\doxysection{Graph\+State Class Reference}
+\hypertarget{class_graph_state}{}\label{class_graph_state}\index{GraphState@{GraphState}}
+
+
+Central container for all graph state.  
+
+
+
+
+{\ttfamily \+\#include $<$graph\+State.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{class_graph_state_a84a5826adf817367d0d3db8f36d49adb}{Graph\+State}} ()
+\begin{DoxyCompactList}\small\item\em Initialize empty graph state. \end{DoxyCompactList}\item 
+std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \& \doxymbox{\hyperlink{class_graph_state_a63b31aaee4de42e0cf6108c39f96d11b}{Get\+Nodes}} ()
+\begin{DoxyCompactList}\small\item\em Get mutable reference to all nodes. \end{DoxyCompactList}\item 
+std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \& \doxymbox{\hyperlink{class_graph_state_acb729685eddcb0551df3502cd77228a5}{Get\+Links}} ()
+\begin{DoxyCompactList}\small\item\em Get mutable reference to all links. \end{DoxyCompactList}\item 
+const std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \& \doxymbox{\hyperlink{class_graph_state_af1c625864aea00d9508faf6bc3677f03}{Get\+Nodes}} () const
+\begin{DoxyCompactList}\small\item\em Get const reference to all nodes. \end{DoxyCompactList}\item 
+const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \& \doxymbox{\hyperlink{class_graph_state_a704543f9dd096eff99d93d69f0a85e84}{Get\+Links}} () const
+\begin{DoxyCompactList}\small\item\em Get const reference to all links. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_state_a2d1f9444e8d44b91812de52c5a653ba1}{Clear}} ()
+\begin{DoxyCompactList}\small\item\em Clear all nodes and links from the graph. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_state_ac9c0a6a747919e89764b7e16e9783bad}{Add\+Node}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&node)
+\begin{DoxyCompactList}\small\item\em Add a new node to the graph. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_state_a09557036dba81829249c8176a35cab53}{Delete\+Node}} (ed::\+\+Node\+Id node\+Id)
+\begin{DoxyCompactList}\small\item\em Delete a node and all its connected links. \end{DoxyCompactList}\item 
+const \doxymbox{\hyperlink{struct_pin}{Pin}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{class_graph_state_aff356bb0298d811a3747bb6480042be8}{Find\+Pin}} (ed::\+\+Pin\+Id pin\+Id) const
+\begin{DoxyCompactList}\small\item\em Find a pin by ID. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_state_a59b6cbbc3425826de32de91b1979b479}{Remove\+Links\+For\+Node}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Remove all links connected to a node\textquotesingle{}s pins. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_state_a6cbaa5310cffa70fed2659b2b3cbd357}{Add\+Link}} (const \doxymbox{\hyperlink{struct_link}{Link}} \&link)
+\begin{DoxyCompactList}\small\item\em Add a new link to the graph. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_state_af23d2e53182e6e6bb2f1541b02981fe5}{Delete\+Link}} (ed::\+\+Link\+Id link\+Id)
+\begin{DoxyCompactList}\small\item\em Delete a link from the graph. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_state_a21ee73698ebd67414b41aa19a65c24c9}{Mark\+Dirty}} ()
+\begin{DoxyCompactList}\small\item\em Mark graph state as changed. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{class_graph_state_a92dafa44293c9db1470a0a4fbd184041}{Is\+Dirty}} () const
+\begin{DoxyCompactList}\small\item\em Check if graph state has unsaved changes. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_state_a2a786bbf508bb054af412209f753871b}{Clear\+Dirty}} ()
+\begin{DoxyCompactList}\small\item\em Clear dirty flag after saving. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{class_graph_state_acf1010198ab9befe197b90a201dce3ef}{Is\+Compile\+Success}} () const
+\begin{DoxyCompactList}\small\item\em Check if last compilation succeeded. \end{DoxyCompactList}\item 
+const std::\+string \& \doxymbox{\hyperlink{class_graph_state_a569f7c96fe2f03f1335d0fd2deb92d3f}{Get\+Compile\+Message}} () const
+\begin{DoxyCompactList}\small\item\em Get the last compilation message. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_graph_state_aa7a66ba7455cc961dd2546e9e09c3dda}{Set\+Compile\+Status}} (bool success, const std::\+string \&message)
+\begin{DoxyCompactList}\small\item\em Update compilation status and message. \end{DoxyCompactList}\item 
+\doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \& \doxymbox{\hyperlink{class_graph_state_a56dd6225f37c06f91086343687cd53a1}{Get\+Id\+Gen}} ()
+\begin{DoxyCompactList}\small\item\em Get the ID generator. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{class_graph_state_ad9257ced9432e848e49dcac095a0be18}{Has\+Output\+Node}} () const
+\begin{DoxyCompactList}\small\item\em Check if the graph contains a Debug Print node (\doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16a29c2c02a361c9d7028472e5d92cd4a54}{Node\+Type::\+\+Output}). \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{class_graph_state_a443744edaef51eaf9b355c8d9a38974d}{Has\+Node\+Type}} (\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} type) const
+\begin{DoxyCompactList}\small\item\em Check if the graph contains at least one alive node of given type. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{class_graph_state_a1cb69d2f190f7aa429fcea3653cac42b}{Has\+Alive\+Nodes}} () const
+\begin{DoxyCompactList}\small\item\em Check if graph has any alive nodes. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Central container for all graph state. 
+
+Encapsulates the complete visual graph:\+
+\begin{DoxyItemize}
+\item Collection of Visual\+Nodes with their pins and fields
+\item Collection of Links connecting pins
+\item ID generator for creating unique element IDs
+\item Compilation status and messages
+\end{DoxyItemize}
+
+Provides a clean interface for editor operations while keeping the internal data structure private. 
+
+\label{doc-constructors}
+\Hypertarget{class_graph_state_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_graph_state_a84a5826adf817367d0d3db8f36d49adb}\index{GraphState@{GraphState}!GraphState@{GraphState}}
+\index{GraphState@{GraphState}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{GraphState()}{GraphState()}}
+{\footnotesize\ttfamily \label{class_graph_state_a84a5826adf817367d0d3db8f36d49adb} 
+Graph\+State::\+\+Graph\+State (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Initialize empty graph state. 
+
+
+
+\label{doc-func-members}
+\Hypertarget{class_graph_state_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_graph_state_a6cbaa5310cffa70fed2659b2b3cbd357}\index{GraphState@{GraphState}!AddLink@{AddLink}}
+\index{AddLink@{AddLink}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{AddLink()}{AddLink()}}
+{\footnotesize\ttfamily \label{class_graph_state_a6cbaa5310cffa70fed2659b2b3cbd357} 
+void Graph\+State::\+\+Add\+Link (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_link}{Link}} \&}]{link}{}\end{DoxyParamCaption})}
+
+
+
+Add a new link to the graph. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em link} & The link to add (copied) \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_graph_state_ac9c0a6a747919e89764b7e16e9783bad}\index{GraphState@{GraphState}!AddNode@{AddNode}}
+\index{AddNode@{AddNode}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{AddNode()}{AddNode()}}
+{\footnotesize\ttfamily \label{class_graph_state_ac9c0a6a747919e89764b7e16e9783bad} 
+void Graph\+State::\+\+Add\+Node (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{node}{}\end{DoxyParamCaption})}
+
+
+
+Add a new node to the graph. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em node} & The node to add (copied) \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_graph_state_a2d1f9444e8d44b91812de52c5a653ba1}\index{GraphState@{GraphState}!Clear@{Clear}}
+\index{Clear@{Clear}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{Clear()}{Clear()}}
+{\footnotesize\ttfamily \label{class_graph_state_a2d1f9444e8d44b91812de52c5a653ba1} 
+void Graph\+State::\+\+Clear (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Clear all nodes and links from the graph. 
+
+Removes all graph elements. Compilation status is preserved. \Hypertarget{class_graph_state_a2a786bbf508bb054af412209f753871b}\index{GraphState@{GraphState}!ClearDirty@{ClearDirty}}
+\index{ClearDirty@{ClearDirty}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{ClearDirty()}{ClearDirty()}}
+{\footnotesize\ttfamily \label{class_graph_state_a2a786bbf508bb054af412209f753871b} 
+void Graph\+State::\+\+Clear\+Dirty (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Clear dirty flag after saving. 
+
+\Hypertarget{class_graph_state_af23d2e53182e6e6bb2f1541b02981fe5}\index{GraphState@{GraphState}!DeleteLink@{DeleteLink}}
+\index{DeleteLink@{DeleteLink}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{DeleteLink()}{DeleteLink()}}
+{\footnotesize\ttfamily \label{class_graph_state_af23d2e53182e6e6bb2f1541b02981fe5} 
+void Graph\+State::\+\+Delete\+Link (\begin{DoxyParamCaption}\item[{ed::\+\+Link\+Id}]{link\+Id}{}\end{DoxyParamCaption})}
+
+
+
+Delete a link from the graph. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em link\+Id} & The ID of the link to delete \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_graph_state_a09557036dba81829249c8176a35cab53}\index{GraphState@{GraphState}!DeleteNode@{DeleteNode}}
+\index{DeleteNode@{DeleteNode}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{DeleteNode()}{DeleteNode()}}
+{\footnotesize\ttfamily \label{class_graph_state_a09557036dba81829249c8176a35cab53} 
+void Graph\+State::\+\+Delete\+Node (\begin{DoxyParamCaption}\item[{ed::\+\+Node\+Id}]{node\+Id}{}\end{DoxyParamCaption})}
+
+
+
+Delete a node and all its connected links. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em node\+Id} & The ID of the node to delete \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_graph_state_aff356bb0298d811a3747bb6480042be8}\index{GraphState@{GraphState}!FindPin@{FindPin}}
+\index{FindPin@{FindPin}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{FindPin()}{FindPin()}}
+{\footnotesize\ttfamily \label{class_graph_state_aff356bb0298d811a3747bb6480042be8} 
+const \doxymbox{\hyperlink{struct_pin}{Pin}} \texorpdfstring{$\ast$}{*} Graph\+State::\+\+Find\+Pin (\begin{DoxyParamCaption}\item[{ed::\+\+Pin\+Id}]{pin\+Id}{}\end{DoxyParamCaption}) const}
+
+
+
+Find a pin by ID. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pin\+Id} & The pin ID to look up \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Pointer to pin, or nullptr if not found 
+\end{DoxyReturn}
+\Hypertarget{class_graph_state_a569f7c96fe2f03f1335d0fd2deb92d3f}\index{GraphState@{GraphState}!GetCompileMessage@{GetCompileMessage}}
+\index{GetCompileMessage@{GetCompileMessage}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{GetCompileMessage()}{GetCompileMessage()}}
+{\footnotesize\ttfamily \label{class_graph_state_a569f7c96fe2f03f1335d0fd2deb92d3f} 
+const std::\+string \& Graph\+State::\+\+Get\+Compile\+Message (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get the last compilation message. 
+
+\begin{DoxyReturn}{Returns}
+Success result or error message from last compilation 
+\end{DoxyReturn}
+\Hypertarget{class_graph_state_a56dd6225f37c06f91086343687cd53a1}\index{GraphState@{GraphState}!GetIdGen@{GetIdGen}}
+\index{GetIdGen@{GetIdGen}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{GetIdGen()}{GetIdGen()}}
+{\footnotesize\ttfamily \label{class_graph_state_a56dd6225f37c06f91086343687cd53a1} 
+\doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \& Graph\+State::\+\+Get\+Id\+Gen (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get the ID generator. 
+
+\begin{DoxyReturn}{Returns}
+Reference to the ID generator for creating new elements 
+\end{DoxyReturn}
+\Hypertarget{class_graph_state_acb729685eddcb0551df3502cd77228a5}\index{GraphState@{GraphState}!GetLinks@{GetLinks}}
+\index{GetLinks@{GetLinks}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{GetLinks()}{GetLinks()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_graph_state_acb729685eddcb0551df3502cd77228a5} 
+std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \& Graph\+State::\+\+Get\+Links (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get mutable reference to all links. 
+
+\begin{DoxyReturn}{Returns}
+Vector of all links in the graph 
+\end{DoxyReturn}
+\Hypertarget{class_graph_state_a704543f9dd096eff99d93d69f0a85e84}\index{GraphState@{GraphState}!GetLinks@{GetLinks}}
+\index{GetLinks@{GetLinks}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{GetLinks()}{GetLinks()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_graph_state_a704543f9dd096eff99d93d69f0a85e84} 
+const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \& Graph\+State::\+\+Get\+Links (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get const reference to all links. 
+
+\begin{DoxyReturn}{Returns}
+Vector of all links in the graph 
+\end{DoxyReturn}
+\Hypertarget{class_graph_state_a63b31aaee4de42e0cf6108c39f96d11b}\index{GraphState@{GraphState}!GetNodes@{GetNodes}}
+\index{GetNodes@{GetNodes}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{GetNodes()}{GetNodes()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily \label{class_graph_state_a63b31aaee4de42e0cf6108c39f96d11b} 
+std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \& Graph\+State::\+\+Get\+Nodes (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get mutable reference to all nodes. 
+
+\begin{DoxyReturn}{Returns}
+Vector of all nodes in the graph 
+\end{DoxyReturn}
+\Hypertarget{class_graph_state_af1c625864aea00d9508faf6bc3677f03}\index{GraphState@{GraphState}!GetNodes@{GetNodes}}
+\index{GetNodes@{GetNodes}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{GetNodes()}{GetNodes()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily \label{class_graph_state_af1c625864aea00d9508faf6bc3677f03} 
+const std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \& Graph\+State::\+\+Get\+Nodes (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get const reference to all nodes. 
+
+\begin{DoxyReturn}{Returns}
+Vector of all nodes in the graph 
+\end{DoxyReturn}
+\Hypertarget{class_graph_state_a1cb69d2f190f7aa429fcea3653cac42b}\index{GraphState@{GraphState}!HasAliveNodes@{HasAliveNodes}}
+\index{HasAliveNodes@{HasAliveNodes}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{HasAliveNodes()}{HasAliveNodes()}}
+{\footnotesize\ttfamily \label{class_graph_state_a1cb69d2f190f7aa429fcea3653cac42b} 
+bool Graph\+State::\+\+Has\+Alive\+Nodes (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Check if graph has any alive nodes. 
+
+\Hypertarget{class_graph_state_a443744edaef51eaf9b355c8d9a38974d}\index{GraphState@{GraphState}!HasNodeType@{HasNodeType}}
+\index{HasNodeType@{HasNodeType}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{HasNodeType()}{HasNodeType()}}
+{\footnotesize\ttfamily \label{class_graph_state_a443744edaef51eaf9b355c8d9a38974d} 
+bool Graph\+State::\+\+Has\+Node\+Type (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}}}]{type}{}\end{DoxyParamCaption}) const}
+
+
+
+Check if the graph contains at least one alive node of given type. 
+
+\Hypertarget{class_graph_state_ad9257ced9432e848e49dcac095a0be18}\index{GraphState@{GraphState}!HasOutputNode@{HasOutputNode}}
+\index{HasOutputNode@{HasOutputNode}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{HasOutputNode()}{HasOutputNode()}}
+{\footnotesize\ttfamily \label{class_graph_state_ad9257ced9432e848e49dcac095a0be18} 
+bool Graph\+State::\+\+Has\+Output\+Node (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const}
+
+
+
+Check if the graph contains a Debug Print node (\doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16a29c2c02a361c9d7028472e5d92cd4a54}{Node\+Type::\+\+Output}). 
+
+\begin{DoxyReturn}{Returns}
+true if at least one Debug Print node exists
+\end{DoxyReturn}
+Required for compilation -\/ at least one Debug Print sink must be present. \Hypertarget{class_graph_state_acf1010198ab9befe197b90a201dce3ef}\index{GraphState@{GraphState}!IsCompileSuccess@{IsCompileSuccess}}
+\index{IsCompileSuccess@{IsCompileSuccess}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{IsCompileSuccess()}{IsCompileSuccess()}}
+{\footnotesize\ttfamily \label{class_graph_state_acf1010198ab9befe197b90a201dce3ef} 
+bool Graph\+State::\+\+Is\+Compile\+Success (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Check if last compilation succeeded. 
+
+\begin{DoxyReturn}{Returns}
+true if last compilation was successful 
+\end{DoxyReturn}
+\Hypertarget{class_graph_state_a92dafa44293c9db1470a0a4fbd184041}\index{GraphState@{GraphState}!IsDirty@{IsDirty}}
+\index{IsDirty@{IsDirty}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{IsDirty()}{IsDirty()}}
+{\footnotesize\ttfamily \label{class_graph_state_a92dafa44293c9db1470a0a4fbd184041} 
+bool Graph\+State::\+\+Is\+Dirty (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Check if graph state has unsaved changes. 
+
+\Hypertarget{class_graph_state_a21ee73698ebd67414b41aa19a65c24c9}\index{GraphState@{GraphState}!MarkDirty@{MarkDirty}}
+\index{MarkDirty@{MarkDirty}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{MarkDirty()}{MarkDirty()}}
+{\footnotesize\ttfamily \label{class_graph_state_a21ee73698ebd67414b41aa19a65c24c9} 
+void Graph\+State::\+\+Mark\+Dirty (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Mark graph state as changed. 
+
+\Hypertarget{class_graph_state_a59b6cbbc3425826de32de91b1979b479}\index{GraphState@{GraphState}!RemoveLinksForNode@{RemoveLinksForNode}}
+\index{RemoveLinksForNode@{RemoveLinksForNode}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{RemoveLinksForNode()}{RemoveLinksForNode()}}
+{\footnotesize\ttfamily \label{class_graph_state_a59b6cbbc3425826de32de91b1979b479} 
+void Graph\+State::\+\+Remove\+Links\+For\+Node (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Remove all links connected to a node\textquotesingle{}s pins. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em n} & The node whose links should be removed \\
+\hline
+\end{DoxyParams}
+\Hypertarget{class_graph_state_aa7a66ba7455cc961dd2546e9e09c3dda}\index{GraphState@{GraphState}!SetCompileStatus@{SetCompileStatus}}
+\index{SetCompileStatus@{SetCompileStatus}!GraphState@{GraphState}}
+\doxysubsubsection{\texorpdfstring{SetCompileStatus()}{SetCompileStatus()}}
+{\footnotesize\ttfamily \label{class_graph_state_aa7a66ba7455cc961dd2546e9e09c3dda} 
+void Graph\+State::\+\+Set\+Compile\+Status (\begin{DoxyParamCaption}\item[{bool}]{success}{, }\item[{const std::\+string \&}]{message}{}\end{DoxyParamCaption})}
+
+
+
+Update compilation status and message. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em success} & Whether compilation succeeded \\
+\hline
+{\em message} & Result or error message to display \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+editor/\+graph/\+\doxymbox{\hyperlink{graph_state_8h}{graph\+State.\+h}}\item 
+src/\+editor/\+graph/\+\doxymbox{\hyperlink{graph_state_8cpp}{graph\+State.\+cpp}}\end{DoxyCompactItemize}

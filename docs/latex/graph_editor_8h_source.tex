@@ -1,0 +1,55 @@
+\doxysection{graph\+Editor.\+h}
+\hypertarget{graph_editor_8h_source}{}\label{graph_editor_8h_source}\index{src/editor/graph/graphEditor.h@{src/editor/graph/graphEditor.h}}
+\doxymbox{\hyperlink{graph_editor_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00017\ }
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{visual_node_8h}{core/graph/visualNode.h}}"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}imgui\_node\_editor.h"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_state}{GraphState}};}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{keyword}{namespace\ }ed\ =\ ax::NodeEditor;}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00039\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_graph_editor_a9a09d5d9c80f84442b7b1314ec066000}{GraphEditor}}}
+\DoxyCodeLine{00040\ \{}
+\DoxyCodeLine{00041\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00047\ \ \ \ \ \doxymbox{\hyperlink{class_graph_editor_a9a09d5d9c80f84442b7b1314ec066000}{GraphEditor}}(ed::EditorContext*\ ctx,\ \doxymbox{\hyperlink{class_graph_state}{GraphState}}\&\ state);}
+\DoxyCodeLine{00048\ \ \ \ \ }
+\DoxyCodeLine{00052\ \ \ \ \ \doxymbox{\hyperlink{class_graph_editor_a063074d0b285eeaa06f8323c763afa7a}{\string~GraphEditor}}();}
+\DoxyCodeLine{00053\ }
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_editor_ac64c42bccd772522491654a8f6587698}{Draw}}();}
+\DoxyCodeLine{00062\ }
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_editor_a9fc2d054dddc8a3a4277534e8a31c27e}{DrawInspectorPanel}}();}
+\DoxyCodeLine{00069\ }
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_graph_editor_a7ee21ed48f4aa4264613d74d83cdb490}{HasSelectedNode}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00074\ }
+\DoxyCodeLine{00081\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_graph_editor_adb96381c835a8cd6b653bd5fcb0b0f15}{HandleDeleteShortcutFallback}}();}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_graph_editor_acbb87f1c3d2937762f864f4265b35d6d}{TryGetSingleSelectedNodeId}}(uintptr\_t\&\ outId)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keywordtype}{void}\ DrawNodeCanvas();}
+\DoxyCodeLine{00098\ \ \ \ \ }
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordtype}{void}\ DrawContextMenus();}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keywordtype}{void}\ CreateNewLink();}
+\DoxyCodeLine{00114\ \ \ \ \ }
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keywordtype}{void}\ DeleteNodes(ed::NodeId\ nodeId);}
+\DoxyCodeLine{00120\ \ \ \ \ }
+\DoxyCodeLine{00125\ \ \ \ \ \textcolor{keywordtype}{void}\ DeleteLinks(ed::LinkId\ linkId);}
+\DoxyCodeLine{00126\ }
+\DoxyCodeLine{00131\ \ \ \ \ \textcolor{keywordtype}{bool}\ DrawSpawnNodeMenuContents(\textcolor{keyword}{const}\ ImVec2\&\ spawnCanvasPos);}
+\DoxyCodeLine{00132\ }
+\DoxyCodeLine{00133\ \ \ \ \ ed::EditorContext*\ m\_ctx;\ \ }
+\DoxyCodeLine{00134\ \ \ \ \ \doxymbox{\hyperlink{class_graph_state}{GraphState}}\&\ m\_state;\ \ \ \ \ \ \ }
+\DoxyCodeLine{00135\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_initialAutoStartHandled\ =\ \textcolor{keyword}{false};\ }
+\DoxyCodeLine{00136\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_openSpawnPopupRequested\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00137\ \ \ \ \ ImVec2\ m\_spawnPopupScreenPos\ =\ ImVec2(0.0f,\ 0.0f);}
+\DoxyCodeLine{00138\ \ \ \ \ ImVec2\ m\_spawnPopupCanvasPos\ =\ ImVec2(0.0f,\ 0.0f);}
+\DoxyCodeLine{00139\ \};}
+
+\end{DoxyCode}

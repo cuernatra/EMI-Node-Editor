@@ -1,0 +1,35 @@
+\doxysection{graph\+Editor\+Utils.\+h}
+\hypertarget{graph_editor_utils_8h_source}{}\label{graph_editor_utils_8h_source}\index{src/editor/graph/graphEditorUtils.h@{src/editor/graph/graphEditorUtils.h}}
+\doxymbox{\hyperlink{graph_editor_utils_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{graph_state_8h}{graphState.h}}"{}}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{visual_node_8h}{core/graph/visualNode.h}}"{}}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ "{}imgui.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00016\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespace_graph_editor_utils}{GraphEditorUtils}}}
+\DoxyCodeLine{00017\ \{}
+\DoxyCodeLine{00018\ ImVec2\ \doxymbox{\hyperlink{namespace_graph_editor_utils_a1dbcf7e9bb170b34cec73a7bd001599a}{SnapToNodeGrid}}(\textcolor{keyword}{const}\ ImVec2\&\ pos);}
+\DoxyCodeLine{00019\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{namespace_graph_editor_utils_ae4d4146f7d3ae5a9190ad1585c23409f}{ParseSpawnPayloadTitle}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ payloadTitle,\ \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{NodeType}}\&\ outType,\ std::string\&\ outVariableVariant);}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ NodeField*\ \doxymbox{\hyperlink{namespace_graph_editor_utils_a4e43bc270b4cea8ce066321d8ce3c319}{FindField}}(std::vector<NodeField>\&\ fields,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ name);}
+\DoxyCodeLine{00022\ \textcolor{keyword}{const}\ NodeField*\ \doxymbox{\hyperlink{namespace_graph_editor_utils_a4e43bc270b4cea8ce066321d8ce3c319}{FindField}}(\textcolor{keyword}{const}\ std::vector<NodeField>\&\ fields,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ name);}
+\DoxyCodeLine{00023\ Pin*\ \doxymbox{\hyperlink{namespace_graph_editor_utils_a0cad8d491915b1ab8d43ea6df4a61dfc}{FindPinByName}}(std::vector<Pin>\&\ pins,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ name);}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00025\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{namespace_graph_editor_utils_a4ba13ef210d6cfdeeddfa2081d0a3c2e}{DrawInspectorField}}(NodeField\&\ field);}
+\DoxyCodeLine{00026\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{namespace_graph_editor_utils_a5297bdee695214b94e56e3df50df0878}{DrawInspectorReadOnlyField}}(\textcolor{keyword}{const}\ NodeField\&\ field);}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{namespace_graph_editor_utils_ae9776d8ccf30ad0ef881472ca42de084}{RefreshVariableNodeTypes}}(GraphState\&\ state);}
+\DoxyCodeLine{00029\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{namespace_graph_editor_utils_a95588062e01e6a4e1f6ca66846941c31}{RefreshOutputNodeInputTypes}}(GraphState\&\ state);}
+\DoxyCodeLine{00030\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{namespace_graph_editor_utils_ad76ab389d88ff98e36ff8ce2cc7a1e9a}{RefreshLoopNodeLayout}}(GraphState\&\ state);}
+\DoxyCodeLine{00031\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{namespace_graph_editor_utils_a761404f3b2c5b0ed58ec9343490d4255}{RefreshForEachNodeLayout}}(GraphState\&\ state);}
+\DoxyCodeLine{00032\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{namespace_graph_editor_utils_a33049c36204948b089b95ad0d0665add}{RefreshDrawRectNodeLayout}}(GraphState\&\ state);}
+\DoxyCodeLine{00033\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{namespace_graph_editor_utils_a1c691d016abc0cb82fb7ec071e2f23f0}{RefreshStructNodeLayouts}}(GraphState\&\ state);}
+\DoxyCodeLine{00034\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{namespace_graph_editor_utils_a3c18dc252fa0bd0442e155e5a1dabe62}{SyncLinkTypesAndPruneInvalid}}(GraphState\&\ state);}
+\DoxyCodeLine{00035\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{namespace_graph_editor_utils_af8990b659cb6f774126abbd0df219adc}{DisconnectNonAnyLinksForPins}}(GraphState\&\ state,\ \textcolor{keyword}{const}\ std::vector<ed::PinId>\&\ pinIds);}
+\DoxyCodeLine{00036\ \}}
+
+\end{DoxyCode}

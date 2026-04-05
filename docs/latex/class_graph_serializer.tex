@@ -1,0 +1,82 @@
+\doxysection{Graph\+Serializer Class Reference}
+\hypertarget{class_graph_serializer}{}\label{class_graph_serializer}\index{GraphSerializer@{GraphSerializer}}
+
+
+Graph file I/\+O operations.  
+
+
+
+
+{\ttfamily \+\#include $<$graph\+Serializer.\+h$>$}
+
+\doxysubsubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \doxymbox{\hyperlink{class_graph_serializer_a3fa96704a18fad6758e903f86c0eb5dc}{Save}} (const \doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&state, const char \texorpdfstring{$\ast$}{*}path)
+\begin{DoxyCompactList}\small\item\em Save graph to file. \end{DoxyCompactList}\item 
+static void \doxymbox{\hyperlink{class_graph_serializer_a164fd72161957230f7048280f4fa4eee}{Load}} (\doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&state, const char \texorpdfstring{$\ast$}{*}path)
+\begin{DoxyCompactList}\small\item\em Load graph from file. \end{DoxyCompactList}\item 
+static void \doxymbox{\hyperlink{class_graph_serializer_a029b975ad02c950762d12071f7ec1107}{Apply\+Constant\+Type\+From\+Fields}} (\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n, bool reset\+Value\+On\+Type\+Change=false)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Graph file I/\+O operations. 
+
+Provides static methods for saving and loading complete graph state to/\+from disk. The file format is a simple text-\/based representation that stores:\+
+\begin{DoxyItemize}
+\item Node IDs, types, positions, and field values
+\item \doxylink{struct_pin}{Pin} IDs and their associations
+\item \doxylink{struct_link}{Link} IDs and connections
+\item Next available ID for the generator 
+\end{DoxyItemize}
+
+\label{doc-func-members}
+\Hypertarget{class_graph_serializer_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_graph_serializer_a029b975ad02c950762d12071f7ec1107}\index{GraphSerializer@{GraphSerializer}!ApplyConstantTypeFromFields@{ApplyConstantTypeFromFields}}
+\index{ApplyConstantTypeFromFields@{ApplyConstantTypeFromFields}!GraphSerializer@{GraphSerializer}}
+\doxysubsubsection{\texorpdfstring{ApplyConstantTypeFromFields()}{ApplyConstantTypeFromFields()}}
+{\footnotesize\ttfamily \label{class_graph_serializer_a029b975ad02c950762d12071f7ec1107} 
+void Graph\+Serializer::\+\+Apply\+Constant\+Type\+From\+Fields (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{, }\item[{bool}]{reset\+Value\+On\+Type\+Change}{ = {\ttfamily false}}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+\Hypertarget{class_graph_serializer_a164fd72161957230f7048280f4fa4eee}\index{GraphSerializer@{GraphSerializer}!Load@{Load}}
+\index{Load@{Load}!GraphSerializer@{GraphSerializer}}
+\doxysubsubsection{\texorpdfstring{Load()}{Load()}}
+{\footnotesize\ttfamily \label{class_graph_serializer_a164fd72161957230f7048280f4fa4eee} 
+void Graph\+Serializer::\+\+Load (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&}]{state}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{path}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Load graph from file. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em state} & The graph state to populate (will be cleared first) \\
+\hline
+{\em path} & File path to load from\\
+\hline
+\end{DoxyParams}
+Deserializes a graph from disk, clearing any existing state. If the file doesn\textquotesingle{}t exist or is malformed, state is left empty. \Hypertarget{class_graph_serializer_a3fa96704a18fad6758e903f86c0eb5dc}\index{GraphSerializer@{GraphSerializer}!Save@{Save}}
+\index{Save@{Save}!GraphSerializer@{GraphSerializer}}
+\doxysubsubsection{\texorpdfstring{Save()}{Save()}}
+{\footnotesize\ttfamily \label{class_graph_serializer_a3fa96704a18fad6758e903f86c0eb5dc} 
+void Graph\+Serializer::\+\+Save (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&}]{state}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{path}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Save graph to file. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em state} & The graph state to save \\
+\hline
+{\em path} & File path for output\\
+\hline
+\end{DoxyParams}
+Serializes all nodes, links, and ID state to a text file. Creates or overwrites the file at the given path. 
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+editor/\+graph/\+\doxymbox{\hyperlink{graph_serializer_8h}{graph\+Serializer.\+h}}\item 
+src/\+editor/\+graph/\+\doxymbox{\hyperlink{graph_serializer_8cpp}{graph\+Serializer.\+cpp}}\end{DoxyCompactItemize}

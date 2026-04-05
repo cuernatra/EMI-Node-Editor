@@ -1,0 +1,71 @@
+\doxysection{pin\+Renderer.\+h}
+\hypertarget{pin_renderer_8h_source}{}\label{pin_renderer_8h_source}\index{src/editor/renderer/pinRenderer.h@{src/editor/renderer/pinRenderer.h}}
+\doxymbox{\hyperlink{pin_renderer_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#include\ "{}imgui.h"{}}}
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}imgui\_node\_editor.h"{}}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{types_8h}{types.h}}"{}}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{keyword}{namespace\ }ed\ =\ ax::NodeEditor;}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00011\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_pin_style_palette}{PinStylePalette}}}
+\DoxyCodeLine{00012\ \{}
+\DoxyCodeLine{00013\ \ \ \ \ ImVec4\ \doxymbox{\hyperlink{struct_pin_style_palette_a52441a0cea01653bfd8915bc1a76c4ef}{number}}\ \ \ =\ \{1.0f,\ 0.8f,\ 0.0f,\ 1.0f\};}
+\DoxyCodeLine{00014\ \ \ \ \ ImVec4\ \textcolor{keywordtype}{boolean}\ \ =\ \{1.0f,\ 0.0f,\ 0.0f,\ 1.0f\};}
+\DoxyCodeLine{00015\ \ \ \ \ ImVec4\ \textcolor{keywordtype}{string}\ \ \ =\ \{0.0f,\ 1.0f,\ 0.0f,\ 1.0f\};}
+\DoxyCodeLine{00016\ \ \ \ \ ImVec4\ \doxymbox{\hyperlink{struct_pin_style_palette_ac581a52047b9c479d591b369f8093fef}{array}}\ \ \ \ =\ \{0.0f,\ 0.0f,\ 1.0f,\ 1.0f\};}
+\DoxyCodeLine{00017\ \ \ \ \ ImVec4\ \doxymbox{\hyperlink{struct_pin_style_palette_a361faadda0968b6e68d4a810ed8ba316}{function}}\ =\ \{1.0f,\ 0.0f,\ 1.0f,\ 1.0f\};}
+\DoxyCodeLine{00018\ \ \ \ \ ImVec4\ \doxymbox{\hyperlink{struct_pin_style_palette_a9ec9b8f3877fc6da323207729e34320b}{flow}}\ \ \ \ \ =\ \{1.0f,\ 1.0f,\ 1.0f,\ 1.0f\};}
+\DoxyCodeLine{00019\ \ \ \ \ ImVec4\ \doxymbox{\hyperlink{struct_pin_style_palette_aca6a4ae2799dba263fe488a1b92d68f1}{any}}\ \ \ \ \ \ =\ \{0.5f,\ 0.5f,\ 0.5f,\ 1.0f\};}
+\DoxyCodeLine{00020\ \};}
+\DoxyCodeLine{00021\ }
+\DoxyCodeLine{00022\ \textcolor{keyword}{enum\ class}\ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696}{PinIconType}}}
+\DoxyCodeLine{00023\ \{}
+\DoxyCodeLine{00024\ \ \ \ \ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696a30954d90085f6eaaf5817917fc5fecb3}{Circle}},}
+\DoxyCodeLine{00025\ \ \ \ \ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696af1a76f66cca677c6e628d9ca58a6c8fc}{Flow}}}
+\DoxyCodeLine{00026\ \};}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00029\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_pin_icon_palette}{PinIconPalette}}}
+\DoxyCodeLine{00030\ \{}
+\DoxyCodeLine{00031\ \ \ \ \ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696}{PinIconType}}\ \doxymbox{\hyperlink{struct_pin_icon_palette_a3549c35e3ab08dcc269af0674292149d}{number}}\ \ \ =\ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696a30954d90085f6eaaf5817917fc5fecb3}{PinIconType::Circle}};}
+\DoxyCodeLine{00032\ \ \ \ \ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696}{PinIconType}}\ \textcolor{keywordtype}{boolean}\ \ =\ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696a30954d90085f6eaaf5817917fc5fecb3}{PinIconType::Circle}};}
+\DoxyCodeLine{00033\ \ \ \ \ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696}{PinIconType}}\ \textcolor{keywordtype}{string}\ \ \ =\ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696a30954d90085f6eaaf5817917fc5fecb3}{PinIconType::Circle}};}
+\DoxyCodeLine{00034\ \ \ \ \ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696}{PinIconType}}\ \doxymbox{\hyperlink{struct_pin_icon_palette_a4cdc0d710e076493dd384d88ec216166}{array}}\ \ \ \ =\ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696a30954d90085f6eaaf5817917fc5fecb3}{PinIconType::Circle}};}
+\DoxyCodeLine{00035\ \ \ \ \ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696}{PinIconType}}\ \doxymbox{\hyperlink{struct_pin_icon_palette_a32f87a3db9506cb94d23c4f2c42e5fae}{function}}\ =\ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696a30954d90085f6eaaf5817917fc5fecb3}{PinIconType::Circle}};}
+\DoxyCodeLine{00036\ \ \ \ \ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696}{PinIconType}}\ \doxymbox{\hyperlink{struct_pin_icon_palette_a56514483e6b856dbb5fe441450874f64}{flow}}\ \ \ \ \ =\ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696af1a76f66cca677c6e628d9ca58a6c8fc}{PinIconType::Flow}};}
+\DoxyCodeLine{00037\ \ \ \ \ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696}{PinIconType}}\ \doxymbox{\hyperlink{struct_pin_icon_palette_a3e6fa57e3746b2d2f93b750d7d94dfe6}{any}}\ \ \ \ \ \ =\ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696a30954d90085f6eaaf5817917fc5fecb3}{PinIconType::Circle}};}
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{struct_pin_icon_palette_a2ea03392b622a7163c4f062499853251}{filled}}\ \ \ \ \ \ \ \ \ \ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00039\ \};}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00042\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_editor_pin_style}{EditorPinStyle}}}
+\DoxyCodeLine{00043\ \{}
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{struct_editor_pin_style_a7e7e0e575b26f7bc2d025605b5172e5f}{pinRounding}}\ \ \ \ =\ 4.0f;}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{struct_editor_pin_style_a3259844d67f025f29e45bbc408597ce7}{pinBorderWidth}}\ =\ 0.0f;}
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{struct_editor_pin_style_ad7b699b64dac652582611cb1eac95f2a}{pinRadius}}\ \ \ \ \ \ =\ 0.0f;}
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{struct_editor_pin_style_a9a1f27d4a3fce5e04b9c9b034d6b8c44}{pinArrowSize}}\ \ \ =\ 0.0f;}
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{struct_editor_pin_style_adb7013b5131a4efefaff64f46b9dcdb9}{pinArrowWidth}}\ \ =\ 0.0f;}
+\DoxyCodeLine{00049\ \};}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00051\ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_pin_style_palette}{PinStylePalette}}\&\ \doxymbox{\hyperlink{pin_renderer_8h_a450ef9c7cb8d30616beaf099ab51724f}{GetPinStylePalette}}();}
+\DoxyCodeLine{00052\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{pin_renderer_8h_a390bab2857ef5478618a8bfafd25d6aa}{SetPinStylePalette}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_pin_style_palette}{PinStylePalette}}\&\ palette);}
+\DoxyCodeLine{00053\ ImVec4\ \doxymbox{\hyperlink{pin_renderer_8h_aea8da0b9f0d94e0637f62f7592e81df4}{GetPinTypeColor}}(\doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{PinType}}\ type);}
+\DoxyCodeLine{00054\ }
+\DoxyCodeLine{00055\ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_pin_icon_palette}{PinIconPalette}}\&\ \doxymbox{\hyperlink{pin_renderer_8h_a02bdc2c0a5eaab672ad1caa2bd76e52f}{GetPinIconPalette}}();}
+\DoxyCodeLine{00056\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{pin_renderer_8h_a993a86af22e600dec32f3baefcd12265}{SetPinIconPalette}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_pin_icon_palette}{PinIconPalette}}\&\ palette);}
+\DoxyCodeLine{00057\ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696}{PinIconType}}\ \doxymbox{\hyperlink{pin_renderer_8h_a00ca5213e282320a33d4fb1ef23df2eb}{GetPinTypeIcon}}(\doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{PinType}}\ type);}
+\DoxyCodeLine{00058\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{pin_renderer_8h_abba98e762978de613069c4360c76664f}{DrawPinIcon}}(ImDrawList*\ drawList,}
+\DoxyCodeLine{00059\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ ImVec2\&\ a,}
+\DoxyCodeLine{00060\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keyword}{const}\ ImVec2\&\ b,}
+\DoxyCodeLine{00061\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696}{PinIconType}}\ type,}
+\DoxyCodeLine{00062\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{bool}\ filled,}
+\DoxyCodeLine{00063\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ImU32\ color,}
+\DoxyCodeLine{00064\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ImU32\ innerColor);}
+\DoxyCodeLine{00065\ }
+\DoxyCodeLine{00066\ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_editor_pin_style}{EditorPinStyle}}\&\ \doxymbox{\hyperlink{pin_renderer_8h_a2bd7f6c033b0b21d64599d289b008bf3}{GetEditorPinStyle}}();}
+\DoxyCodeLine{00067\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{pin_renderer_8h_ab6fe1b2573f0eaf499ab0918a7fc1b14}{SetEditorPinStyle}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_editor_pin_style}{EditorPinStyle}}\&\ style);}
+\DoxyCodeLine{00068\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{pin_renderer_8h_a20d8dd2710aa5786d20598e31c7470f7}{ApplyEditorPinStyle}}(ed::Style\&\ style);}
+
+\end{DoxyCode}

@@ -43,9 +43,13 @@
 # new staff
 *.ini
 build/
+build*/
+**/build*/
+**/_deps/
 .vscode/
 graph.txt
 node_editor.json
+build_cline_check/
 
 # cmake preset
 CMakePresets.json
@@ -53,5 +57,9 @@ CMakePresets.json
 compile_commands.json
 .clangd
 
-#json files
-*.json
+# settigns json
+settings.json
+
+#testing directory temp files
+tests/Testing/*
+

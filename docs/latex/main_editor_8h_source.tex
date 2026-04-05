@@ -1,0 +1,69 @@
+\doxysection{main\+Editor.\+h}
+\hypertarget{main_editor_8h_source}{}\label{main_editor_8h_source}\index{src/editor/mainEditor.h@{src/editor/mainEditor.h}}
+\doxymbox{\hyperlink{main_editor_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{graph_state_8h}{graph/graphState.h}}"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{graph_editor_8h}{graph/graphEditor.h}}"{}}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{graph_compilation_8h}{graph/graphCompilation.h}}"{}}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <future>}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ <mutex>}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{namespace\ }ed\ =\ ax::NodeEditor;}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00026\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_main_editor_a62d87e7179eb118ef6da757e8adffbff}{MainEditor}}}
+\DoxyCodeLine{00027\ \{}
+\DoxyCodeLine{00028\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00030\ \ \ \ \ \doxymbox{\hyperlink{class_main_editor_a62d87e7179eb118ef6da757e8adffbff}{MainEditor}}();}
+\DoxyCodeLine{00031\ \ \ \ \ }
+\DoxyCodeLine{00033\ \ \ \ \ \doxymbox{\hyperlink{class_main_editor_aa382ea807fe0a4fc8d9acb6aefbecb29}{\string~MainEditor}}();}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_main_editor_afb72a29309920a39ce002c312277d7a0}{draw}}();}
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_main_editor_adc5628badb16cb007ba2aa8ba5f86c5f}{drawInspectorPanel}}();}
+\DoxyCodeLine{00040\ }
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_main_editor_a287b07e45d42d59b35334a47d4699365}{handleSharedShortcuts}}();}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_main_editor_ad953c97636608880521e658f297c8608}{hasSelectedNode}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00046\ }
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_main_editor_ab94c7c1cdc0967339c27332ffe20cedf}{tryGetSingleSelectedNodeId}}(uintptr\_t\&\ outId)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00051\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_main_editor_a5ec6a61a975c35f4932f72243df75f3c}{hasStartNode}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00052\ }
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_main_editor_ad781360cb6f2bda877c02cb902cdd215}{hasVariables}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00055\ }
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_main_editor_a6c3a7ce28d77e634c13090c3c723d057}{setCompileLogSink}}(std::function<\textcolor{keywordtype}{void}(\textcolor{keyword}{const}\ std::string\&)>\ sink);}
+\DoxyCodeLine{00058\ }
+\DoxyCodeLine{00060\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_main_editor_af2788a17ae29411ca035687533c7aed7}{setCompileCallback}}(std::function<\textcolor{keywordtype}{void}()>\ cb);}
+\DoxyCodeLine{00061\ }
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{class_graph_state}{GraphState}}\&\ \doxymbox{\hyperlink{class_main_editor_a07e9c4b57c6f70b9875f844f5189b39f}{getGraphState}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_main_editor_aadff17fbe48a786dd2adf2b1a7380641}{syncNodePositionsForPreview}}();}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_main_editor_aff3c225e25c6cb7c972d2d7b0216823c}{flushPendingCompileLogs}}();}
+\DoxyCodeLine{00069\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_main_editor_a6b7ca2274fe1d717fb8b5da4930e3ede}{pollAsyncCompileResult}}();}
+\DoxyCodeLine{00070\ }
+\DoxyCodeLine{00071\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00072\ }
+\DoxyCodeLine{00073\ \ \ \ \ ed::EditorContext*\ m\_editorContext\ =\ \textcolor{keyword}{nullptr};\ \ }
+\DoxyCodeLine{00074\ \ \ \ \ std::unique\_ptr<GraphState>\ m\_graphState;\ \ \ \ \ \ }
+\DoxyCodeLine{00075\ \ \ \ \ std::unique\_ptr<GraphEditor>\ m\_graphEditor;\ \ \ \ }
+\DoxyCodeLine{00076\ \ \ \ \ std::function<void(\textcolor{keyword}{const}\ std::string\&)>\ m\_uiCompileLogSink;}
+\DoxyCodeLine{00077\ \ \ \ \ std::mutex\ m\_pendingCompileLogsMutex;}
+\DoxyCodeLine{00078\ \ \ \ \ std::vector<std::string>\ m\_pendingCompileLogs;}
+\DoxyCodeLine{00079\ \ \ \ \ std::future<GraphCompilation::CompileResult>\ m\_compileFuture;}
+\DoxyCodeLine{00080\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_compileInProgress\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00081\ \ \ \ \ std::unique\_ptr<GraphCompilation>\ m\_compiler;\ \ }
+\DoxyCodeLine{00082\ \ \ \ \ std::function<void()>\ m\_compileCallback;}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_resultOnlyCompile\ =\ \textcolor{keyword}{true};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00084\ \};}
+
+\end{DoxyCode}

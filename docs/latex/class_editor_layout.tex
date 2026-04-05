@@ -1,0 +1,79 @@
+\doxysection{Editor\+Layout Class Reference}
+\hypertarget{class_editor_layout}{}\label{class_editor_layout}\index{EditorLayout@{EditorLayout}}
+
+
+Main UI compositor class.  
+
+
+
+
+{\ttfamily \+\#include $<$editor\+Layout.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{class_editor_layout_ac436713c028afe298b4580b37ea25ca4}{Editor\+Layout}} ()
+\begin{DoxyCompactList}\small\item\em Initialize the UI compositor. \end{DoxyCompactList}\item 
+\doxymbox{\hyperlink{class_editor_layout_a91ca0b9c470ae36e065a86431439e21c}{\texorpdfstring{$\sim$}{\string~}\+Editor\+Layout}} ()
+\item 
+void \doxymbox{\hyperlink{class_editor_layout_a3d016449381a311471d6863d076b7d95}{draw}} ()
+\begin{DoxyCompactList}\small\item\em Draw the complete UI hierarchy. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Main UI compositor class. 
+
+Orchestrates the layout of all major UI components:\+ top toolbar, left palette panel, and main editor canvas. Provides a resizable splitter between the left panel and main editor for user customization.
+
+Layout structure:\+
+\begin{DoxyItemize}
+\item Top:\+ Toolbar with compile/\+save/\+load buttons
+\item Left:\+ Node palette with draggable node types
+\item Center:\+ Main node editor canvas
+\end{DoxyItemize}
+
+\begin{DoxyAuthor}{Author}
+Atte Perkiö 
+\end{DoxyAuthor}
+
+
+\label{doc-constructors}
+\Hypertarget{class_editor_layout_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_editor_layout_ac436713c028afe298b4580b37ea25ca4}\index{EditorLayout@{EditorLayout}!EditorLayout@{EditorLayout}}
+\index{EditorLayout@{EditorLayout}!EditorLayout@{EditorLayout}}
+\doxysubsubsection{\texorpdfstring{EditorLayout()}{EditorLayout()}}
+{\footnotesize\ttfamily \label{class_editor_layout_ac436713c028afe298b4580b37ea25ca4} 
+Editor\+Layout::\+\+Editor\+Layout (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Initialize the UI compositor. 
+
+\Hypertarget{class_editor_layout_a91ca0b9c470ae36e065a86431439e21c}\index{EditorLayout@{EditorLayout}!````~EditorLayout@{\texorpdfstring{$\sim$}{\string~}EditorLayout}}
+\index{````~EditorLayout@{\texorpdfstring{$\sim$}{\string~}EditorLayout}!EditorLayout@{EditorLayout}}
+\doxysubsubsection{\texorpdfstring{\texorpdfstring{$\sim$}{\string~}EditorLayout()}{\string~EditorLayout()}}
+{\footnotesize\ttfamily \label{class_editor_layout_a91ca0b9c470ae36e065a86431439e21c} 
+Editor\+Layout::\+\texorpdfstring{$\sim$}{\string~}\+Editor\+Layout (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+\label{doc-func-members}
+\Hypertarget{class_editor_layout_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_editor_layout_a3d016449381a311471d6863d076b7d95}\index{EditorLayout@{EditorLayout}!draw@{draw}}
+\index{draw@{draw}!EditorLayout@{EditorLayout}}
+\doxysubsubsection{\texorpdfstring{draw()}{draw()}}
+{\footnotesize\ttfamily \label{class_editor_layout_a3d016449381a311471d6863d076b7d95} 
+void Editor\+Layout::\+draw (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Draw the complete UI hierarchy. 
+
+Renders the top toolbar, left panel, splitter, and main editor. Must be called every frame within the Im\+Gui context. 
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+app/\+\doxymbox{\hyperlink{editor_layout_8h}{editor\+Layout.\+h}}\item 
+src/\+app/\+\doxymbox{\hyperlink{editor_layout_8cpp}{editor\+Layout.\+cpp}}\end{DoxyCompactItemize}

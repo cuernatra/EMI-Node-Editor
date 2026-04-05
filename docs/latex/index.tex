@@ -1,0 +1,56 @@
+\chapter{AO\+\_\+\+Emi-\/\+Visual-\/\+Programming-\/\+Tool }
+\hypertarget{index}{}\label{index}\index{AO\_Emi-\/Visual-\/Programming-\/Tool@{AO\_Emi-\/Visual-\/Programming-\/Tool}}
+\label{index_md__r_e_a_d_m_e}%
+\Hypertarget{index_md__r_e_a_d_m_e}%
+
+
+COMP.\+SE.\+610/\+620\hypertarget{index_autotoc_md1}{}\doxysection{\texorpdfstring{Build instructions}{Build instructions}}\label{index_autotoc_md1}
+Make sure CMake is installed.
+
+
+\begin{DoxyEnumerate}
+\item Create build directory:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{mkdir\ build}
+
+\end{DoxyCode}
+
+\item Go to build directory:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd\ build}
+
+\end{DoxyCode}
+
+\item Configure CMake to build dependencies as static libraries:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cmake\ -\/DBUILD\_SHARED\_LIBS=OFF\ ..}
+
+\end{DoxyCode}
+
+\item Build project:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cmake\ -\/-\/build\ .}
+
+\end{DoxyCode}
+
+\end{DoxyEnumerate}
+
+Generated executable can be found in the build directory.\hypertarget{index_autotoc_md2}{}\doxysection{\texorpdfstring{Documentation}{Documentation}}\label{index_autotoc_md2}
+Generate the HTML docs:\+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{doxygen\ Doxyfile}
+
+\end{DoxyCode}
+
+
+Then open {\ttfamily docs/\+index.\+html} (redirects to {\ttfamily docs/\+html/\+index.\+html}). 

@@ -1,0 +1,65 @@
+\doxysection{src/\+core/\+graph/\+visual\+Node.cpp File Reference}
+\hypertarget{visual_node_8cpp}{}\label{visual_node_8cpp}\index{src/core/graph/visualNode.cpp@{src/core/graph/visualNode.cpp}}
+{\ttfamily \+\#include "{}visual\+Node.\+h"{}}\newline
+{\ttfamily \+\#include "{}../\+registry/\+field\+Widget.\+h"{}}\newline
+{\ttfamily \+\#include "{}editor/\+graph\+Serializer.\+h"{}}\newline
+{\ttfamily \+\#include "{}imgui.\+h"{}}\newline
+{\ttfamily \+\#include "{}imgui\+\_\+node\+\_\+editor.\+h"{}}\newline
+{\ttfamily \+\#include $<$algorithm$>$}\newline
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{visual_node_8cpp_a27d38fc57c2da83774983297c2ef01fa}{Draw\+Visual\+Node}} (\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Render a visual node on the canvas. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{visual_node_8cpp_a0fb48c396a642e32aed96213685e52c4}{Draw\+Visual\+Node}} (\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n, \doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \texorpdfstring{$\ast$}{*}id\+Gen)
+\item 
+bool \doxymbox{\hyperlink{visual_node_8cpp_aa091b273f9fb98c00f1ea81aa94bae75}{Draw\+Visual\+Node}} (\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n, \doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \texorpdfstring{$\ast$}{*}id\+Gen, const std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \texorpdfstring{$\ast$}{*}all\+Nodes)
+\item 
+bool \doxymbox{\hyperlink{visual_node_8cpp_a296a8d7c00e4cda7f14ecf397208a220}{Draw\+Visual\+Node}} (\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n, \doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \texorpdfstring{$\ast$}{*}id\+Gen, const std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \texorpdfstring{$\ast$}{*}all\+Nodes, const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \texorpdfstring{$\ast$}{*}all\+Links)
+\end{DoxyCompactItemize}
+
+
+\label{doc-func-members}
+\Hypertarget{visual_node_8cpp_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{visual_node_8cpp_a27d38fc57c2da83774983297c2ef01fa}\index{visualNode.cpp@{visualNode.cpp}!DrawVisualNode@{DrawVisualNode}}
+\index{DrawVisualNode@{DrawVisualNode}!visualNode.cpp@{visualNode.cpp}}
+\doxysubsubsection{\texorpdfstring{DrawVisualNode()}{DrawVisualNode()}\hspace{0.1cm}{\footnotesize\ttfamily [1/4]}}
+{\footnotesize\ttfamily \label{visual_node_8cpp_a27d38fc57c2da83774983297c2ef01fa} 
+bool Draw\+Visual\+Node (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Render a visual node on the canvas. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em n} & The node to render\\
+\hline
+\end{DoxyParams}
+Draws the node using imgui-\/node-\/editor primitives:\+
+\begin{DoxyItemize}
+\item Node body with title
+\item Input pins on the left
+\item Output pins on the right
+\item Editable fields in the center
+\end{DoxyItemize}
+
+Must be called within an ed::\+\+Begin() /\+ ed::\+\+End() block. \Hypertarget{visual_node_8cpp_a0fb48c396a642e32aed96213685e52c4}\index{visualNode.cpp@{visualNode.cpp}!DrawVisualNode@{DrawVisualNode}}
+\index{DrawVisualNode@{DrawVisualNode}!visualNode.cpp@{visualNode.cpp}}
+\doxysubsubsection{\texorpdfstring{DrawVisualNode()}{DrawVisualNode()}\hspace{0.1cm}{\footnotesize\ttfamily [2/4]}}
+{\footnotesize\ttfamily \label{visual_node_8cpp_a0fb48c396a642e32aed96213685e52c4} 
+bool Draw\+Visual\+Node (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{, }\item[{\doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \texorpdfstring{$\ast$}{*}}]{id\+Gen}{}\end{DoxyParamCaption})}
+
+\Hypertarget{visual_node_8cpp_aa091b273f9fb98c00f1ea81aa94bae75}\index{visualNode.cpp@{visualNode.cpp}!DrawVisualNode@{DrawVisualNode}}
+\index{DrawVisualNode@{DrawVisualNode}!visualNode.cpp@{visualNode.cpp}}
+\doxysubsubsection{\texorpdfstring{DrawVisualNode()}{DrawVisualNode()}\hspace{0.1cm}{\footnotesize\ttfamily [3/4]}}
+{\footnotesize\ttfamily \label{visual_node_8cpp_aa091b273f9fb98c00f1ea81aa94bae75} 
+bool Draw\+Visual\+Node (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{, }\item[{\doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \texorpdfstring{$\ast$}{*}}]{id\+Gen}{, }\item[{const std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \texorpdfstring{$\ast$}{*}}]{all\+Nodes}{}\end{DoxyParamCaption})}
+
+\Hypertarget{visual_node_8cpp_a296a8d7c00e4cda7f14ecf397208a220}\index{visualNode.cpp@{visualNode.cpp}!DrawVisualNode@{DrawVisualNode}}
+\index{DrawVisualNode@{DrawVisualNode}!visualNode.cpp@{visualNode.cpp}}
+\doxysubsubsection{\texorpdfstring{DrawVisualNode()}{DrawVisualNode()}\hspace{0.1cm}{\footnotesize\ttfamily [4/4]}}
+{\footnotesize\ttfamily \label{visual_node_8cpp_a296a8d7c00e4cda7f14ecf397208a220} 
+bool Draw\+Visual\+Node (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{, }\item[{\doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \texorpdfstring{$\ast$}{*}}]{id\+Gen}{, }\item[{const std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \texorpdfstring{$\ast$}{*}}]{all\+Nodes}{, }\item[{const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \texorpdfstring{$\ast$}{*}}]{all\+Links}{}\end{DoxyParamCaption})}
+

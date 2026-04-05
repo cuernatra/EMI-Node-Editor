@@ -1,119 +1,65 @@
-/**
- * @file pin.h
- * @brief Pin definitions for the visual graph
- * 
- * Defines the data structures for pins (node connection points) and
- * helper functions for type compatibility and pin creation.
- * 
- */
+/** @file pin.h */
+/** @brief Pin data and helper functions for graph connections. */
 
 #ifndef PIN_H
 #define PIN_H
 
 #include "imgui_node_editor.h"
-#include "imgui.h"
 #include "types.h"
 #include <string>
-#include <functional>
+#include <string_view>
+ 
 
 namespace ed = ax::NodeEditor;
 
 
 
-/**
- * @brief Connection point on a node
- * 
- * Represents an input or output pin on a visual node. Pins have a data type,
- * direction (input/output), and can be connected via links. The visual
- * appearance (color) is determined by the pin's type.
- */
+/** @brief One input or output connection point on a node. */
 struct Pin
 {
-    ed::PinId   id{};                                      ///< Unique ID (imgui-node-editor handle)
-    ed::NodeId  parentNodeId{};                            ///< ID of the owning VisualNode
-    NodeType    parentNodeType = NodeType::Unknown;       ///< Type of the owning node
-    std::string name;                                     ///< Display label
-    PinType     type       = PinType::Any;                ///< Data type this pin accepts/produces
-    bool        isInput    = true;                        ///< true = input pin, false = output pin
-    bool        isMultiInput = false;                     ///< Allow multiple incoming connections
+    ed::PinId   id{};                                      ///< Unique pin id.
+    ed::NodeId  parentNodeId{};                            ///< Owning node id.
+    NodeType    parentNodeType = NodeType::Unknown;       ///< Owning node type.
+    std::string name;                                     ///< Label shown in UI.
+    PinType     type       = PinType::Any;                ///< Data type accepted/produced.
+    bool        isInput    = true;                        ///< true=input, false=output.
+    bool        isMultiInput = false;                     ///< Allow multiple incoming wires.
 
-    // ------------------------------------------------------------------
-    // Helpers
-    // ------------------------------------------------------------------
-
-    /**
-     * @brief Get the color for this pin based on its type
-     * @return RGBA color vector for rendering
-     */
-    ImVec4 GetTypeColor() const
-    {
-        switch (type)
-        {
-            case PinType::Number:   return {1.0f, 0.8f, 0.0f, 1.0f}; // Yellow
-            case PinType::Boolean:  return {1.0f, 0.0f, 0.0f, 1.0f}; // Red
-            case PinType::String:   return {0.0f, 1.0f, 0.0f, 1.0f}; // Green
-            case PinType::Array:    return {0.0f, 0.0f, 1.0f, 1.0f}; // Blue
-            case PinType::Function: return {1.0f, 0.0f, 1.0f, 1.0f}; // Magenta
-            case PinType::Flow:     return {1.0f, 1.0f, 1.0f, 1.0f}; // White
-            case PinType::Any:
-            default:                return {0.5f, 0.5f, 0.5f, 1.0f}; // Gray
-        }
-    }
-
-    /**
-     * @brief Check if two pins can be connected
-     * @param output The source (output) pin
-     * @param input The destination (input) pin
-     * @return true if a valid connection can be made
-     * 
-     * Validates:
-     * - Direction: output must be output pin, input must be input pin
-     * - Type: Types must match, or one side must be PinType::Any
-     */
-    static bool CanConnect(const Pin& output, const Pin& input)
-    {
-        if (output.isInput || !input.isInput)
-            return false; // direction mismatch
-
-        if (output.type == PinType::Any || input.type == PinType::Any)
-            return true;
-
-        return output.type == input.type;
-    }
+    /** @brief Returns true when an output pin can connect to an input pin. */
+    static bool CanConnect(const Pin& output, const Pin& input);
 };
 
-// ---------------------------------------------------------------------------
-// Factory helpers
-// ---------------------------------------------------------------------------
+/** @brief Create a pin struct with the given values. */
+Pin MakePin(uint32_t id, ed::NodeId parentNodeId, NodeType parentNodeType,
+            std::string name, PinType type, bool isInput,
+            bool isMultiInput = false);
+
+/** @brief Convert pin type to save/log string token. */
+const char* PinTypeToString(PinType t);
+
+/** @brief Parse pin type token (unknown -> Any). */
+PinType PinTypeFromString(std::string_view s);
 
 /**
- * @brief Create a fully initialized pin
- * @param id Unique numeric ID
- * @param parentNodeId ID of the node that owns this pin
- * @param parentNodeType Type of the owning node
- * @param name Display label for the pin
- * @param type Data type this pin handles
- * @param isInput true for input pin, false for output pin
- * @param isMultiInput Whether this input accepts multiple connections
- * @return Fully initialized Pin struct
+ * @brief True for value-carrying pin types (not Flow/Function).
+ *
+ * Value types are those that can be stored in NodeField and edited in the inspector.
  */
-inline Pin MakePin(uint32_t id, ed::NodeId parentNodeId, NodeType parentNodeType,
-                   std::string name, PinType type, bool isInput,
-                   bool isMultiInput = false)
-{
-    Pin p;
-    p.id = ed::PinId(id);
-    p.parentNodeId   = parentNodeId;
-    p.parentNodeType = parentNodeType;
-    p.name           = std::move(name);
-    p.type           = type;
-    p.isInput        = isInput;
-    p.isMultiInput   = isMultiInput;
-    return p;
-}
+bool IsValuePinType(PinType t);
 
-// ---------------------------------------------------------------------------
-// NodeType conversion helpers
-// ---------------------------------------------------------------------------
+/**
+ * @brief Parse a value-type token.
+ *
+ * Unlike PinTypeFromString, this never returns Flow/Function.
+ * Unknown/non-value tokens return fallback (default Number).
+ */
+PinType ValuePinTypeFromString(std::string_view s, PinType fallback = PinType::Number);
+
+/**
+ * @brief Convert value pin type to stable string token.
+ *
+ * Non-value types return "Number".
+ */
+const char* ValuePinTypeToString(PinType t);
 
 #endif // PIN_H

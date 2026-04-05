@@ -1,0 +1,92 @@
+\doxysection{src/\+editor/\+renderer/\+pin\+Renderer.cpp File Reference}
+\hypertarget{pin_renderer_8cpp}{}\label{pin_renderer_8cpp}\index{src/editor/renderer/pinRenderer.cpp@{src/editor/renderer/pinRenderer.cpp}}
+{\ttfamily \+\#include "{}pin\+Renderer.\+h"{}}\newline
+{\ttfamily \+\#include $<$algorithm$>$}\newline
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+const \doxymbox{\hyperlink{struct_pin_style_palette}{Pin\+Style\+Palette}} \& \doxymbox{\hyperlink{pin_renderer_8cpp_a450ef9c7cb8d30616beaf099ab51724f}{Get\+Pin\+Style\+Palette}} ()
+\item 
+void \doxymbox{\hyperlink{pin_renderer_8cpp_a390bab2857ef5478618a8bfafd25d6aa}{Set\+Pin\+Style\+Palette}} (const \doxymbox{\hyperlink{struct_pin_style_palette}{Pin\+Style\+Palette}} \&palette)
+\item 
+Im\+Vec4 \doxymbox{\hyperlink{pin_renderer_8cpp_aea8da0b9f0d94e0637f62f7592e81df4}{Get\+Pin\+Type\+Color}} (\doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{Pin\+Type}} type)
+\item 
+const \doxymbox{\hyperlink{struct_pin_icon_palette}{Pin\+Icon\+Palette}} \& \doxymbox{\hyperlink{pin_renderer_8cpp_a02bdc2c0a5eaab672ad1caa2bd76e52f}{Get\+Pin\+Icon\+Palette}} ()
+\item 
+void \doxymbox{\hyperlink{pin_renderer_8cpp_a993a86af22e600dec32f3baefcd12265}{Set\+Pin\+Icon\+Palette}} (const \doxymbox{\hyperlink{struct_pin_icon_palette}{Pin\+Icon\+Palette}} \&palette)
+\item 
+\doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696}{Pin\+Icon\+Type}} \doxymbox{\hyperlink{pin_renderer_8cpp_a00ca5213e282320a33d4fb1ef23df2eb}{Get\+Pin\+Type\+Icon}} (\doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{Pin\+Type}} type)
+\item 
+void \doxymbox{\hyperlink{pin_renderer_8cpp_abba98e762978de613069c4360c76664f}{Draw\+Pin\+Icon}} (Im\+Draw\+List \texorpdfstring{$\ast$}{*}draw\+List, const Im\+Vec2 \&a, const Im\+Vec2 \&b, \doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696}{Pin\+Icon\+Type}} type, bool filled, Im\+U32 color, Im\+U32 inner\+Color)
+\item 
+const \doxymbox{\hyperlink{struct_editor_pin_style}{Editor\+Pin\+Style}} \& \doxymbox{\hyperlink{pin_renderer_8cpp_a2bd7f6c033b0b21d64599d289b008bf3}{Get\+Editor\+Pin\+Style}} ()
+\item 
+void \doxymbox{\hyperlink{pin_renderer_8cpp_ab6fe1b2573f0eaf499ab0918a7fc1b14}{Set\+Editor\+Pin\+Style}} (const \doxymbox{\hyperlink{struct_editor_pin_style}{Editor\+Pin\+Style}} \&style)
+\item 
+void \doxymbox{\hyperlink{pin_renderer_8cpp_a20d8dd2710aa5786d20598e31c7470f7}{Apply\+Editor\+Pin\+Style}} (ed::\+\+Style \&style)
+\end{DoxyCompactItemize}
+
+
+\label{doc-func-members}
+\Hypertarget{pin_renderer_8cpp_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{pin_renderer_8cpp_a20d8dd2710aa5786d20598e31c7470f7}\index{pinRenderer.cpp@{pinRenderer.cpp}!ApplyEditorPinStyle@{ApplyEditorPinStyle}}
+\index{ApplyEditorPinStyle@{ApplyEditorPinStyle}!pinRenderer.cpp@{pinRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{ApplyEditorPinStyle()}{ApplyEditorPinStyle()}}
+{\footnotesize\ttfamily \label{pin_renderer_8cpp_a20d8dd2710aa5786d20598e31c7470f7} 
+void Apply\+Editor\+Pin\+Style (\begin{DoxyParamCaption}\item[{ed::\+\+Style \&}]{style}{}\end{DoxyParamCaption})}
+
+\Hypertarget{pin_renderer_8cpp_abba98e762978de613069c4360c76664f}\index{pinRenderer.cpp@{pinRenderer.cpp}!DrawPinIcon@{DrawPinIcon}}
+\index{DrawPinIcon@{DrawPinIcon}!pinRenderer.cpp@{pinRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{DrawPinIcon()}{DrawPinIcon()}}
+{\footnotesize\ttfamily \label{pin_renderer_8cpp_abba98e762978de613069c4360c76664f} 
+void Draw\+Pin\+Icon (\begin{DoxyParamCaption}\item[{Im\+Draw\+List \texorpdfstring{$\ast$}{*}}]{draw\+List}{, }\item[{const Im\+Vec2 \&}]{a}{, }\item[{const Im\+Vec2 \&}]{b}{, }\item[{\doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696}{Pin\+Icon\+Type}}}]{type}{, }\item[{bool}]{filled}{, }\item[{Im\+U32}]{color}{, }\item[{Im\+U32}]{inner\+Color}{}\end{DoxyParamCaption})}
+
+\Hypertarget{pin_renderer_8cpp_a2bd7f6c033b0b21d64599d289b008bf3}\index{pinRenderer.cpp@{pinRenderer.cpp}!GetEditorPinStyle@{GetEditorPinStyle}}
+\index{GetEditorPinStyle@{GetEditorPinStyle}!pinRenderer.cpp@{pinRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{GetEditorPinStyle()}{GetEditorPinStyle()}}
+{\footnotesize\ttfamily \label{pin_renderer_8cpp_a2bd7f6c033b0b21d64599d289b008bf3} 
+const \doxymbox{\hyperlink{struct_editor_pin_style}{Editor\+Pin\+Style}} \& Get\+Editor\+Pin\+Style (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{pin_renderer_8cpp_a02bdc2c0a5eaab672ad1caa2bd76e52f}\index{pinRenderer.cpp@{pinRenderer.cpp}!GetPinIconPalette@{GetPinIconPalette}}
+\index{GetPinIconPalette@{GetPinIconPalette}!pinRenderer.cpp@{pinRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{GetPinIconPalette()}{GetPinIconPalette()}}
+{\footnotesize\ttfamily \label{pin_renderer_8cpp_a02bdc2c0a5eaab672ad1caa2bd76e52f} 
+const \doxymbox{\hyperlink{struct_pin_icon_palette}{Pin\+Icon\+Palette}} \& Get\+Pin\+Icon\+Palette (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{pin_renderer_8cpp_a450ef9c7cb8d30616beaf099ab51724f}\index{pinRenderer.cpp@{pinRenderer.cpp}!GetPinStylePalette@{GetPinStylePalette}}
+\index{GetPinStylePalette@{GetPinStylePalette}!pinRenderer.cpp@{pinRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{GetPinStylePalette()}{GetPinStylePalette()}}
+{\footnotesize\ttfamily \label{pin_renderer_8cpp_a450ef9c7cb8d30616beaf099ab51724f} 
+const \doxymbox{\hyperlink{struct_pin_style_palette}{Pin\+Style\+Palette}} \& Get\+Pin\+Style\+Palette (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{pin_renderer_8cpp_aea8da0b9f0d94e0637f62f7592e81df4}\index{pinRenderer.cpp@{pinRenderer.cpp}!GetPinTypeColor@{GetPinTypeColor}}
+\index{GetPinTypeColor@{GetPinTypeColor}!pinRenderer.cpp@{pinRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{GetPinTypeColor()}{GetPinTypeColor()}}
+{\footnotesize\ttfamily \label{pin_renderer_8cpp_aea8da0b9f0d94e0637f62f7592e81df4} 
+Im\+Vec4 Get\+Pin\+Type\+Color (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{Pin\+Type}}}]{type}{}\end{DoxyParamCaption})}
+
+\Hypertarget{pin_renderer_8cpp_a00ca5213e282320a33d4fb1ef23df2eb}\index{pinRenderer.cpp@{pinRenderer.cpp}!GetPinTypeIcon@{GetPinTypeIcon}}
+\index{GetPinTypeIcon@{GetPinTypeIcon}!pinRenderer.cpp@{pinRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{GetPinTypeIcon()}{GetPinTypeIcon()}}
+{\footnotesize\ttfamily \label{pin_renderer_8cpp_a00ca5213e282320a33d4fb1ef23df2eb} 
+\doxymbox{\hyperlink{pin_renderer_8h_af554289194c66f6ad49cce03ea4a7696}{Pin\+Icon\+Type}} Get\+Pin\+Type\+Icon (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{Pin\+Type}}}]{type}{}\end{DoxyParamCaption})}
+
+\Hypertarget{pin_renderer_8cpp_ab6fe1b2573f0eaf499ab0918a7fc1b14}\index{pinRenderer.cpp@{pinRenderer.cpp}!SetEditorPinStyle@{SetEditorPinStyle}}
+\index{SetEditorPinStyle@{SetEditorPinStyle}!pinRenderer.cpp@{pinRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{SetEditorPinStyle()}{SetEditorPinStyle()}}
+{\footnotesize\ttfamily \label{pin_renderer_8cpp_ab6fe1b2573f0eaf499ab0918a7fc1b14} 
+void Set\+Editor\+Pin\+Style (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_editor_pin_style}{Editor\+Pin\+Style}} \&}]{style}{}\end{DoxyParamCaption})}
+
+\Hypertarget{pin_renderer_8cpp_a993a86af22e600dec32f3baefcd12265}\index{pinRenderer.cpp@{pinRenderer.cpp}!SetPinIconPalette@{SetPinIconPalette}}
+\index{SetPinIconPalette@{SetPinIconPalette}!pinRenderer.cpp@{pinRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{SetPinIconPalette()}{SetPinIconPalette()}}
+{\footnotesize\ttfamily \label{pin_renderer_8cpp_a993a86af22e600dec32f3baefcd12265} 
+void Set\+Pin\+Icon\+Palette (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_pin_icon_palette}{Pin\+Icon\+Palette}} \&}]{palette}{}\end{DoxyParamCaption})}
+
+\Hypertarget{pin_renderer_8cpp_a390bab2857ef5478618a8bfafd25d6aa}\index{pinRenderer.cpp@{pinRenderer.cpp}!SetPinStylePalette@{SetPinStylePalette}}
+\index{SetPinStylePalette@{SetPinStylePalette}!pinRenderer.cpp@{pinRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{SetPinStylePalette()}{SetPinStylePalette()}}
+{\footnotesize\ttfamily \label{pin_renderer_8cpp_a390bab2857ef5478618a8bfafd25d6aa} 
+void Set\+Pin\+Style\+Palette (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_pin_style_palette}{Pin\+Style\+Palette}} \&}]{palette}{}\end{DoxyParamCaption})}
+

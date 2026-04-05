@@ -1,10 +1,10 @@
 #include "graphCompiler.h"
 #include "../registry/nodeRegistry.h"
-#include <stdexcept>
+#include "../registry/nodes/nodeCompileHelpers.h"
+
+#include <algorithm>
 #include <cassert>
-
-
-// Helpers
+#include <cmath>
 
 Node* GraphCompiler::MakeNode(Token t) const
 {
@@ -41,63 +41,66 @@ Node* GraphCompiler::MakeIdNode(const std::string& name) const
     return n;
 }
 
-const std::string* GraphCompiler::GetField(const VisualNode& n,
-                                            const std::string& name) const
-{
-    for (const NodeField& f : n.fields)
-        if (f.name == name) return &f.value;
-    return nullptr;
-}
-
-const Pin* GraphCompiler::GetInputPinByName(const VisualNode& n, const char* name) const
-{
-    for (const Pin& p : n.inPins)
-        if (p.name == name) return &p;
-    return nullptr;
-}
-
 void GraphCompiler::Error(const std::string& msg)
 {
     errorMsg_ = msg;
-    HasError  = true;
+    HasError = true;
 }
 
-// Token mappings
-
-Token GraphCompiler::OperatorToken(const std::string& op)
+Node* GraphCompiler::EmitBinaryOp(Token op, Node* lhs, Node* rhs) const
 {
-    if (op == "+") return Token::Add;
-    if (op == "-") return Token::Sub;
-    if (op == "*") return Token::Mult;
-    if (op == "/") return Token::Div;
-    return Token::None;
+    if (!lhs || !rhs)
+    {
+        delete lhs;
+        delete rhs;
+        return nullptr;
+    }
+
+    Node* root = MakeNode(op);
+    root->children.push_back(lhs);
+    root->children.push_back(rhs);
+    return root;
 }
 
-Token GraphCompiler::CompareToken(const std::string& op)
+Node* GraphCompiler::EmitUnaryOp(Token op, Node* operand) const
 {
-    if (op == "==") return Token::Equal;
-    if (op == "!=") return Token::NotEqual;
-    if (op == "<")  return Token::Less;
-    if (op == "<=") return Token::LessEqual;
-    if (op == ">")  return Token::Larger;
-    if (op == ">=") return Token::LargerEqual;
-    return Token::None;
+    if (!operand)
+        return nullptr;
+
+    Node* root = MakeNode(op);
+    root->children.push_back(operand);
+    return root;
 }
 
-Token GraphCompiler::LogicToken(const std::string& op)
+Node* GraphCompiler::EmitFunctionCall(const std::string& name, std::vector<Node*> args) const
 {
-    if (op == "AND") return Token::And;
-    if (op == "OR")  return Token::Or;
-    if (op == "NOT") return Token::Not;
-    return Token::None;
+    Node* call = MakeNode(Token::FunctionCall);
+    call->children.push_back(MakeIdNode(name));
+
+    Node* params = MakeNode(Token::CallParams);
+    for (Node* arg : args)
+    {
+        if (arg)
+            params->children.push_back(arg);
+    }
+
+    call->children.push_back(params);
+    return call;
 }
 
-static PinType VariableTypeFromString(const std::string& typeName)
+Node* GraphCompiler::EmitIndexer(Node* array, Node* index) const
 {
-    if (typeName == "Boolean") return PinType::Boolean;
-    if (typeName == "String")  return PinType::String;
-    if (typeName == "Array")   return PinType::Array;
-    return PinType::Number;
+    if (!array || !index)
+    {
+        delete array;
+        delete index;
+        return nullptr;
+    }
+
+    Node* idx = MakeNode(Token::Indexer);
+    idx->children.push_back(array);
+    idx->children.push_back(index);
+    return idx;
 }
 
 bool GraphCompiler::NodeRequiresFlow(const VisualNode& n) const
@@ -106,37 +109,59 @@ bool GraphCompiler::NodeRequiresFlow(const VisualNode& n) const
     bool hasFlowOut = false;
 
     for (const Pin& p : n.inPins)
-        if (p.type == PinType::Flow) { hasFlowIn = true; break; }
+    {
+        if (p.type == PinType::Flow)
+        {
+            hasFlowIn = true;
+            break;
+        }
+    }
+
     for (const Pin& p : n.outPins)
-        if (p.type == PinType::Flow) { hasFlowOut = true; break; }
+    {
+        if (p.type == PinType::Flow)
+        {
+            hasFlowOut = true;
+            break;
+        }
+    }
 
     return hasFlowIn && hasFlowOut;
 }
 
 const VisualNode* GraphCompiler::FindFirstNode(NodeType type) const
 {
-    if (!nodes_) return nullptr;
+    if (!nodes_)
+        return nullptr;
+
     for (const VisualNode& n : *nodes_)
+    {
         if (n.alive && n.nodeType == type)
             return &n;
+    }
+
     return nullptr;
 }
 
 const Pin* GraphCompiler::GetOutputPinByName(const VisualNode& n, const char* name) const
 {
     for (const Pin& p : n.outPins)
+    {
         if (p.name == name)
             return &p;
+    }
     return nullptr;
 }
 
 void GraphCompiler::CollectFlowReachableFromOutput(ed::PinId flowOutputPinId)
 {
+    // Walk execution links and remember which nodes can run from this output.
     const uintptr_t outKey = static_cast<uintptr_t>(flowOutputPinId.Get());
     if (!activeFlowOutputs_.insert(outKey).second)
         return;
 
-    struct ScopedErase {
+    struct ScopedErase
+    {
         std::unordered_set<uintptr_t>& set;
         uintptr_t key;
         ~ScopedErase() { set.erase(key); }
@@ -161,6 +186,7 @@ void GraphCompiler::CollectFlowReachableFromOutput(ed::PinId flowOutputPinId)
 
 void GraphCompiler::AppendFlowChainFromOutput(ed::PinId flowOutputPinId, Node* targetScope)
 {
+    // Follow one flow output and append every reachable statement to targetScope.
     const uintptr_t outKey = static_cast<uintptr_t>(flowOutputPinId.Get());
     if (!activeFlowOutputs_.insert(outKey).second)
     {
@@ -168,7 +194,8 @@ void GraphCompiler::AppendFlowChainFromOutput(ed::PinId flowOutputPinId, Node* t
         return;
     }
 
-    struct ScopedErase {
+    struct ScopedErase
+    {
         std::unordered_set<uintptr_t>& set;
         uintptr_t key;
         ~ScopedErase() { set.erase(key); }
@@ -192,20 +219,27 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
     {
         case NodeType::Sequence:
         {
+            // Sequence forwards execution through each "Then" output in order.
             for (const Pin& outPin : n.outPins)
             {
                 if (outPin.type != PinType::Flow)
                     continue;
                 AppendFlowChainFromOutput(outPin.id, targetScope);
-                if (HasError) return;
+                if (HasError)
+                    return;
             }
             return;
         }
 
         case NodeType::Branch:
         {
-            Node* ifNode = BuildBranch(n);
-            if (HasError || !ifNode) { delete ifNode; return; }
+            // Branch compiles to an if/else and follows both flow outputs.
+            Node* ifNode = BuildBranchNode(this, n);
+            if (HasError || !ifNode)
+            {
+                delete ifNode;
+                return;
+            }
 
             Node* trueScope = (ifNode->children.size() > 1) ? ifNode->children[1] : nullptr;
             Node* elseScope = nullptr;
@@ -214,11 +248,19 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
 
             if (const Pin* trueOut = GetOutputPinByName(n, "True"))
                 AppendFlowChainFromOutput(trueOut->id, trueScope);
-            if (HasError) { delete ifNode; return; }
+            if (HasError)
+            {
+                delete ifNode;
+                return;
+            }
 
             if (const Pin* falseOut = GetOutputPinByName(n, "False"))
                 AppendFlowChainFromOutput(falseOut->id, elseScope);
-            if (HasError) { delete ifNode; return; }
+            if (HasError)
+            {
+                delete ifNode;
+                return;
+            }
 
             targetScope->children.push_back(ifNode);
             return;
@@ -226,21 +268,129 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
 
         case NodeType::Loop:
         {
-            Node* forNode = BuildLoop(n);
-            if (HasError || !forNode) { delete forNode; return; }
+            // Loop has a body path and a completed path.
+            Node* forNode = BuildLoopNode(this, n);
+            if (HasError || !forNode)
+            {
+                delete forNode;
+                return;
+            }
 
-            Node* bodyScope = (forNode->children.size() > 3) ? forNode->children[3] : nullptr;
-            Node* completedScope = (forNode->children.size() > 4) ? forNode->children[4] : nullptr;
+            Node* bodyScope = nullptr;
+            if (forNode->type == Token::For)
+            {
+                bodyScope = (forNode->children.size() > 3) ? forNode->children[3] : nullptr;
+            }
+            else if (forNode->type == Token::Scope)
+            {
+                for (auto it = forNode->children.rbegin(); it != forNode->children.rend(); ++it)
+                {
+                    Node* child = *it;
+                    if (!child || child->type != Token::For)
+                        continue;
+
+                    bodyScope = (child->children.size() > 3) ? child->children[3] : nullptr;
+                    break;
+                }
+            }
+
+            if (const Pin* bodyOut = GetOutputPinByName(n, "Body"))
+            {
+                const uintptr_t loopKey = static_cast<uintptr_t>(n.id.Get());
+                activeLoopBodyNodeIds_.insert(loopKey);
+                struct ScopedErase
+                {
+                    std::unordered_set<uintptr_t>& set;
+                    uintptr_t key;
+                    ~ScopedErase() { set.erase(key); }
+                } bodyGuard{ activeLoopBodyNodeIds_, loopKey };
+
+                AppendFlowChainFromOutput(bodyOut->id, bodyScope);
+            }
+            if (HasError)
+            {
+                delete forNode;
+                return;
+            }
+
+            targetScope->children.push_back(forNode);
+
+            if (const Pin* completedOut = GetOutputPinByName(n, "Completed"))
+                AppendFlowChainFromOutput(completedOut->id, targetScope);
+            if (HasError)
+                return;
+
+            return;
+        }
+
+        case NodeType::While:
+        {
+            // While has repeated body execution and optional completed continuation.
+            Node* whileNode = BuildWhileNode(this, n);
+            if (HasError || !whileNode)
+            {
+                delete whileNode;
+                return;
+            }
+
+            Node* bodyScope = (whileNode->children.size() > 1) ? whileNode->children[1] : nullptr;
 
             if (const Pin* bodyOut = GetOutputPinByName(n, "Body"))
                 AppendFlowChainFromOutput(bodyOut->id, bodyScope);
-            if (HasError) { delete forNode; return; }
+            if (HasError)
+            {
+                delete whileNode;
+                return;
+            }
+
+            targetScope->children.push_back(whileNode);
 
             if (const Pin* completedOut = GetOutputPinByName(n, "Completed"))
-                AppendFlowChainFromOutput(completedOut->id, completedScope);
-            if (HasError) { delete forNode; return; }
+                AppendFlowChainFromOutput(completedOut->id, targetScope);
+            if (HasError)
+                return;
+
+            return;
+        }
+
+        case NodeType::ForEach:
+        {
+            // ForEach mirrors loop behavior: body first, then completed continuation.
+            Node* forNode = BuildForEachNode(this, n);
+            if (HasError || !forNode)
+            {
+                delete forNode;
+                return;
+            }
+
+            Node* bodyScope = (forNode->children.size() > 1) ? forNode->children[1] : nullptr;
+
+            if (const Pin* bodyOut = GetOutputPinByName(n, "Body"))
+            {
+                const uintptr_t forEachKey = static_cast<uintptr_t>(n.id.Get());
+                activeForEachBodyNodeIds_.insert(forEachKey);
+                struct ScopedErase
+                {
+                    std::unordered_set<uintptr_t>& set;
+                    uintptr_t key;
+                    ~ScopedErase() { set.erase(key); }
+                } bodyGuard{ activeForEachBodyNodeIds_, forEachKey };
+
+                AppendFlowChainFromOutput(bodyOut->id, bodyScope);
+            }
+            if (HasError)
+            {
+                delete forNode;
+                return;
+            }
 
             targetScope->children.push_back(forNode);
+
+            if (const Pin* completedOut = GetOutputPinByName(n, "Completed"))
+                AppendFlowChainFromOutput(completedOut->id, targetScope);
+            if (HasError)
+                return;
+
             return;
         }
 
@@ -248,9 +398,16 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
             break;
     }
 
+    // Regular node: compile one statement, then continue through the next flow output.
     Node* stmt = BuildNode(n);
-    if (HasError) { delete stmt; return; }
-    if (stmt) targetScope->children.push_back(stmt);
+    if (HasError)
+    {
+        delete stmt;
+        return;
+    }
+
+    if (stmt)
+        targetScope->children.push_back(stmt);
 
     const Pin* outFlow = GetOutputPinByName(n, "Out");
     if (!outFlow)
@@ -269,15 +426,16 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
         AppendFlowChainFromOutput(outFlow->id, targetScope);
 }
 
-// Compile graph to AST
-
 Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
-                             const std::vector<Link>&       links)
+                             const std::vector<Link>& links)
 {
-    HasError  = false;
-    errorMsg_ = "";
+    HasError = false;
+    errorMsg_.clear();
     nodes_ = &nodes;
+
     activeNodeBuilds_.clear();
+    activeLoopBodyNodeIds_.clear();
+    activeForEachBodyNodeIds_.clear();
     flowReachableNodes_.clear();
     activeFlowOutputs_.clear();
     visitedFlowOutputs_.clear();
@@ -303,6 +461,7 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
             }
         }
     }
+
     if (!startOut)
     {
         Error("Start node has no flow output pin");
@@ -311,34 +470,36 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
 
     CollectFlowReachableFromOutput(startOut->id);
 
-    // Build function body from flow chain starting at Start node.
     Node* body = MakeNode(Token::Scope);
 
-    // 0) Declare variables used by Set Variable nodes once per name.
     std::unordered_set<std::string> declaredVariables;
     for (const VisualNode& n : nodes)
     {
         if (!n.alive || n.nodeType != NodeType::Variable)
             continue;
 
-        const std::string* variant = GetField(n, "Variant");
+        const std::string* variant = FindField(n, "Variant");
         const bool isGet = (variant && *variant == "Get");
         if (isGet)
             continue;
 
-        const std::string* nameStr = GetField(n, "Name");
+        const std::string* nameStr = FindField(n, "Name");
         const std::string varName = (nameStr && !nameStr->empty()) ? *nameStr : "__unnamed";
         if (!declaredVariables.insert(varName).second)
             continue;
 
-        const std::string* typeStr = GetField(n, "Type");
+        const std::string* typeStr = FindField(n, "Type");
         const std::string typeName = typeStr ? *typeStr : "Number";
 
         Token typeToken = Token::TypeNumber;
-        if (typeName == "Boolean") typeToken = Token::TypeBoolean;
-        else if (typeName == "String") typeToken = Token::TypeString;
-        else if (typeName == "Array") typeToken = Token::TypeArray;
-        else if (typeName == "Any") typeToken = Token::AnyType;
+        if (typeName == "Boolean")
+            typeToken = Token::TypeBoolean;
+        else if (typeName == "String")
+            typeToken = Token::TypeString;
+        else if (typeName == "Array")
+            typeToken = Token::TypeArray;
+        else if (typeName == "Any")
+            typeToken = Token::AnyType;
 
         Node* decl = MakeNode(Token::VarDeclare);
         decl->data = varName;
@@ -346,68 +507,91 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
         body->children.push_back(decl);
     }
 
+    for (const VisualNode& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Loop)
+            continue;
+
+        double startVal = 0.0;
+        const Pin* startPin = FindInputPin(n, "Start");
+        const bool startConnected = (startPin && resolver_.Resolve(startPin->id));
+        if (!startConnected)
+        {
+            const std::string* startStr = FindField(n, "Start");
+            if (startStr)
+            {
+                try
+                {
+                    startVal = std::stod(*startStr);
+                }
+                catch (...)
+                {
+                    startVal = 0.0;
+                }
+            }
+        }
+
+        Node* loopLastDecl = MakeNode(Token::VarDeclare);
+        loopLastDecl->data = LoopLastIndexVarNameForNode(n);
+        loopLastDecl->children.push_back(MakeNode(Token::TypeNumber));
+        loopLastDecl->children.push_back(MakeNumberNode(std::round(startVal)));
+        body->children.push_back(loopLastDecl);
+    }
+
     visitedFlowOutputs_.clear();
     activeFlowOutputs_.clear();
     AppendFlowChainFromOutput(startOut->id, body);
-    if (HasError) { delete body; return nullptr; }
+    if (HasError)
+    {
+        delete body;
+        return nullptr;
+    }
 
-    // Wrap the body in a function declaration:
-    //   def __graph__() { <body> }
-    // FunctionDef is consumed by ASTWalker's pre-pass; name goes in data.
     Node* funcDecl = MakeNode(Token::FunctionDef);
     funcDecl->data = std::string(kGraphFunctionName);
-    Node* params = MakeNode(Token::CallParams);
-    funcDecl->children.push_back(params);
+    funcDecl->children.push_back(MakeNode(Token::CallParams));
     funcDecl->children.push_back(body);
 
-    // The AST root is a Scope containing the single function declaration.
     Node* root = MakeNode(Token::Scope);
     root->children.push_back(funcDecl);
-
     return root;
 }
 
 Node* GraphCompiler::BuildExpr(const Pin& inputPin)
 {
-    auto MakeDefaultValue = [&]() -> Node*
+    auto makeDefaultValue = [&]() -> Node*
     {
         switch (inputPin.type)
         {
-            case PinType::Number:  return MakeNumberNode(0.0);
-            case PinType::Boolean: return MakeBoolNode(false);
-            case PinType::String:  return MakeStringNode("");
-            default:               return MakeNode(Token::Null);
+            case PinType::Number:
+                return MakeNumberNode(0.0);
+            case PinType::Boolean:
+                return MakeBoolNode(false);
+            case PinType::String:
+                return MakeStringNode("");
+            case PinType::Array:
+                return MakeNode(Token::Array);
+            default:
+                return MakeNode(Token::Null);
         }
     };
 
     const PinSource* src = resolver_.Resolve(inputPin.id);
     if (!src)
-        return MakeDefaultValue();
+        return makeDefaultValue();
 
     if (src->node && NodeRequiresFlow(*src->node))
     {
         const uintptr_t key = static_cast<uintptr_t>(src->node->id.Get());
         if (flowReachableNodes_.find(key) == flowReachableNodes_.end())
-            return MakeDefaultValue();
+            return makeDefaultValue();
     }
 
     return BuildNode(*src->node, src->pinIdx);
 }
 
-// BuildNode
-
-Node* GraphCompiler::BuildNode(const VisualNode& n, int /*outPinIdx*/)
+Node* GraphCompiler::BuildNode(const VisualNode& n, int outPinIdx)
 {
-    // TODO: outPinIdx is not currently used. This parameter was intended to support
-    // nodes with multiple output pins (e.g., Branch has True/False paths). Currently,
-    // BuildNode always generates the complete node structure regardless of which
-    // specific output is being requested. This works because:
-    // 1. Most nodes have only 1 output pin
-    // 2. For nodes with multiple outputs (Branch, Function), the structure
-    //    (if/else, call) is needed regardless of which output is consumed
-    // Future: If a node has multiple independent expressions, this could be used
-    // to select which one to return (e.g., return only the True branch's body).
-    
     const uintptr_t nodeKey = static_cast<uintptr_t>(n.id.Get());
     if (!activeNodeBuilds_.insert(nodeKey).second)
     {
@@ -415,11 +599,33 @@ Node* GraphCompiler::BuildNode(const VisualNode& n, int /*outPinIdx*/)
         return nullptr;
     }
 
-    struct ScopedErase {
+    struct ScopedErase
+    {
         std::unordered_set<uintptr_t>& set;
         uintptr_t key;
         ~ScopedErase() { set.erase(key); }
     } guard{ activeNodeBuilds_, nodeKey };
+
+    if (n.nodeType == NodeType::Loop && outPinIdx >= 0 && outPinIdx < static_cast<int>(n.outPins.size()))
+    {
+        const Pin& requestedOutPin = n.outPins[static_cast<size_t>(outPinIdx)];
+        if (requestedOutPin.type != PinType::Flow && requestedOutPin.name == "Index")
+        {
+            const uintptr_t loopKey = static_cast<uintptr_t>(n.id.Get());
+            const bool readingInsideLoopBody =
+                (activeLoopBodyNodeIds_.find(loopKey) != activeLoopBodyNodeIds_.end());
+            return MakeIdNode(readingInsideLoopBody
+                ? LoopIndexVarNameForNode(n)
+                : LoopLastIndexVarNameForNode(n));
+        }
+    }
+
+    if (n.nodeType == NodeType::ForEach && outPinIdx >= 0 && outPinIdx < static_cast<int>(n.outPins.size()))
+    {
+        const Pin& requestedOutPin = n.outPins[static_cast<size_t>(outPinIdx)];
+        if (requestedOutPin.type != PinType::Flow && requestedOutPin.name == "Element")
+            return MakeIdNode(ForEachElementVarNameForNode(n));
+    }
 
     const NodeDescriptor* descriptor = NodeRegistry::Get().Find(n.nodeType);
     if (descriptor && descriptor->compile)
@@ -429,315 +635,63 @@ Node* GraphCompiler::BuildNode(const VisualNode& n, int /*outPinIdx*/)
     return nullptr;
 }
 
-// ---------------------------------------------------------------------------
-// Internal builder implementations (called by descriptor lambdas in nodeRegistry)
-// ---------------------------------------------------------------------------
-
-Node* GraphCompiler::BuildConstant(const VisualNode& n)
+Node* GraphCompiler::BuildArrayLiteralNode(const std::string& text) const
 {
-    const std::string* val = GetField(n, "Value");
-    const std::string* type = GetField(n, "Type");
+    std::string s = TrimCopy(text);
+    if (s.empty())
+        return MakeNode(Token::Array);
 
-    const std::string value = val ? *val : "";
-    const std::string valueType = type ? *type : "";
+    if (s.size() >= 2 && s.front() == '[' && s.back() == ']')
+        s = s.substr(1, s.size() - 2);
 
-    // Prefer explicit Constant type over value auto-detection so
-    // Boolean false never degrades to Number 0 in AST printout/runtime.
-    if (valueType == "Boolean")
+    Node* arr = MakeNode(Token::Array);
+    const std::vector<std::string> items = SplitArrayItemsTopLevel(s);
+    for (const std::string& raw : items)
     {
-        const bool b = (value == "true" || value == "True" || value == "1");
-        return MakeBoolNode(b);
-    }
+        const std::string item = TrimCopy(raw);
+        if (item.empty())
+            continue;
 
-    if (valueType == "Number")
-    {
-        try { return MakeNumberNode(std::stod(value)); }
-        catch (...) { return MakeNumberNode(0.0); }
-    }
-
-    if (valueType == "String" || valueType == "Array")
-        return MakeStringNode(value);
-
-    // Backward compatibility for old/incomplete data without Type field.
-    try { return MakeNumberNode(std::stod(value)); }
-    catch (...) {}
-
-    if (value == "true"  || value == "1") return MakeBoolNode(true);
-    if (value == "false" || value == "0") return MakeBoolNode(false);
-
-    return MakeStringNode(value);
-}
-
-Node* GraphCompiler::BuildStart(const VisualNode& n)
-{
-    // Start is currently an editor-side flow entry marker.
-    // Compiler is expression/sink-driven, so this compiles to an empty scope.
-    (void)n;
-    return MakeNode(Token::Scope);
-}
-
-Node* GraphCompiler::BuildOperator(const VisualNode& n)
-{
-    const Pin* pinA = GetInputPinByName(n, "A");
-    const Pin* pinB = GetInputPinByName(n, "B");
-    if (!pinA || !pinB) { Error("Operator node needs A and B inputs"); return nullptr; }
-
-    const std::string* opStr = GetField(n, "Op");
-    Token tok = opStr ? OperatorToken(*opStr) : Token::Add;
-    if (tok == Token::None) { Error("Unknown operator: " + (opStr ? *opStr : "?")); return nullptr; }
-
-    Node* root = MakeNode(tok);
-    Node* lhs  = BuildExpr(*pinA);
-    Node* rhs  = BuildExpr(*pinB);
-    if (HasError) { delete root; return nullptr; }
-
-    root->children.push_back(lhs);
-    root->children.push_back(rhs);
-    return root;
-}
-
-Node* GraphCompiler::BuildComparison(const VisualNode& n)
-{
-    const Pin* pinA = GetInputPinByName(n, "A");
-    const Pin* pinB = GetInputPinByName(n, "B");
-    if (!pinA || !pinB) { Error("Comparison node needs A and B inputs"); return nullptr; }
-
-    const std::string* opStr = GetField(n, "Op");
-    Token tok = opStr ? CompareToken(*opStr) : Token::Equal;
-    if (tok == Token::None) { Error("Unknown comparison: " + (opStr ? *opStr : "?")); return nullptr; }
-
-    Node* root = MakeNode(tok);
-    Node* lhs  = BuildExpr(*pinA);
-    Node* rhs  = BuildExpr(*pinB);
-    if (HasError) { delete root; return nullptr; }
-
-    root->children.push_back(lhs);
-    root->children.push_back(rhs);
-    return root;
-}
-
-Node* GraphCompiler::BuildLogic(const VisualNode& n)
-{
-    const std::string* opStr = GetField(n, "Op");
-    Token tok = opStr ? LogicToken(*opStr) : Token::And;
-    if (tok == Token::None) { Error("Unknown logic op: " + (opStr ? *opStr : "?")); return nullptr; }
-
-    Node* root = MakeNode(tok);
-
-    if (tok == Token::Not)
-    {
-        const Pin* pinA = GetInputPinByName(n, "A");
-        if (!pinA) { Error("NOT node needs A input"); return nullptr; }
-        Node* operand = BuildExpr(*pinA);
-        if (HasError) { delete root; return nullptr; }
-        root->children.push_back(operand);
-    }
-    else
-    {
-        const Pin* pinA = GetInputPinByName(n, "A");
-        const Pin* pinB = GetInputPinByName(n, "B");
-        if (!pinA || !pinB) { Error("Logic node needs A and B inputs"); return nullptr; }
-        Node* lhs = BuildExpr(*pinA);
-        Node* rhs = BuildExpr(*pinB);
-        if (HasError) { delete root; return nullptr; }
-        root->children.push_back(lhs);
-        root->children.push_back(rhs);
-    }
-
-    return root;
-}
-
-Node* GraphCompiler::BuildSequence(const VisualNode& n)
-{
-    // Sequence is a flow-structuring node in the editor.
-    // Current compiler pipeline is expression/sink-driven, so for now
-    // compile this as an empty scope placeholder.
-    (void)n;
-    return MakeNode(Token::Scope);
-}
-
-Node* GraphCompiler::BuildBranch(const VisualNode& n)
-{
-    if (n.inPins.size() < 2) { Error("Branch node needs Flow + Condition inputs"); return nullptr; }
-
-    Node* ifNode   = MakeNode(Token::If);
-    Node* condExpr = BuildExpr(n.inPins[1]);
-    if (HasError) { delete ifNode; return nullptr; }
-    ifNode->children.push_back(condExpr);
-
-    Node* trueScope = MakeNode(Token::Scope);
-    ifNode->children.push_back(trueScope);
-
-    if (n.outPins.size() > 1)
-    {
-        Node* elseScope = MakeNode(Token::Scope);
-        Node* elseNode  = MakeNode(Token::Else);
-        elseNode->children.push_back(elseScope);
-        ifNode->children.push_back(elseNode);
-    }
-
-    return ifNode;
-}
-
-Node* GraphCompiler::BuildLoop(const VisualNode& n)
-{
-    if (n.inPins.size() < 2) { Error("Loop node needs Flow + Count inputs"); return nullptr; }
-
-    const std::string* startStr = GetField(n, "Start");
-    double startVal = 0.0;
-    if (startStr)
-    {
-        try
+        if ((item.front() == '"' && item.back() == '"') ||
+            (item.front() == '\'' && item.back() == '\''))
         {
-            startVal = std::stod(*startStr);
+            arr->children.push_back(MakeStringNode(item.substr(1, item.size() - 2)));
+            continue;
         }
-        catch (...)
+
+        if (item == "true" || item == "True")
         {
-            startVal = 0.0;
+            arr->children.push_back(MakeBoolNode(true));
+            continue;
         }
-    }
 
-    Node* varDecl = MakeNode(Token::VarDeclare);
-    Node* iId     = MakeIdNode("__i");
-    Node* initVal = MakeNumberNode(startVal);
-    varDecl->children.push_back(iId);
-    varDecl->children.push_back(initVal);
-
-    Node* cond    = MakeNode(Token::Less);
-    Node* iRef    = MakeIdNode("__i");
-    Node* countEx = BuildExpr(n.inPins[1]);
-    if (HasError) { delete varDecl; delete cond; return nullptr; }
-    cond->children.push_back(iRef);
-    cond->children.push_back(countEx);
-
-    Node* incr  = MakeNode(Token::Increment);
-    Node* iRef2 = MakeIdNode("__i");
-    incr->children.push_back(iRef2);
-
-    Node* body    = MakeNode(Token::Scope);
-    Node* completed = MakeNode(Token::Scope);
-    Node* forNode = MakeNode(Token::For);
-    forNode->children.push_back(varDecl);
-    forNode->children.push_back(cond);
-    forNode->children.push_back(incr);
-    forNode->children.push_back(body);
-    forNode->children.push_back(completed);
-
-    return forNode;
-}
-
-Node* GraphCompiler::BuildVariable(const VisualNode& n)
-{
-    const std::string* nameStr = GetField(n, "Name");
-    const std::string* typeStr = GetField(n, "Type");
-    const std::string* defaultStr = GetField(n, "Default");
-
-    std::string varName = nameStr ? *nameStr : "__unnamed";
-
-    const PinType defaultType = VariableTypeFromString(typeStr ? *typeStr : "Number");
-    const std::string defaultValue = defaultStr ? *defaultStr : "0.0";
-
-    const Pin* setInput = GetInputPinByName(n, "Default");
-    if (!setInput)
-        setInput = GetInputPinByName(n, "Set"); // backward compatibility
-    if (!setInput)
-        return MakeIdNode(varName);
-
-    if (setInput)
-    {
-        const PinSource* src = resolver_.Resolve(setInput->id);
-        if (src)
+        if (item == "false" || item == "False")
         {
-            Node* assign = MakeNode(Token::Assign);
-            Node* lhs    = MakeIdNode(varName);
-            Node* rhs    = BuildNode(*src->node, src->pinIdx);
-            if (HasError) { delete assign; return nullptr; }
-            assign->children.push_back(lhs);
-            assign->children.push_back(rhs);
-            return assign;
+            arr->children.push_back(MakeBoolNode(false));
+            continue;
         }
-    }
 
-    Node* assign = MakeNode(Token::Assign);
-    Node* lhs    = MakeIdNode(varName);
-    Node* rhs    = nullptr;
-
-    switch (defaultType)
-    {
-        case PinType::Boolean:
+        if (item == "null" || item == "Null")
         {
-            const bool b = (defaultValue == "true" || defaultValue == "True" || defaultValue == "1");
-            rhs = MakeBoolNode(b);
-            break;
+            arr->children.push_back(MakeNode(Token::Null));
+            continue;
         }
-        case PinType::String:
-        case PinType::Array:
-            rhs = MakeStringNode(defaultValue);
-            break;
-        case PinType::Number:
-        default:
-            try { rhs = MakeNumberNode(std::stod(defaultValue)); }
-            catch (...) { rhs = MakeNumberNode(0.0); }
-            break;
+
+        if (item.front() == '[' && item.back() == ']')
+        {
+            arr->children.push_back(BuildArrayLiteralNode(item));
+            continue;
+        }
+
+        double numeric = 0.0;
+        if (TryParseDoubleExact(item, numeric))
+        {
+            arr->children.push_back(MakeNumberNode(numeric));
+            continue;
+        }
+
+        arr->children.push_back(MakeStringNode(item));
     }
 
-    assign->children.push_back(lhs);
-    assign->children.push_back(rhs);
-    return assign;
+    return arr;
 }
-
-Node* GraphCompiler::BuildOutput(const VisualNode& n)
-{
-    // Debug Print (NodeType::Output) acts as a flow-triggered print node.
-    // It prints the configured label first, then the incoming value.
-    Node* scope = MakeNode(Token::Scope);
-
-    const std::string* labelStr = GetField(n, "Label");
-    const std::string label = (labelStr && !labelStr->empty()) ? *labelStr : "result";
-
-    Node* printLabel = MakeNode(Token::FunctionCall);
-    printLabel->children.push_back(MakeIdNode("println"));
-    Node* labelParams = MakeNode(Token::CallParams);
-    labelParams->children.push_back(MakeStringNode("[Debug Print] " + label));
-    printLabel->children.push_back(labelParams);
-    scope->children.push_back(printLabel);
-
-    const Pin* valuePin = GetInputPinByName(n, "Value");
-    if (valuePin)
-    {
-        Node* printValue = MakeNode(Token::FunctionCall);
-        printValue->children.push_back(MakeIdNode("println"));
-        Node* valueParams = MakeNode(Token::CallParams);
-        valueParams->children.push_back(BuildExpr(*valuePin));
-        if (HasError) { delete scope; return nullptr; }
-        printValue->children.push_back(valueParams);
-        scope->children.push_back(printValue);
-    }
-
-    return scope;
-}
-
-Node* GraphCompiler::BuildFunction(const VisualNode& n)
-{
-    const std::string* nameStr = GetField(n, "Name");
-    std::string funcName = nameStr ? *nameStr : "__fn";
-
-    Node* call   = MakeNode(Token::FunctionCall);
-    Node* nameId = MakeIdNode(funcName);
-    call->children.push_back(nameId);
-
-    Node* params = MakeNode(Token::CallParams);
-
-    for (const Pin& pin : n.inPins)
-    {
-        if (pin.type == PinType::Flow) continue;
-        Node* arg = BuildExpr(pin);
-        if (HasError) { delete call; return nullptr; }
-        params->children.push_back(arg);
-    }
-
-    call->children.push_back(params);
-
-    return call;
-}
-

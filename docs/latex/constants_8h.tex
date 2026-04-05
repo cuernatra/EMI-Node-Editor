@@ -1,0 +1,80 @@
+\doxysection{src/\+app/\+constants.h File Reference}
+\hypertarget{constants_8h}{}\label{constants_8h}\index{src/app/constants.h@{src/app/constants.h}}
+
+
+Application-\/wide constants for UI layout, sizing, and colors.  
+
+
+{\ttfamily \+\#include $<$imgui.\+h$>$}\newline
+{\ttfamily \+\#include "{}../\+ui/\+theme.\+h"{}}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{struct_position}{Position}}
+\begin{DoxyCompactList}\small\item\em Simple 2D position structure. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespaceapp_constants}{app\+Constants}}
+\begin{DoxyCompactList}\small\item\em Core application window dimensions. \end{DoxyCompactList}\item 
+namespace \doxymbox{\hyperlink{namespaceelement_sizes}{element\+Sizes}}
+\begin{DoxyCompactList}\small\item\em Dimensions for UI panels and components. \end{DoxyCompactList}\item 
+namespace \doxymbox{\hyperlink{namespacelayout_constants}{layout\+Constants}}
+\begin{DoxyCompactList}\small\item\em Layout tuning values for panel spacing, splitters, and limits. \end{DoxyCompactList}\item 
+namespace \doxymbox{\hyperlink{namespacenode_preview_constants}{node\+Preview\+Constants}}
+\begin{DoxyCompactList}\small\item\em Constants specific to node preview rendering in the left panel. \end{DoxyCompactList}\item 
+namespace \doxymbox{\hyperlink{namespacefont_constants}{font\+Constants}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+const float \doxymbox{\hyperlink{namespaceapp_constants_a25e3e91d2fb39881f52d6c8858253048}{app\+Constants::\+window\+Width}} = 1280
+\begin{DoxyCompactList}\small\item\em Default window width in pixels. \end{DoxyCompactList}\item 
+constexpr int \doxymbox{\hyperlink{namespaceapp_constants_a88dc79d258134455e1f1e725d12af936}{app\+Constants::\+windowheight}} = 720
+\begin{DoxyCompactList}\small\item\em Default window height in pixels. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespaceelement_sizes_af973f05542c20c3e3899253bbfa3dfe4}{element\+Sizes::\+top\+Bar\+Height}} = \doxymbox{\hyperlink{namespaceapp_constants_a88dc79d258134455e1f1e725d12af936}{app\+Constants::\+windowheight}} /\+ 20
+\begin{DoxyCompactList}\small\item\em Height of top toolbar (36px). \end{DoxyCompactList}\item 
+const Im\+Vec2 \doxymbox{\hyperlink{namespacelayout_constants_a54e959096236ac6c66b496d0710536b7}{layout\+Constants::\+root\+Window\+Padding}} = Im\+Vec2(0.\+0f, 0.\+0f)
+\begin{DoxyCompactList}\small\item\em Root layout padding (panels stay flush). \end{DoxyCompactList}\item 
+const Im\+Vec2 \doxymbox{\hyperlink{namespacelayout_constants_a5fac614cafd2e3d267dccf00b5cbac46}{layout\+Constants::\+root\+Item\+Spacing}} = Im\+Vec2(0.\+0f, 0.\+0f)
+\begin{DoxyCompactList}\small\item\em Root item spacing (no gaps between panels). \end{DoxyCompactList}\item 
+const Im\+Vec2 \doxymbox{\hyperlink{namespacelayout_constants_a92db1513f82d979ef524b8eb67c7f3b5}{layout\+Constants::\+panel\+Padding}} = Im\+Vec2(10.\+0f, 10.\+0f)
+\begin{DoxyCompactList}\small\item\em Internal content padding for each panel. \end{DoxyCompactList}\item 
+const Im\+Vec2 \doxymbox{\hyperlink{namespacelayout_constants_ab6a9d0ea904be5537d33e22e18077d1e}{layout\+Constants::\+panel\+Item\+Spacing}} = Im\+Vec2(5.\+0f, 5.\+0f)
+\begin{DoxyCompactList}\small\item\em Internal spacing between widgets in each panel. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacelayout_constants_a20b98a370fc8e9b12c8f92ae54c25dce}{layout\+Constants::\+horizontal\+Splitter\+Width}} = 5.\+0f
+\begin{DoxyCompactList}\small\item\em Width of left/\+right splitter. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacelayout_constants_a982b37de501798bf77e36826a8346df9}{layout\+Constants::\+min\+Left\+Panel\+Width}} = 50.\+0f
+\begin{DoxyCompactList}\small\item\em Minimum width for left panel. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacelayout_constants_a11ec4a4e7b0e56ea75d70d5670627c80}{layout\+Constants::\+min\+Inspector\+Panel\+Width}} = 520.\+0f
+\begin{DoxyCompactList}\small\item\em Minimum width for inspector side. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacelayout_constants_ac63eec4852a4ae2602afc2344bdc2feb}{layout\+Constants::\+console\+Splitter\+Thickness}} = 5.\+0f
+\begin{DoxyCompactList}\small\item\em Thickness of console splitter. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacelayout_constants_a10b9278fa6c96748935704e16d260c57}{layout\+Constants::\+min\+Main\+Editor\+Height}} = 80.\+0f
+\begin{DoxyCompactList}\small\item\em Minimum height for main editor area. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacelayout_constants_a4814d7d2a150475a638d68b87afe9a09}{layout\+Constants::\+min\+Console\+Height}} = 60.\+0f
+\begin{DoxyCompactList}\small\item\em Minimum height for console area. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacelayout_constants_a949990eb73d0cf1683690534296af335}{layout\+Constants::\+inspector\+PaddingX}} = 8.\+0f
+\begin{DoxyCompactList}\small\item\em Horizontal inset of overlay inspector. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacenode_preview_constants_a164f31e22084ad2d19a0db3d8f88167c}{node\+Preview\+Constants::\+header\+Height}} = 20.\+0f
+\begin{DoxyCompactList}\small\item\em Height of the node preview header. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacenode_preview_constants_aa706c60f1610dd6deee69d3f2cc933bc}{node\+Preview\+Constants::\+fixed\+Width}} = 125.\+0f
+\begin{DoxyCompactList}\small\item\em Fixed width for all node previews. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacenode_preview_constants_a32628f8ef97f3541a9550b6f9476a051}{node\+Preview\+Constants::\+fixed\+Height}} = 110.\+0f
+\begin{DoxyCompactList}\small\item\em Fixed height for all node previews. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacenode_preview_constants_a97f7c77d5376d4a0235537091187a8b2}{node\+Preview\+Constants::\+padding}} = 7.\+0f
+\begin{DoxyCompactList}\small\item\em Padding inside node previews. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacenode_preview_constants_a3e0c5c6230ccd3bb30491d75c2f57b5f}{node\+Preview\+Constants::\+pin\+Radius}} = 3.\+5f
+\begin{DoxyCompactList}\small\item\em Radius of the pin circles in node previews. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacefont_constants_a3ea8acdb2571c505d50696c4c8ea7286}{font\+Constants::\+font\+Size}} = 15.\+0f
+\begin{DoxyCompactList}\small\item\em Default font size for Im\+Gui elements. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacefont_constants_afd8f75ea13176a16b579bccc347e70d1}{font\+Constants::\+oversampleH}} = 5.\+0f
+\begin{DoxyCompactList}\small\item\em Horizontal oversampling for font rendering. \end{DoxyCompactList}\item 
+const float \doxymbox{\hyperlink{namespacefont_constants_aa03d535daed66703d2c0f0761ee4c1bb}{font\+Constants::\+oversampleV}} = 5.\+0f
+\begin{DoxyCompactList}\small\item\em Vertical oversampling for. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Application-\/wide constants for UI layout, sizing, and colors. 
+
+Central repository for all magic numbers used throughout the application. Defines window dimensions, UI element sizes, color palettes, and positions. 
