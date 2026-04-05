@@ -1,15 +1,14 @@
 node 1 Start 1 2 0 -600 0
 node 10 NativeCall 8 11 12 13 14 15 16 17 18 8 Function=astar_init ArgCount=6 Arg0=20.000000 Arg1=20.000000 Arg2=0.000000 Arg3=0.000000 Arg4=15.000000 Arg5=15.000000 -200 0
-node 20 Constant 1 21 2 Type=Boolean Value=true 100 -200
-node 30 While 4 31 32 33 34 0 350 0
-node 40 NativeCall 8 41 42 43 44 45 46 47 48 1 Function=astar_step 750 0
-node 50 NativeCall 8 51 52 53 54 55 56 57 58 1 Function=astar_render 1100 0
-node 55 NativeCall 8 55001 55002 55003 55004 55005 55006 55007 55008 1 Function=astar_interact 1250 0
+node 40 NativeCall 8 41 42 43 44 45 46 47 48 8 Function=astar_step ArgCount=0 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 750 0
+node 50 NativeCall 8 51 52 53 54 55 56 57 58 8 Function=astar_render ArgCount=0 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 1100 0
+node 55 NativeCall 8 55001 55002 55003 55004 55005 55006 55007 55008 8 Function=astar_interact ArgCount=0 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 1312 0
 node 60 Delay 3 61 62 63 1 Duration=50.000000 1600 0
+node 55009 Ticker 4 55010 55011 55012 55013 1 FPS=100.000000 192 -96
 link 70 2 11 Flow
-link 71 18 31 Flow
-link 72 21 32 Boolean
-link 73 33 41 Flow
 link 74 48 51 Flow
 link 75 58 55001 Flow
 link 76 55008 61 Flow
+link 55014 18 55010 Flow
+link 55015 55012 41 Flow
+
