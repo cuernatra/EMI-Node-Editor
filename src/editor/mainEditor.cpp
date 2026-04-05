@@ -41,11 +41,11 @@ MainEditor::MainEditor()
 
 MainEditor::~MainEditor()
 {
+    // Ensure any running compilation is force-stopped before waiting.
     if (m_compileFuture.valid())
     {
-        if (m_compileInProgress && m_compiler)
+        if (m_compiler)
             m_compiler->RequestForceStop();
-
         m_compileFuture.wait();
         m_compileInProgress = false;
     }
