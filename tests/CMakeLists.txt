@@ -36,8 +36,8 @@ add_executable(tests
 target_include_directories(tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/dependencies/imgui-node-editor
-    ${CMAKE_SOURCE_DIR}/EMI-Script/EMI-Script-master/src
-    ${CMAKE_SOURCE_DIR}/EMI-Script/EMI-Script-master/include
+    ${CMAKE_SOURCE_DIR}/EMI-Script/src
+    ${CMAKE_SOURCE_DIR}/EMI-Script/include
     ${CMAKE_BINARY_DIR}/_deps/unordered_dense-src/include
     ${CMAKE_BINARY_DIR}/_deps/imgui-src
 )
