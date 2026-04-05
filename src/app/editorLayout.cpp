@@ -1,4 +1,5 @@
 #include "editorLayout.h"
+#include "../../Demo/NodeGameFunctions.h"
 
 #include "ui/theme.h"
 #include "editor/nodeColorCategories.h"
@@ -10,6 +11,15 @@
 
 EditorLayout::EditorLayout()
 {
+    // Bind the render panel to the EMI native drawing functions before any
+    // graph is compiled or executed.
+    SetRenderPanelForNatives(&m_renderPanel);
+
+    // Add RenderPanel button callback
+    m_topPanel.setRenderPanelCallback([this]() {
+        m_renderPanel.open();
+    });
+
     m_topPanel.setFilesystemCallback([this]() {
         m_consolePanel.addLogText("Filesystem");
     });
@@ -65,10 +75,13 @@ EditorLayout::EditorLayout()
 
 EditorLayout::~EditorLayout()
 {
+    // Prevent VM native callbacks from touching a panel that is being destroyed.
 }
 
 void EditorLayout::draw()
 {   
+    if (m_renderPanel.isOpen())
+        m_renderPanel.update();
     bool drawInspectorOverlay = false;
     ImVec2 inspectorPos(0.0f, 0.0f);
     ImVec2 inspectorSize(0.0f, 0.0f);

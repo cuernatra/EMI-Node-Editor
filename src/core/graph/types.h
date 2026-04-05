@@ -23,6 +23,8 @@ enum class NodeType
     Comparison,  ///< Comparison operation
     Logic,       ///< Logic operation
     Not,         ///< Boolean negate
+    NativeCall,  ///< Call a registered native function from flow
+    NativeGet,   ///< Read value from a registered native function
     DrawRect,    ///< Draw rectangle preview
     DrawGrid,    ///< Draw grid preview
     Delay,       ///< Delay in flow

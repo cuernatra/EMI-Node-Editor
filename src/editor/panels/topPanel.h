@@ -26,6 +26,7 @@ public:
     void setFilesystemCallback(std::function<void()> cb);
     void setSettingsCallback(std::function<void()> cb);
     void setPreviewCallback(std::function<void(bool)> cb);
+    void setRenderPanelCallback(std::function<void()> cb);
 
     /// Whether preview-on-compile mode is enabled.
     bool isPreviewEnabled() const { return m_previewEnabled; }
@@ -37,6 +38,7 @@ private:
     std::function<void()> m_filesystemCallback;
     std::function<void()> m_settingsCallback;
     std::function<void(bool)> m_previewCallback;
+    std::function<void()> m_renderPanelCallback;
     bool m_previewEnabled = false;
 };
 

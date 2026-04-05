@@ -2,6 +2,8 @@ add_executable(emi-editor
   main.cpp
   app/app.cpp
   app/editorLayout.cpp
+  ../Demo/NodeGameFunctions.cpp
+  ../Demo/previewNatives.cpp
   editor/mainEditor.cpp
   editor/graph/graphEditor.cpp
   editor/graph/graphEditorUtils.cpp
@@ -14,6 +16,7 @@ add_executable(emi-editor
   editor/panels/consolePanel.cpp
   editor/panels/consoleEmiLogger.cpp
   editor/panels/graphPreviewPanel.cpp
+  editor/panels/renderPanel.cpp
   editor/panels/inspectorPanel.cpp
   editor/settings.cpp
   editor/renderer/pinRenderer.cpp
@@ -29,6 +32,7 @@ add_executable(emi-editor
   core/registry/nodes/logicNodes.cpp
   core/registry/nodes/flowNodes.cpp
   core/registry/nodes/structNodes.cpp
+  core/registry/nodes/demoNodes.cpp
   core/compiler/graphCompiler.cpp
   core/compiler/pinResolver.cpp
 

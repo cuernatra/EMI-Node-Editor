@@ -43,6 +43,9 @@ MainEditor::~MainEditor()
 {
     if (m_compileFuture.valid())
     {
+        if (m_compileInProgress && m_compiler)
+            m_compiler->RequestForceStop();
+
         m_compileFuture.wait();
         m_compileInProgress = false;
     }

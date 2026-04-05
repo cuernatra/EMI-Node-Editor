@@ -1,0 +1,23 @@
+node 1 Start 1 100 0 50 220
+node 2 NativeCall 8 101 102 103 104 105 106 107 108 8 Function=astar_init ArgCount=6 Arg0=20.000000 Arg1=20.000000 Arg2=1.000000 Arg3=1.000000 Arg4=18.000000 Arg5=18.000000 250 220
+node 3 Constant 1 109 2 Type=Boolean Value=true 250 80
+node 4 While 4 110 111 112 113 0 520 220
+node 5 NativeCall 8 114 115 116 117 118 119 120 121 8 Function=astar_step ArgCount=0 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 760 220
+node 6 NativeGet 7 122 123 124 125 126 127 128 8 Function=astar_needs_retarget ArgCount=0 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 980 220
+node 7 Branch 4 129 130 131 132 0 1210 220
+node 8 NativeCall 8 133 134 135 136 137 138 139 140 8 Function=astar_retarget ArgCount=0 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 1450 130
+node 9 NativeCall 8 141 142 143 144 145 146 147 148 8 Function=astar_render ArgCount=0 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 1690 130
+node 10 Delay 3 149 150 151 1 Duration=50.000000 1930 130
+node 11 NativeCall 8 152 153 154 155 156 157 158 159 8 Function=astar_render ArgCount=0 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 1450 310
+node 12 Delay 3 160 161 162 1 Duration=50.000000 1690 310
+link 200 100 101 Flow
+link 201 108 110 Flow
+link 202 109 111 Boolean
+link 203 112 114 Flow
+link 204 121 129 Flow
+link 205 128 130 Any
+link 206 131 133 Flow
+link 207 140 141 Flow
+link 208 148 149 Flow
+link 209 132 152 Flow
+link 210 159 160 Flow
