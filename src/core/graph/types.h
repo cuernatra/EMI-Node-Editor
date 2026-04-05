@@ -37,6 +37,8 @@ enum class NodeType
     ArrayReplaceAt, ///< Replace array value at index
     ArrayRemoveAt, ///< Remove array value at index
     ArrayLength, ///< Array item count
+    ArrayOperation, ///< Unified array operation node
+    Ticker,      ///< Ticker node (phase 2)
     StructDefine, ///< Define struct schema
     StructCreate, ///< Create struct instance
     PreviewPickRect, ///< Preview-picked rectangle position

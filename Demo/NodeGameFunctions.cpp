@@ -48,11 +48,6 @@ static void rendergrid_impl()
         s_renderPanel->renderGrid();
 }
 
-// writetext / writetextCentered: the grid renderer has no character/font system.
-// TODO: implement bitmap-font rendering once RenderPanel supports it.
-static void writetext_impl(double /*x*/, double /*y*/, double /*text*/, double /*color*/) {}
-static void writetextcentered_impl(double /*x*/, double /*y*/, double /*text*/, double /*color*/) {}
-
 // ---------------------------------------------------------------------------
 // Pixel read-back — equivalent of Game.GetPixel
 // ---------------------------------------------------------------------------
@@ -117,8 +112,6 @@ static double random_impl(double lo, double hi)
 EMI_REGISTER(setupconsole,             cleargrid_impl)
 EMI_REGISTER(writepixel,               drawcell_impl)
 EMI_REGISTER(render,                   rendergrid_impl)
-EMI_REGISTER(writetext,                writetext_impl)
-EMI_REGISTER(writetextCentered,        writetextcentered_impl)
 EMI_REGISTER(Game.GetPixel,            getpixel_impl)
 EMI_REGISTER(Input.WaitInput,          waitinput_impl)
 EMI_REGISTER(Input.IsKeyDown,          iskeydown_impl)

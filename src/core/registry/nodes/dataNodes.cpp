@@ -1,8 +1,64 @@
+
 #include "../nodeRegistry.h"
 #include "nodeCompileHelpers.h"
 
-namespace
+namespace {
+// Unified ArrayOperation node (backward compatible, does not replace existing nodes)
+Node* CompileArrayOperationNode(GraphCompiler* compiler, const VisualNode& n)
 {
+    const std::string* opStr = FindField(n, "Operation");
+    if (!opStr) {
+        compiler->Error("ArrayOperation node missing Operation field");
+        return nullptr;
+    }
+
+    const Pin* arrayPin = FindInputPin(n, "Array");
+    if (!arrayPin) {
+        compiler->Error("ArrayOperation node needs Array input");
+        return nullptr;
+    }
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin, "Array");
+    if (!arrayExpr) return nullptr;
+
+    if (*opStr == "Push" || *opStr == "PushFront" || *opStr == "PushUnique") {
+        const Pin* valuePin = FindInputPin(n, "Value");
+        if (!valuePin) {
+            compiler->Error("ArrayOperation (" + *opStr + ") needs Value input");
+            delete arrayExpr;
+            return nullptr;
+        }
+        Node* valueExpr = compiler->BuildExpr(*valuePin);
+        if (!valueExpr) {
+            delete arrayExpr;
+            return nullptr;
+        }
+        std::string fn = "Array." + *opStr;
+        return compiler->EmitFunctionCall(fn, { arrayExpr, valueExpr });
+    }
+    else if (*opStr == "Clear") {
+        return compiler->EmitFunctionCall("Array.Clear", { arrayExpr });
+    }
+    else if (*opStr == "Resize") {
+        const Pin* sizePin = FindInputPin(n, "Size");
+        if (!sizePin) {
+            compiler->Error("ArrayOperation (Resize) needs Size input");
+            delete arrayExpr;
+            return nullptr;
+        }
+        Node* sizeExpr = compiler->BuildExpr(*sizePin);
+        if (!sizeExpr) {
+            delete arrayExpr;
+            return nullptr;
+        }
+        return compiler->EmitFunctionCall("Array.Resize", { arrayExpr, sizeExpr });
+    }
+    else {
+        compiler->Error("Unknown ArrayOperation: " + *opStr);
+        delete arrayExpr;
+        return nullptr;
+    }
+}
+
 Node* CompileConstantNode(GraphCompiler* compiler, const VisualNode& n)
 {
     const std::string* val = FindField(n, "Value");
@@ -323,6 +379,30 @@ Node* CompilePreviewPickRectNode(GraphCompiler*, const VisualNode&)
 void NodeRegistry::RegisterDataNodes()
 {
     // Register(...) fields follow NodeDescriptor member order.
+    
+    // Unified ArrayOperation node (backward compatible, does not replace existing nodes)
+    Register({
+        NodeType::ArrayOperation,
+        "Array Operation",
+        {
+            { "In", PinType::Flow, true },
+            { "Array", PinType::Array, true },
+            { "Value", PinType::Any, false }, // Only used for Push/PushFront/PushUnique
+            { "Size", PinType::Number, false }, // Only used for Resize
+            { "Out", PinType::Flow, false }
+        },
+        {
+            { "Operation", PinType::String, "Push", { "Push", "PushFront", "PushUnique", "Clear", "Resize" } }
+        },
+        CompileArrayOperationNode,
+        nullptr,
+        "Data",
+        {},
+        "ArrayOperation",
+        {},
+        NodeRenderStyle::Array
+    });
+    
     Register({
         NodeType::Constant,
         "Constant",

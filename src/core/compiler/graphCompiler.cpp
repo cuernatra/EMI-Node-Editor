@@ -6,6 +6,9 @@
 #include <cassert>
 #include <cmath>
 
+// Forward declaration for Ticker node compile function
+Node* CompileTickerNode(GraphCompiler* compiler, const VisualNode& n);
+
 Node* GraphCompiler::MakeNode(Token t) const
 {
     Node* n = new Node();
@@ -217,6 +220,17 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
 
     switch (n.nodeType)
     {
+        case NodeType::Ticker:
+        {
+            Node* tickerNode = CompileTickerNode(this, n);
+            if (HasError || !tickerNode)
+            {
+                delete tickerNode;
+                return;
+            }
+            targetScope->children.push_back(tickerNode);
+            return;
+        }
         case NodeType::Sequence:
         {
             // Sequence forwards execution through each "Then" output in order.

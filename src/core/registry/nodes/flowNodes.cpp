@@ -1,8 +1,47 @@
 #include "../nodeRegistry.h"
 #include "nodeCompileHelpers.h"
 
-namespace
+
+
+// Move CompileTickerNode out of anonymous namespace for linker visibility
+Node* CompileTickerNode(GraphCompiler* compiler, const VisualNode& n)
 {
+    Node* fps = nullptr;
+    const Pin* fpsPin = FindInputPin(n, "FPS");
+    if (fpsPin && compiler->Resolve(*fpsPin))
+        fps = compiler->BuildExpr(*fpsPin);
+    else {
+        const std::string* fpsStr = FindField(n, "FPS");
+        double fpsVal = 20.0;
+        if (fpsStr) { try { fpsVal = std::stod(*fpsStr); } catch (...) { fpsVal = 20.0; } }
+        fps = MakeNumberLiteral(fpsVal);
+    }
+
+    Node* body = MakeNode(Token::Scope);
+    Node* loop = MakeNode(Token::While);
+    loop->children.push_back(MakeBoolLiteral(true));
+    loop->children.push_back(body);
+
+    if (const Pin* tick = compiler->GetOutputPinByName(n, "Tick"))
+        compiler->AppendFlowChainFromOutput(tick->id, body);
+
+    // Delay appended after user's body chain, inside the loop scope.
+    body->children.push_back(
+        compiler->EmitFunctionCall("delay", { compiler->EmitBinaryOp(Token::Div, MakeNumberLiteral(1000.0), fps) })
+    );
+
+    Node* targetScope = MakeNode(Token::Scope);
+    targetScope->children.push_back(loop);
+
+    if (const Pin* stop = compiler->GetOutputPinByName(n, "Stop"))
+        compiler->AppendFlowChainFromOutput(stop->id, targetScope);
+
+    return targetScope;
+}
+
+// End anonymous namespace
+
+
 Node* CompileDelayNode(GraphCompiler* compiler, const VisualNode& n)
 {
     Node* durationExpr = nullptr;
@@ -74,10 +113,30 @@ Node* CompileWhileNode(GraphCompiler* compiler, const VisualNode& n)
 {
     return BuildWhileNode(compiler, n);
 }
-}
 
 void NodeRegistry::RegisterFlowNodes()
 {
+
+    Register({
+        NodeType::Ticker,
+        "Ticker",
+        {
+            { "In", PinType::Flow, true },
+            { "FPS", PinType::Number, true },
+            { "Tick", PinType::Flow, false },
+            { "Stop", PinType::Flow, false }
+        },
+        {
+            { "FPS", PinType::Number, "20" }
+        },
+        CompileTickerNode,
+        nullptr,
+        "Flow",
+        {},
+        "Ticker",
+        {},
+        NodeRenderStyle::Default
+    });
     // Register(...) fields follow NodeDescriptor member order.
     Register({
         NodeType::Delay,

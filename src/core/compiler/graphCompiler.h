@@ -40,6 +40,7 @@ public:
     /** @brief Find where a flow output continues next. */
     const FlowTarget* ResolveFlow(const Pin& outputPin) const { return resolver_.ResolveFlow(outputPin.id); }
 
+
     // Small AST building helpers used by node compile callbacks.
     Node* EmitBinaryOp   (Token op, Node* lhs, Node* rhs) const;
     Node* EmitUnaryOp    (Token op, Node* operand) const;
@@ -50,17 +51,18 @@ public:
     Node* BuildNode(const VisualNode& n, int outPinIdx = 0);  ///< Build AST for one visual node.
     Node* BuildArrayLiteralNode(const std::string& text) const; ///< Convert "[a, b, ...]" text into array AST.
 
+    // Make flow helpers public for node compile callbacks
+    void AppendFlowChainFromOutput(ed::PinId flowOutputPinId, Node* targetScope);
+    const Pin* GetOutputPinByName(const VisualNode& n, const char* name) const;
+
 private:
     PinResolver resolver_;  ///< Fast pin connection lookup helper.
 
     // Execution-flow helpers (walk from Start through connected flow pins).
     void CollectFlowReachableFromOutput(ed::PinId flowOutputPinId);
-    void AppendFlowChainFromOutput(ed::PinId flowOutputPinId, Node* targetScope);
     void AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx, Node* targetScope);
-
     bool NodeRequiresFlow(const VisualNode& n) const;
     const VisualNode* FindFirstNode(NodeType type) const;
-    const Pin* GetOutputPinByName(const VisualNode& n, const char* name) const;
 
     Node* MakeNode(Token t)                    const;  ///< Create raw AST node.
     Node* MakeNumberNode(double v)             const;  ///< Create number literal AST node.
