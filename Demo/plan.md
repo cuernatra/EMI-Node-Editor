@@ -1,65 +1,74 @@
-# Node Editor — Incremental Native-to-Node Migration Plan
-
-## Vision
-
-Move functionality from hand-written `previewNatives.cpp` into real visual node
 types that compile to EMI AST — taking design cues from Unreal Engine Blueprints.
 The demo must not break at any phase boundary.
 
----
+# Demo Node Migration Plan (Affects Demo Only)
 
-## Blueprints Patterns Applied Here
-
-| Blueprints concept | Our equivalent | Phase |
-|---|---|---|
-| **Latent / async node** (Set Timer by Function) | `Ticker` — while+delay in one node | 2 |
-| **Input Action event** (On Mouse Button Pressed) | `OnMouseButton` — polls + routes flow | 3 |
-| **Pure function node** (Get Actor Location) | `AStarGetState` — value out, no flow | 3 |
-| **Composite AI action** (AI Move To) | `AStarFrame` — step+render+branch in one | 4 |
-| **K2 node with typed pins** | `AStarInit`, `AStarSetWall` typed wrappers | 5 |
-| **Draw call nodes** (Draw Debug Sphere) | Fix `DrawGrid` / `DrawRect` to actually compile | 1 |
-
----
-
-## Current State (baseline, working demo)
+## Current Demo State
 
 ```
 [Start]
-  → [NativeCall: astar_init  (6 args)]
-  → [While] ← [Constant: true]
-       Body →
-         [NativeCall: astar_step]
-         → [NativeCall: astar_render]
-         → [NativeCall: astar_interact]
-         → [Delay: 50 ms]
+    → [NativeCall: astar_init  (6 args)]
+    → [While] ← [Constant: true]
+             Body →
+                 [NativeCall: astar_step]
+                 → [NativeCall: astar_render]
+                 → [NativeCall: astar_interact]
+                 → [Delay: 50 ms]
 
 Total: 8 nodes   NativeCall nodes: 3   "magic string" function names: 4
 ```
 
----
-
-## Target State (after all phases)
+## Target Demo State
 
 ```
 [Start]
-  → [AStarInit  W=20 H=20  SX=0 SY=0  GX=15 GY=15]
-  → [Ticker  FPS=20]
-       Tick →
-         [AStarFrame]
-           Out →
-             [OnMouseButton]
-               Left  → [AStarSetWall  Wall=true]
-               Right → [AStarSetWall  Wall=false]
+    → [AStarInit  W=20 H=20  SX=0 SY=0  GX=15 GY=15]
+    → [Ticker  FPS=20]
+             Tick →
+                 [AStarFrame]
+                     Out →
+                         [OnMouseButton]
+                             Left  → [AStarSetWall  Wall=true]
+                             Right → [AStarSetWall  Wall=false]
 
 Total: 7 nodes   NativeCall nodes: 0   magic strings: 0
 ```
 
+## Demo Migration Steps
+
+1. Replace `[While]`, `[Constant: true]`, `[Delay]` with `[Ticker(FPS=20)]`.
+2. Replace `[NativeCall: astar_interact]` with `[OnMouseButton]` and two `[NativeCall: astar_set_wall]` calls.
+3. Replace `[NativeCall: astar_step]` and `[NativeCall: astar_render]` with `[AStarFrame]` (if generic, otherwise keep NativeCall).
+4. Replace `[NativeCall: astar_init]` with `[AStarInit]` (if generic, otherwise keep NativeCall).
+5. Replace two `[NativeCall: astar_set_wall]` with `[AStarSetWall]` (if generic, otherwise keep NativeCall).
+
+## Native Layer Changes
+
+- Add `astar_set_wall(x, y, isWall)` to `previewNatives.cpp` (extracted from `astar_interact_impl`).
+- Remove `astar_interact` native after migration.
+
+## Node Count Progression
+
+| Phase              | Nodes | NativeCall | Notes                                   |
+|--------------------|-------|------------|-----------------------------------------|
+| Baseline (now)     | 8     | 3          | While+Constant+Delay, astar_* as strings|
+| Ticker             | 6     | 3          | Ticker replaces While+Constant+Delay    |
+| OnMouseButton      | 7     | 2          | OnMouseButton replaces astar_interact   |
+| AStarFrame         | 6     | 2          | AStarFrame replaces step+render         |
+| AStarInit/SetWall  | 6     | 0          | All calls become typed nodes            |
+
+## Implementation Notes
+
+- Only change nodes and natives that affect the demo graph or its runtime.
+- Old NativeCall nodes continue to work until removed from the demo.
+- Backward compatibility is required at every step.
+
 ---
 
-## Phase 1 — Fix DrawGrid / DrawRect (compile to real calls)
+## Phase 1 — Fix DrawGrid / DrawRect (compile to real calls, only if not already implemented)
 
-**Status of these nodes today:** both register `CompileScopeNode` which emits
-`Token::Scope` — a no-op. They render visually but produce no runtime code.
+
+**Status:** If DrawGrid/DrawRect are already implemented as real nodes, skip this phase for them. Only update if they are still no-ops.
 
 ### DrawGrid  
 *Blueprint analogue: Flush Persistent Debug Lines (clears + resets)*
@@ -96,12 +105,15 @@ Node* CompileDrawRectNode(GraphCompiler* compiler, const VisualNode& n)
 }
 ```
 
+
 **Demo impact:** none (demo uses NativeCall, not DrawGrid/DrawRect).  
-Other graphs that use DrawGrid/DrawRect nodes now actually work.
+Other graphs that use DrawGrid/DrawRect nodes now actually work. 
+**If these nodes are already working, do not change them.**
 
 ---
 
-## Phase 2 — Ticker node  
+
+## Phase 2 — Ticker node (only if not already implemented)
 *Blueprint analogue: Set Timer by Function / Event Tick*
 
 Replaces the **While + Constant(true) + Delay** pattern (3 nodes → 1).
@@ -154,22 +166,27 @@ case NodeType::Ticker:
 }
 ```
 
-### Files to change
+
+### Files to change (only if Ticker node does not already exist)
 - `src/core/graph/types.h` — add `NodeType::Ticker`
 - `src/core/registry/nodes/flowNodes.cpp` — register + `CompileTickerNode`
 - `src/core/compiler/graphCompiler.cpp` — `case NodeType::Ticker` in `AppendFlowNode`
 
 ### Demo graph change
+
 Remove: `While`, `Constant(true)`, `Delay`  
 Add: `Ticker(FPS=20)`  
 Net: **−2 nodes**
+**If Ticker node is already implemented, keep existing implementation.**
 
 ---
 
-## Phase 3 — OnMouseButton + AStarGetState  
+## Phase 3 — OnMouseButton + AStarGetState  (generic only; demo-specific logic via NativeCall)
+
 
 ### 3a. OnMouseButton  
 *Blueprint analogue: InputAction node (Left / Right / None branching)*
+**Implement as a generic input node. Do not add demo-specific logic.**
 
 Polls `Input.IsMouseButtonDown` and `Input.GetMouseX/Y` each time it is reached
 in the flow, routing to `Left`, `Right`, or `Pass`. Exposes `CellX` / `CellY`
@@ -210,8 +227,10 @@ When a downstream node reads `CellX` / `CellY`, `BuildNode(n, outPinIdx)` return
   - `AppendFlowNode`: handle `NodeType::OnMouseButton` (emit declarations + if-chain)
   - `BuildNode`: return cell variable identifiers for `CellX` / `CellY` output pins
 
+
 ### 3b. AStarGetState (pure node)  
 *Blueprint analogue: Get Actor Location (pure getter, no flow pins)*
+**If this node is demo-specific, expose only via NativeCall. Otherwise, implement as a generic getter.**
 
 Wraps `astar_get(key)` with named outputs instead of a magic key integer.
 
@@ -248,8 +267,10 @@ Net: **+1 node** (3→2 NativeCall removed, but two typed calls added) — demo 
 
 ---
 
-## Phase 4 — AStarFrame node  
+
+## Phase 4 — AStarFrame node  (demo-specific logic only via NativeCall)
 *Blueprint analogue: AI Move To (composite action that steps the agent and branches on arrival)*
+**Do not implement as a dedicated node unless it is generic. Demo-specific logic should use NativeCall.**
 
 Replaces `NativeCall(astar_step)` + `NativeCall(astar_render)` (2 nodes → 1).
 Adds a `Reached` output that fires the frame the agent arrives at the goal.
@@ -288,11 +309,14 @@ Net: **−1 node**
 
 ---
 
-## Phase 5 — AStarInit and AStarSetWall typed nodes  
-*Blueprint analogue: K2 typed wrappers (strongly-typed function call nodes)*
 
-These are purely about **editor clarity** — they compile to the same native calls
-as NativeCall but with named, typed pins and no magic string field.
+## Phase 5 — AStarInit and AStarSetWall typed nodes  (demo-specific logic only via NativeCall)
+*Blueprint analogue: K2 typed wrappers (strongly-typed function call nodes)*
+**Do not implement as dedicated nodes unless they are generic. Demo-specific logic should use NativeCall.**
+
+
+These are purely about **editor clarity** — they compile to the same native calls as NativeCall but with named, typed pins and no magic string field. 
+**If these nodes are demo-specific, do not implement as dedicated nodes. Use NativeCall instead.**
 
 ### AStarInit
 
@@ -358,14 +382,16 @@ Net: **0 nodes gained** (3→3), but **zero NativeCall nodes remain**
 
 ---
 
+every step because old NativeCall nodes still work until explicitly removed.
 ## Implementation Order (what to do within each phase)
 
-1. Add `NodeType` enum value (`types.h`)
-2. Add compile handler in `graphCompiler.cpp` if it needs flow routing  
-3. Register the node descriptor in the relevant `*Nodes.cpp`
-4. Add any new native to `previewNatives.cpp` and register with `EMI_REGISTER`
-5. Update `demo.txt` to use the new node and verify the demo still runs
-6. Update this document
+1. **Check if the node is already implemented. If so, do not change it.**
+2. For new nodes, prefer generic, reusable designs. Demo-specific logic should only be exposed via NativeCall.
+3. Add `NodeType` enum value (`types.h`) if needed
+4. Add compile handler in `graphCompiler.cpp` if it needs flow routing  
+5. Register the node descriptor in the relevant `*Nodes.cpp`
+6. Add any new native to `previewNatives.cpp` and register with `EMI_REGISTER`
+7. Update `demo.txt` to use the new node and verify the demo still runs
+8. Update this document
 
-Each step can be committed independently — the demo compiles and runs after
-every step because old NativeCall nodes still work until explicitly removed.
+Each step can be committed independently — the demo compiles and runs after every step because old NativeCall nodes still work until explicitly removed. Backward compatibility is required.
