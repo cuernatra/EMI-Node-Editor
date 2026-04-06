@@ -205,15 +205,18 @@ The demo operates as a pipeline connecting the visual node graph, the rendering 
 | `astar_draw` | Phase 1 | Phase 3 | previewNatives |
 | `astar_interact` | existing | Phase 2 | previewNatives |
 | `astar_retarget` | existing | Phase 5 | previewNatives |
-| `astar_get` | existing | Phase 4/5 | previewNatives |
+| `astar_getagentx` | split from astar_get | Phase 4/5 | previewNatives |
+| `astar_getagenty` | split from astar_get | Phase 4/5 | previewNatives |
+| `astar_getgoalx` | split from astar_get | Phase 5 | previewNatives |
+| `astar_getgoaly` | split from astar_get | Phase 5 | previewNatives |
 | `astar_needs_retarget` | existing | Phase 4 | previewNatives |
 | `astar_getwall` | Phase 2 | Phase 7 | previewNatives |
 | `astar_setwall` | Phase 2 | Phase 7 | previewNatives |
 | `astar_getpathcell_x/y` | Phase 3 | Phase 7 | previewNatives |
 | `astar_getpathlen` | Phase 3 | Phase 7 | previewNatives |
-| `astar_setagent` | Phase 4 | Phase 7 | previewNatives |
-| `astar_setpathstep` | Phase 4 | Phase 7 | previewNatives |
-| `astar_findpath` | Phase 5 | Phase 7 | previewNatives |
+| `astar_setagent` | implemented | Phase 7 | previewNatives |
+| `astar_setpathstep` | implemented | Phase 7 | previewNatives |
+| `astar_findpath` | implemented | Phase 7 | previewNatives |
 | `drawcell` | existing | never | NodeGameFunctions |
 | `cleargrid` | existing | never | NodeGameFunctions |
 | `rendergrid` | existing | never | NodeGameFunctions |

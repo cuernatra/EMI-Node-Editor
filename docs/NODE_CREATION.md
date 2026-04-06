@@ -129,3 +129,29 @@ Node* CompileMyNode(GraphCompiler* compiler, const VisualNode& n)
 - Do not rely on a fallback `saveToken`.
 - Do not leave `saveToken` empty and expect the registry to fill it in.
 - Do not move node-specific logic into editor panels unless the node truly needs special UI.
+
+## Pin or Field Input Logic (Unified Input Handling)
+
+For any node input (such as DrawCell's X, Y, R, G, B or Set Variable's Default), the system uses a unified approach to determine the value:
+
+- If the input pin is connected, the value comes from the connected node.
+- If the pin is not connected, the value comes from the field (the value written in the node editor UI).
+
+This is implemented using helper functions like `BuildNumberOperand` (see `nodeCompileHelpers.h`).
+
+**Usage Example:**
+```cpp
+const Pin* xPin = FindInputPin(n, "X");
+Node* x = xPin ? BuildNumberOperand(compiler, n, *xPin, "X") : MakeNumberLiteral(0.0);
+```
+Or, more simply, always use the helper:
+```cpp
+const Pin* xPin = FindInputPin(n, "X");
+Node* x = BuildNumberOperand(compiler, n, *xPin, "X");
+```
+
+This ensures that all nodes can flexibly accept either a pin input or a written field value, with no need to duplicate logic for each node type.
+
+**Best Practice:**
+- Always use the provided helpers for number, boolean, or array inputs to get this behavior automatically.
+- Do not reimplement this logic in each node's compile function.

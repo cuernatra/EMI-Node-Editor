@@ -1,5 +1,15 @@
-// A* pathfinder helpers for the node-editor demo.
+
+// ===============================
+// A* pathfinder bridge natives for the node-editor demo.
+// Each EMI_REGISTER'd function is intended to map 1-to-1 with a node in the visual graph.
 // Primitive drawing/input functions live in NodeGameFunctions.cpp.
+//
+// Node implementation notes:
+// - Each function below is a candidate for a node.
+// - Inputs/outputs are explicit and should be preserved for node wiring.
+// - Internal state is kept in s_astar, which would become node state or graph variables.
+// ===============================
+
 #include "previewNatives.h"
 #include "NodeGameFunctions.h"
 #include "editor/panels/renderPanel.h"
@@ -13,313 +23,355 @@
 #include <random>
 #include <vector>
 
-// ---------------------------------------------------------------------------
-// A* runtime state (thread-local — each VM thread runs its own simulation)
-// ---------------------------------------------------------------------------
 
-struct PathCell { int x = 0; int y = 0; };
+// -----------------------------------------------------------------------------
+// Shared runtime state — one instance per VM thread (would become graph state)
+// -----------------------------------------------------------------------------
 
-struct AStarRuntimeState
+struct PathCell { int x = 0, y = 0; };
+
+struct AStarState
 {
-    bool initialized    = false;
+    bool initialized      = false;
     bool wallsInitialized = false;
     int  w = 20, h = 20;
     int  agentX = 0, agentY = 0;
     int  goalX  = 0, goalY  = 0;
-    std::vector<uint8_t>   walls;
-    std::vector<PathCell>  path;
-    size_t                 pathStep = 1;
-    std::mt19937           rng{ std::random_device{}() };
+    std::vector<uint8_t>  walls;    // flat layout: walls[y*w + x]
+    std::vector<PathCell> path;
+    size_t                pathStep = 1;
+    std::mt19937          rng{ std::random_device{}() };
 };
 
-static thread_local AStarRuntimeState s_astar;
+static thread_local AStarState s_astar;
 
-// ---------------------------------------------------------------------------
-// Core A* algorithm
-// ---------------------------------------------------------------------------
 
-static std::vector<PathCell> RunAStarPath(
-    int w, int h, int sx, int sy, int gx, int gy,
-    const std::vector<uint8_t>& walls)
+// -----------------------------------------------------------------------------
+// Shared helpers — not nodes (utility functions)
+// -----------------------------------------------------------------------------
+
+static int  ToInt(double v)         { return static_cast<int>(std::llround(v)); }
+static int  CellIdx(int x, int y)   { return y * s_astar.w + x; }
+static bool InBounds(int x, int y)  { return x >= 0 && y >= 0 && x < s_astar.w && y < s_astar.h; }
+
+
+
+// -----------------------------------------------------------------------------
+// NODE CANDIDATES — dependency order: findpath → initwalls → retarget → init/step/setwall
+// -----------------------------------------------------------------------------
+
+
+// Node: astar_findpath
+// Inputs: startX (number), startY (number), goalX (number), goalY (number)
+// Output: number (path length, 0 = no path)
+// Description: Runs A* and stores the result in s_astar.path. Returns path length.
+static double astar_findpath_impl(double startX, double startY,
+                                  double goalX,  double goalY)
 {
-    auto idx       = [w](int x, int y)      { return y * w + x; };
-    auto inBounds  = [w, h](int x, int y)   { return x >= 0 && y >= 0 && x < w && y < h; };
+    if (!s_astar.initialized && s_astar.walls.empty()) return 0.0;
+
+    const int sx = std::clamp(ToInt(startX), 0, s_astar.w - 1);
+    const int sy = std::clamp(ToInt(startY), 0, s_astar.h - 1);
+    const int gx = std::clamp(ToInt(goalX),  0, s_astar.w - 1);
+    const int gy = std::clamp(ToInt(goalY),  0, s_astar.h - 1);
+
+    if (!InBounds(sx, sy) || !InBounds(gx, gy)) { s_astar.path.clear(); return 0.0; }
+
+    const int start = CellIdx(sx, sy);
+    const int goal  = CellIdx(gx, gy);
+    if (s_astar.walls[start] || s_astar.walls[goal]) { s_astar.path.clear(); return 0.0; }
+
     auto heuristic = [gx, gy](int x, int y) { return std::abs(gx - x) + std::abs(gy - y); };
 
-    const int start = idx(sx, sy);
-    const int goal  = idx(gx, gy);
-    if (start < 0 || goal < 0 ||
-        start >= static_cast<int>(walls.size()) ||
-        goal  >= static_cast<int>(walls.size()))
-        return {};
-    if (walls[static_cast<size_t>(start)] || walls[static_cast<size_t>(goal)])
-        return {};
+    const int total = s_astar.w * s_astar.h;
+    std::vector<int> came(total, -1);
+    std::vector<int> g(total, std::numeric_limits<int>::max());
 
-    std::vector<int> came(static_cast<size_t>(w * h), -1);
-    std::vector<int> g(static_cast<size_t>(w * h), std::numeric_limits<int>::max());
-
-    struct OpenItem {
-        int f, i;
-        bool operator<(const OpenItem& rhs) const { return f > rhs.f; }
-    };
-
+    struct OpenItem { int f, i; bool operator<(const OpenItem& o) const { return f > o.f; } };
     std::priority_queue<OpenItem> open;
-    g[static_cast<size_t>(start)] = 0;
+    g[start] = 0;
     open.push({ heuristic(sx, sy), start });
 
-    static constexpr int kDirs[4][2] = { { -1,0 }, { 1,0 }, { 0,-1 }, { 0,1 } };
-
+    static constexpr int kDirs[4][2] = { {-1,0},{1,0},{0,-1},{0,1} };
     while (!open.empty())
     {
-        const int cur = open.top().i;
-        open.pop();
+        int cur = open.top().i; open.pop();
         if (cur == goal) break;
-
-        const int cx = cur % w, cy = cur / w;
+        int cx = cur % s_astar.w, cy = cur / s_astar.w;
         for (const auto& d : kDirs)
         {
-            const int nx = cx + d[0], ny = cy + d[1];
-            if (!inBounds(nx, ny)) continue;
-            const int ni = idx(nx, ny);
-            if (walls[static_cast<size_t>(ni)]) continue;
-
-            const int cand = g[static_cast<size_t>(cur)] + 1;
-            if (cand < g[static_cast<size_t>(ni)])
-            {
-                g[static_cast<size_t>(ni)]    = cand;
-                came[static_cast<size_t>(ni)] = cur;
-                open.push({ cand + heuristic(nx, ny), ni });
-            }
+            int nx = cx + d[0], ny = cy + d[1];
+            if (!InBounds(nx, ny)) continue;
+            int ni = CellIdx(nx, ny);
+            if (s_astar.walls[ni]) continue;
+            int cand = g[cur] + 1;
+            if (cand < g[ni]) { g[ni] = cand; came[ni] = cur; open.push({ cand + heuristic(nx, ny), ni }); }
         }
     }
 
-    if (came[static_cast<size_t>(goal)] == -1 && start != goal)
-        return {};
+    if (came[goal] == -1 && start != goal) { s_astar.path.clear(); return 0.0; }
 
-    std::vector<PathCell> path;
+    s_astar.path.clear();
     for (int at = goal;;)
     {
-        path.push_back({ at % w, at / w });
+        s_astar.path.push_back({ at % s_astar.w, at / s_astar.w });
         if (at == start) break;
-        at = came[static_cast<size_t>(at)];
-        if (at < 0) return {};
+        at = came[at];
+        if (at < 0) { s_astar.path.clear(); return 0.0; }
     }
-    std::reverse(path.begin(), path.end());
-    return path;
+    std::reverse(s_astar.path.begin(), s_astar.path.end());
+    s_astar.pathStep = 1;
+
+    return (double)s_astar.path.size();
 }
 
 
-// ---------------------------------------------------------------------------
-// Wall generation
-// ---------------------------------------------------------------------------
-
-static void GenerateWalls()
+// Node: astar_initwalls
+// Inputs: (none)
+// Output: void
+// Description: Randomly fills s_astar.walls, retrying until a valid path exists.
+static void astar_initwalls_impl()
 {
-    AStarRuntimeState& s = s_astar;
-    if (s.wallsInitialized) return;
+    if (s_astar.wallsInitialized) return;
 
-    s.walls.assign(static_cast<size_t>(s.w * s.h), 0);
+    s_astar.walls.assign(s_astar.w * s_astar.h, 0);
     std::bernoulli_distribution wallDist(0.20);
-    auto idx = [&s](int x, int y) { return y * s.w + x; };
 
     auto tryFill = [&]()
     {
-        for (int y = 0; y < s.h; ++y)
-            for (int x = 0; x < s.w; ++x)
-                s.walls[static_cast<size_t>(idx(x, y))] = wallDist(s.rng) ? 1 : 0;
-        s.walls[static_cast<size_t>(idx(s.agentX, s.agentY))] = 0;
-        s.walls[static_cast<size_t>(idx(s.goalX,  s.goalY))]  = 0;
+        for (int y = 0; y < s_astar.h; ++y)
+            for (int x = 0; x < s_astar.w; ++x)
+                s_astar.walls[CellIdx(x, y)] = wallDist(s_astar.rng) ? 1 : 0;
+        s_astar.walls[CellIdx(s_astar.agentX, s_astar.agentY)] = 0;
+        s_astar.walls[CellIdx(s_astar.goalX,  s_astar.goalY)]  = 0;
     };
 
     for (int attempt = 0; attempt < 16; ++attempt)
     {
         tryFill();
-        if (RunAStarPath(s.w, s.h, s.agentX, s.agentY, s.goalX, s.goalY, s.walls).size() >= 2)
-            break;
+        if (astar_findpath_impl(s_astar.agentX, s_astar.agentY,
+                                s_astar.goalX,  s_astar.goalY) >= 2) break;
     }
 
     // Fallback: open grid
-    if (RunAStarPath(s.w, s.h, s.agentX, s.agentY, s.goalX, s.goalY, s.walls).size() < 2)
-        std::fill(s.walls.begin(), s.walls.end(), 0);
+    if (s_astar.path.size() < 2)
+    {
+        std::fill(s_astar.walls.begin(), s_astar.walls.end(), 0);
+        astar_findpath_impl(s_astar.agentX, s_astar.agentY,
+                            s_astar.goalX,  s_astar.goalY);
+    }
 
-    s.wallsInitialized = true;
+    s_astar.wallsInitialized = true;
 }
 
-// ---------------------------------------------------------------------------
-// Retarget: pick a new reachable goal
-// ---------------------------------------------------------------------------
 
-static void Retarget()
+// Node: astar_retarget
+// Inputs: (none)
+// Output: void
+// Description: Picks a random open cell as the new goal, then calls astar_findpath.
+static void astar_retarget_impl()
 {
-    AStarRuntimeState& s = s_astar;
-    std::uniform_int_distribution<int> dx(0, s.w - 1);
-    std::uniform_int_distribution<int> dy(0, s.h - 1);
+    if (!s_astar.initialized) return;
+
+    std::uniform_int_distribution<int> dx(0, s_astar.w - 1);
+    std::uniform_int_distribution<int> dy(0, s_astar.h - 1);
 
     for (int attempt = 0; attempt < 100; ++attempt)
     {
-        const int nx = dx(s.rng), ny = dy(s.rng);
-        if (nx == s.agentX && ny == s.agentY) continue;
-        if (s.walls[static_cast<size_t>(ny * s.w + nx)]) continue;
-        s.goalX = nx;
-        s.goalY = ny;
-        s.path  = RunAStarPath(s.w, s.h, s.agentX, s.agentY, s.goalX, s.goalY, s.walls);
-        s.pathStep = 1;
-        if (s.path.size() >= 2) return;
+        int nx = dx(s_astar.rng), ny = dy(s_astar.rng);
+        if (nx == s_astar.agentX && ny == s_astar.agentY) continue;
+        if (s_astar.walls[CellIdx(nx, ny)]) continue;
+
+        s_astar.goalX = nx;
+        s_astar.goalY = ny;
+        if (astar_findpath_impl(s_astar.agentX, s_astar.agentY, nx, ny) >= 2) return;
     }
 }
 
-// ---------------------------------------------------------------------------
-// Native implementations
-// ---------------------------------------------------------------------------
 
+// Node: astar_init
+// Inputs: gridW (number), gridH (number), startX (number), startY (number), goalX (number), goalY (number)
+// Output: void
+// Description: Sets grid dimensions and starting positions, then delegates to sub-nodes.
 static void astar_init_impl(double gridW, double gridH,
                             double startX, double startY,
                             double goalX,  double goalY)
 {
     if (!GetNativeRenderPanel()) return;
 
-    AStarRuntimeState& s = s_astar;
-    s.w      = std::max(2, static_cast<int>(std::llround(gridW)));
-    s.h      = std::max(2, static_cast<int>(std::llround(gridH)));
-    s.agentX = std::clamp(static_cast<int>(std::llround(startX)), 0, s.w - 1);
-    s.agentY = std::clamp(static_cast<int>(std::llround(startY)), 0, s.h - 1);
-    s.goalX  = std::clamp(static_cast<int>(std::llround(goalX)),  0, s.w - 1);
-    s.goalY  = std::clamp(static_cast<int>(std::llround(goalY)),  0, s.h - 1);
+    s_astar.w      = std::max(2, ToInt(gridW));
+    s_astar.h      = std::max(2, ToInt(gridH));
+    s_astar.agentX = std::clamp(ToInt(startX), 0, s_astar.w - 1);
+    s_astar.agentY = std::clamp(ToInt(startY), 0, s_astar.h - 1);
+    s_astar.goalX  = std::clamp(ToInt(goalX),  0, s_astar.w - 1);
+    s_astar.goalY  = std::clamp(ToInt(goalY),  0, s_astar.h - 1);
 
-    if (!s.wallsInitialized || s.walls.size() != static_cast<size_t>(s.w * s.h))
+    if (!s_astar.wallsInitialized || (int)s_astar.walls.size() != s_astar.w * s_astar.h)
     {
-        s.wallsInitialized = false;
-        GenerateWalls();
+        s_astar.wallsInitialized = false;
+        astar_initwalls_impl();                                     // Phase 6: graph loop
     }
 
-    s.walls[static_cast<size_t>(s.agentY * s.w + s.agentX)] = 0;
-    s.walls[static_cast<size_t>(s.goalY  * s.w + s.goalX)]  = 0;
-    s.initialized = true;
+    s_astar.walls[CellIdx(s_astar.agentX, s_astar.agentY)] = 0;
+    s_astar.walls[CellIdx(s_astar.goalX,  s_astar.goalY)]  = 0;
+    s_astar.initialized = true;
 
-    s.path     = RunAStarPath(s.w, s.h, s.agentX, s.agentY, s.goalX, s.goalY, s.walls);
-    s.pathStep = 1;
-    if (s.path.size() < 2) Retarget();
+    astar_findpath_impl(s_astar.agentX, s_astar.agentY,
+                        s_astar.goalX,  s_astar.goalY);             // Phase 7: graph
+
+    if (s_astar.path.size() < 2) astar_retarget_impl();             // Phase 5: graph
 }
 
+
+// Node: astar_step
+// Inputs: (none)
+// Output: void
+// Description: Moves agent one cell along the path; calls astar_retarget on arrival.
 static void astar_step_impl()
 {
     if (!GetNativeRenderPanel() || !s_astar.initialized) return;
 
-    AStarRuntimeState& s = s_astar;
-    if (s.pathStep < s.path.size())
+    if (s_astar.pathStep < s_astar.path.size())
     {
-        s.agentX = s.path[s.pathStep].x;
-        s.agentY = s.path[s.pathStep].y;
-        ++s.pathStep;
+        s_astar.agentX = s_astar.path[s_astar.pathStep].x;
+        s_astar.agentY = s_astar.path[s_astar.pathStep].y;
+        ++s_astar.pathStep;
         return;
     }
 
-    // Reached goal — pick new target
-    Retarget();
+    astar_retarget_impl();                                          // Phase 5: graph
 }
 
 
-static void astar_retarget_impl()
-{
-    if (!GetNativeRenderPanel() || !s_astar.initialized) return;
-    Retarget();
-}
-
-static double astar_get_impl(double keyId)
+// Node: astar_get
+// Inputs: key (number)
+// Output: number
+// Description: key 0 = agentX, 1 = agentY, 2 = goalX, 3 = goalY
+static double astar_get_impl(double key)
 {
     if (!s_astar.initialized) return 0.0;
-    const AStarRuntimeState& s = s_astar;
-    switch (static_cast<int>(std::llround(keyId)))
+    switch (ToInt(key))
     {
-        case 0: return static_cast<double>(s.agentX);
-        case 1: return static_cast<double>(s.agentY);
-        case 2: return static_cast<double>(s.goalX);
-        case 3: return static_cast<double>(s.goalY);
-        case 4: return s.pathStep < s.path.size()
-                       ? static_cast<double>(s.path.size() - s.pathStep) : 0.0;
-        case 5: { double n = 0; for (uint8_t w : s.walls) n += (w ? 1.0 : 0.0); return n; }
+        case 0: return (double)s_astar.agentX;
+        case 1: return (double)s_astar.agentY;
+        case 2: return (double)s_astar.goalX;
+        case 3: return (double)s_astar.goalY;
         default: return 0.0;
     }
 }
 
-static bool astar_needs_retarget_impl()
-{
-    if (!s_astar.initialized) return true;
-    return s_astar.pathStep >= s_astar.path.size();
-}
 
-// Read the wall flag at (x, y). Returns 1.0 if wall, 0.0 if open.
+// Node: astar_getwall
+// Inputs: x (number), y (number)
+// Output: number (1 = wall, 0 = open)
 static double astar_getwall_impl(double x, double y)
 {
     if (!s_astar.initialized) return 0.0;
-    const AStarRuntimeState& s = s_astar;
-    const int ix = std::clamp(static_cast<int>(std::llround(x)), 0, s.w - 1);
-    const int iy = std::clamp(static_cast<int>(std::llround(y)), 0, s.h - 1);
-    return static_cast<double>(s.walls[static_cast<size_t>(iy * s.w + ix)]);
+    const int ix = std::clamp(ToInt(x), 0, s_astar.w - 1);
+    const int iy = std::clamp(ToInt(y), 0, s_astar.h - 1);
+    return (double)s_astar.walls[CellIdx(ix, iy)];
 }
 
-// Set or clear the wall at (x, y), then recompute the path.
-// isWall != 0 places a wall; isWall == 0 removes it.
-// Called by the graph's mouse interaction branch nodes.
+
+// Node: astar_setwall
+// Inputs: x (number), y (number), isWall (number)
+// Output: void
+// Description: Writes wall state, recomputes path via astar_findpath, retargets if blocked.
 static void astar_setwall_impl(double x, double y, double isWall)
 {
     if (!s_astar.initialized) return;
-    AStarRuntimeState& s = s_astar;
-    const int ix = std::clamp(static_cast<int>(std::llround(x)), 0, s.w - 1);
-    const int iy = std::clamp(static_cast<int>(std::llround(y)), 0, s.h - 1);
 
-    // Never wall off the agent's current cell.
-    if (ix == s.agentX && iy == s.agentY) return;
+    const int ix = std::clamp(ToInt(x), 0, s_astar.w - 1);
+    const int iy = std::clamp(ToInt(y), 0, s_astar.h - 1);
+    if (ix == s_astar.agentX && iy == s_astar.agentY) return;
 
-    const size_t i = static_cast<size_t>(iy * s.w + ix);
+    const int     i      = CellIdx(ix, iy);
     const uint8_t newVal = (isWall != 0.0) ? 1 : 0;
-    if (s.walls[i] == newVal) return; // no change, skip recompute
+    if (s_astar.walls[i] == newVal) return;
 
-    s.walls[i] = newVal;
-    s.path     = RunAStarPath(s.w, s.h, s.agentX, s.agentY, s.goalX, s.goalY, s.walls);
-    s.pathStep = 1;
-    if (s.path.size() < 2) Retarget();
+    s_astar.walls[i] = newVal;
+
+    astar_findpath_impl(s_astar.agentX, s_astar.agentY,
+                        s_astar.goalX,  s_astar.goalY);             // Phase 7: graph
+
+    if (s_astar.path.size() < 2) astar_retarget_impl();             // Phase 5: graph
 }
 
 
-// Number of path cells remaining (path.size() - pathStep).
-// Used by the graph's path-drawing loop as its Count.
+// Node: astar_getpathlen
+// Inputs: (none)
+// Output: number
+// Description: Returns remaining path steps (path.size - pathStep).
 static double astar_getpathlen_impl()
 {
     if (!s_astar.initialized) return 0.0;
-    const AStarRuntimeState& s = s_astar;
-    return (s.pathStep < s.path.size())
-        ? static_cast<double>(s.path.size() - s.pathStep)
+    return (s_astar.pathStep < s_astar.path.size())
+        ? (double)(s_astar.path.size() - s_astar.pathStep)
         : 0.0;
 }
 
-// X coordinate of the path cell at offset `index` from pathStep.
+
+// Node: astar_getpathcell_x
+// Inputs: index (number)
+// Output: number
+// Description: Read X of path[pathStep + index].
 static double astar_getpathcell_x_impl(double index)
 {
     if (!s_astar.initialized) return 0.0;
-    const AStarRuntimeState& s = s_astar;
-    const size_t i = s.pathStep + static_cast<size_t>(std::max(0LL, std::llround(index)));
-    return (i < s.path.size()) ? static_cast<double>(s.path[i].x) : 0.0;
+    const size_t i = s_astar.pathStep + (size_t)std::max(0LL, std::llround(index));
+    return (i < s_astar.path.size()) ? (double)s_astar.path[i].x : 0.0;
 }
 
-// Y coordinate of the path cell at offset `index` from pathStep.
+// Node: astar_getpathcell_y
+// Inputs: index (number)
+// Output: number
+// Description: Read Y of path[pathStep + index].
 static double astar_getpathcell_y_impl(double index)
 {
     if (!s_astar.initialized) return 0.0;
-    const AStarRuntimeState& s = s_astar;
-    const size_t i = s.pathStep + static_cast<size_t>(std::max(0LL, std::llround(index)));
-    return (i < s.path.size()) ? static_cast<double>(s.path[i].y) : 0.0;
+    const size_t i = s_astar.pathStep + (size_t)std::max(0LL, std::llround(index));
+    return (i < s_astar.path.size()) ? (double)s_astar.path[i].y : 0.0;
 }
 
-// ---------------------------------------------------------------------------
-// EMI registrations — A* only; primitives are registered in NodeGameFunctions.cpp
-// ---------------------------------------------------------------------------
 
-EMI_REGISTER(astar_init,           astar_init_impl)
-EMI_REGISTER(astar_step,           astar_step_impl)
-EMI_REGISTER(astar_get,            astar_get_impl)
-EMI_REGISTER(astar_getwall,        astar_getwall_impl)
-EMI_REGISTER(astar_setwall,        astar_setwall_impl)
-EMI_REGISTER(astar_getpathlen,     astar_getpathlen_impl)
-EMI_REGISTER(astar_getpathcell_x,  astar_getpathcell_x_impl)
-EMI_REGISTER(astar_getpathcell_y,  astar_getpathcell_y_impl)
+// Node: astar_setagent
+// Inputs: x (number), y (number)
+// Output: void
+// Description: Write agent position without recomputing path.
+static void astar_setagent_impl(double x, double y)
+{
+    if (!s_astar.initialized) return;
+    s_astar.agentX = std::clamp(ToInt(x), 0, s_astar.w - 1);
+    s_astar.agentY = std::clamp(ToInt(y), 0, s_astar.h - 1);
+}
+
+
+// Node: astar_setpathstep
+// Inputs: step (number)
+// Output: void
+// Description: Write the current path index directly.
+static void astar_setpathstep_impl(double step)
+{
+    if (!s_astar.initialized) return;
+    s_astar.pathStep = (size_t)std::max(0LL, std::llround(step));
+}
+
+
+
+// -----------------------------------------------------------------------------
+// EMI registrations — primitives live in NodeGameFunctions.cpp
+// -----------------------------------------------------------------------------
+
+EMI_REGISTER(astar_findpath,      astar_findpath_impl)
+EMI_REGISTER(astar_initwalls,     astar_initwalls_impl)
+EMI_REGISTER(astar_retarget,      astar_retarget_impl)
+EMI_REGISTER(astar_init,          astar_init_impl)
+EMI_REGISTER(astar_step,          astar_step_impl)
+EMI_REGISTER(astar_get,           astar_get_impl)
+EMI_REGISTER(astar_getwall,       astar_getwall_impl)
+EMI_REGISTER(astar_setwall,       astar_setwall_impl)
+EMI_REGISTER(astar_getpathlen,    astar_getpathlen_impl)
+EMI_REGISTER(astar_getpathcell_x, astar_getpathcell_x_impl)
+EMI_REGISTER(astar_getpathcell_y, astar_getpathcell_y_impl)
+EMI_REGISTER(astar_setagent,      astar_setagent_impl)
+EMI_REGISTER(astar_setpathstep,   astar_setpathstep_impl)
