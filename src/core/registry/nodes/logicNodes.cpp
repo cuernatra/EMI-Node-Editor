@@ -21,8 +21,8 @@ Node* CompileOperatorNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* lhs = BuildNumberOperand(compiler, n, *pinA, "A");
-    Node* rhs = BuildNumberOperand(compiler, n, *pinB, "B");
+    Node* lhs = BuildNumberOperand(compiler, n, *pinA);
+    Node* rhs = BuildNumberOperand(compiler, n, *pinB);
     return compiler->EmitBinaryOp(tok, lhs, rhs);
 }
 
@@ -44,8 +44,8 @@ Node* CompileComparisonNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* lhs = BuildNumberOperand(compiler, n, *pinA, "A");
-    Node* rhs = BuildNumberOperand(compiler, n, *pinB, "B");
+    Node* lhs = BuildNumberOperand(compiler, n, *pinA);
+    Node* rhs = BuildNumberOperand(compiler, n, *pinB);
     return compiler->EmitBinaryOp(tok, lhs, rhs);
 }
 
@@ -67,8 +67,8 @@ Node* CompileLogicNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* lhs = BuildBoolOperand(compiler, n, *pinA, "A");
-    Node* rhs = BuildBoolOperand(compiler, n, *pinB, "B");
+    Node* lhs = BuildBoolOperand(compiler, n, *pinA);
+    Node* rhs = BuildBoolOperand(compiler, n, *pinB);
     return compiler->EmitBinaryOp(tok, lhs, rhs);
 }
 
@@ -81,7 +81,7 @@ Node* CompileNotNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* operand = BuildBoolOperand(compiler, n, *pinA, "A");
+    Node* operand = BuildBoolOperand(compiler, n, *pinA);
     return compiler->EmitUnaryOp(Token::Not, operand);
 }
 }

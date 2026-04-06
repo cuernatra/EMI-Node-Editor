@@ -9,6 +9,7 @@ Use this checklist when adding a new node.
 - [ ] Add a named compile callback in that same file.
 - [ ] Set `saveToken` explicitly.
 - [ ] Keep `deserialize = nullptr` if the pin layout is fixed.
+- [ ] If using deferred inputs, add a same-name field and put the pin name in `deferredInputPins`.
 - [ ] Build the project.
 - [ ] Run the tests.
 - [ ] Verify `saveToken` resolves back to the same `NodeType` through the registry.
@@ -19,13 +20,14 @@ Use this checklist when adding a new node.
 
 - [ ] Complete the normal node steps above.
 - [ ] Add a named deserialize callback in the same category file.
+- [ ] If deferred inputs are dynamic, use `"*"` in `deferredInputPins` and ensure runtime field names match runtime pin names.
 - [ ] Verify the callback rebuilds the pin layout correctly.
 - [ ] Verify save/load preserves the node shape.
 
 ## Rules
 
 - Do not add a new compiler method unless the existing helpers cannot express the behavior.
-- Do not add editor changes for a routine node.
+- Do not add editor changes for a routine node just to support deferred inputs.
 - Do not rely on fallback save tokens.
 - Keep the compile callback close to the descriptor.
 - Keep error messages clear and specific.

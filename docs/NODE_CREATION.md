@@ -1,157 +1,138 @@
 # Node Creation Guide
 
-This guide explains the normal path for adding a node in this codebase.
+Shortest path for adding a node if you do not know the project yet.
 
-## What to edit
-
-For a routine node, edit:
+## Usually edit these
 
 1. `src/core/graph/types.h`
-2. One file under `src/core/registry/nodes/`
-3. Tests if the new node changes behavior or serialization
+     Add the new `NodeType`.
+2. `src/core/registry/nodes/*.cpp`
+     Pick the right category file, add the compile function, then add the descriptor in `NodeRegistry::Register...Nodes()`.
+3. `tests/*`
+     Only if behavior, save/load, or compile output changed.
 
-## File ownership
+## Usually do not edit these
 
-- `src/core/graph/types.h` owns the `NodeType` enum.
-- `src/core/registry/nodeDescriptor.h` defines the full node structure: pins, fields, callbacks, palette variants, and save token.
-- `src/core/registry/nodes/*.cpp` owns the node recipe and its compile/deserialization callbacks.
-- `src/editor/*` should only be edited when the node needs special UI behavior.
+- `src/core/compiler/*`
+    Only if existing compile helpers cannot express the node.
+- `src/core/registry/nodeFactory.cpp`
+    Usually no changes. It builds runtime `VisualNode`s from descriptors.
+- `src/editor/renderer/*`
+    Only if the node needs custom canvas UI beyond normal pins/fields.
+- `src/editor/graph/*`
+    Only if the node has dynamic layout or per-frame editor repair logic.
 
-## Normal node pattern
+## Where everything is
 
-A normal node is defined by:
+- `src/core/graph/types.h`
+    Global enums like `NodeType` and `PinType`.
+- `src/core/registry/nodeDescriptor.h`
+    Data model for a node template: pins, fields, compile callback, deserialize callback, category, palette variants, `saveToken`, `deferredInputPins`, `renderStyle`.
+- `src/core/registry/nodeRegistry.cpp`
+    Startup registration and validation, including deferred pin checks.
+- `src/core/registry/nodeFactory.cpp`
+    Turns a `NodeDescriptor` into a runtime `VisualNode` with pins and fields.
+- `src/core/registry/nodes/eventNodes.cpp`
+    Start and event-style nodes.
+- `src/core/registry/nodes/dataNodes.cpp`
+    Constants, variables, arrays, output.
+- `src/core/registry/nodes/logicNodes.cpp`
+    Math, compare, boolean logic.
+- `src/core/registry/nodes/flowNodes.cpp`
+    Delay, branch, loop, sequence, foreach, while.
+- `src/core/registry/nodes/structNodes.cpp`
+    Struct nodes.
+- `src/core/registry/nodes/demoNodes.cpp`
+    Demo/native-call style nodes.
+- `src/core/registry/nodes/renderNodes.cpp`
+    Runtime render-grid nodes.
+- `src/core/registry/nodes/nodeCompileHelpers.h`
+    Reusable compile helpers. Use this first before touching compiler internals.
+- `src/core/graph/visualNode.h`
+    Runtime node instance data stored in the graph.
+- `src/editor/graph/graphSerializer.cpp`
+    Save/load path. Uses `saveToken` and descriptor-driven node recreation.
+- `src/editor/renderer/nodeRenderer.*`
+    Special node-body drawing on the graph canvas.
+- `src/editor/renderer/fieldWidgetRenderer.*`
+    Reusable field widgets.
+- `src/editor/graph/graphEditorUtils.cpp`
+    Dynamic editor refresh/layout fixes.
 
-- `type`
-- `label`
-- `pins`
-- `fields`
-- a named compile callback
-- `deserialize = nullptr` unless the node has a dynamic pin layout
-- `category`
-- `paletteVariants` if the same node type appears more than once in the palette
-- `saveToken`
-- `deferredInputPins` (optional) for fields that should draw with inline input pins
-- `renderStyle` for renderer/editor layout grouping
+## Normal node recipe
 
-## Steps
+1. Add `NodeType` in `src/core/graph/types.h`.
+2. Pick the correct category file under `src/core/registry/nodes/`.
+3. Add a named `Compile...Node(...)` function in that file.
+4. Add the descriptor in that same file, inside the matching `NodeRegistry::Register...Nodes()` function implemented there.
+5. Set these fields intentionally:
+     `label`, `pins`, `fields`, `compile`, `saveToken`, `category`, `renderStyle`.
+6. Keep `deserialize = nullptr` unless the node has dynamic pins.
+7. Use helpers from `nodeCompileHelpers.h` instead of writing compile plumbing again.
+8. Build and test.
 
-1. Add the new `NodeType` value in `src/core/graph/types.h`.
-2. Add a descriptor entry in the correct category file.
-3. Write a named compile callback at the top of that same file.
-4. Keep the callback readable by using helpers from `nodeCompileHelpers.h`.
-5. Set `saveToken` explicitly.
-6. Reuse an existing `renderStyle` and set `deferredInputPins` only when needed.
-7. Build and run tests.
-8. Verify `saveToken` round-trips through registry lookup.
+## Data structure responsibilities
 
-## Descriptor checklist
+- `PinDescriptor`
+    Static pin definition for the node type.
+- `FieldDescriptor`
+    Static editable field definition.
+- `NodeDescriptor`
+    Full template used by editor, serializer, loader, and compiler.
+- `VisualNode`
+    Runtime node instance built from the descriptor by `nodeFactory.cpp`.
 
-When adding a node descriptor, confirm all of the following are set intentionally:
+## Compilation responsibilities
 
-- `saveToken`: required and stable for serialization
-- `renderStyle`: pick the closest existing style; add a new style only for truly new layout behavior
-- `deferredInputPins`: include only input pin names that should render inline with their field row
+- The compile callback lives next to the descriptor in `src/core/registry/nodes/*.cpp`.
+- Most nodes should only use helpers from `nodeCompileHelpers.h`.
+- For same-name pin/field pairs, the helpers now fall back automatically from disconnected input pin to field value.
+- `GraphCompiler` should not gain a new node-specific method for routine nodes.
+- If the node has unusual save/load pin layout, add a deserialize callback in the same file.
 
-If `deferredInputPins` contains a non-existent input pin name, registry validation fails at startup.
+## UI responsibilities
 
-## Category map
+- Default pins and fields come from the descriptor.
+- `deferredInputPins` is the normal way to draw an input pin inline with its matching field.
+- Deferred pin UI is descriptor-driven. You should not need to add node-specific renderer code just to make a deferred pin work.
+- This works for all pin types. The field widget still follows the field's own `PinType` and options.
+- Reuse an existing `renderStyle` if possible.
+- Only edit `nodeRenderer.*` when the default descriptor-driven layout is not enough.
+- The palette usually needs no manual edits. Registered descriptors are collected automatically in `src/editor/panels/leftPanel.cpp`.
 
-- `eventNodes.cpp`: start and event-style nodes
-- `dataNodes.cpp`: constants, variables, arrays, and output
-- `logicNodes.cpp`: math, comparison, and boolean logic
-- `flowNodes.cpp`: delay, sequence, branch, loop, foreach, and while
-- `structNodes.cpp`: struct define and struct create
+## Deferred inputs
 
-## Dynamic pin nodes
+- Deferred input = an input pin that is not drawn in the normal input-pin list.
+- Instead, it is drawn inline beside its matching field in the node body.
+- Configure this with `NodeDescriptor::deferredInputPins` in `src/core/registry/nodeDescriptor.h`.
+- For normal nodes, the names in `deferredInputPins` must match real input pin names in the descriptor and must also have same-name fields.
+- For dynamic nodes, `deferredInputPins` can contain `"*"` to mean: any runtime input pin with a same-name field should render as deferred.
+- Use this when a node should allow either a wire or a typed field value on the same row.
+- If the input pin and field have the same name, the compile helpers can usually use the field automatically when the pin is disconnected.
+- Serialization does not need special handling for deferred pins. Pins and fields still save and load through the normal graph serializer path.
 
-If a node has a changing pin layout, add a named deserialize callback in the same category file.
+## Deferred Pin Recipe
 
-Examples of dynamic pin nodes in this project:
+1. Add the input pin in the node descriptor.
+2. Add a same-name field if you want pin-to-field fallback and inline deferred UI.
+3. Add that pin name to `deferredInputPins`.
+4. For dynamic runtime-generated pins, use `"*"` in `deferredInputPins` and make sure the runtime field names match the runtime pin names.
+5. Use the normal helper in `nodeCompileHelpers.h` for the input type.
 
-- Variable
-- Sequence
-- StructCreate
+If those names match, you usually do not need renderer changes, compiler changes, or serializer changes.
 
-## When editor renderer edits are needed
+## Edit / do not edit summary
 
-Most node work should stay in `src/core/registry/nodes/*.cpp`.
-Edit renderer files only if a node needs custom node-canvas field behavior.
+- Edit: `types.h`, one registry node file, tests when needed.
+- Sometimes edit: `nodeRenderer.*`, `fieldWidgetRenderer.*`, `graphEditorUtils.cpp`, `graphSerializer.cpp` for unusual save/load behavior.
+- Rarely edit: `nodeDescriptor.h`, `nodeRegistry.cpp`, `nodeFactory.cpp`, `GraphCompiler`.
 
-- Add reusable field widgets in `src/editor/renderer/fieldWidgetRenderer.*`.
-- Add node/link-aware custom field handling in `NodeRendererSpecialCases` inside `src/editor/renderer/nodeRenderer.*`.
-- Handler signatures should use `FieldRenderContext& context`.
-- Register new handlers in `HandleCustomFieldRendering`.
+## Good defaults
 
-Before editing renderer files, try descriptor-first UI control:
+- Keep compile logic beside the node descriptor.
+- Keep `saveToken` explicit and stable.
+- Prefer existing helpers and existing `renderStyle` values.
+- Prefer same-name pin/field pairs for deferred inputs.
+- If adding one node starts touching many unrelated files, stop and simplify the design.
 
-- For inline pin+field rows, configure `deferredInputPins`.
-- For existing layout families, reuse current `renderStyle` values.
-
-## Custom dynamic layout behavior (editor graph pass)
-
-If a node needs per-frame graph-aware layout/type repair that cannot be handled by
-descriptor fields alone, use the graph refresh extension point:
-
-1. Add a named helper in `src/editor/graph/graphEditorUtils.cpp`.
-2. Add one entry to the ordered layout refresh table used by `RunAllLayoutRefreshes`.
-3. Do not add new calls in `graphEditor.cpp`; it already runs the dispatcher.
-
-This keeps custom layout behavior for already-registered node types as a one-file
-editor change and preserves refresh order determinism.
-
-## Good rules
-
-- Keep compile logic close to the descriptor.
-- Use the existing helper functions instead of adding new compiler methods for every node.
-- Keep editor changes out of normal node work.
-- Make error messages clear and user-facing.
-
-## Quick example
-
-```cpp
-Node* CompileMyNode(GraphCompiler* compiler, const VisualNode& n)
-{
-    const Pin* input = FindInputPin(n, "Value");
-    if (!input)
-    {
-        compiler->Error("My Node needs Value input");
-        return nullptr;
-    }
-
-    Node* expr = BuildNumberInput(compiler, n, *input, "Value");
-    return compiler->EmitUnaryOp(Token::Not, expr);
-}
-```
-
-## What should not happen
-
-- Do not add new node-specific methods to `GraphCompiler` for routine nodes.
-- Do not rely on a fallback `saveToken`.
-- Do not leave `saveToken` empty and expect the registry to fill it in.
-- Do not move node-specific logic into editor panels unless the node truly needs special UI.
-
-## Pin or Field Input Logic (Unified Input Handling)
-
-For any node input (such as DrawCell's X, Y, R, G, B or Set Variable's Default), the system uses a unified approach to determine the value:
-
-- If the input pin is connected, the value comes from the connected node.
-- If the pin is not connected, the value comes from the field (the value written in the node editor UI).
-
-This is implemented using helper functions like `BuildNumberOperand` (see `nodeCompileHelpers.h`).
-
-**Usage Example:**
-```cpp
-const Pin* xPin = FindInputPin(n, "X");
-Node* x = xPin ? BuildNumberOperand(compiler, n, *xPin, "X") : MakeNumberLiteral(0.0);
-```
-Or, more simply, always use the helper:
-```cpp
-const Pin* xPin = FindInputPin(n, "X");
-Node* x = BuildNumberOperand(compiler, n, *xPin, "X");
-```
-
-This ensures that all nodes can flexibly accept either a pin input or a written field value, with no need to duplicate logic for each node type.
-
-**Best Practice:**
-- Always use the provided helpers for number, boolean, or array inputs to get this behavior automatically.
-- Do not reimplement this logic in each node's compile function.
+Use `docs/NEW_NODE_CHECKLIST.md` as the final pre-merge checklist.

@@ -49,6 +49,14 @@ inline const std::string* FindField(const VisualNode& n, const char* name)
     return nullptr;
 }
 
+inline const std::string* FindInputFallbackField(const VisualNode& n, const Pin& pin, const char* fieldName = nullptr)
+{
+    if (fieldName && fieldName[0] != '\0')
+        return FindField(n, fieldName);
+
+    return FindField(n, pin.name.c_str());
+}
+
 inline bool PopulateExactPinsAndFields(VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds)
 {
     // Standard load path: pin id count must exactly match descriptor pin count.
@@ -131,41 +139,41 @@ inline PinType VariableTypeFromString(const std::string& typeName)
     return PinType::Number;
 }
 
-inline Node* BuildNumberOperand(GraphCompiler* compiler, const VisualNode& n, const Pin& pin, const char* fieldName)
+inline Node* BuildNumberOperand(GraphCompiler* compiler, const VisualNode& n, const Pin& pin, const char* fieldName = nullptr)
 {
     if (compiler->Resolve(pin))
         return compiler->BuildExpr(pin);
 
-    const std::string* fieldValue = FindField(n, fieldName);
+    const std::string* fieldValue = FindInputFallbackField(n, pin, fieldName);
     try { return MakeNumberLiteral(fieldValue ? std::stod(*fieldValue) : 0.0); }
     catch (...) { return MakeNumberLiteral(0.0); }
 }
 
-inline Node* BuildBoolOperand(GraphCompiler* compiler, const VisualNode& n, const Pin& pin, const char* fieldName)
+inline Node* BuildBoolOperand(GraphCompiler* compiler, const VisualNode& n, const Pin& pin, const char* fieldName = nullptr)
 {
     if (compiler->Resolve(pin))
         return compiler->BuildExpr(pin);
 
-    const std::string* fieldValue = FindField(n, fieldName);
+    const std::string* fieldValue = FindInputFallbackField(n, pin, fieldName);
     const std::string value = fieldValue ? *fieldValue : "false";
     return MakeBoolLiteral(value == "true" || value == "True" || value == "1");
 }
 
-inline Node* BuildArrayInput(GraphCompiler* compiler, const VisualNode& n, const Pin& pin, const char* fieldName)
+inline Node* BuildArrayInput(GraphCompiler* compiler, const VisualNode& n, const Pin& pin, const char* fieldName = nullptr)
 {
     if (compiler->Resolve(pin))
         return compiler->BuildExpr(pin);
 
-    const std::string* fieldValue = FindField(n, fieldName);
+    const std::string* fieldValue = FindInputFallbackField(n, pin, fieldName);
     return compiler->BuildArrayLiteralNode(fieldValue ? *fieldValue : "[]");
 }
 
-inline Node* BuildNumberInput(GraphCompiler* compiler, const VisualNode& n, const Pin& pin, const char* fieldName)
+inline Node* BuildNumberInput(GraphCompiler* compiler, const VisualNode& n, const Pin& pin, const char* fieldName = nullptr)
 {
     if (compiler->Resolve(pin))
         return compiler->BuildExpr(pin);
 
-    const std::string* fieldValue = FindField(n, fieldName);
+    const std::string* fieldValue = FindInputFallbackField(n, pin, fieldName);
     double parsed = 0.0;
     if (fieldValue)
     {
@@ -398,48 +406,21 @@ inline Node* BuildLoopNode(GraphCompiler* compiler, const VisualNode& n)
 
     Node* startExpr = nullptr;
     if (startPin)
-    {
-        if (const PinSource* startSrc = compiler->Resolve(*startPin))
-            startExpr = compiler->BuildNode(*startSrc->node, startSrc->pinIdx);
-    }
+        startExpr = BuildNumberInput(compiler, n, *startPin);
 
     if (!startExpr)
-    {
-        const std::string* startStr = FindField(n, "Start");
-        double startVal = 0.0;
-        if (startStr)
-        {
-            try { startVal = std::stod(*startStr); }
-            catch (...) { startVal = 0.0; }
-        }
-        startExpr = MakeNumberLiteral(std::round(startVal));
-    }
+        startExpr = MakeNumberLiteral(0.0);
     else if (startExpr->type == Token::Number)
     {
         if (double* v = std::get_if<double>(&startExpr->data))
             *v = std::round(*v);
     }
 
-    Node* countExpr = nullptr;
-    if (const PinSource* countSrc = compiler->Resolve(*countPin))
+    Node* countExpr = BuildNumberInput(compiler, n, *countPin);
+    if (countExpr && countExpr->type == Token::Number)
     {
-        countExpr = compiler->BuildNode(*countSrc->node, countSrc->pinIdx);
-        if (countExpr && countExpr->type == Token::Number)
-        {
-            if (double* v = std::get_if<double>(&countExpr->data))
-                *v = std::round(*v);
-        }
-    }
-    else
-    {
-        const std::string* countStr = FindField(n, "Count");
-        double countVal = 0.0;
-        if (countStr)
-        {
-            try { countVal = std::stod(*countStr); }
-            catch (...) { countVal = 0.0; }
-        }
-        countExpr = MakeNumberLiteral(std::round(countVal));
+        if (double* v = std::get_if<double>(&countExpr->data))
+            *v = std::round(*v);
     }
 
     if (compiler->HasError)
@@ -510,7 +491,7 @@ inline Node* BuildForEachNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin, "Array");
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
     if (compiler->HasError || !arrayExpr)
     {
         delete arrayExpr;

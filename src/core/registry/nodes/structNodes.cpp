@@ -98,7 +98,7 @@ void NodeRegistry::RegisterStructNodes()
         "Structs",
         {},
         "StructCreate",
-        {},
+        { "*" },
         NodeRenderStyle::StructCreate
     });
 }

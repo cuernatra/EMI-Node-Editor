@@ -6,16 +6,16 @@
 // Move CompileTickerNode out of anonymous namespace for linker visibility
 Node* CompileTickerNode(GraphCompiler* compiler, const VisualNode& n)
 {
-    Node* fps = nullptr;
     const Pin* fpsPin = FindInputPin(n, "FPS");
-    if (fpsPin && compiler->Resolve(*fpsPin))
-        fps = compiler->BuildExpr(*fpsPin);
-    else {
-        const std::string* fpsStr = FindField(n, "FPS");
-        double fpsVal = 20.0;
-        if (fpsStr) { try { fpsVal = std::stod(*fpsStr); } catch (...) { fpsVal = 20.0; } }
-        fps = MakeNumberLiteral(fpsVal);
+    if (!fpsPin)
+    {
+        compiler->Error("Ticker node needs FPS input");
+        return nullptr;
     }
+
+    Node* fps = BuildNumberOperand(compiler, n, *fpsPin);
+    if (!fps)
+        return nullptr;
 
     Node* body = MakeNode(Token::Scope);
     Node* loop = MakeNode(Token::While);
@@ -44,23 +44,17 @@ Node* CompileTickerNode(GraphCompiler* compiler, const VisualNode& n)
 
 Node* CompileDelayNode(GraphCompiler* compiler, const VisualNode& n)
 {
-    Node* durationExpr = nullptr;
     const Pin* durationPin = FindInputPin(n, "Duration");
-    if (durationPin)
+    if (!durationPin)
     {
-        if (const PinSource* src = compiler->Resolve(*durationPin))
-        {
-            durationExpr = compiler->BuildNode(*src->node, src->pinIdx);
-            if (compiler->HasError) return nullptr;
-        }
+        compiler->Error("Delay node needs Duration input");
+        return nullptr;
     }
+
+    Node* durationExpr = BuildNumberOperand(compiler, n, *durationPin);
     if (!durationExpr)
-    {
-        const std::string* durStr = FindField(n, "Duration");
-        double ms = 1000.0;
-        if (durStr) { try { ms = std::stod(*durStr); } catch (...) { ms = 1000.0; } }
-        durationExpr = MakeNumberLiteral(ms);
-    }
+        return nullptr;
+
     return compiler->EmitFunctionCall("delay", { durationExpr });
 }
 

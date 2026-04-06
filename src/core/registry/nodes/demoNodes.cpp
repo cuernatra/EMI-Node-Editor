@@ -30,7 +30,7 @@ Node* CompileNativeCallNode(GraphCompiler* compiler, const VisualNode& n)
         const Pin* pin = FindInputPin(n, pinName.c_str());
         if (!pin)
             continue;
-        args.push_back(BuildNumberOperand(compiler, n, *pin, pinName.c_str()));
+        args.push_back(BuildNumberOperand(compiler, n, *pin));
         if (compiler->HasError)
             return nullptr;
     }
@@ -66,7 +66,7 @@ Node* CompileNativeGetNode(GraphCompiler* compiler, const VisualNode& n)
         const Pin* pin = FindInputPin(n, pinName.c_str());
         if (!pin)
             continue;
-        args.push_back(BuildNumberOperand(compiler, n, *pin, pinName.c_str()));
+        args.push_back(BuildNumberOperand(compiler, n, *pin));
         if (compiler->HasError)
             return nullptr;
     }

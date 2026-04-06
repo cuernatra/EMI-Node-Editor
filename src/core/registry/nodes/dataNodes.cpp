@@ -17,7 +17,7 @@ Node* CompileArrayOperationNode(GraphCompiler* compiler, const VisualNode& n)
         compiler->Error("ArrayOperation node needs Array input");
         return nullptr;
     }
-    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin, "Array");
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
     if (!arrayExpr) return nullptr;
 
     if (*opStr == "Push" || *opStr == "PushFront" || *opStr == "PushUnique") {
@@ -191,8 +191,8 @@ Node* CompileArrayGetNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin, "Array");
-    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin, "Index");
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
+    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin);
     return compiler->EmitIndexer(arrayExpr, indexExpr);
 }
 
@@ -207,8 +207,8 @@ Node* CompileArrayAddNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin, "Array");
-    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin, "Index");
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
+    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin);
     Node* valueExpr = nullptr;
     if (compiler->Resolve(*valuePin))
         valueExpr = compiler->BuildExpr(*valuePin);
@@ -237,8 +237,8 @@ Node* CompileArrayReplaceNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin, "Array");
-    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin, "Index");
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
+    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin);
     Node* valueExpr = nullptr;
     if (compiler->Resolve(*valuePin))
         valueExpr = compiler->BuildExpr(*valuePin);
@@ -311,8 +311,8 @@ Node* CompileArrayRemoveNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin, "Array");
-    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin, "Index");
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
+    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin);
     if (!arrayExpr || !indexExpr)
     {
         delete arrayExpr;
@@ -332,7 +332,7 @@ Node* CompileArrayLengthNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin, "Array");
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
     if (!arrayExpr)
         return nullptr;
 

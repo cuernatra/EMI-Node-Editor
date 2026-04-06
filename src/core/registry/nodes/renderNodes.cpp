@@ -13,7 +13,7 @@ Node* CompileDrawCellNode(GraphCompiler* compiler, const VisualNode& n)
     {
         const Pin* pin = FindInputPin(n, name);
         if (!pin) return MakeNumberLiteral(0.0);
-        return BuildNumberOperand(compiler, n, *pin, name);
+        return BuildNumberOperand(compiler, n, *pin);
     };
 
     Node* x = build("X");
@@ -32,8 +32,8 @@ Node* CompileClearGridNode(GraphCompiler* compiler, const VisualNode& n)
     const Pin* wPin = FindInputPin(n, "W");
     const Pin* hPin = FindInputPin(n, "H");
 
-    Node* w = wPin ? BuildNumberOperand(compiler, n, *wPin, "W") : MakeNumberLiteral(20.0);
-    Node* h = hPin ? BuildNumberOperand(compiler, n, *hPin, "H") : MakeNumberLiteral(20.0);
+    Node* w = wPin ? BuildNumberOperand(compiler, n, *wPin) : MakeNumberLiteral(20.0);
+    Node* h = hPin ? BuildNumberOperand(compiler, n, *hPin) : MakeNumberLiteral(20.0);
 
     if (compiler->HasError) { delete w; delete h; return nullptr; }
 
