@@ -5,6 +5,7 @@
 #include "editor/settings.h"
 #include "imgui.h"
 #include <algorithm>
+#include <cctype>
 #include <cstring>
 #include <cstdio>
 #include <map>
@@ -20,6 +21,23 @@ struct PaletteItem
     std::string payloadTitle;
     bool disabled = false;
 };
+
+std::string ToLowerCopy(const std::string& value)
+{
+    std::string result = value;
+    std::transform(result.begin(), result.end(), result.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    return result;
+}
+
+bool MatchesSearch(const std::string& searchText, const std::string& candidate)
+{
+    if (searchText.empty())
+        return true;
+
+    return ToLowerCopy(candidate).find(ToLowerCopy(searchText)) != std::string::npos;
+}
 
 ImVec4 GetNodeCategoryHeaderColor(const NodeDescriptor* desc)
 {
@@ -291,8 +309,11 @@ LeftPanel::LeftPanel()
 void LeftPanel::draw(bool hasStartNode)
 {
     ImGui::Text("NODE PALETTE");
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    ImGui::InputTextWithHint("##nodePaletteSearch", "Search nodes...", m_searchBuffer, sizeof(m_searchBuffer));
     ImGui::Separator();
 
+    const std::string searchText = m_searchBuffer;
     std::map<std::string, std::vector<PaletteItem>> sections;
     const auto& registry = NodeRegistry::Get();
 
@@ -323,15 +344,33 @@ void LeftPanel::draw(bool hasStartNode)
                 item.displayLabel = variant.displayLabel;
                 item.payloadTitle = variant.payloadTitle;
                 item.disabled = (t == NodeType::Start && hasStartNode);
-                sections[category].push_back(item);
+
+                const std::string searchCandidate = item.displayLabel.empty()
+                    ? desc->label + " " + item.payloadTitle + " " + desc->saveToken
+                    : item.displayLabel + " " + item.payloadTitle + " " + desc->label + " " + desc->saveToken;
+                if (MatchesSearch(searchText, searchCandidate))
+                    sections[category].push_back(item);
             }
         }
         else
         {
-            sections[category].push_back(makeDefaultItem(t));
+            PaletteItem item = makeDefaultItem(t);
+            const std::string searchCandidate = desc->label + " " + desc->saveToken;
+            if (MatchesSearch(searchText, searchCandidate))
+                sections[category].push_back(item);
         }
     }
 
+    bool hasAnyResults = false;
     for (const auto& [category, items] : sections)
+    {
+        if (items.empty())
+            continue;
+
+        hasAnyResults = true;
         DrawSection(category.c_str(), items);
+    }
+
+    if (!hasAnyResults)
+        ImGui::TextDisabled("No matching nodes.");
 }

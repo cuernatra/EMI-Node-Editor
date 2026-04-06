@@ -43,6 +43,8 @@ public:
 private:
     /// Palette node types in deterministic display order
     std::vector<NodeType> m_nodeTypes;
+    /// Search field text used to filter visible palette entries
+    char m_searchBuffer[128] = {};
 };
 
 #endif
