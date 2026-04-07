@@ -17,7 +17,7 @@ MainEditor::MainEditor(): m_fileBar(this),
     fileSaveAs(ImGuiFileBrowserFlags_EnterNewFilename)
 {
     ed::Config config;
-    config.SettingsFile = "node_editor.json";
+    //config.SettingsFile = "node_editor.json";
     config.CanvasSizeMode = ed::CanvasSizeMode::CenterOnly;
     m_editorContext = ed::CreateEditor(&config);
 
@@ -36,6 +36,7 @@ MainEditor::MainEditor(): m_fileBar(this),
     });
 
     GraphSerializer::Load(*m_graphState, "graph.txt");
+    m_currentFilePath = "graph.txt";
 
     // Load persisted UI/theme settings.
     Settings::Load();
@@ -218,7 +219,7 @@ void MainEditor::draw()
     );
     ed::SetCurrentEditor(nullptr);
 
-    // Draw graph canvas.
+    //Draw graph canvas.
     m_graphEditor->Draw();
 
     if (m_graphState->IsDirty())
@@ -241,6 +242,15 @@ void MainEditor::draw()
         m_graphEditor=std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
         m_compiler=std::make_unique<GraphCompilation>();
         GraphSerializer::Load(*m_graphState, selectedPath.string().c_str());
+
+        //Apply loaded positions to the editor
+        ed::SetCurrentEditor(m_editorContext);
+        for (const auto& n : m_graphState->GetNodes())
+        {
+            if (n.alive)
+                ed::SetNodePosition(n.id, n.initialPos);
+        }
+        ed::SetCurrentEditor(nullptr);
 
         //Storing the opened file path for saving
         m_currentFilePath = selectedPath.string();
@@ -282,7 +292,7 @@ void MainEditor::NewGraph()
     
     //Create fresh editor context
     ed::Config config;
-    config.SettingsFile = "node_editor.json";
+    //config.SettingsFile = "node_editor.json";
     m_editorContext = ed::CreateEditor(&config);
 
     m_graphState = std::make_unique<GraphState>();
