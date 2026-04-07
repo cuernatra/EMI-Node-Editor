@@ -1,7 +1,6 @@
 #pragma once
 
 #include <functional>
-#include <string>
 
 // Shared graph enums.
 
