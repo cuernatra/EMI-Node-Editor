@@ -8,24 +8,29 @@ Node* CompileScopeNode(GraphCompiler*, const VisualNode&)
     return MakeNode(Token::Scope);
 }
 
-Node* CompileFunctionNode(GraphCompiler* compiler, const VisualNode& n)
+bool DeserializeFunctionNode(VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds)
 {
-    const std::string* nameStr = FindField(n, "Name");
-    const std::string funcName = nameStr ? *nameStr : "__fn";
+    if (pinIds.size() < desc.pins.size())
+        return false;
 
-    Node* params = MakeNode(Token::CallParams);
-    for (const Pin& pin : n.inPins)
+    std::vector<int> basePins(pinIds.begin(), pinIds.begin() + static_cast<std::ptrdiff_t>(desc.pins.size()));
+    if (!PopulateExactPinsAndFields(n, desc, basePins))
+        return false;
+
+    for (size_t i = desc.pins.size(); i < pinIds.size(); ++i)
     {
-        if (pin.type == PinType::Flow) continue;
-        Node* arg = compiler->BuildExpr(pin);
-        if (compiler->HasError) { delete params; return nullptr; }
-        params->children.push_back(arg);
+        const int paramIndex = static_cast<int>(i - desc.pins.size());
+        n.outPins.push_back(MakePin(
+            static_cast<uint32_t>(pinIds[i]),
+            n.id,
+            desc.type,
+            "Param" + std::to_string(paramIndex),
+            PinType::Any,
+            false
+        ));
     }
 
-    Node* call = MakeNode(Token::FunctionCall);
-    call->children.push_back(MakeIdNode(funcName));
-    call->children.push_back(params);
-    return call;
+    return true;
 }
 }
 
@@ -116,14 +121,13 @@ void NodeRegistry::RegisterEventNodes()
         NodeType::Function,
         "Function",
         {
-            { "In", PinType::Flow, true, true },
             { "Out", PinType::Flow, false }
         },
         {
             { "Name", PinType::String, "myFunction" }
         },
-        CompileFunctionNode,
         nullptr,
+        DeserializeFunctionNode,
         "Events",
         {},
         "Function",

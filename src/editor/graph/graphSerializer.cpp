@@ -369,8 +369,8 @@ void GraphSerializer::Load(GraphState& state, const char* path)
                 }
 
                 // Keep extra StructCreate fields so later refresh logic can reconnect them.
-                if (!applied && n.nodeType == NodeType::StructCreate)
-                    n.fields.push_back(NodeField{ name, PinType::Any, val });
+                if (!applied && (n.nodeType == NodeType::StructCreate || n.nodeType == NodeType::Function))
+                    n.fields.push_back(NodeField{ name, PinType::String, val });
             }
 
             ApplyConstantTypeFromFields(n);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <string>
 
 // Shared graph enums.
 
@@ -47,9 +48,10 @@ enum class NodeType
     PreviewPickRect, ///< Preview-picked rectangle position
     While,       ///< While loop
     Variable,    ///< Variable get/set
-    Function,    ///< Function define/call
-    Output,      ///< Graph return/output
-    Unknown      ///< Unknown type
+    CallFunction, ///< Flow call to a user-defined function
+    Function,    ///< Function definition node
+    Output,      ///< Debug print/output sink
+    Unknown      ///< Uninitialized or invalid type
 };
 
 namespace std {

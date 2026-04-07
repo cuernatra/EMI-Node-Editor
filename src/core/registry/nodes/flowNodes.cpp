@@ -88,6 +88,32 @@ bool DeserializeSequenceNode(VisualNode& n, const NodeDescriptor& desc, const st
     return true;
 }
 
+bool DeserializeCallFunctionNode(VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds)
+{
+    if (pinIds.size() < desc.pins.size())
+        return false;
+
+    std::vector<int> basePins(pinIds.begin(), pinIds.begin() + static_cast<std::ptrdiff_t>(desc.pins.size()));
+    if (!PopulateExactPinsAndFields(n, desc, basePins))
+        return false;
+
+    // Extra pins are argument inputs.
+    for (size_t i = desc.pins.size(); i < pinIds.size(); ++i)
+    {
+        const int argIndex = static_cast<int>(i - desc.pins.size());
+        n.inPins.push_back(MakePin(
+            static_cast<uint32_t>(pinIds[i]),
+            n.id,
+            desc.type,
+            "Arg" + std::to_string(argIndex),
+            PinType::Any,
+            true
+        ));
+    }
+
+    return true;
+}
+
 Node* CompileBranchNode(GraphCompiler* compiler, const VisualNode& n)
 {
     return BuildBranchNode(compiler, n);
@@ -184,6 +210,26 @@ void NodeRegistry::RegisterFlowNodes()
         "Flow",
         {},
         "Branch",
+        {},
+        NodeRenderStyle::Default
+    });
+
+    Register({
+        NodeType::CallFunction,
+        "Call Function",
+        {
+            { "In", PinType::Flow, true },
+            { "Out", PinType::Flow, false },
+            { "Result", PinType::Any, false }
+        },
+        {
+            { "Name", PinType::String, "" }
+        },
+        nullptr,
+        DeserializeCallFunctionNode,
+        "Flow",
+        {},
+        "CallFunction",
         {},
         NodeRenderStyle::Default
     });

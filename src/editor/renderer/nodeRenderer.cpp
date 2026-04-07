@@ -530,6 +530,9 @@ struct NodeRenderFlags
     bool isArrayReplaceNode = false;
     bool isArrayLengthNode  = false;
     bool hasArrayInputField = false;
+
+    bool isFunctionNode     = false;
+    bool isCallFunctionNode = false;
 };
 
 struct DeferredPinState
@@ -623,8 +626,53 @@ bool HandleVariableField(NodeField& field, FieldRenderContext& context)
 
 bool HandleFlowStyleField(NodeField& field, FieldRenderContext& context)
 {
-    (void)field;
-    (void)context;
+    if (context.flags.isCallFunctionNode && field.name == "Name")
+    {
+        std::vector<std::string> functionNames;
+
+        if (context.allNodes)
+        {
+            for (const VisualNode& other : *context.allNodes)
+            {
+                if (!other.alive || other.nodeType != NodeType::Function)
+                    continue;
+
+                const NodeField* nameField = FindFieldByName(other, "Name");
+                if (!nameField || nameField->value.empty())
+                    continue;
+
+                if (std::find(functionNames.begin(), functionNames.end(), nameField->value) == functionNames.end())
+                    functionNames.push_back(nameField->value);
+            }
+        }
+
+        if (functionNames.empty())
+        {
+            if (!field.value.empty())
+            {
+                field.value.clear();
+                context.changed = true;
+            }
+            ImGui::TextUnformatted("Function");
+            ImGui::SameLine();
+            ImGui::TextDisabled("(none)");
+        }
+        else
+        {
+            if (std::find(functionNames.begin(), functionNames.end(), field.value) == functionNames.end())
+            {
+                field.value = functionNames.front();
+                context.changed = true;
+            }
+
+            ImGui::TextUnformatted("Function");
+            ImGui::SameLine();
+            context.changed |= NodePopupComboDynamic("##CallFunctionCombo", field.value, functionNames, 110.0f);
+        }
+
+        return true;
+    }
+
     return false;
 }
 
@@ -774,6 +822,9 @@ NodeRenderFlags BuildNodeRenderFlags(const VisualNode& n, NodeRenderStyle render
     flags.isArrayLengthNode = (renderStyle == NodeRenderStyle::Array && n.nodeType == NodeType::ArrayLength);
     flags.hasArrayInputField = (flags.isForEachNode || flags.isArrayIndexNode || flags.isArrayLengthNode);
 
+    flags.isFunctionNode = (n.nodeType == NodeType::Function);
+    flags.isCallFunctionNode = (n.nodeType == NodeType::CallFunction);
+
     return flags;
 }
 
@@ -819,6 +870,87 @@ bool DrawSequenceStyleControls(VisualNode& n, IdGen* idGen)
         if (n.outPins.size() > 1)
         {
             n.outPins.pop_back();
+            changed = true;
+        }
+    }
+
+    return changed;
+}
+
+bool DrawFunctionParamControls(VisualNode& n)
+{
+    if (n.nodeType != NodeType::Function)
+        return false;
+
+    bool changed = false;
+
+    if (ImGui::SmallButton("+ Param"))
+    {
+        int nextIndex = 0;
+        for (const NodeField& f : n.fields)
+        {
+            if (f.name.rfind("Param", 0) != 0)
+                continue;
+
+            const std::string suffix = f.name.substr(5);
+            if (suffix.empty())
+                continue;
+
+            bool allDigits = true;
+            for (char ch : suffix)
+                allDigits = allDigits && std::isdigit(static_cast<unsigned char>(ch));
+            if (!allDigits)
+                continue;
+
+            try
+            {
+                const int idx = std::stoi(suffix);
+                nextIndex = std::max(nextIndex, idx + 1);
+            }
+            catch (...) {}
+        }
+
+        const std::string paramName = "param" + std::to_string(nextIndex);
+        n.fields.push_back(NodeField{ "Param" + std::to_string(nextIndex), PinType::String, paramName });
+        changed = true;
+    }
+
+    if (ImGui::SmallButton("- Param"))
+    {
+        int bestIndex = -1;
+        int bestFieldIndex = -1;
+
+        for (int i = 0; i < static_cast<int>(n.fields.size()); ++i)
+        {
+            const NodeField& f = n.fields[static_cast<size_t>(i)];
+            if (f.name.rfind("Param", 0) != 0)
+                continue;
+
+            const std::string suffix = f.name.substr(5);
+            if (suffix.empty())
+                continue;
+
+            bool allDigits = true;
+            for (char ch : suffix)
+                allDigits = allDigits && std::isdigit(static_cast<unsigned char>(ch));
+            if (!allDigits)
+                continue;
+
+            try
+            {
+                const int idx = std::stoi(suffix);
+                if (idx > bestIndex)
+                {
+                    bestIndex = idx;
+                    bestFieldIndex = i;
+                }
+            }
+            catch (...) {}
+        }
+
+        if (bestFieldIndex >= 0)
+        {
+            n.fields.erase(n.fields.begin() + bestFieldIndex);
             changed = true;
         }
     }
@@ -1029,6 +1161,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
     if (renderStyle == NodeRenderStyle::Sequence)
         changed |= DrawSequenceStyleControls(n, idGen);
+
+    if (renderFlags.isFunctionNode)
+        changed |= DrawFunctionParamControls(n);
 
     // Phase 5: draw output pins.
     for (const Pin& pin : n.outPins)

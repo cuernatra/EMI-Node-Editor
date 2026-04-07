@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cctype>
 #include <cmath>
 
 // Forward declaration for Ticker node compile function
@@ -217,6 +218,15 @@ void GraphCompiler::AppendFlowNode(const VisualNode& n, int triggeredInputPinIdx
 
     if (!n.alive || !targetScope)
         return;
+
+    // Function nodes are compiled as top-level function definitions, not as statements in the main flow chain.
+    // If a Function node is placed in the main exec chain, treat it as a pass-through.
+    if (n.nodeType == NodeType::Function)
+    {
+        if (const Pin* outFlow = GetOutputPinByName(n, "Out"))
+            AppendFlowChainFromOutput(outFlow->id, targetScope);
+        return;
+    }
 
     switch (n.nodeType)
     {
@@ -484,6 +494,29 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
 
     CollectFlowReachableFromOutput(startOut->id);
 
+    // Also mark nodes reachable from user Function entrypoints so BuildExpr flow-gating works inside functions.
+    for (const VisualNode& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Function)
+            continue;
+
+        const Pin* fnOut = GetOutputPinByName(n, "Out");
+        if (!fnOut)
+        {
+            for (const Pin& p : n.outPins)
+            {
+                if (p.type == PinType::Flow)
+                {
+                    fnOut = &p;
+                    break;
+                }
+            }
+        }
+
+        if (fnOut)
+            CollectFlowReachableFromOutput(fnOut->id);
+    }
+
     Node* body = MakeNode(Token::Scope);
 
     std::unordered_set<std::string> declaredVariables;
@@ -566,7 +599,44 @@ Node* GraphCompiler::Compile(const std::vector<VisualNode>& nodes,
     funcDecl->children.push_back(MakeNode(Token::CallParams));
     funcDecl->children.push_back(body);
 
+    std::vector<Node*> userFunctions;
+    for (const VisualNode& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Function)
+            continue;
+
+        Node* userFunc = BuildNode(n);
+        if (HasError)
+        {
+            for (Node* f : userFunctions)
+                delete f;
+            delete funcDecl;
+            return nullptr;
+        }
+
+        if (userFunc)
+            userFunctions.push_back(userFunc);
+    }
+
     Node* root = MakeNode(Token::Scope);
+
+    // Declare temp variables for CallFunction Result pins at global scope.
+    for (const VisualNode& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::CallFunction)
+            continue;
+
+        const std::string tempVar = "__call_result_" +
+            std::to_string(static_cast<uintptr_t>(n.id.Get()));
+
+        Node* decl = MakeNode(Token::VarDeclare);
+        decl->data = tempVar;
+        decl->children.push_back(MakeNode(Token::AnyType));
+        root->children.push_back(decl);
+    }
+
+    for (Node* f : userFunctions)
+        root->children.push_back(f);
     root->children.push_back(funcDecl);
     return root;
 }
@@ -594,7 +664,11 @@ Node* GraphCompiler::BuildExpr(const Pin& inputPin)
     if (!src)
         return makeDefaultValue();
 
-    if (src->node && NodeRequiresFlow(*src->node))
+    // CallFunction-noden Result-pini on data eikä flow
+    // joten ohitetaan flow-reachable tarkistus?????????????????????????????????????????????????????????????????
+    const bool isCallFunction = (src->node && src->node->nodeType == NodeType::CallFunction);
+
+    if (!isCallFunction && src->node && NodeRequiresFlow(*src->node))
     {
         const uintptr_t key = static_cast<uintptr_t>(src->node->id.Get());
         if (flowReachableNodes_.find(key) == flowReachableNodes_.end())
@@ -620,6 +694,58 @@ Node* GraphCompiler::BuildNode(const VisualNode& n, int outPinIdx)
         ~ScopedErase() { set.erase(key); }
     } guard{ activeNodeBuilds_, nodeKey };
 
+    auto collectParamNamesFromFields = [&](const VisualNode& fn) -> std::vector<std::string>
+    {
+        std::vector<std::pair<int, std::string>> ordered;
+        for (const NodeField& f : fn.fields)
+        {
+            if (f.name.rfind("Param", 0) != 0)
+                continue;
+
+            const std::string suffix = f.name.substr(5);
+            if (suffix.empty())
+                continue;
+
+            bool allDigits = true;
+            for (char ch : suffix)
+                allDigits = allDigits && std::isdigit(static_cast<unsigned char>(ch));
+            if (!allDigits)
+                continue;
+
+            if (f.value.empty())
+                continue;
+
+            try
+            {
+                ordered.emplace_back(std::stoi(suffix), f.value);
+            }
+            catch (...) {}
+        }
+
+        std::sort(ordered.begin(), ordered.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+        std::vector<std::string> out;
+        out.reserve(ordered.size());
+        for (const auto& [_, name] : ordered)
+            out.push_back(name);
+        return out;
+    };
+
+    auto findUserFunctionByName = [&](const std::string& name) -> const VisualNode*
+    {
+        if (!nodes_)
+            return nullptr;
+
+        for (const VisualNode& candidate : *nodes_)
+        {
+            if (!candidate.alive || candidate.nodeType != NodeType::Function)
+                continue;
+            const std::string* fnName = FindField(candidate, "Name");
+            if (fnName && *fnName == name)
+                return &candidate;
+        }
+        return nullptr;
+    };
+
     if (n.nodeType == NodeType::Loop && outPinIdx >= 0 && outPinIdx < static_cast<int>(n.outPins.size()))
     {
         const Pin& requestedOutPin = n.outPins[static_cast<size_t>(outPinIdx)];
@@ -634,7 +760,127 @@ Node* GraphCompiler::BuildNode(const VisualNode& n, int outPinIdx)
         }
     }
 
-    if (n.nodeType == NodeType::ForEach && outPinIdx >= 0 && outPinIdx < static_cast<int>(n.outPins.size()))
+    // Function node outputs (non-flow) are parameter identifiers inside the function body.
+    if (n.nodeType == NodeType::Function
+        && outPinIdx >= 0
+        && outPinIdx < static_cast<int>(n.outPins.size()))
+    {
+        const Pin& requestedOutPin = n.outPins[static_cast<size_t>(outPinIdx)];
+        if (requestedOutPin.type != PinType::Flow && requestedOutPin.name != "Out")
+            return MakeIdNode(requestedOutPin.name);
+    }
+
+    if (n.nodeType == NodeType::CallFunction
+        && outPinIdx >= 0
+        && outPinIdx < static_cast<int>(n.outPins.size()))
+    {
+        const Pin& requestedOutPin = n.outPins[outPinIdx];
+        if (requestedOutPin.name == "Result")
+        {
+            const std::string tempVar = "__call_result_" +
+                std::to_string(static_cast<uintptr_t>(n.id.Get()));
+            return MakeIdNode(tempVar);
+        }
+    }
+
+    // Function node compilation: generate a top-level FunctionDef.
+    if (n.nodeType == NodeType::Function)
+    {
+        const std::string* nameStr = FindField(n, "Name");
+        const std::string funcName = (nameStr && !nameStr->empty()) ? *nameStr : "__fn";
+
+        Node* params = MakeNode(Token::CallParams);
+        for (const std::string& paramName : collectParamNamesFromFields(n))
+        {
+            Node* param = MakeNode(Token::FunctionVar);
+            param->data = paramName;
+            param->children.push_back(MakeNode(Token::AnyType));
+            params->children.push_back(param);
+        }
+
+        Node* body = MakeNode(Token::Scope);
+
+        // Compile function body from its Out flow.
+        visitedFlowOutputs_.clear();
+        activeFlowOutputs_.clear();
+
+        if (const Pin* outFlow = GetOutputPinByName(n, "Out"))
+            AppendFlowChainFromOutput(outFlow->id, body);
+
+        if (HasError)
+        {
+            delete params;
+            delete body;
+            return nullptr;
+        }
+
+        Node* funcDecl = MakeNode(Token::FunctionDef);
+        funcDecl->data = funcName;
+        funcDecl->children.push_back(params);
+        funcDecl->children.push_back(body);
+        return funcDecl;
+    }
+
+    // CallFunction compilation: assign call result into the per-node temp variable.
+    if (n.nodeType == NodeType::CallFunction)
+    {
+        const std::string* nameStr = FindField(n, "Name");
+        const std::string funcName = (nameStr && !nameStr->empty()) ? *nameStr : "";
+        if (funcName.empty())
+        {
+            Error("CallFunction node is missing function Name");
+            return nullptr;
+        }
+
+        const VisualNode* targetFn = findUserFunctionByName(funcName);
+        if (!targetFn)
+        {
+            Error("CallFunction target not found: " + funcName);
+            return nullptr;
+        }
+
+        const std::vector<std::string> paramOrder = collectParamNamesFromFields(*targetFn);
+
+        Node* callParams = MakeNode(Token::CallParams);
+        for (const std::string& paramName : paramOrder)
+        {
+            const Pin* argPin = nullptr;
+            for (const Pin& p : n.inPins)
+            {
+                if (p.type == PinType::Flow)
+                    continue;
+                if (p.name == paramName)
+                {
+                    argPin = &p;
+                    break;
+                }
+            }
+
+            Node* argExpr = argPin ? BuildExpr(*argPin) : MakeNode(Token::Null);
+            if (HasError || !argExpr)
+            {
+                delete callParams;
+                return nullptr;
+            }
+
+            callParams->children.push_back(argExpr);
+        }
+
+        Node* call = MakeNode(Token::FunctionCall);
+        call->children.push_back(MakeIdNode(funcName));
+        call->children.push_back(callParams);
+
+        const std::string tempVar = "__call_result_" + std::to_string(static_cast<uintptr_t>(n.id.Get()));
+        Node* assign = MakeNode(Token::Assign);
+        assign->children.push_back(MakeIdNode(tempVar));
+        assign->children.push_back(call);
+        return assign;
+    }
+
+    // ForEach exposes current element while body executes, and last value otherwise.
+    if (n.nodeType == NodeType::ForEach
+        && outPinIdx >= 0
+        && outPinIdx < static_cast<int>(n.outPins.size()))
     {
         const Pin& requestedOutPin = n.outPins[static_cast<size_t>(outPinIdx)];
         if (requestedOutPin.type != PinType::Flow && requestedOutPin.name == "Element")
