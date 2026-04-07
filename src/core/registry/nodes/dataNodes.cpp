@@ -378,219 +378,221 @@ Node* CompilePreviewPickRectNode(GraphCompiler*, const VisualNode&)
 
 void NodeRegistry::RegisterDataNodes()
 {
-    // Register(...) fields follow NodeDescriptor member order.
-    
+    // Use named initializers so it's obvious what NodeDescriptor fields exist.
+
     // Unified ArrayOperation node (backward compatible, does not replace existing nodes)
-    Register({
-        NodeType::ArrayOperation,
-        "Array Operation",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayOperation,
+        .label = "Array Operation",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Array", PinType::Array, true },
             { "Value", PinType::Any, false }, // Only used for Push/PushFront/PushUnique
             { "Size", PinType::Number, false }, // Only used for Resize
             { "Out", PinType::Flow, false }
         },
-        {
+        .fields = {
             { "Operation", PinType::String, "Push", { "Push", "PushFront", "PushUnique", "Clear", "Resize" } }
         },
-        CompileArrayOperationNode,
-        nullptr,
-        "Data",
-        {},
-        "ArrayOperation",
-        {},
-        NodeRenderStyle::Array
+        .compile = CompileArrayOperationNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayOperation",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Array
     });
-    
-    Register({
-        NodeType::Constant,
-        "Constant",
-        {
+
+    Register(NodeDescriptor{
+        .type = NodeType::Constant,
+        .label = "Constant",
+        .pins = {
             { "Value", PinType::Any, false }
         },
-        {
+        .fields = {
             { "Type", PinType::String, "Number", { "Number", "Boolean", "String", "Array" } },
             { "Value", PinType::Any, "0.0" }
         },
-        CompileConstantNode,
-        nullptr,
-        "Data",
-        {},
-        "Constant",
-        {},
-        NodeRenderStyle::Constant
+        .compile = CompileConstantNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "Constant",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Constant
     });
 
-    Register({
-        NodeType::Variable,
-        "Set Variable",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::Variable,
+        .label = "Set Variable",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Default", PinType::Any, true },
             { "Out", PinType::Flow, false }
         },
-        {
+        .fields = {
             { "Variant", PinType::String, "Set", { "Set", "Get" } },
             { "Name", PinType::String, "myVar" },
             { "Type", PinType::String, "Number", { "Number", "Boolean", "String", "Array" } },
             { "Default", PinType::String, "0.0" }
         },
-        CompileVariableNode,
-        DeserializeVariableNode,
-        "Data",
-        {
+        .compile = CompileVariableNode,
+        .deserialize = DeserializeVariableNode,
+        .category = "Data",
+        .paletteVariants = {
             { "Set Variable", "Variable:Set" },
             { "Get Variable", "Variable:Get" }
         },
-        "Variable",
-        { "Default" },
-        NodeRenderStyle::Variable
+        .saveToken = "Variable",
+        .deferredInputPins = { "Default" },
+        .renderStyle = NodeRenderStyle::Variable
     });
 
-    Register({
-        NodeType::ArrayGetAt,
-        "Array Get",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayGetAt,
+        .label = "Array Get",
+        .pins = {
             { "Array", PinType::Array, true },
             { "Index", PinType::Number, true },
             { "Value", PinType::Any, false }
         },
-        {
+        .fields = {
             { "Array", PinType::Array, "[]" },
             { "Index", PinType::Number, "0" }
         },
-        CompileArrayGetNode,
-        nullptr,
-        "Data",
-        {},
-        "ArrayGet",
-        { "Index" },
-        NodeRenderStyle::Array
+        .compile = CompileArrayGetNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayGet",
+        .deferredInputPins = { "Index" },
+        .renderStyle = NodeRenderStyle::Array
     });
 
-    Register({
-        NodeType::ArrayAddAt,
-        "Array Add",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayAddAt,
+        .label = "Array Add",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Array", PinType::Array, true },
             { "Index", PinType::Number, true },
             { "Value", PinType::Any, true },
             { "Out", PinType::Flow, false }
         },
-        {
+        .fields = {
             { "Array", PinType::Array, "[]" },
             { "Index", PinType::Number, "0" },
             { "Add Type", PinType::String, "Number", { "Number", "Boolean", "String", "Array" } },
             { "Add Value", PinType::Any, "0.0" }
         },
-        CompileArrayAddNode,
-        nullptr,
-        "Data",
-        {},
-        "ArrayAdd",
-        { "Index" },
-        NodeRenderStyle::Array
+        .compile = CompileArrayAddNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayAdd",
+        .deferredInputPins = { "Index" },
+        .renderStyle = NodeRenderStyle::Array
     });
 
-    Register({
-        NodeType::ArrayReplaceAt,
-        "Array Replace",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayReplaceAt,
+        .label = "Array Replace",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Array", PinType::Array, true },
             { "Index", PinType::Number, true },
             { "Value", PinType::Any, true },
             { "Out", PinType::Flow, false }
         },
-        {
+        .fields = {
             { "Array", PinType::Array, "[]" },
             { "Index", PinType::Number, "0" },
             { "Replace Type", PinType::String, "Number", { "Number", "Boolean", "String", "Array" } },
             { "Replace Value", PinType::Any, "0.0" }
         },
-        CompileArrayReplaceNode,
-        nullptr,
-        "Data",
-        {},
-        "ArrayReplace",
-        { "Index" },
-        NodeRenderStyle::Array
+        .compile = CompileArrayReplaceNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayReplace",
+        .deferredInputPins = { "Index" },
+        .renderStyle = NodeRenderStyle::Array
     });
 
-    Register({
-        NodeType::ArrayRemoveAt,
-        "Array Remove",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayRemoveAt,
+        .label = "Array Remove",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Array", PinType::Array, true },
             { "Index", PinType::Number, true },
             { "Out", PinType::Flow, false }
         },
-        {
+        .fields = {
             { "Index", PinType::Number, "0" }
         },
-        CompileArrayRemoveNode,
-        nullptr,
-        "Data",
-        {},
-        "ArrayRemove",
-        { "Index" },
-        NodeRenderStyle::Array
+        .compile = CompileArrayRemoveNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayRemove",
+        .deferredInputPins = { "Index" },
+        .renderStyle = NodeRenderStyle::Array
     });
 
-    Register({
-        NodeType::ArrayLength,
-        "Array Length",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayLength,
+        .label = "Array Length",
+        .pins = {
             { "Array", PinType::Array, true },
             { "Length", PinType::Number, false }
         },
-        {
+        .fields = {
             { "Array", PinType::Array, "[]" }
         },
-        CompileArrayLengthNode,
-        nullptr,
-        "Data",
-        {},
-        "ArrayLength",
-        {},
-        NodeRenderStyle::Array
+        .compile = CompileArrayLengthNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayLength",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Array
     });
 
-    Register({
-        NodeType::PreviewPickRect,
-        "Rect Click",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::PreviewPickRect,
+        .label = "Rect Click",
+        .pins = {
             { "Out", PinType::Flow, false },
             { "X", PinType::Number, false },
             { "Y", PinType::Number, false }
         },
-        {},
-        CompilePreviewPickRectNode,
-        nullptr,
-        "Data",
-        {},
-        "PreviewPickRect",
-        {},
-        NodeRenderStyle::Default
+        .fields = {},
+        .compile = CompilePreviewPickRectNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "PreviewPickRect",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Default
     });
 
-    Register({
-        NodeType::Output,
-        "Debug Print",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::Output,
+        .label = "Debug Print",
+        .pins = {
             { "In", PinType::Flow, true, true },
             { "Value", PinType::Any, true }
         },
-        {
+        .fields = {
             { "Label", PinType::String, "result" }
         },
-        CompileOutputNode,
-        nullptr,
-        "Flow",
-        {},
-        "Output"
+        .compile = CompileOutputNode,
+        .deserialize = nullptr,
+        .category = "Flow",
+        .paletteVariants = {},
+        .saveToken = "Output",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Default
     });
 }

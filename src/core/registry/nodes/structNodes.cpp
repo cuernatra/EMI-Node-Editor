@@ -61,44 +61,43 @@ bool DeserializeStructCreateNode(VisualNode& n, const NodeDescriptor& desc, cons
 
 void NodeRegistry::RegisterStructNodes()
 {
-    // Register(...) fields follow NodeDescriptor member order.
-    Register({
-        NodeType::StructDefine,
-        "Struct Define",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::StructDefine,
+        .label = "Struct Define",
+        .pins = {
             { "Schema", PinType::Array, false }
         },
-        {
+        .fields = {
             { "Struct Name", PinType::String, "test" },
             { "Fields", PinType::Array, "[\"id:Number\", \"type:String\"]" }
         },
-        CompileStructDefineNode,
-        nullptr,
-        "Structs",
-        {},
-        "StructDefine",
-        {},
-        NodeRenderStyle::StructDefine
+        .compile = CompileStructDefineNode,
+        .deserialize = nullptr,
+        .category = "Structs",
+        .paletteVariants = {},
+        .saveToken = "StructDefine",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::StructDefine
     });
 
-    Register({
-        NodeType::StructCreate,
-        "Struct Create",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::StructCreate,
+        .label = "Struct Create",
+        .pins = {
             { "Struct", PinType::String, true },
             { "Value", PinType::Any, true },
             { "Item", PinType::Array, false }
         },
-        {
+        .fields = {
             { "Struct Name", PinType::String, "test" },
             { "Schema Fields", PinType::Array, "[]" }
         },
-        CompileStructCreateNode,
-        DeserializeStructCreateNode,
-        "Structs",
-        {},
-        "StructCreate",
-        { "*" },
-        NodeRenderStyle::StructCreate
+        .compile = CompileStructCreateNode,
+        .deserialize = DeserializeStructCreateNode,
+        .category = "Structs",
+        .paletteVariants = {},
+        .saveToken = "StructCreate",
+        .deferredInputPins = { "*" },
+        .renderStyle = NodeRenderStyle::StructCreate
     });
 }

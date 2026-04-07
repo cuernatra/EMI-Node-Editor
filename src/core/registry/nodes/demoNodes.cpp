@@ -77,67 +77,67 @@ Node* CompileNativeGetNode(GraphCompiler* compiler, const VisualNode& n)
 
 void NodeRegistry::RegisterDemoNodes()
 {
-    Register({
-        NodeType::NativeCall,
-        "Native Call",
-        {
-            { "In",   PinType::Flow,   true  },
-            { "Arg0", PinType::Number, true  },
-            { "Arg1", PinType::Number, true  },
-            { "Arg2", PinType::Number, true  },
-            { "Arg3", PinType::Number, true  },
-            { "Arg4", PinType::Number, true  },
-            { "Arg5", PinType::Number, true  },
-            { "Out",  PinType::Flow,   false },
-            { "Value", PinType::Any,   false }
+    Register(NodeDescriptor{
+        .type = NodeType::NativeCall,
+        .label = "Native Call",
+        .pins = {
+            PinDescriptor{ .name = "In", .type = PinType::Flow, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg0", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg1", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg2", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg3", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg4", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg5", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Out", .type = PinType::Flow, .isInput = false, .isMultiInput = false },
+            PinDescriptor{ .name = "Value", .type = PinType::Any, .isInput = false, .isMultiInput = false }
         },
-        {
-            { "Function", PinType::String, "" },
-            { "ArgCount", PinType::String, "0", { "0", "1", "2", "3", "4", "5", "6" } },
-            { "Arg0", PinType::Number, "0.0" },
-            { "Arg1", PinType::Number, "0.0" },
-            { "Arg2", PinType::Number, "0.0" },
-            { "Arg3", PinType::Number, "0.0" },
-            { "Arg4", PinType::Number, "0.0" },
-            { "Arg5", PinType::Number, "0.0" }
+        .fields = {
+            FieldDescriptor{ .name = "Function", .valueType = PinType::String, .defaultValue = "", .options = {} },
+            FieldDescriptor{ .name = "ArgCount", .valueType = PinType::String, .defaultValue = "0", .options = { "0", "1", "2", "3", "4", "5", "6" } },
+            FieldDescriptor{ .name = "Arg0", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg1", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg2", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg3", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg4", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg5", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} }
         },
-        CompileNativeCallNode,
-        nullptr,
-        "Demo",
-        {},
-        "NativeCall",
-        { "Arg0", "Arg1", "Arg2", "Arg3", "Arg4", "Arg5" },
-        NodeRenderStyle::Default
+        .compile = CompileNativeCallNode,
+        .deserialize = nullptr,
+        .category = "Demo",
+        .paletteVariants = {},
+        .saveToken = "NativeCall",
+        .deferredInputPins = { "Arg0", "Arg1", "Arg2", "Arg3", "Arg4", "Arg5" },
+        .renderStyle = NodeRenderStyle::Default
     });
 
-    Register({
-        NodeType::NativeGet,
-        "Native Get",
-        {
-            { "Arg0",  PinType::Number, true  },
-            { "Arg1",  PinType::Number, true  },
-            { "Arg2",  PinType::Number, true  },
-            { "Arg3",  PinType::Number, true  },
-            { "Arg4",  PinType::Number, true  },
-            { "Arg5",  PinType::Number, true  },
-            { "Value", PinType::Any,    false }
+    Register(NodeDescriptor{
+        .type = NodeType::NativeGet,
+        .label = "Native Get",
+        .pins = {
+            PinDescriptor{ .name = "Arg0", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg1", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg2", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg3", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg4", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg5", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Value", .type = PinType::Any, .isInput = false, .isMultiInput = false }
         },
-        {
-            { "Function", PinType::String, "" },
-            { "ArgCount", PinType::String, "0", { "0", "1", "2", "3", "4", "5", "6" } },
-            { "Arg0", PinType::Number, "0.0" },
-            { "Arg1", PinType::Number, "0.0" },
-            { "Arg2", PinType::Number, "0.0" },
-            { "Arg3", PinType::Number, "0.0" },
-            { "Arg4", PinType::Number, "0.0" },
-            { "Arg5", PinType::Number, "0.0" }
+        .fields = {
+            FieldDescriptor{ .name = "Function", .valueType = PinType::String, .defaultValue = "", .options = {} },
+            FieldDescriptor{ .name = "ArgCount", .valueType = PinType::String, .defaultValue = "0", .options = { "0", "1", "2", "3", "4", "5", "6" } },
+            FieldDescriptor{ .name = "Arg0", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg1", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg2", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg3", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg4", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg5", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} }
         },
-        CompileNativeGetNode,
-        nullptr,
-        "Demo",
-        {},
-        "NativeGet",
-        { "Arg0", "Arg1", "Arg2", "Arg3", "Arg4", "Arg5" },
-        NodeRenderStyle::Constant
+        .compile = CompileNativeGetNode,
+        .deserialize = nullptr,
+        .category = "Demo",
+        .paletteVariants = {},
+        .saveToken = "NativeGet",
+        .deferredInputPins = { "Arg0", "Arg1", "Arg2", "Arg3", "Arg4", "Arg5" },
+        .renderStyle = NodeRenderStyle::Constant
     });
 }

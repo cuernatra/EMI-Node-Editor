@@ -37,24 +37,26 @@ bool DeserializeFunctionNode(VisualNode& n, const NodeDescriptor& desc, const st
 void NodeRegistry::RegisterEventNodes()
 {
     // Register(...) fields follow NodeDescriptor member order.
-    Register({
-        NodeType::Start,
-        "Start",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::Start,
+        .label = "Start",
+        .pins = {
             { "Exec", PinType::Flow, false }
         },
-        {},
-        CompileScopeNode,
-        nullptr,
-        "Events",
-        {},
-        "Start"
+        .fields = {},
+        .compile = CompileScopeNode,
+        .deserialize = nullptr,
+        .category = "Events",
+        .paletteVariants = {},
+        .saveToken = "Start",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Default,
     });
 
-    Register({
-        NodeType::DrawRect,
-        "Draw Rect",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::DrawRect,
+        .label = "Draw Rect",
+        .pins = {
             { "In", PinType::Flow, true },
             { "X", PinType::Number, true },
             { "Y", PinType::Number, true },
@@ -65,7 +67,7 @@ void NodeRegistry::RegisterEventNodes()
             { "B", PinType::Number, true },
             { "Out", PinType::Flow, false }
         },
-        {
+        .fields = {
             { "Color", PinType::String, "120, 180, 255" },
             { "X", PinType::Number, "0.0" },
             { "Y", PinType::Number, "0.0" },
@@ -75,19 +77,19 @@ void NodeRegistry::RegisterEventNodes()
             { "G", PinType::Number, "180.0" },
             { "B", PinType::Number, "255.0" }
         },
-        CompileScopeNode,
-        nullptr,
-        "Events",
-        {},
-        "DrawRect",
-        { "X", "Y", "W", "H" },
-        NodeRenderStyle::Draw
+        .compile = CompileScopeNode,
+        .deserialize = nullptr,
+        .category = "Events",
+        .paletteVariants = {},
+        .saveToken = "DrawRect",
+        .deferredInputPins = { "X", "Y", "W", "H" },
+        .renderStyle = NodeRenderStyle::Draw,
     });
 
-    Register({
-        NodeType::DrawGrid,
-        "Draw Grid",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::DrawGrid,
+        .label = "Draw Grid",
+        .pins = {
             { "In", PinType::Flow, true },
             { "X", PinType::Number, true },
             { "Y", PinType::Number, true },
@@ -98,7 +100,7 @@ void NodeRegistry::RegisterEventNodes()
             { "B", PinType::Number, true },
             { "Out", PinType::Flow, false }
         },
-        {
+        .fields = {
             { "Color", PinType::String, "30, 30, 38" },
             { "X", PinType::Number, "0.0" },
             { "Y", PinType::Number, "0.0" },
@@ -108,30 +110,30 @@ void NodeRegistry::RegisterEventNodes()
             { "G", PinType::Number, "30.0" },
             { "B", PinType::Number, "38.0" }
         },
-        CompileScopeNode,
-        nullptr,
-        "Events",
-        {},
-        "DrawGrid",
-        { "X", "Y", "W", "H" },
-        NodeRenderStyle::Draw
+        .compile = CompileScopeNode,
+        .deserialize = nullptr,
+        .category = "Events",
+        .paletteVariants = {},
+        .saveToken = "DrawGrid",
+        .deferredInputPins = { "X", "Y", "W", "H" },
+        .renderStyle = NodeRenderStyle::Draw,
     });
 
-    Register({
-        NodeType::Function,
-        "Function",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::Function,
+        .label = "Function",
+        .pins = {
             { "Out", PinType::Flow, false }
         },
-        {
+        .fields = {
             { "Name", PinType::String, "myFunction" }
         },
-        nullptr,
-        DeserializeFunctionNode,
-        "Events",
-        {},
-        "Function",
-        {},
-        NodeRenderStyle::Default
+        .compile = nullptr,
+        .deserialize = DeserializeFunctionNode,
+        .category = "Events",
+        .paletteVariants = {},
+        .saveToken = "Function",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Default,
     });
 }

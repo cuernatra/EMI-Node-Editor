@@ -137,107 +137,107 @@ Node* CompileWhileNode(GraphCompiler* compiler, const VisualNode& n)
 void NodeRegistry::RegisterFlowNodes()
 {
 
-    Register({
-        NodeType::Ticker,
-        "Ticker",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::Ticker,
+        .label = "Ticker",
+        .pins = {
             { "In", PinType::Flow, true },
             { "FPS", PinType::Number, true },
             { "Tick", PinType::Flow, false },
             { "Stop", PinType::Flow, false }
         },
-        {
+        .fields = {
             { "FPS", PinType::Number, "20" }
         },
-        CompileTickerNode,
-        nullptr,
-        "Flow",
-        {},
-        "Ticker",
-        {},
-        NodeRenderStyle::Default
+        .compile = CompileTickerNode,
+        .deserialize = nullptr,
+        .category = "Flow",
+        .paletteVariants = {},
+        .saveToken = "Ticker",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Default,
     });
-    // Register(...) fields follow NodeDescriptor member order.
-    Register({
-        NodeType::Delay,
-        "Delay",
-        {
+
+    Register(NodeDescriptor{
+        .type = NodeType::Delay,
+        .label = "Delay",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Duration", PinType::Number, true },
             { "Out", PinType::Flow, false }
         },
-        {
+        .fields = {
             { "Duration", PinType::Number, "1000.0" }
         },
-        CompileDelayNode,
-        nullptr,
-        "Flow",
-        {},
-        "Delay",
-        { "Duration" },
-        NodeRenderStyle::Delay
+        .compile = CompileDelayNode,
+        .deserialize = nullptr,
+        .category = "Flow",
+        .paletteVariants = {},
+        .saveToken = "Delay",
+        .deferredInputPins = { "Duration" },
+        .renderStyle = NodeRenderStyle::Delay,
     });
 
-    Register({
-        NodeType::Sequence,
-        "Sequence",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::Sequence,
+        .label = "Sequence",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Then 0", PinType::Flow, false }
         },
-        {},
-        CompileSequenceNode,
-        DeserializeSequenceNode,
-        "Flow",
-        {},
-        "Sequence",
-        {},
-        NodeRenderStyle::Sequence
+        .fields = {},
+        .compile = CompileSequenceNode,
+        .deserialize = DeserializeSequenceNode,
+        .category = "Flow",
+        .paletteVariants = {},
+        .saveToken = "Sequence",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Sequence,
     });
 
-    Register({
-        NodeType::Branch,
-        "Branch",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::Branch,
+        .label = "Branch",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Condition", PinType::Boolean, true },
             { "True", PinType::Flow, false },
             { "False", PinType::Flow, false }
         },
-        {},
-        CompileBranchNode,
-        nullptr,
-        "Flow",
-        {},
-        "Branch",
-        {},
-        NodeRenderStyle::Default
+        .fields = {},
+        .compile = CompileBranchNode,
+        .deserialize = nullptr,
+        .category = "Flow",
+        .paletteVariants = {},
+        .saveToken = "Branch",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Default,
     });
 
-    Register({
-        NodeType::CallFunction,
-        "Call Function",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::CallFunction,
+        .label = "Call Function",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Out", PinType::Flow, false },
             { "Result", PinType::Any, false }
         },
-        {
+        .fields = {
             { "Name", PinType::String, "" }
         },
-        nullptr,
-        DeserializeCallFunctionNode,
-        "Flow",
-        {},
-        "CallFunction",
-        {},
-        NodeRenderStyle::Default
+        .compile = nullptr,
+        .deserialize = DeserializeCallFunctionNode,
+        .category = "Flow",
+        .paletteVariants = {},
+        .saveToken = "CallFunction",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Default,
     });
 
-    Register({
-        NodeType::Loop,
-        "Loop",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::Loop,
+        .label = "Loop",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Start", PinType::Number, true },
             { "Count", PinType::Number, true },
@@ -245,58 +245,58 @@ void NodeRegistry::RegisterFlowNodes()
             { "Completed", PinType::Flow, false },
             { "Index", PinType::Number, false }
         },
-        {
+        .fields = {
             { "Start", PinType::Number, "0" },
             { "Count", PinType::Number, "0" }
         },
-        CompileLoopNode,
-        nullptr,
-        "Flow",
-        {},
-        "Loop",
-        { "Start", "Count" },
-        NodeRenderStyle::Loop
+        .compile = CompileLoopNode,
+        .deserialize = nullptr,
+        .category = "Flow",
+        .paletteVariants = {},
+        .saveToken = "Loop",
+        .deferredInputPins = { "Start", "Count" },
+        .renderStyle = NodeRenderStyle::Loop,
     });
 
-    Register({
-        NodeType::ForEach,
-        "For Each",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::ForEach,
+        .label = "For Each",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Array", PinType::Array, true },
             { "Body", PinType::Flow, false },
             { "Completed", PinType::Flow, false },
             { "Element", PinType::Any, false }
         },
-        {
+        .fields = {
             { "Element Type", PinType::String, "Any", { "Any", "Number", "Boolean", "String", "Array" } },
             { "Array", PinType::Array, "[]" }
         },
-        CompileForEachNode,
-        nullptr,
-        "Flow",
-        {},
-        "ForEach",
-        {},
-        NodeRenderStyle::ForEach
+        .compile = CompileForEachNode,
+        .deserialize = nullptr,
+        .category = "Flow",
+        .paletteVariants = {},
+        .saveToken = "ForEach",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::ForEach,
     });
 
-    Register({
-        NodeType::While,
-        "While",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::While,
+        .label = "While",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Condition", PinType::Boolean, true },
             { "Body", PinType::Flow, false },
             { "Completed", PinType::Flow, false }
         },
-        {},
-        CompileWhileNode,
-        nullptr,
-        "Flow",
-        {},
-        "While",
-        {},
-        NodeRenderStyle::Default
+        .fields = {},
+        .compile = CompileWhileNode,
+        .deserialize = nullptr,
+        .category = "Flow",
+        .paletteVariants = {},
+        .saveToken = "While",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Default,
     });
 }

@@ -88,97 +88,96 @@ Node* CompileNotNode(GraphCompiler* compiler, const VisualNode& n)
 
 void NodeRegistry::RegisterLogicNodes()
 {
-    // Register(...) fields follow NodeDescriptor member order.
-    Register({
-        NodeType::Operator,
-        "Operator",
-        {
-            { "In", PinType::Flow, true },
-            { "A", PinType::Number, true },
-            { "B", PinType::Number, true },
-            { "Out", PinType::Flow, false },
-            { "Result", PinType::Number, false }
+    Register(NodeDescriptor{
+        .type = NodeType::Operator,
+        .label = "Operator",
+        .pins = {
+            PinDescriptor{ .name = "In", .type = PinType::Flow, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "A", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "B", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Out", .type = PinType::Flow, .isInput = false, .isMultiInput = false },
+            PinDescriptor{ .name = "Result", .type = PinType::Number, .isInput = false, .isMultiInput = false }
         },
-        {
-            { "Op", PinType::String, "+", { "+", "-", "*", "/" } },
-            { "A", PinType::Number, "0.0" },
-            { "B", PinType::Number, "0.0" }
+        .fields = {
+            FieldDescriptor{ .name = "Op", .valueType = PinType::String, .defaultValue = "+", .options = { "+", "-", "*", "/" } },
+            FieldDescriptor{ .name = "A", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "B", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} }
         },
-        CompileOperatorNode,
-        nullptr,
-        "Flow",
-        {},
-        "Operator",
-        { "A", "B" },
-        NodeRenderStyle::Binary
+        .compile = CompileOperatorNode,
+        .deserialize = nullptr,
+        .category = "Flow",
+        .paletteVariants = {},
+        .saveToken = "Operator",
+        .deferredInputPins = { "A", "B" },
+        .renderStyle = NodeRenderStyle::Binary
     });
 
-    Register({
-        NodeType::Comparison,
-        "Compare",
-        {
-            { "In", PinType::Flow, true },
-            { "A", PinType::Number, true },
-            { "B", PinType::Number, true },
-            { "Out", PinType::Flow, false },
-            { "Result", PinType::Boolean, false }
+    Register(NodeDescriptor{
+        .type = NodeType::Comparison,
+        .label = "Compare",
+        .pins = {
+            PinDescriptor{ .name = "In", .type = PinType::Flow, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "A", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "B", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Out", .type = PinType::Flow, .isInput = false, .isMultiInput = false },
+            PinDescriptor{ .name = "Result", .type = PinType::Boolean, .isInput = false, .isMultiInput = false }
         },
-        {
-            { "Op", PinType::String, ">=", { "==", "!=", "<", "<=", ">", ">=" } },
-            { "A", PinType::Number, "0.0" },
-            { "B", PinType::Number, "0.0" }
+        .fields = {
+            FieldDescriptor{ .name = "Op", .valueType = PinType::String, .defaultValue = ">=", .options = { "==", "!=", "<", "<=", ">", ">=" } },
+            FieldDescriptor{ .name = "A", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "B", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} }
         },
-        CompileComparisonNode,
-        nullptr,
-        "Logic",
-        {},
-        "Comparison",
-        { "A", "B" },
-        NodeRenderStyle::Binary
+        .compile = CompileComparisonNode,
+        .deserialize = nullptr,
+        .category = "Logic",
+        .paletteVariants = {},
+        .saveToken = "Comparison",
+        .deferredInputPins = { "A", "B" },
+        .renderStyle = NodeRenderStyle::Binary
     });
 
-    Register({
-        NodeType::Logic,
-        "Logic",
-        {
-            { "In", PinType::Flow, true, false },
-            { "A", PinType::Boolean, true, false },
-            { "B", PinType::Boolean, true, false },
-            { "Out", PinType::Flow, false, false },
-            { "Result", PinType::Boolean, false }
+    Register(NodeDescriptor{
+        .type = NodeType::Logic,
+        .label = "Logic",
+        .pins = {
+            PinDescriptor{ .name = "In", .type = PinType::Flow, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "A", .type = PinType::Boolean, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "B", .type = PinType::Boolean, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Out", .type = PinType::Flow, .isInput = false, .isMultiInput = false },
+            PinDescriptor{ .name = "Result", .type = PinType::Boolean, .isInput = false, .isMultiInput = false }
         },
-        {
-            { "Op", PinType::String, "AND", { "AND", "OR" } },
-            { "A", PinType::Boolean, "false" },
-            { "B", PinType::Boolean, "false" }
+        .fields = {
+            FieldDescriptor{ .name = "Op", .valueType = PinType::String, .defaultValue = "AND", .options = { "AND", "OR" } },
+            FieldDescriptor{ .name = "A", .valueType = PinType::Boolean, .defaultValue = "false", .options = {} },
+            FieldDescriptor{ .name = "B", .valueType = PinType::Boolean, .defaultValue = "false", .options = {} }
         },
-        CompileLogicNode,
-        nullptr,
-        "Logic",
-        {},
-        "Logic",
-        { "A", "B" },
-        NodeRenderStyle::Binary
+        .compile = CompileLogicNode,
+        .deserialize = nullptr,
+        .category = "Logic",
+        .paletteVariants = {},
+        .saveToken = "Logic",
+        .deferredInputPins = { "A", "B" },
+        .renderStyle = NodeRenderStyle::Binary
     });
 
-    Register({
-        NodeType::Not,
-        "Not",
-        {
-            { "In", PinType::Flow, true },
-            { "A", PinType::Boolean, true },
-            { "Out", PinType::Flow, false },
-            { "Result", PinType::Boolean, false }
+    Register(NodeDescriptor{
+        .type = NodeType::Not,
+        .label = "Not",
+        .pins = {
+            PinDescriptor{ .name = "In", .type = PinType::Flow, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "A", .type = PinType::Boolean, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Out", .type = PinType::Flow, .isInput = false, .isMultiInput = false },
+            PinDescriptor{ .name = "Result", .type = PinType::Boolean, .isInput = false, .isMultiInput = false }
         },
-        {
-            { "A", PinType::Boolean, "false" }
+        .fields = {
+            FieldDescriptor{ .name = "A", .valueType = PinType::Boolean, .defaultValue = "false", .options = {} }
         },
-        CompileNotNode,
-        nullptr,
-        "Logic",
-        {},
-        "Not",
-        { "A" },
-        NodeRenderStyle::Unary
+        .compile = CompileNotNode,
+        .deserialize = nullptr,
+        .category = "Logic",
+        .paletteVariants = {},
+        .saveToken = "Not",
+        .deferredInputPins = { "A" },
+        .renderStyle = NodeRenderStyle::Unary
     });
 }

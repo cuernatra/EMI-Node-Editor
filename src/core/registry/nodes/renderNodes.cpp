@@ -48,10 +48,10 @@ Node* CompileRenderGridNode(GraphCompiler* compiler, const VisualNode&)
 
 void NodeRegistry::RegisterRenderNodes()
 {
-    Register({
-        NodeType::DrawCell,
-        "Draw Cell",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::DrawCell,
+        .label = "Draw Cell",
+        .pins = {
             { "In", PinType::Flow,   true  },
             { "X",  PinType::Number, true  },
             { "Y",  PinType::Number, true  },
@@ -60,58 +60,58 @@ void NodeRegistry::RegisterRenderNodes()
             { "B",  PinType::Number, true  },
             { "Out", PinType::Flow,  false }
         },
-        {
+        .fields = {
             { "X", PinType::Number, "0.0" },
             { "Y", PinType::Number, "0.0" },
             { "R", PinType::Number, "220.0" },
             { "G", PinType::Number, "50.0"  },
             { "B", PinType::Number, "50.0"  }
         },
-        CompileDrawCellNode,
-        nullptr,
-        "Render",
-        {},
-        "DrawCell",
-        { "X", "Y" },
-        NodeRenderStyle::Draw
+        .compile = CompileDrawCellNode,
+        .deserialize = nullptr,
+        .category = "Render",
+        .paletteVariants = {},
+        .saveToken = "DrawCell",
+        .deferredInputPins = { "X", "Y" },
+        .renderStyle = NodeRenderStyle::Draw
     });
 
-    Register({
-        NodeType::ClearGrid,
-        "Clear Grid",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::ClearGrid,
+        .label = "Clear Grid",
+        .pins = {
             { "In",  PinType::Flow,   true  },
             { "W",   PinType::Number, true  },
             { "H",   PinType::Number, true  },
             { "Out", PinType::Flow,   false }
         },
-        {
+        .fields = {
             { "W", PinType::Number, "20.0" },
             { "H", PinType::Number, "20.0" }
         },
-        CompileClearGridNode,
-        nullptr,
-        "Render",
-        {},
-        "ClearGrid",
-        { "W", "H" },
-        NodeRenderStyle::Draw
+        .compile = CompileClearGridNode,
+        .deserialize = nullptr,
+        .category = "Render",
+        .paletteVariants = {},
+        .saveToken = "ClearGrid",
+        .deferredInputPins = { "W", "H" },
+        .renderStyle = NodeRenderStyle::Draw
     });
 
-    Register({
-        NodeType::RenderGrid,
-        "Render Grid",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::RenderGrid,
+        .label = "Render Grid",
+        .pins = {
             { "In",  PinType::Flow, true  },
             { "Out", PinType::Flow, false }
         },
-        {},
-        CompileRenderGridNode,
-        nullptr,
-        "Render",
-        {},
-        "RenderGrid",
-        {},
-        NodeRenderStyle::Draw
+        .fields = {},
+        .compile = CompileRenderGridNode,
+        .deserialize = nullptr,
+        .category = "Render",
+        .paletteVariants = {},
+        .saveToken = "RenderGrid",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Draw
     });
 }
