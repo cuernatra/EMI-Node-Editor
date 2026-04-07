@@ -53,6 +53,18 @@ enum class NodeType
     Unknown      ///< Uninitialized or invalid type
 };
 
+inline const std::vector<NodeType> getAllNodeTypes()
+{
+    std::vector<NodeType> types;
+
+    for(int i = 0; i < static_cast<int>(NodeType::Unknown); i++)
+    {
+        types.push_back(static_cast<NodeType>(i));
+    }
+
+    return types;
+}
+
 namespace std {
     template<>
     struct hash<NodeType>
