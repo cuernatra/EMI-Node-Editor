@@ -55,3 +55,25 @@ TEST_CASE("GraphState deletes links connected to a deleted node", "[graph]")
     REQUIRE(state.GetLinks().empty());
     REQUIRE_FALSE(state.GetNodes()[0].alive);
 }
+
+TEST_CASE("GrapghState removes link when DeleteLink is called", "[graph]")
+{
+    GraphState state;
+
+    state.AddNode(MakeNode(1, NodeType::Start, {}, {1}));
+    state.AddNode(MakeNode(2, NodeType::Output, {2}, {}));
+
+    Link link;
+    link.id = ed::LinkId(3);
+    link.startPinId = ed::PinId(1);
+    link.endPinId = ed::PinId(2);
+    link.type = PinType::Flow;
+    state.AddLink(link);
+
+    REQUIRE(state.GetLinks().size() == 1);
+    
+    state.DeleteLink(link.id);
+
+    REQUIRE(state.GetLinks().empty());
+    REQUIRE(state.GetNodes().size() == 2);
+}
