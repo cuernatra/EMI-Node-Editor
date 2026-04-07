@@ -1,0 +1,52 @@
+\doxysection{src/\+core/\+registry/\+node\+Descriptor.h File Reference}
+\hypertarget{node_descriptor_8h}{}\label{node_descriptor_8h}\index{src/core/registry/nodeDescriptor.h@{src/core/registry/nodeDescriptor.h}}
+
+
+Static node type definitions and descriptors.  
+
+
+{\ttfamily \+\#include "{}../\+graph/\+types.\+h"{}}\newline
+{\ttfamily \+\#include $<$string$>$}\newline
+{\ttfamily \+\#include $<$vector$>$}\newline
+{\ttfamily \+\#include $<$functional$>$}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{struct_pin_descriptor}{Pin\+Descriptor}}
+\begin{DoxyCompactList}\small\item\em Static definition of a pin on a node type Used by factory to create \doxylink{struct_pin}{Pin} objects with correct name, type, and direction. \end{DoxyCompactList}\item 
+struct \doxymbox{\hyperlink{struct_field_descriptor}{Field\+Descriptor}}
+\begin{DoxyCompactList}\small\item\em Static definition of an editable field on a node type value\+Type determines the Im\+Gui widget:\+ Number→\+Input\+Float, Boolean→\+Checkbox, String→\+Input\+Text. \end{DoxyCompactList}\item 
+struct \doxymbox{\hyperlink{struct_node_descriptor}{Node\+Descriptor}}
+\begin{DoxyCompactList}\small\item\em Complete static definition of a node type One immutable descriptor per \doxylink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}; all instances share it and differ only in runtime state. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+using \doxymbox{\hyperlink{node_descriptor_8h_a662d339ad836df157eb0f4992cd54345}{Compile\+Callback}} = std::\+function$<$Node\texorpdfstring{$\ast$}{*}(\doxymbox{\hyperlink{class_graph_compiler}{Graph\+Compiler}}\texorpdfstring{$\ast$}{*}, const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}}\&)$>$
+\begin{DoxyCompactList}\small\item\em Callback for compiling a visual node to AST Eliminates need for large switch statements by storing compilation logic with the descriptor. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Static node type definitions and descriptors. 
+
+Defines the structure of node types via descriptors that specify:\+
+\begin{DoxyItemize}
+\item \doxylink{struct_pin}{Pin} configuration (names, types, directions)
+\item Editable fields (names, types, defaults)
+\item Display information (labels)
+\end{DoxyItemize}
+
+These descriptors are templates used by the factory to create node instances. 
+
+\label{doc-typedef-members}
+\Hypertarget{node_descriptor_8h_doc-typedef-members}
+\doxysubsection{Typedef Documentation}
+\Hypertarget{node_descriptor_8h_a662d339ad836df157eb0f4992cd54345}\index{nodeDescriptor.h@{nodeDescriptor.h}!CompileCallback@{CompileCallback}}
+\index{CompileCallback@{CompileCallback}!nodeDescriptor.h@{nodeDescriptor.h}}
+\doxysubsubsection{\texorpdfstring{CompileCallback}{CompileCallback}}
+{\footnotesize\ttfamily \label{node_descriptor_8h_a662d339ad836df157eb0f4992cd54345} 
+using \doxymbox{\hyperlink{node_descriptor_8h_a662d339ad836df157eb0f4992cd54345}{Compile\+Callback}} = std::\+function$<$Node\texorpdfstring{$\ast$}{*}(\doxymbox{\hyperlink{class_graph_compiler}{Graph\+Compiler}}\texorpdfstring{$\ast$}{*}, const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}}\&)$>$}
+
+
+
+Callback for compiling a visual node to AST Eliminates need for large switch statements by storing compilation logic with the descriptor. 
+

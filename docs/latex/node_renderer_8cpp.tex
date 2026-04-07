@@ -1,0 +1,93 @@
+\doxysection{src/\+editor/\+renderer/\+node\+Renderer.cpp File Reference}
+\hypertarget{node_renderer_8cpp}{}\label{node_renderer_8cpp}\index{src/editor/renderer/nodeRenderer.cpp@{src/editor/renderer/nodeRenderer.cpp}}
+{\ttfamily \+\#include "{}node\+Renderer.\+h"{}}\newline
+{\ttfamily \+\#include "{}field\+Widget\+Renderer.\+h"{}}\newline
+{\ttfamily \+\#include "{}pin\+Renderer.\+h"{}}\newline
+{\ttfamily \+\#include "{}app/\+constants.\+h"{}}\newline
+{\ttfamily \+\#include "{}editor/\+graph/\+graph\+Serializer.\+h"{}}\newline
+{\ttfamily \+\#include "{}imgui.\+h"{}}\newline
+{\ttfamily \+\#include "{}imgui\+\_\+node\+\_\+editor.\+h"{}}\newline
+{\ttfamily \+\#include $<$algorithm$>$}\newline
+{\ttfamily \+\#include $<$array$>$}\newline
+{\ttfamily \+\#include $<$cmath$>$}\newline
+{\ttfamily \+\#include $<$cctype$>$}\newline
+{\ttfamily \+\#include $<$cstdio$>$}\newline
+{\ttfamily \+\#include $<$cstdlib$>$}\newline
+{\ttfamily \+\#include $<$unordered\+\_\+map$>$}\newline
+{\ttfamily \+\#include $<$utility$>$}\newline
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+float \doxymbox{\hyperlink{node_renderer_8cpp_a798e3a9142facc407a26fdfd4e3b9f50}{Measure\+Field\+Width}} (const \doxymbox{\hyperlink{struct_node_field}{Node\+Field}} \&field)
+\begin{DoxyCompactList}\small\item\em Returns width for one field row (label + spacing + widget). \end{DoxyCompactList}\item 
+float \doxymbox{\hyperlink{node_renderer_8cpp_a3c346e92a8580943f6d4c682fa311388}{Measure\+Node\+Content\+Width}} (const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\begin{DoxyCompactList}\small\item\em Returns minimum content width needed to render node body. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{node_renderer_8cpp_af6f0f7ce3637c9b589622c587cb3ee4d}{Draw\+Pin}} (const \doxymbox{\hyperlink{struct_pin}{Pin}} \&pin, float content\+Width, const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \texorpdfstring{$\ast$}{*}all\+Links)
+\begin{DoxyCompactList}\small\item\em Draws one pin row and icon with width-\/aware alignment. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{node_renderer_8cpp_a27d38fc57c2da83774983297c2ef01fa}{Draw\+Visual\+Node}} (\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n)
+\item 
+bool \doxymbox{\hyperlink{node_renderer_8cpp_a0fb48c396a642e32aed96213685e52c4}{Draw\+Visual\+Node}} (\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n, \doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \texorpdfstring{$\ast$}{*}id\+Gen)
+\item 
+bool \doxymbox{\hyperlink{node_renderer_8cpp_aa091b273f9fb98c00f1ea81aa94bae75}{Draw\+Visual\+Node}} (\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n, \doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \texorpdfstring{$\ast$}{*}id\+Gen, const std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \texorpdfstring{$\ast$}{*}all\+Nodes)
+\item 
+bool \doxymbox{\hyperlink{node_renderer_8cpp_a296a8d7c00e4cda7f14ecf397208a220}{Draw\+Visual\+Node}} (\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&n, \doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \texorpdfstring{$\ast$}{*}id\+Gen, const std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \texorpdfstring{$\ast$}{*}all\+Nodes, const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \texorpdfstring{$\ast$}{*}all\+Links)
+\end{DoxyCompactItemize}
+
+
+\label{doc-func-members}
+\Hypertarget{node_renderer_8cpp_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{node_renderer_8cpp_af6f0f7ce3637c9b589622c587cb3ee4d}\index{nodeRenderer.cpp@{nodeRenderer.cpp}!DrawPin@{DrawPin}}
+\index{DrawPin@{DrawPin}!nodeRenderer.cpp@{nodeRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{DrawPin()}{DrawPin()}}
+{\footnotesize\ttfamily \label{node_renderer_8cpp_af6f0f7ce3637c9b589622c587cb3ee4d} 
+void Draw\+Pin (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_pin}{Pin}} \&}]{pin}{, }\item[{float}]{content\+Width}{, }\item[{const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \texorpdfstring{$\ast$}{*}}]{all\+Links}{}\end{DoxyParamCaption})}
+
+
+
+Draws one pin row and icon with width-\/aware alignment. 
+
+\Hypertarget{node_renderer_8cpp_a27d38fc57c2da83774983297c2ef01fa}\index{nodeRenderer.cpp@{nodeRenderer.cpp}!DrawVisualNode@{DrawVisualNode}}
+\index{DrawVisualNode@{DrawVisualNode}!nodeRenderer.cpp@{nodeRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{DrawVisualNode()}{DrawVisualNode()}\hspace{0.1cm}{\footnotesize\ttfamily [1/4]}}
+{\footnotesize\ttfamily \label{node_renderer_8cpp_a27d38fc57c2da83774983297c2ef01fa} 
+bool Draw\+Visual\+Node (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+\Hypertarget{node_renderer_8cpp_a0fb48c396a642e32aed96213685e52c4}\index{nodeRenderer.cpp@{nodeRenderer.cpp}!DrawVisualNode@{DrawVisualNode}}
+\index{DrawVisualNode@{DrawVisualNode}!nodeRenderer.cpp@{nodeRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{DrawVisualNode()}{DrawVisualNode()}\hspace{0.1cm}{\footnotesize\ttfamily [2/4]}}
+{\footnotesize\ttfamily \label{node_renderer_8cpp_a0fb48c396a642e32aed96213685e52c4} 
+bool Draw\+Visual\+Node (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{, }\item[{\doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \texorpdfstring{$\ast$}{*}}]{id\+Gen}{}\end{DoxyParamCaption})}
+
+\Hypertarget{node_renderer_8cpp_aa091b273f9fb98c00f1ea81aa94bae75}\index{nodeRenderer.cpp@{nodeRenderer.cpp}!DrawVisualNode@{DrawVisualNode}}
+\index{DrawVisualNode@{DrawVisualNode}!nodeRenderer.cpp@{nodeRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{DrawVisualNode()}{DrawVisualNode()}\hspace{0.1cm}{\footnotesize\ttfamily [3/4]}}
+{\footnotesize\ttfamily \label{node_renderer_8cpp_aa091b273f9fb98c00f1ea81aa94bae75} 
+bool Draw\+Visual\+Node (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{, }\item[{\doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \texorpdfstring{$\ast$}{*}}]{id\+Gen}{, }\item[{const std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \texorpdfstring{$\ast$}{*}}]{all\+Nodes}{}\end{DoxyParamCaption})}
+
+\Hypertarget{node_renderer_8cpp_a296a8d7c00e4cda7f14ecf397208a220}\index{nodeRenderer.cpp@{nodeRenderer.cpp}!DrawVisualNode@{DrawVisualNode}}
+\index{DrawVisualNode@{DrawVisualNode}!nodeRenderer.cpp@{nodeRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{DrawVisualNode()}{DrawVisualNode()}\hspace{0.1cm}{\footnotesize\ttfamily [4/4]}}
+{\footnotesize\ttfamily \label{node_renderer_8cpp_a296a8d7c00e4cda7f14ecf397208a220} 
+bool Draw\+Visual\+Node (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{, }\item[{\doxymbox{\hyperlink{struct_id_gen}{Id\+Gen}} \texorpdfstring{$\ast$}{*}}]{id\+Gen}{, }\item[{const std::\+vector$<$ \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} $>$ \texorpdfstring{$\ast$}{*}}]{all\+Nodes}{, }\item[{const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \texorpdfstring{$\ast$}{*}}]{all\+Links}{}\end{DoxyParamCaption})}
+
+\Hypertarget{node_renderer_8cpp_a798e3a9142facc407a26fdfd4e3b9f50}\index{nodeRenderer.cpp@{nodeRenderer.cpp}!MeasureFieldWidth@{MeasureFieldWidth}}
+\index{MeasureFieldWidth@{MeasureFieldWidth}!nodeRenderer.cpp@{nodeRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{MeasureFieldWidth()}{MeasureFieldWidth()}}
+{\footnotesize\ttfamily \label{node_renderer_8cpp_a798e3a9142facc407a26fdfd4e3b9f50} 
+float Measure\+Field\+Width (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_node_field}{Node\+Field}} \&}]{field}{}\end{DoxyParamCaption})}
+
+
+
+Returns width for one field row (label + spacing + widget). 
+
+\Hypertarget{node_renderer_8cpp_a3c346e92a8580943f6d4c682fa311388}\index{nodeRenderer.cpp@{nodeRenderer.cpp}!MeasureNodeContentWidth@{MeasureNodeContentWidth}}
+\index{MeasureNodeContentWidth@{MeasureNodeContentWidth}!nodeRenderer.cpp@{nodeRenderer.cpp}}
+\doxysubsubsection{\texorpdfstring{MeasureNodeContentWidth()}{MeasureNodeContentWidth()}}
+{\footnotesize\ttfamily \label{node_renderer_8cpp_a3c346e92a8580943f6d4c682fa311388} 
+float Measure\+Node\+Content\+Width (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{struct_visual_node}{Visual\+Node}} \&}]{n}{}\end{DoxyParamCaption})}
+
+
+
+Returns minimum content width needed to render node body. 
+

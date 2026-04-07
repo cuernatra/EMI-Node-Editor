@@ -1,0 +1,27 @@
+\doxysection{field\+Widget.\+h}
+\hypertarget{field_widget_8h_source}{}\label{field_widget_8h_source}\index{src/core/registry/fieldWidget.h@{src/core/registry/fieldWidget.h}}
+\doxymbox{\hyperlink{field_widget_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#ifndef\ FIELD\_WIDGET\_H}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#define\ FIELD\_WIDGET\_H}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{node_descriptor_8h}{nodeDescriptor.h}}"{}}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ <string>}}
+\DoxyCodeLine{00011\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_node_field}{NodeField}}}
+\DoxyCodeLine{00018\ \{}
+\DoxyCodeLine{00019\ \ \ \ \ std::string\ \doxymbox{\hyperlink{struct_node_field_a9d77002e6bc3c8402ebba6366c8c7222}{name}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00020\ \ \ \ \ \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{PinType}}\ \ \ \ \ \doxymbox{\hyperlink{struct_node_field_a4e74544d05991941456d3da7f9ec79c2}{valueType}};\ \ }
+\DoxyCodeLine{00021\ \ \ \ \ std::string\ \doxymbox{\hyperlink{struct_node_field_ac8c5d50de0d8a7b5428a5c06191b63cc}{value}};\ \ \ \ \ \ }
+\DoxyCodeLine{00022\ \};}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00030\ \textcolor{keyword}{inline}\ \doxymbox{\hyperlink{struct_node_field}{NodeField}}\ \doxymbox{\hyperlink{field_widget_8h_aa8adc8b294fe082db2647c00d90bc41a}{MakeNodeField}}(\textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_field_descriptor}{FieldDescriptor}}\&\ desc)}
+\DoxyCodeLine{00031\ \{}
+\DoxyCodeLine{00032\ \ \ \ \ \textcolor{keywordflow}{return}\ \{\ desc.\doxymbox{\hyperlink{struct_field_descriptor_a2a32cf13a4446a86419934ea3a405133}{name}},\ desc.\doxymbox{\hyperlink{struct_field_descriptor_a5414fc7b58484b416844af6833f2f420}{valueType}},\ desc.\doxymbox{\hyperlink{struct_field_descriptor_a61bc05716ab0f118d757abb6e3cfe191}{defaultValue}}\ \};}
+\DoxyCodeLine{00033\ \}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00035\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ FIELD\_WIDGET\_H}}
+
+\end{DoxyCode}

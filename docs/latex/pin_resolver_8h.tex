@@ -1,0 +1,40 @@
+\doxysection{src/\+core/\+compiler/\+pin\+Resolver.h File Reference}
+\hypertarget{pin_resolver_8h}{}\label{pin_resolver_8h}\index{src/core/compiler/pinResolver.h@{src/core/compiler/pinResolver.h}}
+
+
+\doxylink{struct_pin}{Pin} connection resolution for recursive AST building.  
+
+
+{\ttfamily \+\#include "{}../\+graph/\+visual\+Node.\+h"{}}\newline
+{\ttfamily \+\#include "{}../\+graph/\+link.\+h"{}}\newline
+{\ttfamily \+\#include "{}imgui\+\_\+node\+\_\+editor.\+h"{}}\newline
+{\ttfamily \+\#include $<$unordered\+\_\+map$>$}\newline
+{\ttfamily \+\#include $<$cstdint$>$}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{structstd_1_1hash_3_01ed_1_1_pin_id_01_4}{std::\+hash$<$ ed::\+\+Pin\+Id $>$}}
+\item 
+struct \doxymbox{\hyperlink{structstd_1_1hash_3_01ed_1_1_node_id_01_4}{std::\+hash$<$ ed::\+\+Node\+Id $>$}}
+\item 
+struct \doxymbox{\hyperlink{struct_pin_source}{Pin\+Source}}
+\begin{DoxyCompactList}\small\item\em Identifies the source of a connected input pin. \end{DoxyCompactList}\item 
+struct \doxymbox{\hyperlink{struct_flow_target}{Flow\+Target}}
+\begin{DoxyCompactList}\small\item\em Identifies where a flow output pin continues execution. \end{DoxyCompactList}\item 
+class \doxymbox{\hyperlink{class_pin_resolver}{Pin\+Resolver}}
+\begin{DoxyCompactList}\small\item\em Fast lookup for input pin → source mappings. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacestd}{std}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\doxylink{struct_pin}{Pin} connection resolution for recursive AST building. 
+
+Pre-\/processes link lists into fast lookups mapping input pins to their source (output pin on upstream node). \doxylink{class_graph_compiler}{Graph\+Compiler} uses this to recursively build AST subtrees:\+ "{}what expression feeds this input pin?"{}
+
+\begin{DoxyAuthor}{Author}
+Jenny 
+\end{DoxyAuthor}

@@ -1,0 +1,51 @@
+\doxysection{src/\+ui/\+theme.h File Reference}
+\hypertarget{theme_8h}{}\label{theme_8h}\index{src/ui/theme.h@{src/ui/theme.h}}
+
+
+Centralized UI theme color tokens.  
+
+
+{\ttfamily \+\#include $<$imgui.\+h$>$}\newline
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespacecolors}{colors}}
+\begin{DoxyCompactList}\small\item\em Color palette used throughout the UI. \end{DoxyCompactList}\item 
+namespace \doxymbox{\hyperlink{namespaceui_fonts}{ui\+Fonts}}
+\begin{DoxyCompactList}\small\item\em Shared Im\+Gui font handles used by specific UI areas. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_a9af96d051a6b166e5a49f400eacebc22}{colors::\+transparent}} = Im\+Vec4(0.\+0f, 0.\+0f, 0.\+0f, 0.\+0f)
+\begin{DoxyCompactList}\small\item\em Fully transparent. \end{DoxyCompactList}\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_acf1fa7891e383b9e91e49ae5c49c717f}{colors::\+background}} = Im\+Vec4(18.\+0f /\+ 255.\+0f, 18.\+0f /\+ 255.\+0f, 18.\+0f /\+ 255.\+0f, 1.\+0f)
+\begin{DoxyCompactList}\small\item\em Background \#121212. \end{DoxyCompactList}\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_a412df72e568e0389e754a4f0972f6199}{colors::\+surface}} = Im\+Vec4(24.\+0f /\+ 255.\+0f, 24.\+0f /\+ 255.\+0f, 24.\+0f /\+ 255.\+0f, 1.\+0f)
+\begin{DoxyCompactList}\small\item\em Surface \#181818. \end{DoxyCompactList}\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_acc86fd4c6b9467e9b87a3184c0993a26}{colors::\+elevated}} = Im\+Vec4(40.\+0f /\+ 255.\+0f, 40.\+0f /\+ 255.\+0f, 40.\+0f /\+ 255.\+0f, 1.\+0f)
+\begin{DoxyCompactList}\small\item\em Elevated \#282828. \end{DoxyCompactList}\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_a3b5f9cd1751624319f4ca25a6722db56}{colors::\+accent}} = Im\+Vec4(78.\+0f /\+ 255.\+0f, 161.\+0f /\+ 255.\+0f, 255.\+0f /\+ 255.\+0f, 1.\+0f)
+\begin{DoxyCompactList}\small\item\em Accent blue \#4EA1\+FFFF. \end{DoxyCompactList}\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_af25aa633df77e3ee3ba2139cec38840b}{colors::\+text\+Primary}} = Im\+Vec4(212.\+0f /\+ 255.\+0f, 212.\+0f /\+ 255.\+0f, 212.\+0f /\+ 255.\+0f, 1.\+0f)
+\begin{DoxyCompactList}\small\item\em Text Primary \+\#\+D4\+D4\+D4 (VS Code-\/like). \end{DoxyCompactList}\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_a46827498e58f5b43221bbf2d6b6c714b}{colors::\+text\+Secondary}} = Im\+Vec4(140.\+0f /\+ 255.\+0f, 140.\+0f /\+ 255.\+0f, 140.\+0f /\+ 255.\+0f, 1.\+0f)
+\begin{DoxyCompactList}\small\item\em Text Secondary \#8C8\+C8C. \end{DoxyCompactList}\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_a47d55ea25440aade97901a6d4fb6d50c}{colors::\+green}} = Im\+Vec4(0.\+2f, 0.\+8f, 0.\+2f, 1.\+0f)
+\begin{DoxyCompactList}\small\item\em Success/\+active state color. \end{DoxyCompactList}\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_a61b539f2b279568e91ed0c0cda8e42dd}{colors::\+error}} = Im\+Vec4(1.\+0f, 0.\+3f, 0.\+3f, 1.\+0f)
+\begin{DoxyCompactList}\small\item\em Error/\+failure state color. \end{DoxyCompactList}\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_af065fa008e79726dc665f939d8e71f82}{colors::\+gray}} = Im\+Vec4(0.\+4f, 0.\+4f, 0.\+4f, 1.\+0f)
+\begin{DoxyCompactList}\small\item\em Disabled/\+inactive state color. \end{DoxyCompactList}\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_a6db1527dc70f0e90b9027a79931ebc6c}{colors::\+light\+Gray}} = Im\+Vec4(0.\+6f, 0.\+6f, 0.\+6f, 1.\+0f)
+\begin{DoxyCompactList}\small\item\em Secondary UI element color. \end{DoxyCompactList}\item 
+const Im\+Vec4 \doxymbox{\hyperlink{namespacecolors_ac05c6293f360e810690b86e2f5286794}{colors::\+top\+Panel\+Button\+Hover}} = Im\+Vec4(32.\+0f /\+ 255.\+0f, 32.\+0f /\+ 255.\+0f, 32.\+0f /\+ 255.\+0f, 1.\+0f)
+\begin{DoxyCompactList}\small\item\em Top panel button hover tone. \end{DoxyCompactList}\item 
+const Im\+U32 \doxymbox{\hyperlink{namespacecolors_ac59ab1d006d90bb42fe9a41758d83120}{colors::\+blue}} = IM\+\_\+\+COL32(78, 161, 255, 255)
+\begin{DoxyCompactList}\small\item\em Accent color for highlights. \end{DoxyCompactList}\item 
+Im\+Font \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{namespaceui_fonts_a99d8affa6465cf65a157a92ea1bf6ac8}{ui\+Fonts::\+terminal}} = nullptr
+\begin{DoxyCompactList}\small\item\em Monospace font for terminal/\+console logs. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Centralized UI theme color tokens. 
+

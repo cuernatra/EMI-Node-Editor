@@ -1,0 +1,40 @@
+\doxysection{link.\+h}
+\hypertarget{link_8h_source}{}\label{link_8h_source}\index{src/core/graph/link.h@{src/core/graph/link.h}}
+\doxymbox{\hyperlink{link_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ LINK\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ LINK\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ "{}imgui\_node\_editor.h"{}}}
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{types_8h}{types.h}}"{}}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00007\ }
+\DoxyCodeLine{00008\ \textcolor{keyword}{namespace\ }ed\ =\ ax::NodeEditor;}
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00011\ \textcolor{comment}{//\ Link}}
+\DoxyCodeLine{00012\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00021\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_link}{Link}}}
+\DoxyCodeLine{00022\ \{}
+\DoxyCodeLine{00024\ \ \ \ \ ed::LinkId\ \textcolor{keywordtype}{id}\{\};}
+\DoxyCodeLine{00025\ \ \ \ \ }
+\DoxyCodeLine{00027\ \ \ \ \ ed::PinId\ \ \doxymbox{\hyperlink{struct_link_a0f17d0a278c4d50bbc438b8ffff4d116}{startPinId}}\{\};}
+\DoxyCodeLine{00028\ \ \ \ \ }
+\DoxyCodeLine{00030\ \ \ \ \ ed::PinId\ \ \doxymbox{\hyperlink{struct_link_ae4c4c6f0f676042f8a418abf86a78a6a}{endPinId}}\{\};}
+\DoxyCodeLine{00031\ \ \ \ \ }
+\DoxyCodeLine{00033\ \ \ \ \ \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5}{PinType}}\ \ \ \ \doxymbox{\hyperlink{struct_link_a003c8a584ce10bbb2f1f2db05ed59c77}{type}}\ =\ \doxymbox{\hyperlink{types_8h_ab5c1a71b52ceb31763d6d32416abf3e5aed36a1ef76a59ee3f15180e0441188ad}{PinType::Any}};}
+\DoxyCodeLine{00034\ \ \ \ \ }
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{struct_link_a6a027a26889af3cacf04579ab49cf2de}{alive}}\ =\ \textcolor{keyword}{true};}
+\DoxyCodeLine{00037\ \};}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00039\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00040\ \textcolor{comment}{//\ Link\ utilities}}
+\DoxyCodeLine{00041\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00055\ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{link_8h_aec9e764993b90a81c6e24c3c34639491}{WouldCreateCycle}}(\textcolor{keyword}{const}\ std::vector<Link>\&\ links,}
+\DoxyCodeLine{00056\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ed::PinId\ startPin,\ ed::PinId\ endPin);}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ LINK\_H}}
+
+\end{DoxyCode}

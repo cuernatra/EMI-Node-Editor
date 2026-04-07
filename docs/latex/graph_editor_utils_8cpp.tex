@@ -1,0 +1,50 @@
+\doxysection{src/\+editor/\+graph/\+graph\+Editor\+Utils.cpp File Reference}
+\hypertarget{graph_editor_utils_8cpp}{}\label{graph_editor_utils_8cpp}\index{src/editor/graph/graphEditorUtils.cpp@{src/editor/graph/graphEditorUtils.cpp}}
+{\ttfamily \+\#include "{}graph\+Editor\+Utils.\+h"{}}\newline
+{\ttfamily \+\#include "{}graph\+Serializer.\+h"{}}\newline
+{\ttfamily \+\#include "{}core/\+graph/\+link.\+h"{}}\newline
+{\ttfamily \+\#include $<$algorithm$>$}\newline
+{\ttfamily \+\#include $<$cmath$>$}\newline
+{\ttfamily \+\#include $<$cstdlib$>$}\newline
+{\ttfamily \+\#include $<$cstring$>$}\newline
+{\ttfamily \+\#include $<$cctype$>$}\newline
+{\ttfamily \+\#include $<$string$>$}\newline
+{\ttfamily \+\#include $<$unordered\+\_\+map$>$}\newline
+\doxysubsubsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+namespace \doxymbox{\hyperlink{namespace_graph_editor_utils}{Graph\+Editor\+Utils}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+Im\+Vec2 \doxymbox{\hyperlink{namespace_graph_editor_utils_a1dbcf7e9bb170b34cec73a7bd001599a}{Graph\+Editor\+Utils::\+\+Snap\+To\+Node\+Grid}} (const Im\+Vec2 \&pos)
+\item 
+void \doxymbox{\hyperlink{namespace_graph_editor_utils_ae4d4146f7d3ae5a9190ad1585c23409f}{Graph\+Editor\+Utils::\+\+Parse\+Spawn\+Payload\+Title}} (const char \texorpdfstring{$\ast$}{*}payload\+Title, \doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{Node\+Type}} \&out\+Type, std::\+string \&out\+Variable\+Variant)
+\item 
+\doxymbox{\hyperlink{struct_node_field}{Node\+Field}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{namespace_graph_editor_utils_a4e43bc270b4cea8ce066321d8ce3c319}{Graph\+Editor\+Utils::\+\+Find\+Field}} (std::\+vector$<$ \doxymbox{\hyperlink{struct_node_field}{Node\+Field}} $>$ \&fields, const char \texorpdfstring{$\ast$}{*}name)
+\item 
+const \doxymbox{\hyperlink{struct_node_field}{Node\+Field}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{namespace_graph_editor_utils_aff2de37132e04ceae73fdb7e30bdddc1}{Graph\+Editor\+Utils::\+\+Find\+Field}} (const std::\+vector$<$ \doxymbox{\hyperlink{struct_node_field}{Node\+Field}} $>$ \&fields, const char \texorpdfstring{$\ast$}{*}name)
+\item 
+\doxymbox{\hyperlink{struct_pin}{Pin}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{namespace_graph_editor_utils_a0cad8d491915b1ab8d43ea6df4a61dfc}{Graph\+Editor\+Utils::\+\+Find\+Pin\+By\+Name}} (std::\+vector$<$ \doxymbox{\hyperlink{struct_pin}{Pin}} $>$ \&pins, const char \texorpdfstring{$\ast$}{*}name)
+\item 
+bool \doxymbox{\hyperlink{namespace_graph_editor_utils_a4ba13ef210d6cfdeeddfa2081d0a3c2e}{Graph\+Editor\+Utils::\+\+Draw\+Inspector\+Field}} (\doxymbox{\hyperlink{struct_node_field}{Node\+Field}} \&field)
+\item 
+void \doxymbox{\hyperlink{namespace_graph_editor_utils_a5297bdee695214b94e56e3df50df0878}{Graph\+Editor\+Utils::\+\+Draw\+Inspector\+Read\+Only\+Field}} (const \doxymbox{\hyperlink{struct_node_field}{Node\+Field}} \&field)
+\item 
+bool \doxymbox{\hyperlink{namespace_graph_editor_utils_ae9776d8ccf30ad0ef881472ca42de084}{Graph\+Editor\+Utils::\+\+Refresh\+Variable\+Node\+Types}} (\doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&state)
+\item 
+bool \doxymbox{\hyperlink{namespace_graph_editor_utils_a95588062e01e6a4e1f6ca66846941c31}{Graph\+Editor\+Utils::\+\+Refresh\+Output\+Node\+Input\+Types}} (\doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&state)
+\item 
+bool \doxymbox{\hyperlink{namespace_graph_editor_utils_ad76ab389d88ff98e36ff8ce2cc7a1e9a}{Graph\+Editor\+Utils::\+\+Refresh\+Loop\+Node\+Layout}} (\doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&state)
+\item 
+bool \doxymbox{\hyperlink{namespace_graph_editor_utils_a761404f3b2c5b0ed58ec9343490d4255}{Graph\+Editor\+Utils::\+\+Refresh\+For\+Each\+Node\+Layout}} (\doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&state)
+\item 
+bool \doxymbox{\hyperlink{namespace_graph_editor_utils_a33049c36204948b089b95ad0d0665add}{Graph\+Editor\+Utils::\+\+Refresh\+Draw\+Rect\+Node\+Layout}} (\doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&state)
+\item 
+bool \doxymbox{\hyperlink{namespace_graph_editor_utils_a1c691d016abc0cb82fb7ec071e2f23f0}{Graph\+Editor\+Utils::\+\+Refresh\+Struct\+Node\+Layouts}} (\doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&state)
+\item 
+bool \doxymbox{\hyperlink{namespace_graph_editor_utils_a3c18dc252fa0bd0442e155e5a1dabe62}{Graph\+Editor\+Utils::\+\+Sync\+Link\+Types\+And\+Prune\+Invalid}} (\doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&state)
+\item 
+void \doxymbox{\hyperlink{namespace_graph_editor_utils_af8990b659cb6f774126abbd0df219adc}{Graph\+Editor\+Utils::\+\+Disconnect\+Non\+Any\+Links\+For\+Pins}} (\doxymbox{\hyperlink{class_graph_state}{Graph\+State}} \&state, const std::\+vector$<$ ed::\+\+Pin\+Id $>$ \&pin\+Ids)
+\end{DoxyCompactItemize}

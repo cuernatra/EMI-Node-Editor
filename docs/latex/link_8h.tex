@@ -1,0 +1,47 @@
+\doxysection{src/\+core/\+graph/\+link.h File Reference}
+\hypertarget{link_8h}{}\label{link_8h}\index{src/core/graph/link.h@{src/core/graph/link.h}}
+{\ttfamily \+\#include "{}imgui\+\_\+node\+\_\+editor.\+h"{}}\newline
+{\ttfamily \+\#include "{}types.\+h"{}}\newline
+{\ttfamily \+\#include $<$vector$>$}\newline
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{struct_link}{Link}}
+\begin{DoxyCompactList}\small\item\em Represents a connection (edge) between two pins in the node graph. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{link_8h_aec9e764993b90a81c6e24c3c34639491}{Would\+Create\+Cycle}} (const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \&links, ed::\+\+Pin\+Id start\+Pin, ed::\+\+Pin\+Id end\+Pin)
+\begin{DoxyCompactList}\small\item\em Check if adding a link would create a cycle in the graph. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\label{doc-func-members}
+\Hypertarget{link_8h_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{link_8h_aec9e764993b90a81c6e24c3c34639491}\index{link.h@{link.h}!WouldCreateCycle@{WouldCreateCycle}}
+\index{WouldCreateCycle@{WouldCreateCycle}!link.h@{link.h}}
+\doxysubsubsection{\texorpdfstring{WouldCreateCycle()}{WouldCreateCycle()}}
+{\footnotesize\ttfamily \label{link_8h_aec9e764993b90a81c6e24c3c34639491} 
+bool Would\+Create\+Cycle (\begin{DoxyParamCaption}\item[{const std::\+vector$<$ \doxymbox{\hyperlink{struct_link}{Link}} $>$ \&}]{links}{, }\item[{ed::\+\+Pin\+Id}]{start\+Pin}{, }\item[{ed::\+\+Pin\+Id}]{end\+Pin}{}\end{DoxyParamCaption})}
+
+
+
+Check if adding a link would create a cycle in the graph. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em links} & Current set of active links in the graph \\
+\hline
+{\em start\+Pin} & Output pin ID of the proposed new link \\
+\hline
+{\em end\+Pin} & Input pin ID of the proposed new link \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if the new link would create a cycle, false otherwise
+\end{DoxyReturn}
+Uses depth-\/first search to detect cycles. A cycle would create an invalid graph where data dependencies form a loop, which cannot be evaluated.
+
+\begin{DoxyNote}{Note}
+This function is called during link creation to prevent invalid connections 
+\end{DoxyNote}

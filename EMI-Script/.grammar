@@ -1,0 +1,309 @@
+#rules
+
+Start Program
+Program RProgram Program
+Program None
+
+RProgram ObjectDef
+RProgram FunctionDef
+RProgram PublicFunctionDef
+RProgram NamespaceDef
+RProgram UsingDef
+RProgram ImportDef
+RProgram VarDeclare Semi
+RProgram Stmt
+
+Typename TypeString
+Typename TypeBoolean
+Typename TypeNumber
+Typename TypeArray
+Typename TypeFunction
+Typename Id
+
+ObjectDef Object Id Lcurly MObjectVar Rcurly
+MObjectVar ObjectVar MObjectVar
+MObjectVar None
+ObjectVar Id OTypename OExpr Semi
+OTypename Colon Typename
+OTypename None
+OExpr Assign Expr
+OExpr None
+
+FunctionDef Definition Id Lparenthesis MFunctionVar Rparenthesis OTypename Scope
+PublicFunctionDef Public FunctionDef
+PublicFunctionDef PublicDef Id Lparenthesis MFunctionVar Rparenthesis OTypename Scope
+NamespaceDef Extend Identifier Colon
+UsingDef Using Identifier Colon
+ImportDef Import Id Colon
+MFunctionVar FunctionVar Comma MFunctionVar
+MFunctionVar FunctionVar
+MFunctionVar None
+FunctionVar Id OTypename
+
+Scope Lcurly MStmt Rcurly
+MStmt Stmt MStmt
+MStmt Scope MStmt
+MStmt None
+Stmt Expr Semi
+Stmt Flow
+Stmt Setter Semi
+
+Expr Expr Add Add
+Expr Expr Sub Sub
+
+Expr Expr Add Expr
+Expr Expr Sub Expr
+Expr Expr Div Expr
+Expr Expr Mult Expr
+
+Expr Expr NotEqual Expr
+Expr Expr Equal Expr
+Expr Expr And Expr
+Expr Expr Or Expr
+Expr Expr Less Expr
+Expr Expr Larger Expr
+Expr Expr LessEqual Expr
+LessEqual Less Assign
+Expr Expr LargerEqual Expr
+LargerEqual Larger Assign
+
+Expr Conditional
+Conditional Expr Opt Expr Colon Expr 
+
+Expr Priority
+Priority Lparenthesis Expr Rparenthesis
+
+Expr Unary
+Expr ValueId
+Unary Value
+Unary Add Add Expr
+Unary Add Expr
+Unary Sub Sub Expr
+Unary Sub Expr
+Unary Not Expr
+Value True
+Value False
+Value FormatStr
+Value Quote Literal Quote
+Value Number
+Value Identifier
+Value Null
+Identifier Id
+Identifier Identifier Dot Id
+Value Array
+Array Lbracket CallParams Rbracket 
+Expr Expr Dot Id
+
+OFormatArg StrDelimiterL Expr StrDelimiterR
+OFormatArg Literal
+FormatStr Quote OFormatArg Quote
+OFormatArg OFormatArg OFormatArg
+
+MPipe Pipe MPipe
+MPipe Pipe
+Pipe Router FunctionCall
+
+Expr Expr Assign Expr
+Expr Expr Add Assign Expr
+Expr Expr Sub Assign Expr
+Expr Expr Div Assign Expr
+Expr Expr Mult Assign Expr
+Expr VarDeclare
+Expr FunctionCall
+Expr Indexer
+Expr Expr MPipe
+Expr Control
+Expr ObjectInit
+
+ObjectInit Identifier Lcurly CallParams Rcurly
+
+Setter Set ValueId
+
+Control Return Expr
+Control Return
+Control Continue
+Control Break
+
+Flow IfFlow
+Flow ForFlow
+Flow WhileFlow
+
+IfFlow If Lparenthesis Expr Rparenthesis FlowBlock ElseFlow
+ForFlow For Lparenthesis Expr Semi Expr Semi Expr Rparenthesis FlowBlock ElseFlow
+ForFlow For Lparenthesis Expr Rparenthesis FlowBlock ElseFlow
+ForFlow For Lparenthesis Id In Expr Rparenthesis FlowBlock ElseFlow
+WhileFlow While Lparenthesis Expr Rparenthesis FlowBlock
+ElseFlow Else FlowBlock
+ElseFlow None
+
+FlowBlock Stmt
+FlowBlock Scope
+
+Indexer Expr Lbracket Expr Rbracket
+Indexer Expr Lbracket Rbracket
+
+VarDeclare Var Id OTypename OVarDeclare
+VarDeclare Static Id OTypename OVarDeclare
+VarDeclare Const Id OTypename OVarDeclare
+OVarDeclare Assign Expr
+OVarDeclare None
+
+FunctionCall Expr Lparenthesis CallParams Rparenthesis
+CallParams Expr
+CallParams Expr Comma CallParams
+CallParams None
+
+#data
+
+.
+None None Program
+.
+
+None None ObjectDef
+None None FunctionDef
+None None PublicFunctionDef
+None None NamespaceDef
+None None UsingDef
+None None ImportDef
+None None VarDeclare
+None None Stmt
+
+None TypeString 
+None TypeBoolean
+None TypeNumber
+None TypeArray
+None TypeFunction
+Id Typename
+
+Id None MObjectVar
+None None MObjectVar
+None ObjectDef 
+Id
+None None Typename
+None AnyType 
+None None Expr 
+.
+
+Id
+None PublicFunctionDef FunctionDef
+Id PublicFunctionDef
+Id
+Id
+Id
+None CallParams MFunctionVar
+None CallParams
+None CallParams
+Id
+
+None Scope MStmt 
+None Scope MStmt 
+None Scope MStmt 
+None Scope 
+None None Expr
+None None Flow
+None None Setter
+
+None Increment
+None Decrement 
+
+None Add 
+None Sub 
+None Div 
+None Mult 
+
+None NotEqual 
+None Equal 
+None And 
+None Or 
+None Less 
+None Larger 
+None None LessEqual
+None LessEqual 
+None None LargerEqual
+None LargerEqual 
+ 
+None None Conditional 
+.
+
+None None Priority
+None None Expr
+
+None None Unary 
+ValueId ValueId
+None None Value
+None PreIncrement
+None None Expr
+None PreDecrement
+None Negate
+None Not
+True True
+False False 
+None None FormatStr
+Literal Literal
+Number Number 
+None None Identifier 
+None Null
+Id Id 
+Id Id 
+None None Array
+None Array CallParams
+Id Property
+
+None None Expr
+Literal Literal
+None Add OFormatArg
+None Add
+
+None None MPipe
+None Pipe 
+None None FunctionCall
+
+Assign Assign
+None AssignAdd
+None AssignSub
+None AssignDiv
+None AssignMult
+None None VarDeclare
+None None FunctionCall
+None None Indexer
+None None MPipe
+None None Control
+None None ObjectInit
+
+.
+
+ValueId
+
+None Return
+None Return
+None Continue
+None Break
+
+None None IfFlow
+None None ForFlow
+None None WhileFlow
+
+None If
+None For
+None For
+Id For
+None While
+None Else
+None Else
+
+None None Stmt 
+None None Scope 
+
+. 
+.
+
+Id None OVarDeclare
+Id Static OVarDeclare
+Id Const OVarDeclare
+None VarDeclare
+None VarDeclare
+
+.
+None None
+None None CallParams
+.

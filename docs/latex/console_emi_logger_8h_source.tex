@@ -1,0 +1,31 @@
+\doxysection{console\+Emi\+Logger.\+h}
+\hypertarget{console_emi_logger_8h_source}{}\label{console_emi_logger_8h_source}\index{src/editor/panels/consoleEmiLogger.h@{src/editor/panels/consoleEmiLogger.h}}
+\doxymbox{\hyperlink{console_emi_logger_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#pragma\ once}}
+\DoxyCodeLine{00002\ }
+\DoxyCodeLine{00003\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{console_panel_8h}{consolePanel.h}}"{}}}
+\DoxyCodeLine{00004\ }
+\DoxyCodeLine{00005\ \textcolor{preprocessor}{\#if\ \_\_has\_include(<EMI/EMI.h>)}}
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#include\ <EMI/EMI.h>}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#elif\ \_\_has\_include("{}EMI/EMI.h"{})}}
+\DoxyCodeLine{00008\ \textcolor{preprocessor}{\#include\ "{}EMI/EMI.h"{}}}
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#elif\ \_\_has\_include("{}../../EMI-\/Script/EMI-\/Script-\/master/include/EMI/EMI.h"{})}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ "{}../../EMI-\/Script/EMI-\/Script-\/master/include/EMI/EMI.h"{}}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#else}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#error\ "{}Unable\ to\ locate\ EMI/EMI.h"{}}}
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#endif}}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_console_emi_logger_af3646025ad1836085f6d627be93c67fb}{ConsoleEmiLogger}}\ final\ :\ \textcolor{keyword}{public}\ EMI::Logger}
+\DoxyCodeLine{00016\ \{}
+\DoxyCodeLine{00017\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00018\ \ \ \ \ \textcolor{keyword}{explicit}\ \doxymbox{\hyperlink{class_console_emi_logger_af3646025ad1836085f6d627be93c67fb}{ConsoleEmiLogger}}(\doxymbox{\hyperlink{class_console_panel}{ConsolePanel}}\&\ panel);}
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_console_emi_logger_ab41f9aedb1adea3b61db6a5e02e84e5a}{Print}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ message)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_console_emi_logger_aaab3832883e3a24805965163e06dc34d}{PrintError}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}*\ message)\ \textcolor{keyword}{override};}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00024\ \ \ \ \ \doxymbox{\hyperlink{class_console_panel}{ConsolePanel}}\&\ m\_panel;}
+\DoxyCodeLine{00025\ \};}
+
+\end{DoxyCode}

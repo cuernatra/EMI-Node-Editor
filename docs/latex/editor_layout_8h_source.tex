@@ -1,0 +1,71 @@
+\doxysection{editor\+Layout.\+h}
+\hypertarget{editor_layout_8h_source}{}\label{editor_layout_8h_source}\index{src/app/editorLayout.h@{src/app/editorLayout.h}}
+\doxymbox{\hyperlink{editor_layout_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#ifndef\ EDITOR\_LAYOUT\_H}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#define\ EDITOR\_LAYOUT\_H}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{main_editor_8h}{editor/mainEditor.h}}"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{left_panel_8h}{editor/panels/leftPanel.h}}"{}}}
+\DoxyCodeLine{00016\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{top_panel_8h}{editor/panels/topPanel.h}}"{}}}
+\DoxyCodeLine{00017\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{console_panel_8h}{editor/panels/consolePanel.h}}"{}}}
+\DoxyCodeLine{00018\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{console_emi_logger_8h}{editor/panels/consoleEmiLogger.h}}"{}}}
+\DoxyCodeLine{00019\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{graph_preview_panel_8h}{editor/panels/graphPreviewPanel.h}}"{}}}
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{settings_8h}{editor/settings.h}}"{}}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#include\ <cstdint>}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#include\ <memory>}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00038\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_editor_layout_ac436713c028afe298b4580b37ea25ca4}{EditorLayout}}}
+\DoxyCodeLine{00039\ \{}
+\DoxyCodeLine{00040\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00044\ \ \ \ \ \doxymbox{\hyperlink{class_editor_layout_ac436713c028afe298b4580b37ea25ca4}{EditorLayout}}();}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00046\ \ \ \ \ \doxymbox{\hyperlink{class_editor_layout_a91ca0b9c470ae36e065a86431439e21c}{\string~EditorLayout}}();}
+\DoxyCodeLine{00047\ \ \ \ \ }
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_editor_layout_a3d016449381a311471d6863d076b7d95}{draw}}();}
+\DoxyCodeLine{00055\ \ \ \ \ }
+\DoxyCodeLine{00056\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00067\ \ \ \ \ \textcolor{keywordtype}{void}\ DrawSplitter(\textcolor{keywordtype}{float}\ totalWidth,\ \textcolor{keywordtype}{float}\ thickness,\ \textcolor{keywordtype}{float}\ minLeft,\ \textcolor{keywordtype}{float}\ minRight);}
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keywordtype}{void}\ DrawConsoleSplitter(\textcolor{keywordtype}{float}\ width,\ \textcolor{keywordtype}{float}\ thickness,\ \textcolor{keywordtype}{float}\ minMain,\ \textcolor{keywordtype}{float}\ minConsole,\ \textcolor{keywordtype}{float}\ availableHeight);}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00080\ \ \ \ \ \doxymbox{\hyperlink{class_main_editor}{MainEditor}}\ m\_mainEditor;}
+\DoxyCodeLine{00081\ \ \ \ \ }
+\DoxyCodeLine{00083\ \ \ \ \ \doxymbox{\hyperlink{class_left_panel}{LeftPanel}}\ m\_leftPanel;}
+\DoxyCodeLine{00084\ \ \ \ \ }
+\DoxyCodeLine{00086\ \ \ \ \ \doxymbox{\hyperlink{class_top_panel}{TopPanel}}\ m\_topPanel;}
+\DoxyCodeLine{00087\ }
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{comment}{//bottom\ console\ panel}}
+\DoxyCodeLine{00089\ \ \ \ \ \doxymbox{\hyperlink{class_console_panel}{ConsolePanel}}\ m\_consolePanel;}
+\DoxyCodeLine{00090\ \ \ \ \ std::unique\_ptr<ConsoleEmiLogger>\ m\_consoleEmiLogger;}
+\DoxyCodeLine{00091\ \ \ \ \ \doxymbox{\hyperlink{class_graph_preview_panel}{GraphPreviewPanel}}\ m\_graphPreviewPanel;}
+\DoxyCodeLine{00092\ \ \ \ \ }
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keywordtype}{float}\ m\_leftPanelWidth\ =\ \doxymbox{\hyperlink{namespace_settings_a1e214421675dfe6fe7ec0cb6dfa043c7}{Settings::leftPanelWidth}};}
+\DoxyCodeLine{00095\ }
+\DoxyCodeLine{00096\ \ \ \ \ \textcolor{comment}{//\ console\ panel\ height\ (initialized\ from\ settings,\ can\ be\ adjusted\ by\ user)}}
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{keywordtype}{float}\ m\_consolePanelHeight\ =\ \doxymbox{\hyperlink{namespace_settings_a01f27217c3bfca2ceb7ad2b77313acd7}{Settings::consolePanelHeight}};}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{comment}{//\ Console\ panel\ height\ as\ a\ fraction\ of\ the\ right\ column\ height.}}
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{comment}{//\ This\ keeps\ console\ sizing\ responsive\ when\ the\ window\ is\ resized.}}
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{keywordtype}{float}\ m\_consolePanelRatio\ =\ -\/1.0f;}
+\DoxyCodeLine{00102\ \ \ \ \ }
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{keywordtype}{float}\ m\_rightPanelWidth\ =\ -\/1.f;}
+\DoxyCodeLine{00105\ }
+\DoxyCodeLine{00107\ \ \ \ \ uint32\_t\ m\_inspectorWindowGeneration\ =\ 0;}
+\DoxyCodeLine{00108\ }
+\DoxyCodeLine{00110\ \ \ \ \ uintptr\_t\ m\_lastInspectorNodeId\ =\ 0;}
+\DoxyCodeLine{00111\ }
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_showSettingsOverlay\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00114\ }
+\DoxyCodeLine{00116\ \ \ \ \ uint32\_t\ m\_settingsWindowGeneration\ =\ 0;}
+\DoxyCodeLine{00117\ }
+\DoxyCodeLine{00119\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_forceSettingsFocus\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00120\ }
+\DoxyCodeLine{00121\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_previewEnabled\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00122\ \};}
+\DoxyCodeLine{00123\ }
+\DoxyCodeLine{00124\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

@@ -1,0 +1,71 @@
+\doxysection{Ui Class Reference}
+\hypertarget{class_ui}{}\label{class_ui}\index{Ui@{Ui}}
+
+
+Main UI compositor class.  
+
+
+
+
+{\ttfamily \+\#include $<$ui.\+h$>$}
+
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{class_ui_a6e07807d24fb5874a7e51d7ff0196236}{Ui}} ()
+\begin{DoxyCompactList}\small\item\em Initialize the UI compositor. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{class_ui_acbba9efd0b9d2b47833bd80a0fd35614}{draw}} ()
+\begin{DoxyCompactList}\small\item\em Draw the complete UI hierarchy. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Main UI compositor class. 
+
+Orchestrates the layout of all major UI components:\+ top toolbar, left palette panel, and main editor canvas. Provides a resizable splitter between the left panel and main editor for user customization.
+
+Layout structure:\+
+\begin{DoxyItemize}
+\item Top:\+ Toolbar with compile/\+save/\+load buttons
+\item Left:\+ Node palette with draggable node types
+\item Center:\+ Main node editor canvas
+\end{DoxyItemize}
+
+\begin{DoxyAuthor}{Author}
+Atte Perkiö 
+\end{DoxyAuthor}
+
+
+\label{doc-constructors}
+\Hypertarget{class_ui_doc-constructors}
+\doxysubsection{Constructor \& Destructor Documentation}
+\Hypertarget{class_ui_a6e07807d24fb5874a7e51d7ff0196236}\index{Ui@{Ui}!Ui@{Ui}}
+\index{Ui@{Ui}!Ui@{Ui}}
+\doxysubsubsection{\texorpdfstring{Ui()}{Ui()}}
+{\footnotesize\ttfamily \label{class_ui_a6e07807d24fb5874a7e51d7ff0196236} 
+Ui::\+\+Ui (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Initialize the UI compositor. 
+
+
+
+\label{doc-func-members}
+\Hypertarget{class_ui_doc-func-members}
+\doxysubsection{Member Function Documentation}
+\Hypertarget{class_ui_acbba9efd0b9d2b47833bd80a0fd35614}\index{Ui@{Ui}!draw@{draw}}
+\index{draw@{draw}!Ui@{Ui}}
+\doxysubsubsection{\texorpdfstring{draw()}{draw()}}
+{\footnotesize\ttfamily \label{class_ui_acbba9efd0b9d2b47833bd80a0fd35614} 
+void Ui::\+draw (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Draw the complete UI hierarchy. 
+
+Renders the top toolbar, left panel, splitter, and main editor. Must be called every frame within the Im\+Gui context. 
+
+The documentation for this class was generated from the following files:\+\begin{DoxyCompactItemize}
+\item 
+src/\+app/\+\doxymbox{\hyperlink{ui_8h}{ui.\+h}}\item 
+src/\+app/\+\doxymbox{\hyperlink{ui_8cpp}{ui.\+cpp}}\end{DoxyCompactItemize}

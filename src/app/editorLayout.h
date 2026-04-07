@@ -1,0 +1,126 @@
+/**
+ * @file editorLayout.h
+ * @brief Main UI compositor that manages the editor layout
+ * 
+ * Coordinates the top toolbar, left node palette panel, main editor canvas,
+ * and resizable splitter. Creates a three-panel layout with adjustable sizes.
+ * 
+ * @author Atte Perkiö
+ */
+
+#ifndef EDITOR_LAYOUT_H
+#define EDITOR_LAYOUT_H
+
+#include "editor/mainEditor.h"
+#include "editor/panels/leftPanel.h"
+#include "editor/panels/topPanel.h"
+#include "editor/panels/consolePanel.h"
+#include "editor/panels/consoleEmiLogger.h"
+#include "editor/panels/graphPreviewPanel.h"
+#include "editor/panels/renderPanel.h"
+#include "editor/settings.h"
+#include <cstdint>
+#include <memory>
+
+/**
+ * @brief Main UI compositor class
+ * 
+ * Orchestrates the layout of all major UI components: top toolbar, left palette panel,
+ * and main editor canvas. Provides a resizable splitter between the left panel and
+ * main editor for user customization.
+ * 
+ * Layout structure:
+ * - Top: Toolbar with compile/save/load buttons
+ * - Left: Node palette with draggable node types
+ * - Center: Main node editor canvas
+ * 
+ * @author Atte Perkiö
+ */
+class EditorLayout
+{
+public:
+    /**
+     * @brief Initialize the UI compositor
+     */
+    EditorLayout();
+
+    ~EditorLayout();
+    
+    /**
+     * @brief Draw the complete UI hierarchy
+     * 
+     * Renders the top toolbar, left panel, splitter, and main editor.
+     * Must be called every frame within the ImGui context.
+     */
+    void draw();
+    
+private:
+    /**
+     * @brief Draw an interactive splitter between left panel and editor
+     * @param totalWidth Total available horizontal space
+     * @param thickness Width of the splitter in pixels
+     * @param minLeft Minimum width for left panel
+     * @param minRight Minimum width for main editor
+     * 
+     * Creates a draggable vertical divider that allows users to resize
+     * the left panel. Changes cursor to resize icon on hover.
+     */
+    void DrawSplitter(float totalWidth, float thickness, float minLeft, float minRight);
+
+    /**
+     * @brief Draw horizontal splitter between main editor and console
+     * @param width Width of the right-side column
+     * @param thickness Height of splitter in pixels
+     * @param minMain Minimum height for main editor
+     * @param minConsole Minimum height for console panel
+     * @param availableHeight Total available height in right-side column
+     */
+    void DrawConsoleSplitter(float width, float thickness, float minMain, float minConsole, float availableHeight);
+
+    /// Main node graph editor
+    MainEditor m_mainEditor;
+    
+    /// Left sidebar with node palette
+    LeftPanel m_leftPanel;
+    
+    /// Top toolbar with editor actions
+    TopPanel m_topPanel;
+
+    //bottom console panel
+    ConsolePanel m_consolePanel;
+    std::unique_ptr<ConsoleEmiLogger> m_consoleEmiLogger;
+    GraphPreviewPanel m_graphPreviewPanel;
+    RenderPanel m_renderPanel;
+    
+    /// Current width of left panel (-1 = uninitialized, auto-sized on first draw)
+    float m_leftPanelWidth = Settings::leftPanelWidth;
+
+    // console panel height (initialized from settings, can be adjusted by user)
+    float m_consolePanelHeight = Settings::consolePanelHeight;
+
+    // Console panel height as a fraction of the right column height.
+    // This keeps console sizing responsive when the window is resized.
+    float m_consolePanelRatio = -1.0f;
+    
+    /// Reserved for future right panel (currently unused)
+    float m_rightPanelWidth = -1.f;
+
+    /// Monotonic counter for unique overlay ids (forces fresh topmost window on selection change)
+    uint32_t m_inspectorWindowGeneration = 0;
+
+    /// Last single-selected node id used to detect selection transitions
+    uintptr_t m_lastInspectorNodeId = 0;
+
+    /// Toggles a floating settings overlay window.
+    bool m_showSettingsOverlay = false;
+
+    /// Monotonic counter used to give settings windows unique ids when reopened.
+    uint32_t m_settingsWindowGeneration = 0;
+
+    /// If true, settings window gets keyboard focus when opened this frame.
+    bool m_forceSettingsFocus = false;
+
+    bool m_previewEnabled = false;
+};
+
+#endif

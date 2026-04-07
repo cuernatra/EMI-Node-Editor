@@ -1,0 +1,64 @@
+\doxysection{constants.\+h}
+\hypertarget{constants_8h_source}{}\label{constants_8h_source}\index{src/app/constants.h@{src/app/constants.h}}
+\doxymbox{\hyperlink{constants_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00009\ }
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#ifndef\ APPCONSTANTS\_H}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#define\ APPCONSTANTS\_H}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00013\ \textcolor{preprocessor}{\#include\ <imgui.h>}}
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{theme_8h}{../ui/theme.h}}"{}}}
+\DoxyCodeLine{00015\ }
+\DoxyCodeLine{00019\ \textcolor{keyword}{struct\ }\doxymbox{\hyperlink{struct_position}{Position}}}
+\DoxyCodeLine{00020\ \{}
+\DoxyCodeLine{00021\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{struct_position_af684446cbf0f6d53386686283da6dcc6}{x}};\ }
+\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{struct_position_a54a6182b5f7539295b32255808897d3f}{y}};\ }
+\DoxyCodeLine{00023\ \};}
+\DoxyCodeLine{00024\ }
+\DoxyCodeLine{00029\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceapp_constants}{appConstants}}}
+\DoxyCodeLine{00030\ \{}
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespaceapp_constants_a25e3e91d2fb39881f52d6c8858253048}{windowWidth}}\ =\ 1280;\ \ \ \ \ \ }
+\DoxyCodeLine{00032\ \ \ \ \ \textcolor{keyword}{constexpr}\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{namespaceapp_constants_a88dc79d258134455e1f1e725d12af936}{windowheight}}\ =\ 720;\ \ \ \ }
+\DoxyCodeLine{00033\ \}}
+\DoxyCodeLine{00034\ }
+\DoxyCodeLine{00041\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespaceelement_sizes}{elementSizes}}}
+\DoxyCodeLine{00042\ \{}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespaceelement_sizes_af973f05542c20c3e3899253bbfa3dfe4}{topBarHeight}}\ =\ \doxymbox{\hyperlink{namespaceapp_constants_a88dc79d258134455e1f1e725d12af936}{appConstants::windowheight}}\ /\ 20;\ \ \ \ }
+\DoxyCodeLine{00044\ \}}
+\DoxyCodeLine{00045\ }
+\DoxyCodeLine{00050\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespacelayout_constants}{layoutConstants}}}
+\DoxyCodeLine{00051\ \{}
+\DoxyCodeLine{00052\ \ \ \ \ \textcolor{keyword}{const}\ ImVec2\ \doxymbox{\hyperlink{namespacelayout_constants_a54e959096236ac6c66b496d0710536b7}{rootWindowPadding}}\ =\ ImVec2(0.0f,\ 0.0f);\ \ \ \ \ }
+\DoxyCodeLine{00053\ \ \ \ \ \textcolor{keyword}{const}\ ImVec2\ \doxymbox{\hyperlink{namespacelayout_constants_a5fac614cafd2e3d267dccf00b5cbac46}{rootItemSpacing}}\ =\ ImVec2(0.0f,\ 0.0f);\ \ \ \ \ \ \ }
+\DoxyCodeLine{00054\ \ \ \ \ \textcolor{keyword}{const}\ ImVec2\ \doxymbox{\hyperlink{namespacelayout_constants_a92db1513f82d979ef524b8eb67c7f3b5}{panelPadding}}\ =\ ImVec2(10.0f,\ 10.0f);\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00055\ \ \ \ \ \textcolor{keyword}{const}\ ImVec2\ \doxymbox{\hyperlink{namespacelayout_constants_ab6a9d0ea904be5537d33e22e18077d1e}{panelItemSpacing}}\ =\ ImVec2(5.0f,\ 5.0f);\ \ \ \ \ \ }
+\DoxyCodeLine{00056\ }
+\DoxyCodeLine{00057\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacelayout_constants_a20b98a370fc8e9b12c8f92ae54c25dce}{horizontalSplitterWidth}}\ =\ 5.0f;\ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacelayout_constants_a982b37de501798bf77e36826a8346df9}{minLeftPanelWidth}}\ =\ 50.0f;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00059\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacelayout_constants_a11ec4a4e7b0e56ea75d70d5670627c80}{minInspectorPanelWidth}}\ =\ 520.0f;\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00060\ }
+\DoxyCodeLine{00061\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacelayout_constants_ac63eec4852a4ae2602afc2344bdc2feb}{consoleSplitterThickness}}\ =\ 5.0f;\ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00062\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacelayout_constants_a10b9278fa6c96748935704e16d260c57}{minMainEditorHeight}}\ =\ 80.0f;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00063\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacelayout_constants_a4814d7d2a150475a638d68b87afe9a09}{minConsoleHeight}}\ =\ 60.0f;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00064\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacelayout_constants_a949990eb73d0cf1683690534296af335}{inspectorPaddingX}}\ =\ 8.0f;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00065\ \}}
+\DoxyCodeLine{00066\ }
+\DoxyCodeLine{00073\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespacenode_preview_constants}{nodePreviewConstants}}}
+\DoxyCodeLine{00074\ \{}
+\DoxyCodeLine{00075\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacenode_preview_constants_a164f31e22084ad2d19a0db3d8f88167c}{headerHeight}}\ =\ 20.0f;\ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00076\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacenode_preview_constants_aa706c60f1610dd6deee69d3f2cc933bc}{fixedWidth}}\ =\ 125.0f;\ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00077\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacenode_preview_constants_a32628f8ef97f3541a9550b6f9476a051}{fixedHeight}}\ =\ 110.0f;\ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00078\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacenode_preview_constants_a97f7c77d5376d4a0235537091187a8b2}{padding}}\ =\ 7.0f;\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00079\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacenode_preview_constants_a3e0c5c6230ccd3bb30491d75c2f57b5f}{pinRadius}}\ =\ 3.5f;\ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00080\ \}}
+\DoxyCodeLine{00081\ }
+\DoxyCodeLine{00082\ \textcolor{keyword}{namespace\ }\doxymbox{\hyperlink{namespacefont_constants}{fontConstants}}}
+\DoxyCodeLine{00083\ \{}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacefont_constants_a3ea8acdb2571c505d50696c4c8ea7286}{fontSize}}\ =\ 15.0f;\ \ \ \ \ \ \ }
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacefont_constants_afd8f75ea13176a16b579bccc347e70d1}{oversampleH}}\ =\ 5.0f;\ \ \ \ \ }
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keyword}{const}\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{namespacefont_constants_aa03d535daed66703d2c0f0761ee4c1bb}{oversampleV}}\ =\ 5.0f;\ \ \ \ \ }
+\DoxyCodeLine{00087\ \}}
+\DoxyCodeLine{00088\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

@@ -1,0 +1,38 @@
+\doxysection{top\+Panel.\+h}
+\hypertarget{top_panel_8h_source}{}\label{top_panel_8h_source}\index{src/editor/panels/topPanel.h@{src/editor/panels/topPanel.h}}
+\doxymbox{\hyperlink{top_panel_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{preprocessor}{\#ifndef\ TOPPANEL\_H}}
+\DoxyCodeLine{00007\ \textcolor{preprocessor}{\#define\ TOPPANEL\_H}}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{constants_8h}{app/constants.h}}"{}}}
+\DoxyCodeLine{00010\ \textcolor{preprocessor}{\#include\ <vector>}}
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#include\ <functional>}}
+\DoxyCodeLine{00012\ }
+\DoxyCodeLine{00017\ \textcolor{keyword}{class\ }\doxymbox{\hyperlink{class_top_panel_aeaf6b38379b8161922040ccffc598893}{TopPanel}}}
+\DoxyCodeLine{00018\ \{}
+\DoxyCodeLine{00019\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00021\ \ \ \ \ \doxymbox{\hyperlink{class_top_panel_aeaf6b38379b8161922040ccffc598893}{TopPanel}}();}
+\DoxyCodeLine{00022\ \ \ \ \ }
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_top_panel_a6e00cd530583e2b628778600cd3bcfca}{draw}}();}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_top_panel_a5711a31ee0cc3c652970977700588402}{setFilesystemCallback}}(std::function<\textcolor{keywordtype}{void}()>\ cb);}
+\DoxyCodeLine{00027\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_top_panel_a31baddb4651a075e2d05080de172bad3}{setSettingsCallback}}(std::function<\textcolor{keywordtype}{void}()>\ cb);}
+\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{class_top_panel_a6ba7e79a893ed25a10706a44155d5504}{setPreviewCallback}}(std::function<\textcolor{keywordtype}{void}(\textcolor{keywordtype}{bool})>\ cb);}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{class_top_panel_a1b14a58fb218b6e3825f19e712924d2a}{isPreviewEnabled}}()\textcolor{keyword}{\ const\ }\{\ \textcolor{keywordflow}{return}\ m\_previewEnabled;\ \}}
+\DoxyCodeLine{00032\ \ \ \ \ }
+\DoxyCodeLine{00033\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keywordtype}{float}\ m\_height;}
+\DoxyCodeLine{00036\ }
+\DoxyCodeLine{00037\ \ \ \ \ std::function<void()>\ m\_filesystemCallback;}
+\DoxyCodeLine{00038\ \ \ \ \ std::function<void()>\ m\_settingsCallback;}
+\DoxyCodeLine{00039\ \ \ \ \ std::function<void(\textcolor{keywordtype}{bool})>\ m\_previewCallback;}
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keywordtype}{bool}\ m\_previewEnabled\ =\ \textcolor{keyword}{false};}
+\DoxyCodeLine{00041\ \};}
+\DoxyCodeLine{00042\ }
+\DoxyCodeLine{00043\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

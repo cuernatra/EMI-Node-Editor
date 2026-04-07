@@ -1,0 +1,34 @@
+\doxysection{node\+Registry.\+h}
+\hypertarget{node_registry_8h_source}{}\label{node_registry_8h_source}\index{src/core/registry/nodeRegistry.h@{src/core/registry/nodeRegistry.h}}
+\doxymbox{\hyperlink{node_registry_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00010\ }
+\DoxyCodeLine{00011\ \textcolor{preprocessor}{\#ifndef\ NODE\_REGISTRY\_H}}
+\DoxyCodeLine{00012\ \textcolor{preprocessor}{\#define\ NODE\_REGISTRY\_H}}
+\DoxyCodeLine{00013\ }
+\DoxyCodeLine{00014\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{node_descriptor_8h}{nodeDescriptor.h}}"{}}}
+\DoxyCodeLine{00015\ \textcolor{preprocessor}{\#include\ <unordered\_map>}}
+\DoxyCodeLine{00016\ }
+\DoxyCodeLine{00017\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00018\ \textcolor{comment}{//\ NodeRegistry}}
+\DoxyCodeLine{00019\ \textcolor{comment}{//\ -\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/-\/}}
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00040\ \textcolor{keyword}{class\ }NodeRegistry}
+\DoxyCodeLine{00041\ \{}
+\DoxyCodeLine{00042\ \textcolor{keyword}{public}:}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keyword}{static}\ \textcolor{keyword}{const}\ NodeRegistry\&\ \doxymbox{\hyperlink{class_node_registry_a18a4ff61afb4d5cd131840e841dad395}{Get}}();}
+\DoxyCodeLine{00050\ }
+\DoxyCodeLine{00058\ \ \ \ \ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{struct_node_descriptor}{NodeDescriptor}}*\ \doxymbox{\hyperlink{class_node_registry_aebede83060b144eb2fcb726fbb50dc17}{Find}}(\doxymbox{\hyperlink{types_8h_acac9cbaeea226ed297804c012dc12b16}{NodeType}}\ type)\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00066\ \ \ \ \ \textcolor{keyword}{const}\ std::unordered\_map<NodeType,\ NodeDescriptor>\&\ \doxymbox{\hyperlink{class_node_registry_a7c690fae8c338b61af6ce420e7e1acd1}{All}}()\ \textcolor{keyword}{const};}
+\DoxyCodeLine{00067\ }
+\DoxyCodeLine{00068\ \textcolor{keyword}{private}:}
+\DoxyCodeLine{00074\ \ \ \ \ NodeRegistry();}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00076\ \ \ \ \ std::unordered\_map<NodeType,\ NodeDescriptor>\ descriptors\_;\ \ }
+\DoxyCodeLine{00077\ \};}
+\DoxyCodeLine{00078\ }
+\DoxyCodeLine{00079\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ NODE\_REGISTRY\_H}}
+
+\end{DoxyCode}
