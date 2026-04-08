@@ -2,7 +2,7 @@
 #include "../../Demo/NodeGameFunctions.h"
 
 #include "ui/theme.h"
-#include "editor/nodeColorCategories.h"
+#include "core/registry/nodeRegistry.h"
 #include <imgui-SFML.h>
 #include <algorithm>
 #include <cfloat>
@@ -458,51 +458,30 @@ void EditorLayout::draw()
             ImGui::Separator();
             ImGui::TextUnformatted("Node Colors");
 
-            ImVec4 eventHeaderColor(Settings::nodeHeaderEventColorR, Settings::nodeHeaderEventColorG, Settings::nodeHeaderEventColorB, Settings::nodeHeaderEventColorA);
-            ImVec4 dataHeaderColor(Settings::nodeHeaderDataColorR, Settings::nodeHeaderDataColorG, Settings::nodeHeaderDataColorB, Settings::nodeHeaderDataColorA);
-            ImVec4 structHeaderColor(Settings::nodeHeaderStructColorR, Settings::nodeHeaderStructColorG, Settings::nodeHeaderStructColorB, Settings::nodeHeaderStructColorA);
-            ImVec4 logicHeaderColor(Settings::nodeHeaderLogicColorR, Settings::nodeHeaderLogicColorG, Settings::nodeHeaderLogicColorB, Settings::nodeHeaderLogicColorA);
-            ImVec4 flowHeaderColor(Settings::nodeHeaderFlowColorR, Settings::nodeHeaderFlowColorG, Settings::nodeHeaderFlowColorB, Settings::nodeHeaderFlowColorA);
-            ImVec4 moreHeaderColor(Settings::nodeHeaderMoreColorR, Settings::nodeHeaderMoreColorG, Settings::nodeHeaderMoreColorB, Settings::nodeHeaderMoreColorA);
-
             if (ImGui::CollapsingHeader("Node Header Colors"))
             {
-                drawNodeCategoryColorSection(NodeColorCategoryLabel(NodeColorCategory::Event), "node_event", eventHeaderColor);
-                drawNodeCategoryColorSection(NodeColorCategoryLabel(NodeColorCategory::Data), "node_data", dataHeaderColor);
-                drawNodeCategoryColorSection(NodeColorCategoryLabel(NodeColorCategory::Struct), "node_struct", structHeaderColor);
-                drawNodeCategoryColorSection(NodeColorCategoryLabel(NodeColorCategory::Logic), "node_logic", logicHeaderColor);
-                drawNodeCategoryColorSection(NodeColorCategoryLabel(NodeColorCategory::Flow), "node_flow", flowHeaderColor);
-                drawNodeCategoryColorSection(NodeColorCategoryLabel(NodeColorCategory::More), "node_more", moreHeaderColor);
+                // Collect unique categories from the registry in sorted order
+                std::vector<std::string> categories;
+                for (auto& [type, desc] : NodeRegistry::Get().All())
+                {
+                    if (std::find(categories.begin(), categories.end(), desc.category) == categories.end())
+                        categories.push_back(desc.category);
+                }
+                std::sort(categories.begin(), categories.end());
 
-                Settings::nodeHeaderEventColorR = eventHeaderColor.x;
-                Settings::nodeHeaderEventColorG = eventHeaderColor.y;
-                Settings::nodeHeaderEventColorB = eventHeaderColor.z;
-                Settings::nodeHeaderEventColorA = eventHeaderColor.w;
+                // Ensure defaults exist before drawing (GetNodeHeaderColor inserts on first access)
+                for (const auto& cat : categories)
+                    Settings::GetNodeHeaderColor(cat);
 
-                Settings::nodeHeaderDataColorR = dataHeaderColor.x;
-                Settings::nodeHeaderDataColorG = dataHeaderColor.y;
-                Settings::nodeHeaderDataColorB = dataHeaderColor.z;
-                Settings::nodeHeaderDataColorA = dataHeaderColor.w;
-
-                Settings::nodeHeaderStructColorR = structHeaderColor.x;
-                Settings::nodeHeaderStructColorG = structHeaderColor.y;
-                Settings::nodeHeaderStructColorB = structHeaderColor.z;
-                Settings::nodeHeaderStructColorA = structHeaderColor.w;
-
-                Settings::nodeHeaderLogicColorR = logicHeaderColor.x;
-                Settings::nodeHeaderLogicColorG = logicHeaderColor.y;
-                Settings::nodeHeaderLogicColorB = logicHeaderColor.z;
-                Settings::nodeHeaderLogicColorA = logicHeaderColor.w;
-
-                Settings::nodeHeaderFlowColorR = flowHeaderColor.x;
-                Settings::nodeHeaderFlowColorG = flowHeaderColor.y;
-                Settings::nodeHeaderFlowColorB = flowHeaderColor.z;
-                Settings::nodeHeaderFlowColorA = flowHeaderColor.w;
-
-                Settings::nodeHeaderMoreColorR = moreHeaderColor.x;
-                Settings::nodeHeaderMoreColorG = moreHeaderColor.y;
-                Settings::nodeHeaderMoreColorB = moreHeaderColor.z;
-                Settings::nodeHeaderMoreColorA = moreHeaderColor.w;
+                // Draw one collapsible color picker per category
+                for (const auto& cat : categories)
+                {
+                    auto& rgba = Settings::nodeHeaderColors[cat];
+                    ImVec4 col(rgba[0], rgba[1], rgba[2], rgba[3]);
+                    const std::string id = "node_" + cat;
+                    if (drawNodeCategoryColorSection(cat.c_str(), id.c_str(), col))
+                        rgba = { col.x, col.y, col.z, col.w };
+                }
             }
 
             ImGui::Spacing();

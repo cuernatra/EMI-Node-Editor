@@ -1,5 +1,9 @@
 #pragma once
 
+#include <array>
+#include <string>
+#include <unordered_map>
+
 /**
  * @file settings.h
  * @brief Persistent editor settings.
@@ -11,12 +15,20 @@
  *   1. Add an inline variable with a sensible default value
  *   2. Add a line in Load() using s.value("key", defaultValue)
  *   3. Add a line in Save() using s["key"] = member
+ *
+ * Node header colors are stored dynamically by category string.
+ * Any new category registered in the NodeRegistry automatically gets a color.
+ * Use GetNodeHeaderColor(category) to look up or generate a default color.
  */
 namespace Settings
 {
     void Load();
     void Save();
- 
+
+    // Returns the RGBA color for a node header category.
+    // Generates and stores a default if the category is not yet known.
+    std::array<float, 4> GetNodeHeaderColor(const std::string& category);
+
     // -------------------------------------------------------------------------
     // Layout
     // -------------------------------------------------------------------------
@@ -40,37 +52,11 @@ namespace Settings
     inline float gridLineColorA = 0.157f;
 
     // -------------------------------------------------------------------------
-    // Node header colors by category
+    // Node header colors by category (dynamic — populated from the registry)
     // -------------------------------------------------------------------------
-    inline float nodeHeaderEventColorR = 0.220f;
-    inline float nodeHeaderEventColorG = 0.340f;
-    inline float nodeHeaderEventColorB = 0.760f;
-    inline float nodeHeaderEventColorA = 1.000f;
+    // Keyed by the descriptor category string (e.g. "Events", "Data", "Math").
+    // Do not read this map directly; use GetNodeHeaderColor() instead.
+    inline std::unordered_map<std::string, std::array<float, 4>> nodeHeaderColors;
 
-    inline float nodeHeaderDataColorR = 0.180f;
-    inline float nodeHeaderDataColorG = 0.520f;
-    inline float nodeHeaderDataColorB = 0.420f;
-    inline float nodeHeaderDataColorA = 1.000f;
-
-    inline float nodeHeaderStructColorR = 0.470f;
-    inline float nodeHeaderStructColorG = 0.340f;
-    inline float nodeHeaderStructColorB = 0.700f;
-    inline float nodeHeaderStructColorA = 1.000f;
-
-    inline float nodeHeaderLogicColorR = 0.820f;
-    inline float nodeHeaderLogicColorG = 0.520f;
-    inline float nodeHeaderLogicColorB = 0.200f;
-    inline float nodeHeaderLogicColorA = 1.000f;
-
-    inline float nodeHeaderFlowColorR = 0.770f;
-    inline float nodeHeaderFlowColorG = 0.300f;
-    inline float nodeHeaderFlowColorB = 0.320f;
-    inline float nodeHeaderFlowColorA = 1.000f;
-
-    inline float nodeHeaderMoreColorR = 0.320f;
-    inline float nodeHeaderMoreColorG = 0.320f;
-    inline float nodeHeaderMoreColorB = 0.360f;
-    inline float nodeHeaderMoreColorA = 1.000f;
- 
     // Add new settings below using the same load/save pattern.
 }

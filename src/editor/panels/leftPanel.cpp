@@ -1,7 +1,6 @@
 #include "leftPanel.h"
 #include "core/registry/nodeRegistry.h"
 #include "editor/spawnPayload.h"
-#include "editor/nodeColorCategories.h"
 #include "editor/settings.h"
 #include "imgui.h"
 #include <algorithm>
@@ -41,22 +40,9 @@ bool MatchesSearch(const std::string& searchText, const std::string& candidate)
 
 ImVec4 GetNodeCategoryHeaderColor(const NodeDescriptor* desc)
 {
-    switch (GetNodeColorCategory(desc))
-    {
-        case NodeColorCategory::Event:
-            return ImVec4(Settings::nodeHeaderEventColorR, Settings::nodeHeaderEventColorG, Settings::nodeHeaderEventColorB, Settings::nodeHeaderEventColorA);
-        case NodeColorCategory::Data:
-            return ImVec4(Settings::nodeHeaderDataColorR, Settings::nodeHeaderDataColorG, Settings::nodeHeaderDataColorB, Settings::nodeHeaderDataColorA);
-        case NodeColorCategory::Struct:
-            return ImVec4(Settings::nodeHeaderStructColorR, Settings::nodeHeaderStructColorG, Settings::nodeHeaderStructColorB, Settings::nodeHeaderStructColorA);
-        case NodeColorCategory::Logic:
-            return ImVec4(Settings::nodeHeaderLogicColorR, Settings::nodeHeaderLogicColorG, Settings::nodeHeaderLogicColorB, Settings::nodeHeaderLogicColorA);
-        case NodeColorCategory::Flow:
-            return ImVec4(Settings::nodeHeaderFlowColorR, Settings::nodeHeaderFlowColorG, Settings::nodeHeaderFlowColorB, Settings::nodeHeaderFlowColorA);
-        case NodeColorCategory::More:
-        default:
-            return ImVec4(Settings::nodeHeaderMoreColorR, Settings::nodeHeaderMoreColorG, Settings::nodeHeaderMoreColorB, Settings::nodeHeaderMoreColorA);
-    }
+    const std::string& category = desc ? desc->category : std::string{};
+    const auto rgba = Settings::GetNodeHeaderColor(category);
+    return ImVec4(rgba[0], rgba[1], rgba[2], rgba[3]);
 }
 
 void DrawNodePreview(NodeType nodeType, const char* titleOverride)
