@@ -6,7 +6,7 @@
 #include "../registry/nodeRegistry.h"
 #include "astBuilders.h"
 #include "textParseHelpers.h"
-#include "../graph/visualNodeUtils.h"
+#include "../graphModel/visualNodeUtils.h"
 
 #include <algorithm>
 #include <cassert>

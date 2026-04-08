@@ -23,8 +23,8 @@ add_executable(emi-editor
   editor/renderer/linkRenderer.cpp
   editor/renderer/nodeRenderer.cpp
   editor/renderer/fieldWidgetRenderer.cpp
-  core/graph/pin.cpp
-  core/graph/link.cpp
+  core/graphModel/pin.cpp
+  core/graphModel/link.cpp
   core/registry/nodeFactory.cpp
   core/registry/nodeRegistry.cpp
   core/registry/nodes/eventNodes.cpp
@@ -62,7 +62,7 @@ target_include_directories(emi-editor PRIVATE
   ${_emi_src_dir}
 
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/core/graph
+  ${CMAKE_CURRENT_SOURCE_DIR}/core/graphModel
   ../dependencies/imgui-node-editor
 )
 target_include_directories(emi-editor PRIVATE ${CMAKE_SOURCE_DIR}/src)

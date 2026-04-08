@@ -9,8 +9,8 @@
  */
 
 #pragma once
-#include "../graph/visualNode.h"
-#include "../graph/link.h"
+#include "../graphModel/visualNode.h"
+#include "../graphModel/link.h"
 #include "pinResolver.h"
 #include "Parser/Node.h"
 #include "Parser/Lexer.h"

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../core/graph/link.h"
+#include "../../core/graphModel/link.h"
 
 #include <vector>
 

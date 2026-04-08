@@ -4,7 +4,7 @@
 #ifndef NODE_DESCRIPTOR_H
 #define NODE_DESCRIPTOR_H
 
-#include "../graph/types.h"
+#include "../graphModel/types.h"
 #include <string>
 #include <vector>
 #include <functional>

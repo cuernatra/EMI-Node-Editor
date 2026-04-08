@@ -3,10 +3,10 @@
 #include "graphCompiler.h"
 #include "astBuilders.h"
 #include "textParseHelpers.h"
-#include "../graph/visualNodeUtils.h"
+#include "../graphModel/visualNodeUtils.h"
 #include "../registry/nodeDescriptor.h"
-#include "../graph/pin.h"
-#include "../graph/nodeField.h"
+#include "../graphModel/pin.h"
+#include "../graphModel/nodeField.h"
 
 #include <algorithm>
 #include <cctype>

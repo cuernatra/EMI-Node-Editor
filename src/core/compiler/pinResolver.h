@@ -1,6 +1,6 @@
 #pragma once
-#include "../graph/visualNode.h"
-#include "../graph/link.h"
+#include "../graphModel/visualNode.h"
+#include "../graphModel/link.h"
 #include "imgui_node_editor.h"
 #include <unordered_map>
 #include <cstdint>

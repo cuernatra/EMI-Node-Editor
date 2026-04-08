@@ -3,7 +3,7 @@
 /** @file graphEditorUtils.h */
 /** @brief Shared graph normalization and helper utilities for editor flows. */
 #include "graphState.h"
-#include "core/graph/visualNode.h"
+#include "core/graphModel/visualNode.h"
 #include "imgui.h"
 #include <string>
 #include <vector>

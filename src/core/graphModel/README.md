@@ -1,4 +1,4 @@
-# core/graph/
+# core/graphModel/
 
 The graph data model — what nodes, pins, and links store at runtime.
 Both the editor and the compiler read from these types.

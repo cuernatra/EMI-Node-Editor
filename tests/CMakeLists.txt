@@ -30,7 +30,7 @@ add_executable(tests
     ../src/core/registry/nodes/renderNodes.cpp
     ../src/core/registry/nodes/structNodes.cpp
     ../src/core/registry/nodes/demoNodes.cpp
-    ../src/core/graph/pin.cpp
+    ../src/core/graphModel/pin.cpp
 )
 
 target_include_directories(tests PRIVATE

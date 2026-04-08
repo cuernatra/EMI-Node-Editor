@@ -1,8 +1,8 @@
 #pragma once
 
-#include "core/graph/idGen.h"
-#include "core/graph/link.h"
-#include "core/graph/visualNode.h"
+#include "core/graphModel/idGen.h"
+#include "core/graphModel/link.h"
+#include "core/graphModel/visualNode.h"
 
 #include <vector>
 

@@ -1,5 +1,5 @@
 #include "graphEditorUtils.h"
-#include "core/graph/link.h"
+#include "core/graphModel/link.h"
 #include "core/registry/nodeRegistry.h"
 #include <algorithm>
 #include <cmath>

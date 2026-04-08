@@ -11,7 +11,7 @@
 #define LEFTPANEL_H
 
 #include "app/constants.h"
-#include "core/graph/types.h"
+#include "core/graphModel/types.h"
 #include <vector>
 
 /**
