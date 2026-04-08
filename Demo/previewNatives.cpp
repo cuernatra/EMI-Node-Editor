@@ -16,12 +16,51 @@
 #include <EMI/EMI.h>
 #include <Defines.h>
 #include <algorithm>
+#include <atomic>
 #include <cstdint>
 #include <cmath>
+#include <chrono>
 #include <limits>
 #include <queue>
 #include <random>
+#include <thread>
 #include <vector>
+
+// -----------------------------------------------------------------------------
+// Graph stop helpers (used by Ticker/Delay nodes)
+// -----------------------------------------------------------------------------
+
+static std::atomic<std::atomic<bool>*> g_graphForceStopFlag{ nullptr };
+
+void SetGraphForceStopFlag(std::atomic<bool>* flag)
+{
+    g_graphForceStopFlag.store(flag, std::memory_order_release);
+}
+
+static bool __emi_force_stop_requested_impl()
+{
+    std::atomic<bool>* flag = g_graphForceStopFlag.load(std::memory_order_acquire);
+    return flag && flag->load(std::memory_order_relaxed);
+}
+
+static void __emi_delay_impl(double delayMs)
+{
+    if (delayMs <= 0.0)
+        return;
+
+    using namespace std::chrono;
+    auto remaining = milliseconds(static_cast<int64_t>(delayMs));
+    if (remaining.count() <= 0)
+        return;
+
+    // Sleep in small chunks so Force Stop can interrupt long waits.
+    while (remaining.count() > 0 && !__emi_force_stop_requested_impl())
+    {
+        const auto chunk = std::min<milliseconds>(remaining, milliseconds(10));
+        std::this_thread::sleep_for(chunk);
+        remaining -= chunk;
+    }
+}
 
 
 // -----------------------------------------------------------------------------
@@ -375,3 +414,8 @@ EMI_REGISTER(astar_getpathcell_x, astar_getpathcell_x_impl)
 EMI_REGISTER(astar_getpathcell_y, astar_getpathcell_y_impl)
 EMI_REGISTER(astar_setagent,      astar_setagent_impl)
 EMI_REGISTER(astar_setpathstep,   astar_setpathstep_impl)
+
+// Used by compiler-emitted graphs (Ticker/Delay) to allow Force Stop to break
+// out even while sleeping.
+EMI_REGISTER(__emi_force_stop_requested, __emi_force_stop_requested_impl)
+EMI_REGISTER(__emi_delay, __emi_delay_impl)

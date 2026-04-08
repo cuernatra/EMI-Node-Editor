@@ -3,7 +3,10 @@
 #include "core/compiler/graphCompiler.h"
 #include "VM.h"
 #include "Parser/Node.h"
+#include "../../../Demo/previewNatives.h"
 #include <iostream>
+#include <memory>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <utility>
@@ -16,11 +19,12 @@
 class GraphExecutor::Impl
 {
 public:
-    std::unique_ptr<VM> vm;
+    std::mutex vmMutex;
+    std::shared_ptr<VM> vm;
 
     Impl()
     {
-        vm = std::make_unique<VM>();
+        vm = std::make_shared<VM>();
     }
 
     ~Impl() = default;
@@ -29,6 +33,9 @@ public:
 GraphExecutor::GraphExecutor()
     : m_impl(std::make_unique<Impl>())
 {
+    // Provide stop flag to demo/runtime natives so __emi_* helpers can stop
+    // long-running graphs (e.g., Ticker) even while sleeping.
+    SetGraphForceStopFlag(&m_forceStopRequested);
 }
 
 GraphExecutor::~GraphExecutor() = default;
@@ -41,10 +48,14 @@ void GraphExecutor::SetLogSink(LogSink sink)
 void GraphExecutor::RequestForceStop()
 {
     m_forceStopRequested.store(true);
-    if (m_impl && m_impl->vm)
-    {
-        m_impl->vm->Interrupt();
-    }
+
+    // VM::Interrupt() is currently a no-op; force stop is implemented by
+    // recreating the VM so runner threads are torn down in ~VM().
+    if (!m_impl)
+        return;
+
+    std::lock_guard<std::mutex> lock(m_impl->vmMutex);
+    m_impl->vm = std::make_shared<VM>();
 }
 
 void GraphExecutor::ClearForceStopRequest()
@@ -91,7 +102,14 @@ GraphExecutor::CompileResult GraphExecutor::CompileGraphSnapshot(
         EMI::SetScriptLogLevel(EMI::LogLevel::Debug);
     }
 
-    if (!m_impl || !m_impl->vm)
+    std::shared_ptr<VM> vm;
+    if (m_impl)
+    {
+        std::lock_guard<std::mutex> lock(m_impl->vmMutex);
+        vm = m_impl->vm;
+    }
+
+    if (!vm)
     {
         const std::string status = "[ERROR] Error: EMI environment not initialized\n";
         if (m_logSink)
@@ -155,10 +173,10 @@ GraphExecutor::CompileResult GraphExecutor::CompileGraphSnapshot(
     constexpr const char* kCompileUnitName = "__graph_unit__";
 
     // Step B: remove previous graph unit so reruns use only fresh code.
-    m_impl->vm->RemoveUnit(kCompileUnitName);
+    vm->RemoveUnit(kCompileUnitName);
 
     // Step C: compile AST into VM bytecode.
-    m_impl->vm->CompileAST(kCompileUnitName, ast);
+    vm->CompileAST(kCompileUnitName, ast);
 
     if (m_forceStopRequested.load())
     {
@@ -167,8 +185,8 @@ GraphExecutor::CompileResult GraphExecutor::CompileGraphSnapshot(
 
     // Step D: execute generated graph entrypoint.
     constexpr const char* kRunGraphScript = "__graph__();";
-    void* printHandle = m_impl->vm->CompileTemporary(kRunGraphScript);
-    if (!printHandle || !m_impl->vm->WaitForResult(printHandle))
+    void* printHandle = vm->CompileTemporary(kRunGraphScript);
+    if (!printHandle || !vm->WaitForResult(printHandle))
     {
         if (m_forceStopRequested.load())
         {

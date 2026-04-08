@@ -398,7 +398,7 @@ Node* CompileTickerNode(GraphCompiler* compiler, const VisualNode& n)
 
     Node* body = MakeNode(Token::Scope);
     Node* loop = MakeNode(Token::While);
-    loop->children.push_back(MakeBoolLiteral(true));
+    loop->children.push_back(MakeUnaryOpNode(Token::Not, MakeFunctionCallNode("__emi_force_stop_requested", {})));
     loop->children.push_back(body);
 
     if (const Pin* tick = FindOutputPin(n, "Tick"))
@@ -406,7 +406,7 @@ Node* CompileTickerNode(GraphCompiler* compiler, const VisualNode& n)
 
     // Delay appended after user's body chain, inside the loop scope.
     body->children.push_back(
-        MakeFunctionCallNode("delay", { MakeBinaryOpNode(Token::Div, MakeNumberLiteral(1000.0), fps) })
+        MakeFunctionCallNode("__emi_delay", { MakeBinaryOpNode(Token::Div, MakeNumberLiteral(1000.0), fps) })
     );
 
     Node* targetScope = MakeNode(Token::Scope);
@@ -618,7 +618,7 @@ Node* CompileDelayNode(GraphCompiler* compiler, const VisualNode& n)
     if (!durationExpr)
         return nullptr;
 
-    return MakeFunctionCallNode("delay", { durationExpr });
+    return MakeFunctionCallNode("__emi_delay", { durationExpr });
 }
 
 Node* CompileSequenceNode(GraphCompiler*, const VisualNode&)

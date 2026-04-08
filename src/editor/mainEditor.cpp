@@ -126,16 +126,12 @@ void MainEditor::draw()
     }
 
     ImGui::SameLine();
-    if (!m_compileInProgress)
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-    if (ImGui::Button("Force Stop") && m_compileInProgress)
+    if (ImGui::Button("Force Stop"))
     {
         if (m_compiler)
             m_compiler->RequestForceStop();
         m_graphState->SetCompileStatus(false, "[WARN] Force stop requested...\n");
     }
-    if (!m_compileInProgress)
-        ImGui::PopStyleVar();
 
     ImGui::SameLine();
     ImGui::Checkbox("Result only", &m_resultOnlyCompile);
