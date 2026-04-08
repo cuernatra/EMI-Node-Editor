@@ -479,6 +479,39 @@ Node* CompilePreviewPickRectNode(GraphCompiler*, const VisualNode&)
     // but return a valid no-op scope so registry/compiler validation passes.
     return MakeNode(Token::Scope);
 }
+
+Node* CompileArrayReverseNode(GraphCompiler* compiler, const VisualNode& n)
+{
+    const Pin* arrayPin = FindInputPin(n, "Array");
+    if (!arrayPin)
+    {
+        compiler->Error("Array Reverse node needs Array input");
+        return nullptr;
+    }
+
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
+    return MakeFunctionCallNode("Array.Reverse", { arrayExpr });
+}
+
+Node* CompileArrayContainsNode(GraphCompiler* compiler, const VisualNode& n)
+{
+    const Pin* arrayPin = FindInputPin(n, "Array");
+    const Pin* valuePin = FindInputPin(n, "Value");
+    if (!arrayPin || !valuePin)
+    {
+        compiler->Error("Array Contains node needs Array and Value inputs");
+        return nullptr;
+    }
+
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
+    Node* valueExpr = nullptr;
+    if (compiler->Resolve(*valuePin))
+        valueExpr = compiler->BuildExpr(*valuePin);
+    else
+        valueExpr = MakeNumberLiteral(0.0);
+
+    return MakeFunctionCallNode("Array.Contains", { arrayExpr, valueExpr });
+}
 }
 
 void NodeRegistry::RegisterDataNodes()
@@ -681,6 +714,44 @@ void NodeRegistry::RegisterDataNodes()
         .saveToken = "PreviewPickRect",
         .deferredInputPins = {},
         .renderStyle = NodeRenderStyle::Default
+    });
+
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayReverse,
+        .label = "Array Reverse",
+        .pins = {
+            { "In", PinType::Flow, true },
+            { "Array", PinType::Array, true },
+            { "Out", PinType::Flow, false }
+        },
+        .fields = {},
+        .compile = CompileArrayReverseNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayReverse",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Array
+    });
+
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayContains,
+        .label = "Array Contains",
+        .pins = {
+            { "Array", PinType::Array, true },
+            { "Value", PinType::Any, true },
+            { "Result", PinType::Boolean, false }
+        },
+        .fields = {
+            { "Array", PinType::Array, "[]" }
+        },
+        .compile = CompileArrayContainsNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayContains",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Array
     });
 
     Register(NodeDescriptor{

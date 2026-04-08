@@ -50,6 +50,11 @@ enum class NodeType
     CallFunction, ///< Flow call to a user-defined function
     Function,    ///< Function definition node
     Output,      ///< Debug print/output sink
+    MathUnary,   ///< Unary math function (Sqrt, Floor, Round, Abs)
+    MathBinary,  ///< Binary math function (Max, Min)
+    MathClamp,   ///< Math clamp (value, min, max)
+    ArrayReverse,  ///< Reverse array in place
+    ArrayContains, ///< Check if array contains a value
     Unknown      ///< Uninitialized or invalid type
 };
 
