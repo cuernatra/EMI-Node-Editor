@@ -1,4 +1,4 @@
-#include "graphCompilation.h"
+#include "graphExecutor.h"
 #include "graphState.h"
 #include "core/compiler/graphCompiler.h"
 #include "VM.h"
@@ -8,11 +8,12 @@
 #include <string>
 #include <utility>
 
-// Compile pipeline:
-// 1) Convert node graph to AST.
-// 2) Compile AST into VM bytecode.
-// 3) Run generated entrypoint `__graph__()`.
-class GraphCompilation::Impl
+// Run pipeline (CompileGraphSnapshot):
+// A) Build AST from the visual graph  (GraphCompiler — see core/compiler/graphCompiler.h)
+// B) Remove the previous compiled unit from the VM
+// C) Compile AST into VM bytecode
+// D) Execute the generated __graph__() entrypoint
+class GraphExecutor::Impl
 {
 public:
     std::unique_ptr<VM> vm;
@@ -25,19 +26,19 @@ public:
     ~Impl() = default;
 };
 
-GraphCompilation::GraphCompilation()
+GraphExecutor::GraphExecutor()
     : m_impl(std::make_unique<Impl>())
 {
 }
 
-GraphCompilation::~GraphCompilation() = default;
+GraphExecutor::~GraphExecutor() = default;
 
-void GraphCompilation::SetLogSink(LogSink sink)
+void GraphExecutor::SetLogSink(LogSink sink)
 {
     m_logSink = std::move(sink);
 }
 
-void GraphCompilation::RequestForceStop()
+void GraphExecutor::RequestForceStop()
 {
     m_forceStopRequested.store(true);
     if (m_impl && m_impl->vm)
@@ -46,18 +47,18 @@ void GraphCompilation::RequestForceStop()
     }
 }
 
-void GraphCompilation::ClearForceStopRequest()
+void GraphExecutor::ClearForceStopRequest()
 {
     m_forceStopRequested.store(false);
 }
 
-void GraphCompilation::CompileGraph(GraphState& state, bool resultOnly)
+void GraphExecutor::CompileGraph(GraphState& state, bool resultOnly)
 {
     const CompileResult result = CompileGraphSnapshot(state.GetNodes(), state.GetLinks(), resultOnly);
     state.SetCompileStatus(result.success, result.message);
 }
 
-GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
+GraphExecutor::CompileResult GraphExecutor::CompileGraphSnapshot(
     const std::vector<VisualNode>& nodes,
     const std::vector<Link>& links,
     bool resultOnly)
@@ -121,7 +122,8 @@ GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
         m_logSink("[WARN] No Debug Print node found. Graph will run without console output.\n");
     }
 
-    // Stage 1: build AST from the current graph snapshot.
+    // Step A: build AST from the current graph snapshot.
+    // GraphCompiler runs its own 5-stage pipeline internally (see graphCompiler.cpp).
     GraphCompiler gc;
     Node* ast = gc.Compile(nodes, links);
 
@@ -152,10 +154,10 @@ GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
 
     constexpr const char* kCompileUnitName = "__graph_unit__";
 
-    // Stage 2: remove previous graph unit so reruns use only fresh code.
+    // Step B: remove previous graph unit so reruns use only fresh code.
     m_impl->vm->RemoveUnit(kCompileUnitName);
 
-    // Stage 3: compile AST into VM bytecode.
+    // Step C: compile AST into VM bytecode.
     m_impl->vm->CompileAST(kCompileUnitName, ast);
 
     if (m_forceStopRequested.load())
@@ -163,7 +165,7 @@ GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
         return makeCancelled();
     }
 
-    // Stage 4: execute generated graph entrypoint.
+    // Step D: execute generated graph entrypoint.
     constexpr const char* kRunGraphScript = "__graph__();";
     void* printHandle = m_impl->vm->CompileTemporary(kRunGraphScript);
     if (!printHandle || !m_impl->vm->WaitForResult(printHandle))
@@ -195,4 +197,3 @@ GraphCompilation::CompileResult GraphCompilation::CompileGraphSnapshot(
         return { true, status };
     }
 }
-

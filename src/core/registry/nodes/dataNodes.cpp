@@ -1,6 +1,6 @@
 
 #include "../nodeRegistry.h"
-#include "nodeCompileHelpers.h"
+#include "../../compiler/nodeCompileHelpers.h"
 
 namespace {
 // Unified ArrayOperation node (backward compatible, does not replace existing nodes)
@@ -32,11 +32,10 @@ Node* CompileArrayOperationNode(GraphCompiler* compiler, const VisualNode& n)
             delete arrayExpr;
             return nullptr;
         }
-        std::string fn = "Array." + *opStr;
-        return compiler->EmitFunctionCall(fn, { arrayExpr, valueExpr });
+            return MakeFunctionCallNode("Array." + *opStr, { arrayExpr, valueExpr });
     }
     else if (*opStr == "Clear") {
-        return compiler->EmitFunctionCall("Array.Clear", { arrayExpr });
+            return MakeFunctionCallNode("Array.Clear", { arrayExpr });
     }
     else if (*opStr == "Resize") {
         const Pin* sizePin = FindInputPin(n, "Size");
@@ -50,7 +49,7 @@ Node* CompileArrayOperationNode(GraphCompiler* compiler, const VisualNode& n)
             delete arrayExpr;
             return nullptr;
         }
-        return compiler->EmitFunctionCall("Array.Resize", { arrayExpr, sizeExpr });
+            return MakeFunctionCallNode("Array.Resize", { arrayExpr, sizeExpr });
     }
     else {
         compiler->Error("Unknown ArrayOperation: " + *opStr);
@@ -151,6 +150,40 @@ Node* CompileVariableNode(GraphCompiler* compiler, const VisualNode& n)
     return assign;
 }
 
+void CompilePreludeVariableNode(GraphCompiler* compiler, const VisualNode& n, Node*, Node* graphBodyScope)
+{
+    if (!compiler || !graphBodyScope)
+        return;
+
+    const std::string* variant = FindField(n, "Variant");
+    const bool isGet = (variant && *variant == "Get");
+    if (isGet)
+        return;
+
+    const std::string* nameStr = FindField(n, "Name");
+    const std::string varName = (nameStr && !nameStr->empty()) ? *nameStr : "__unnamed";
+    if (!compiler->TryDeclareGraphVariable(varName))
+        return;
+
+    const std::string* typeStr = FindField(n, "Type");
+    const std::string typeName = typeStr ? *typeStr : "Number";
+
+    Token typeToken = Token::TypeNumber;
+    if (typeName == "Boolean")
+        typeToken = Token::TypeBoolean;
+    else if (typeName == "String")
+        typeToken = Token::TypeString;
+    else if (typeName == "Array")
+        typeToken = Token::TypeArray;
+    else if (typeName == "Any")
+        typeToken = Token::AnyType;
+
+    Node* decl = MakeNode(Token::VarDeclare);
+    decl->data = varName;
+    decl->children.push_back(MakeNode(typeToken));
+    graphBodyScope->children.push_back(decl);
+}
+
 bool DeserializeVariableNode(VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds)
 {
     if (pinIds.size() == 1)
@@ -192,8 +225,8 @@ Node* CompileArrayGetNode(GraphCompiler* compiler, const VisualNode& n)
     }
 
     Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
-    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin);
-    return compiler->EmitIndexer(arrayExpr, indexExpr);
+    Node* indexExpr = BuildNumberOperand(compiler, n, *indexPin);
+        return MakeIndexerNode(arrayExpr, indexExpr);
 }
 
 Node* CompileArrayAddNode(GraphCompiler* compiler, const VisualNode& n)
@@ -208,12 +241,30 @@ Node* CompileArrayAddNode(GraphCompiler* compiler, const VisualNode& n)
     }
 
     Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
-    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin);
+    Node* indexExpr = BuildNumberOperand(compiler, n, *indexPin);
     Node* valueExpr = nullptr;
     if (compiler->Resolve(*valuePin))
+    {
         valueExpr = compiler->BuildExpr(*valuePin);
+    }
     else
-        valueExpr = BuildTypedFieldValue(compiler, n, "Add Type", "Add Value");
+    {
+        const std::string* typeText  = FindField(n, "Add Type");
+        const std::string* valueText = FindField(n, "Add Value");
+        const std::string  typeName  = typeText  ? *typeText  : "Number";
+        const std::string  valueName = valueText ? *valueText : "0.0";
+        if (typeName == "Boolean")
+            valueExpr = MakeBoolLiteral(valueName == "true" || valueName == "True" || valueName == "1");
+        else if (typeName == "String")
+            valueExpr = MakeStringLiteral(valueName);
+        else if (typeName == "Array")
+            valueExpr = compiler->BuildArrayLiteralNode(valueName);
+        else
+        {
+            try { valueExpr = MakeNumberLiteral(std::stod(valueName)); }
+            catch (...) { valueExpr = MakeNumberLiteral(0.0); }
+        }
+    }
 
     if (!arrayExpr || !indexExpr || !valueExpr)
     {
@@ -223,7 +274,7 @@ Node* CompileArrayAddNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    return compiler->EmitFunctionCall("Array.Insert", { arrayExpr, indexExpr, valueExpr });
+        return MakeFunctionCallNode("Array.Insert", { arrayExpr, indexExpr, valueExpr });
 }
 
 Node* CompileArrayReplaceNode(GraphCompiler* compiler, const VisualNode& n)
@@ -238,12 +289,30 @@ Node* CompileArrayReplaceNode(GraphCompiler* compiler, const VisualNode& n)
     }
 
     Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
-    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin);
+    Node* indexExpr = BuildNumberOperand(compiler, n, *indexPin);
     Node* valueExpr = nullptr;
     if (compiler->Resolve(*valuePin))
+    {
         valueExpr = compiler->BuildExpr(*valuePin);
+    }
     else
-        valueExpr = BuildTypedFieldValue(compiler, n, "Replace Type", "Replace Value");
+    {
+        const std::string* typeText  = FindField(n, "Replace Type");
+        const std::string* valueText = FindField(n, "Replace Value");
+        const std::string  typeName  = typeText  ? *typeText  : "Number";
+        const std::string  valueName = valueText ? *valueText : "0.0";
+        if (typeName == "Boolean")
+            valueExpr = MakeBoolLiteral(valueName == "true" || valueName == "True" || valueName == "1");
+        else if (typeName == "String")
+            valueExpr = MakeStringLiteral(valueName);
+        else if (typeName == "Array")
+            valueExpr = compiler->BuildArrayLiteralNode(valueName);
+        else
+        {
+            try { valueExpr = MakeNumberLiteral(std::stod(valueName)); }
+            catch (...) { valueExpr = MakeNumberLiteral(0.0); }
+        }
+    }
 
     if (!arrayExpr || !indexExpr || !valueExpr)
     {
@@ -312,7 +381,7 @@ Node* CompileArrayRemoveNode(GraphCompiler* compiler, const VisualNode& n)
     }
 
     Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
-    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin);
+    Node* indexExpr = BuildNumberOperand(compiler, n, *indexPin);
     if (!arrayExpr || !indexExpr)
     {
         delete arrayExpr;
@@ -320,7 +389,7 @@ Node* CompileArrayRemoveNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    return compiler->EmitFunctionCall("Array.RemoveIndex", { arrayExpr, indexExpr });
+        return MakeFunctionCallNode("Array.RemoveIndex", { arrayExpr, indexExpr });
 }
 
 Node* CompileArrayLengthNode(GraphCompiler* compiler, const VisualNode& n)
@@ -336,8 +405,9 @@ Node* CompileArrayLengthNode(GraphCompiler* compiler, const VisualNode& n)
     if (!arrayExpr)
         return nullptr;
 
-    return compiler->EmitFunctionCall("Array.Size", { arrayExpr });
+        return MakeFunctionCallNode("Array.Size", { arrayExpr });
 }
+
 
 Node* CompileOutputNode(GraphCompiler* compiler, const VisualNode& n)
 {
@@ -347,22 +417,57 @@ Node* CompileOutputNode(GraphCompiler* compiler, const VisualNode& n)
     const std::string* label = FindField(n, "Label");
     const std::string text = label ? *label : "result";
 
-    scope->children.push_back(compiler->EmitFunctionCall(
+    scope->children.push_back(MakeFunctionCallNode(
         "println",
-        { ParseTextLiteralNode("[Debug Print] " + text) }
+        { MakeStringLiteral("[Debug Print] " + text) }
     ));
 
     const Pin* valuePin = FindInputPin(n, "Value");
     if (valuePin)
     {
-        Node* valueExpr = BuildOutputValue(compiler, n, *valuePin);
+        Node* valueExpr = nullptr;
+        if (compiler->Resolve(*valuePin))
+        {
+            valueExpr = compiler->BuildExpr(*valuePin);
+        }
+        else
+        {
+            // If unwired and fed by a ForEach, automatically use the ForEach element.
+            const Pin* flowIn = FindInputPin(n, "In");
+            if (!flowIn)
+                flowIn = FindInputPin(n, "Flow");
+
+            if (flowIn)
+            {
+                const FlowTarget* flowSrc = compiler->ResolveFlow(*flowIn);
+                if (flowSrc && flowSrc->node && flowSrc->node->nodeType == NodeType::ForEach)
+                {
+                    int elementOutIdx = -1;
+                    for (int i = 0; i < static_cast<int>(flowSrc->node->outPins.size()); ++i)
+                    {
+                        const Pin& outPin = flowSrc->node->outPins[static_cast<size_t>(i)];
+                        if (outPin.type != PinType::Flow && outPin.name == "Element")
+                        {
+                            elementOutIdx = i;
+                            break;
+                        }
+                    }
+                    if (elementOutIdx >= 0)
+                        valueExpr = compiler->BuildNode(*flowSrc->node, elementOutIdx);
+                }
+            }
+
+            if (!valueExpr)
+                valueExpr = compiler->BuildExpr(*valuePin);
+        }
+
         if (!valueExpr)
         {
             delete scope;
             return nullptr;
         }
 
-        scope->children.push_back(compiler->EmitFunctionCall("println", { valueExpr }));
+        scope->children.push_back(MakeFunctionCallNode("println", { valueExpr }));
     }
 
     return scope;
@@ -437,6 +542,7 @@ void NodeRegistry::RegisterDataNodes()
             { "Default", PinType::String, "0.0" }
         },
         .compile = CompileVariableNode,
+        .compilePrelude = CompilePreludeVariableNode,
         .deserialize = DeserializeVariableNode,
         .category = "Data",
         .paletteVariants = {

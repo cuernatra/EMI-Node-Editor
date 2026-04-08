@@ -61,7 +61,7 @@ For most node changes, the main work happens in `src/core/registry/nodes/`.
 - Add or remove `NodeType` values in `src/core/graph/types.h`.
 - Add or remove node recipes in the category files under `src/core/registry/nodes/`.
 - Put named compile and deserialize callbacks at the top of the same category file, above the `Register` calls.
-- Reuse the shared helpers in `src/core/registry/nodes/nodeCompileHelpers.h`.
+- Reuse the shared helpers in `src/core/compiler/nodeCompileHelpers.h`.
 - Do not add new node-specific `GraphCompiler::BuildX` methods.
 
 `src/core/registry/nodeRegistry.*` is shared support code, not a normal per-node edit target.

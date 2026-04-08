@@ -1,11 +1,109 @@
 #include "../nodeRegistry.h"
-#include "nodeCompileHelpers.h"
+#include "../../compiler/nodeCompileHelpers.h"
 
 namespace
 {
 Node* CompileScopeNode(GraphCompiler*, const VisualNode&)
 {
     return MakeNode(Token::Scope);
+}
+
+std::vector<std::string> CollectParamNamesFromFields(const VisualNode& fn)
+{
+    std::vector<std::pair<int, std::string>> ordered;
+    for (const NodeField& f : fn.fields)
+    {
+        if (f.name.rfind("Param", 0) != 0)
+            continue;
+
+        const std::string suffix = f.name.substr(5);
+        if (suffix.empty())
+            continue;
+
+        bool allDigits = true;
+        for (char ch : suffix)
+            allDigits = allDigits && std::isdigit(static_cast<unsigned char>(ch));
+        if (!allDigits)
+            continue;
+
+        if (f.value.empty())
+            continue;
+
+        try
+        {
+            ordered.emplace_back(std::stoi(suffix), f.value);
+        }
+        catch (...) {}
+    }
+
+    std::sort(ordered.begin(), ordered.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+    std::vector<std::string> out;
+    out.reserve(ordered.size());
+    for (const auto& [_, name] : ordered)
+        out.push_back(name);
+    return out;
+}
+
+void CompileFlowFunctionNode(GraphCompiler* compiler, const VisualNode& n, Node* targetScope)
+{
+    if (!compiler || !targetScope)
+        return;
+
+    if (const Pin* outFlow = FindOutputPin(n, "Out"))
+        compiler->AppendFlowChainFromOutput(outFlow->id, targetScope);
+}
+
+Node* CompileOutputFunctionNode(GraphCompiler*, const VisualNode& n, int outPinIdx)
+{
+    if (outPinIdx < 0 || outPinIdx >= static_cast<int>(n.outPins.size()))
+        return nullptr;
+
+    const Pin& outPin = n.outPins[static_cast<size_t>(outPinIdx)];
+    if (outPin.type == PinType::Flow)
+        return nullptr;
+
+    if (outPin.name == "Out")
+        return nullptr;
+
+    // Function node outputs (non-flow) are parameter identifiers inside the function body.
+    return MakeIdNode(outPin.name);
+}
+
+Node* CompileTopLevelFunctionNode(GraphCompiler* compiler, const VisualNode& n)
+{
+    if (!compiler)
+        return nullptr;
+
+    const std::string* nameStr = FindField(n, "Name");
+    const std::string funcName = (nameStr && !nameStr->empty()) ? *nameStr : "__fn";
+
+    Node* params = MakeNode(Token::CallParams);
+    for (const std::string& paramName : CollectParamNamesFromFields(n))
+    {
+        Node* param = MakeNode(Token::FunctionVar);
+        param->data = paramName;
+        param->children.push_back(MakeNode(Token::AnyType));
+        params->children.push_back(param);
+    }
+
+    Node* body = MakeNode(Token::Scope);
+
+    compiler->ResetFlowTraversalState();
+    if (const Pin* outFlow = FindOutputPin(n, "Out"))
+        compiler->AppendFlowChainFromOutput(outFlow->id, body);
+
+    if (compiler->HasError)
+    {
+        delete params;
+        delete body;
+        return nullptr;
+    }
+
+    Node* funcDecl = MakeNode(Token::FunctionDef);
+    funcDecl->data = funcName;
+    funcDecl->children.push_back(params);
+    funcDecl->children.push_back(body);
+    return funcDecl;
 }
 
 bool DeserializeFunctionNode(VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds)
@@ -128,7 +226,10 @@ void NodeRegistry::RegisterEventNodes()
         .fields = {
             { "Name", PinType::String, "myFunction" }
         },
-        .compile = nullptr,
+        .compile = CompileScopeNode,
+        .compileFlow = CompileFlowFunctionNode,
+        .compileOutput = CompileOutputFunctionNode,
+        .compileTopLevel = CompileTopLevelFunctionNode,
         .deserialize = DeserializeFunctionNode,
         .category = "Events",
         .paletteVariants = {},

@@ -1,5 +1,5 @@
 #include "../nodeRegistry.h"
-#include "nodeCompileHelpers.h"
+#include "../../compiler/nodeCompileHelpers.h"
 
 namespace
 {
@@ -36,7 +36,7 @@ Node* CompileNativeCallNode(GraphCompiler* compiler, const VisualNode& n)
     }
 
     // Always emit as an expression so the value can be used if desired
-    return compiler->EmitFunctionCall(funcName, std::move(args));
+    return MakeFunctionCallNode(funcName, std::move(args));
 }
 
 Node* CompileNativeGetNode(GraphCompiler* compiler, const VisualNode& n)
@@ -71,7 +71,7 @@ Node* CompileNativeGetNode(GraphCompiler* compiler, const VisualNode& n)
             return nullptr;
     }
 
-    return compiler->EmitFunctionCall(funcName, std::move(args));
+    return MakeFunctionCallNode(funcName, std::move(args));
 }
 }
 

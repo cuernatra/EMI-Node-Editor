@@ -1,5 +1,5 @@
 #include "../nodeRegistry.h"
-#include "nodeCompileHelpers.h"
+#include "../../compiler/nodeCompileHelpers.h"
 
 namespace
 {
@@ -23,7 +23,7 @@ Node* CompileOperatorNode(GraphCompiler* compiler, const VisualNode& n)
 
     Node* lhs = BuildNumberOperand(compiler, n, *pinA);
     Node* rhs = BuildNumberOperand(compiler, n, *pinB);
-    return compiler->EmitBinaryOp(tok, lhs, rhs);
+    return MakeBinaryOpNode(tok, lhs, rhs);
 }
 
 Node* CompileComparisonNode(GraphCompiler* compiler, const VisualNode& n)
@@ -46,7 +46,7 @@ Node* CompileComparisonNode(GraphCompiler* compiler, const VisualNode& n)
 
     Node* lhs = BuildNumberOperand(compiler, n, *pinA);
     Node* rhs = BuildNumberOperand(compiler, n, *pinB);
-    return compiler->EmitBinaryOp(tok, lhs, rhs);
+    return MakeBinaryOpNode(tok, lhs, rhs);
 }
 
 Node* CompileLogicNode(GraphCompiler* compiler, const VisualNode& n)
@@ -69,7 +69,7 @@ Node* CompileLogicNode(GraphCompiler* compiler, const VisualNode& n)
 
     Node* lhs = BuildBoolOperand(compiler, n, *pinA);
     Node* rhs = BuildBoolOperand(compiler, n, *pinB);
-    return compiler->EmitBinaryOp(tok, lhs, rhs);
+    return MakeBinaryOpNode(tok, lhs, rhs);
 }
 
 Node* CompileNotNode(GraphCompiler* compiler, const VisualNode& n)
@@ -82,7 +82,7 @@ Node* CompileNotNode(GraphCompiler* compiler, const VisualNode& n)
     }
 
     Node* operand = BuildBoolOperand(compiler, n, *pinA);
-    return compiler->EmitUnaryOp(Token::Not, operand);
+    return MakeUnaryOpNode(Token::Not, operand);
 }
 }
 

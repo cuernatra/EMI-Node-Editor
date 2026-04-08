@@ -1,5 +1,5 @@
 #include "../nodeRegistry.h"
-#include "nodeCompileHelpers.h"
+#include "../../compiler/nodeCompileHelpers.h"
 
 // Render nodes: typed wrappers around the drawcell / cleargrid / rendergrid
 // native functions.  DrawRect and DrawGrid (in eventNodes.cpp) are separate
@@ -24,26 +24,36 @@ Node* CompileDrawCellNode(GraphCompiler* compiler, const VisualNode& n)
 
     if (compiler->HasError) { delete x; delete y; delete r; delete g; delete b; return nullptr; }
 
-    return compiler->EmitFunctionCall("drawcell", { x, y, r, g, b });
+    return MakeFunctionCallNode("drawcell", { x, y, r, g, b });
 }
 
 Node* CompileClearGridNode(GraphCompiler* compiler, const VisualNode& n)
 {
     const Pin* wPin = FindInputPin(n, "W");
     const Pin* hPin = FindInputPin(n, "H");
+    if (!wPin || !hPin)
+    {
+        compiler->Error("Clear Grid node needs W and H inputs");
+        return nullptr;
+    }
 
-    Node* w = wPin ? BuildNumberOperand(compiler, n, *wPin) : MakeNumberLiteral(20.0);
-    Node* h = hPin ? BuildNumberOperand(compiler, n, *hPin) : MakeNumberLiteral(20.0);
+    Node* w = BuildNumberOperand(compiler, n, *wPin);
+    Node* h = BuildNumberOperand(compiler, n, *hPin);
+    if (compiler->HasError || !w || !h)
+    {
+        delete w;
+        delete h;
+        return nullptr;
+    }
 
-    if (compiler->HasError) { delete w; delete h; return nullptr; }
-
-    return compiler->EmitFunctionCall("cleargrid", { w, h });
+    return MakeFunctionCallNode("cleargrid", { w, h });
 }
 
 Node* CompileRenderGridNode(GraphCompiler* compiler, const VisualNode&)
 {
-    return compiler->EmitFunctionCall("rendergrid", {});
+    return MakeFunctionCallNode("rendergrid", {});
 }
+
 }
 
 void NodeRegistry::RegisterRenderNodes()

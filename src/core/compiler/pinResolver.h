@@ -1,6 +1,3 @@
-/** @file pinResolver.h */
-/** @brief Fast lookup tables for pin connections used by compiler code. */
-
 #pragma once
 #include "../graph/visualNode.h"
 #include "../graph/link.h"
@@ -31,47 +28,42 @@ struct hash<ed::NodeId>
 };
 }
 
-namespace ed = ax::NodeEditor;
-
-/** @brief Source info for one connected input pin. */
+/** Where an input pin gets its value from. */
 struct PinSource
 {
-    const VisualNode* node    = nullptr;  ///< Upstream node.
-    int               pinIdx  = 0;        ///< Index in node->outPins.
+    const VisualNode* node   = nullptr;  ///< Upstream node.
+    int               pinIdx = 0;        ///< Index in node->outPins.
 };
 
-/** @brief Target info for one connected flow output pin. */
+/** Where a flow output wire leads next. */
 struct FlowTarget
 {
     const VisualNode* node   = nullptr;  ///< Downstream node.
     int               pinIdx = 0;        ///< Index in node->inPins.
 };
 
-
-/** @brief Builds and serves pin lookup maps for compile passes. */
+/**
+ * Builds fast lookup tables from a graph snapshot and answers two questions:
+ * "what feeds this input pin?" and "where does this flow wire go?".
+ */
 class PinResolver
 {
 public:
-    /** @brief Rebuild lookup tables from current nodes and links. */
+    /** Rebuild lookup tables from the current nodes and links. */
     void Build(const std::vector<VisualNode>& nodes,
                const std::vector<Link>&       links);
 
-    /** @brief Resolve input pin source, or nullptr if disconnected. */
+    /** Returns the source of an input pin, or nullptr if disconnected. */
     const PinSource* Resolve(ed::PinId inputPinId) const;
 
-    /** @brief Resolve flow output target, or nullptr if disconnected. */
+    /** Returns the target of a flow output pin, or nullptr if disconnected. */
     const FlowTarget* ResolveFlow(ed::PinId flowOutputPinId) const;
 
-    /** @brief Find node by id, or nullptr if missing. */
+    /** Find a node by id, or nullptr if not found. */
     const VisualNode* FindNode(ed::NodeId nodeId) const;
 
 private:
-    // input pin -> source output info
-    std::unordered_map<ed::PinId, PinSource> inputToSource_;
-
-    // node id -> node pointer
-    std::unordered_map<ed::NodeId, const VisualNode*> nodeById_;
-
-    // flow output pin -> downstream flow input target
-    std::unordered_map<ed::PinId, FlowTarget> flowOutputToTarget_;
+    std::unordered_map<ed::PinId,  PinSource>              inputToSource_;
+    std::unordered_map<ed::NodeId, const VisualNode*>      nodeById_;
+    std::unordered_map<ed::PinId,  FlowTarget>             flowOutputToTarget_;
 };
