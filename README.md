@@ -1,63 +1,60 @@
-# AO_Emi-Visual-Programming-Tool
+# AO Emi Visual Programming Tool
 
 [![Build](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/build.yml)
 [![Static Analysis](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/static-analysis.yml/badge.svg?branch=main)](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/static-analysis.yml)
 [![Tests](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/cuernatra/AO_Emi-Visual-Programming-Tool/actions/workflows/tests.yml)
 
-COMP.SE.610/620
+Course (COMP.SE.610/620) Project
 
-## Build instructions
+## The Pitch
 
-Make sure CMake is installed.
+AO Emi is a node-based visual programming tool and editor built in C++23.
+It uses Dear ImGui via ImGui-SFML and a node editor canvas (imgui-node-editor) to let you assemble graphs, compile them to EMI-Script, and preview behavior in a small demo runtime.
 
-1. Create build directory:
+EMI-Script source code: https://github.com/IlkkaTakala/EMI-Script
 
-   ```bash
-   mkdir build
-   ```
+## Usage
 
-2. Go to build directory:
+### Build
 
-   ```bash
-   cd build
-   ```
-
-3. Configure CMake to build dependencies as static libraries:
-
-   ```bash
-   cmake -DBUILD_SHARED_LIBS=OFF ..
-   ```
-
-4. Build project:
-
-   ```bash
-   cmake --build .
-   ```
-
-Generated executable can be found in the build directory.
-
-## Testing
-
-Configure with tests enabled:
+Prereqs: a C++23 compiler and CMake.
 
 ```bash
-cmake -S . -B build -DBUILD_TESTS=ON
+cmake -S . -B build -DBUILD_SHARED_LIBS=OFF "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+cmake --build build
 ```
 
-Build and run tests:
+The main executable target is `emi-editor`.
+
+### Run
+
+Run the built `emi-editor` binary from your build output directory.
+
+### Testing
 
 ```bash
+cmake -S . -B build -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTS=ON " -DCMAKE_POLICY_VERSION_MINIMUM=3.5" 
 cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-## Documentation
-
-Generate the HTML docs:
+### Documentation
 
 ```bash
 doxygen Doxyfile
 ```
 
-Then open `docs/index.html` (redirects to `docs/html/index.html`).
+Open `docs/index.html` (redirects to `docs/html/index.html`).
+
+## How it works
+
+The editor is split into two major halves:
+
+
+The demo preview includes small “native” functions (see `Demo/NodeGameFunctions.cpp`) used by demo graphs (e.g. A* pathfinding over a grid with editable walls).
+
+## Demo
+
+![EMI Node Editor](docs/images/EMI-Node-Editor.png)
+
 
