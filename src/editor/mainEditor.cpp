@@ -222,6 +222,14 @@ void MainEditor::draw()
     //Draw graph canvas.
     m_graphEditor->Draw();
 
+    if (m_shouldFocusAfterLoad && m_graphState->HasAliveNodes())
+    {
+        ed::SetCurrentEditor(m_editorContext);
+        ed::NavigateToContent(0.0f);
+        ed::SetCurrentEditor(nullptr);
+        m_shouldFocusAfterLoad = false;
+    }
+
     if (m_graphState->IsDirty())
     {
         ed::SetCurrentEditor(m_editorContext);
@@ -244,7 +252,7 @@ void MainEditor::draw()
             GraphSerializer::Save(*m_graphState, m_currentFilePath.c_str());
             ed::SetCurrentEditor(nullptr);
         }
-        
+
         std::filesystem::path selectedPath = fileOpen.GetSelected();
         
         m_graphState=std::make_unique<GraphState>();
@@ -264,6 +272,9 @@ void MainEditor::draw()
         //Storing the opened file path for saving
         m_currentFilePath = selectedPath.string();
         fileOpen.ClearSelected();
+
+        //Focus on nodes after loading
+        m_shouldFocusAfterLoad = true;
     }
     if(fileSaveAs.HasSelected())
     {

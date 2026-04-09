@@ -90,4 +90,5 @@ private:
     std::unique_ptr<GraphCompilation> m_compiler;  ///< Graph compile/execute engine.
     std::function<void()> m_compileCallback;
     bool m_resultOnlyCompile = true;               ///< If true, keep compile status output minimal.
+    bool m_shouldFocusAfterLoad = false;           ///< Flag to defer focus until next frame
 };
