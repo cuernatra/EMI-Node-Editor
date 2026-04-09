@@ -237,7 +237,16 @@ void MainEditor::draw()
     //For selecting file to open
     if(fileOpen.HasSelected())
     {
+        //Save current file before opening new file
+        if (!m_currentFilePath.empty())
+        {
+            ed::SetCurrentEditor(m_editorContext);
+            GraphSerializer::Save(*m_graphState, m_currentFilePath.c_str());
+            ed::SetCurrentEditor(nullptr);
+        }
+        
         std::filesystem::path selectedPath = fileOpen.GetSelected();
+        
         m_graphState=std::make_unique<GraphState>();
         m_graphEditor=std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
         m_compiler=std::make_unique<GraphCompilation>();
