@@ -836,6 +836,8 @@ bool DrawSequenceStyleControls(VisualNode& n, IdGen* idGen)
     if (!idGen)
         return false;
 
+    // These buttons can appear on multiple nodes; ensure unique ImGui IDs per node.
+    ImGui::PushID((int)n.id.Get());
     bool changed = false;
     if (ImGui::SmallButton("+ Then"))
     {
@@ -860,6 +862,7 @@ bool DrawSequenceStyleControls(VisualNode& n, IdGen* idGen)
         }
     }
 
+    ImGui::PopID();
     return changed;
 }
 
@@ -868,6 +871,8 @@ bool DrawFunctionParamControls(VisualNode& n)
     if (n.nodeType != NodeType::Function)
         return false;
 
+    // These buttons can appear on multiple Function nodes; ensure unique ImGui IDs per node.
+    ImGui::PushID((int)n.id.Get());
     bool changed = false;
 
     if (ImGui::SmallButton("+ Param"))
@@ -941,6 +946,7 @@ bool DrawFunctionParamControls(VisualNode& n)
         }
     }
 
+    ImGui::PopID();
     return changed;
 }
 }

@@ -593,6 +593,7 @@ bool RefreshFunctionNodeLayout(GraphState& state)
         }
 
         // Ensure one output pin per parameter.
+        // IMPORTANT: treat renames as in-place pin renames so links are preserved.
         std::vector<std::string> paramNames;
         for (const auto& [idx, fieldPtr] : collectParamFields(n))
         {
@@ -602,58 +603,74 @@ bool RefreshFunctionNodeLayout(GraphState& state)
             paramNames.push_back(fieldPtr->value);
         }
 
+        auto collectParamOutPinIndices = [&]() -> std::vector<size_t>
+        {
+            std::vector<size_t> indices;
+            indices.reserve(n.outPins.size());
+            for (size_t i = 0; i < n.outPins.size(); ++i)
+            {
+                const Pin& p = n.outPins[i];
+                if (p.type == PinType::Flow || p.name == "Out")
+                    continue;
+                indices.push_back(i);
+            }
+            return indices;
+        };
+
+        std::vector<size_t> paramPinIndices = collectParamOutPinIndices();
+
+        // Add missing pins (new params).
+        while (paramPinIndices.size() < paramNames.size())
+        {
+            n.outPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                /*name=*/"",
+                PinType::Any,
+                /*isInput=*/false
+            ));
+            paramPinIndices.push_back(n.outPins.size() - 1);
+            changed = true;
+        }
+
+        // Rename (or type-fix) existing pins in-order.
         for (size_t i = 0; i < paramNames.size(); ++i)
         {
-            const std::string& paramName = paramNames[i];
+            const std::string& desiredName = paramNames[i];
+            Pin& p = n.outPins[paramPinIndices[i]];
 
-            Pin* paramPin = FindPinByName(n.outPins, paramName.c_str());
-            if (!paramPin)
+            if (p.name != desiredName)
             {
-                // Try to reuse a placeholder pin name from older saves.
-                const std::string placeholder = "Param" + std::to_string(static_cast<int>(i));
-                Pin* placeholderPin = FindPinByName(n.outPins, placeholder.c_str());
-                if (placeholderPin)
-                {
-                    placeholderPin->name = paramName;
-                    placeholderPin->type = PinType::Any;
-                    changed = true;
-                }
-                else
-                {
-                    n.outPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, paramName, PinType::Any, false));
-                    changed = true;
-                }
+                p.name = desiredName;
+                changed = true;
             }
-            else if (paramPin->type != PinType::Any)
+
+            if (p.type != PinType::Any)
             {
-                paramPin->type = PinType::Any;
+                p.type = PinType::Any;
+                changed = true;
+            }
+
+            if (p.isInput)
+            {
+                p.isInput = false;
                 changed = true;
             }
         }
 
-        // Prune stale param pins only when they are unlinked.
-        for (auto it = n.outPins.begin(); it != n.outPins.end(); )
+        // Prune extra param pins only when they are unlinked.
+        // Iterate from back to front so index-based removals are safe.
+        paramPinIndices = collectParamOutPinIndices();
+        for (size_t i = paramPinIndices.size(); i-- > paramNames.size(); )
         {
-            if (it->type == PinType::Flow || it->name == "Out")
-            {
-                ++it;
+            const size_t pinIdx = paramPinIndices[i];
+            if (pinIdx >= n.outPins.size())
                 continue;
-            }
-
-            const bool stillExists = std::find(paramNames.begin(), paramNames.end(), it->name) != paramNames.end();
-            if (stillExists)
-            {
-                ++it;
+            if (IsPinLinked(state, n.outPins[pinIdx].id))
                 continue;
-            }
 
-            if (IsPinLinked(state, it->id))
-            {
-                ++it;
-                continue;
-            }
-
-            it = n.outPins.erase(it);
+            n.outPins.erase(n.outPins.begin() + static_cast<long long>(pinIdx));
             changed = true;
         }
     }
@@ -772,55 +789,77 @@ bool RefreshCallFunctionNodeLayout(GraphState& state)
         const std::vector<std::string> params = (it != functionDefs.end()) ? it->second.params : std::vector<std::string>{};
 
         // Ensure input pins for parameters.
+        // IMPORTANT: treat renames as in-place pin renames so links are preserved.
+        auto collectParamInPinIndices = [&]() -> std::vector<size_t>
+        {
+            std::vector<size_t> indices;
+            indices.reserve(n.inPins.size());
+            for (size_t i = 0; i < n.inPins.size(); ++i)
+            {
+                const Pin& p = n.inPins[i];
+                if (p.type == PinType::Flow || p.name == "In")
+                    continue;
+                indices.push_back(i);
+            }
+            return indices;
+        };
+
+        std::vector<size_t> paramPinIndices = collectParamInPinIndices();
+
+        // Add missing pins (new params).
+        while (paramPinIndices.size() < params.size())
+        {
+            n.inPins.push_back(MakePin(
+                static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                n.id,
+                n.nodeType,
+                /*name=*/"",
+                PinType::Any,
+                /*isInput=*/true
+            ));
+            paramPinIndices.push_back(n.inPins.size() - 1);
+            changed = true;
+        }
+
+        // Rename (or type-fix) existing pins in-order.
         for (size_t i = 0; i < params.size(); ++i)
         {
-            const std::string& paramName = params[i];
-            if (paramName.empty())
+            const std::string& desiredName = params[i];
+            if (desiredName.empty())
                 continue;
 
-            Pin* paramPin = FindPinByName(n.inPins, paramName.c_str());
-            if (!paramPin)
+            Pin& p = n.inPins[paramPinIndices[i]];
+
+            if (p.name != desiredName)
             {
-                const std::string placeholder = "Arg" + std::to_string(static_cast<int>(i));
-                Pin* placeholderPin = FindPinByName(n.inPins, placeholder.c_str());
-                if (placeholderPin)
-                {
-                    placeholderPin->name = paramName;
-                    placeholderPin->type = PinType::Any;
-                    placeholderPin->isInput = true;
-                    changed = true;
-                }
-                else
-                {
-                    n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, paramName, PinType::Any, true));
-                    changed = true;
-                }
+                p.name = desiredName;
+                changed = true;
+            }
+
+            if (p.type != PinType::Any)
+            {
+                p.type = PinType::Any;
+                changed = true;
+            }
+
+            if (!p.isInput)
+            {
+                p.isInput = true;
+                changed = true;
             }
         }
 
-        // Prune stale non-flow input pins when unlinked.
-        for (auto itPin = n.inPins.begin(); itPin != n.inPins.end(); )
+        // Prune extra param pins only when they are unlinked.
+        paramPinIndices = collectParamInPinIndices();
+        for (size_t i = paramPinIndices.size(); i-- > params.size(); )
         {
-            if (itPin->type == PinType::Flow || itPin->name == "In")
-            {
-                ++itPin;
+            const size_t pinIdx = paramPinIndices[i];
+            if (pinIdx >= n.inPins.size())
                 continue;
-            }
-
-            const bool stillExists = std::find(params.begin(), params.end(), itPin->name) != params.end();
-            if (stillExists)
-            {
-                ++itPin;
+            if (IsPinLinked(state, n.inPins[pinIdx].id))
                 continue;
-            }
 
-            if (IsPinLinked(state, itPin->id))
-            {
-                ++itPin;
-                continue;
-            }
-
-            itPin = n.inPins.erase(itPin);
+            n.inPins.erase(n.inPins.begin() + static_cast<long long>(pinIdx));
             changed = true;
         }
 
