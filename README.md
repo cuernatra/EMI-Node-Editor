@@ -13,6 +13,8 @@ It uses Dear ImGui via ImGui-SFML and a node editor canvas (imgui-node-editor) t
 
 EMI-Script source code: https://github.com/IlkkaTakala/EMI-Script
 
+![EMI Node Editor](docs/images/EMI-Node-Editor.png)
+
 ## Usage
 
 ### Build
@@ -50,11 +52,9 @@ Open `docs/index.html` (redirects to `docs/html/index.html`).
 
 The editor is split into two major halves:
 
+- `src/core/`: graph data structures, node registry, and the graph compiler (turns graphs into EMI-Script AST/code).
+- `src/editor/` + `src/app/`: editor state, panels, rendering, and the SFML/ImGui frame loop.
 
 The demo preview includes small “native” functions (see `Demo/NodeGameFunctions.cpp`) used by demo graphs (e.g. A* pathfinding over a grid with editable walls).
-
-## Demo
-
-![EMI Node Editor](docs/images/EMI-Node-Editor.png)
 
 
