@@ -171,6 +171,54 @@ void GraphEditor::DrawNodeCanvas()
         }
     }
 
+    // Double-click a CallFunction node to jump to its Function definition.
+    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && !ImGui::GetIO().WantTextInput)
+    {
+        const ed::NodeId hoveredNode = ed::GetHoveredNode();
+        if (hoveredNode.Get() != 0)
+        {
+            const VisualNode* callNode = nullptr;
+            for (const auto& n : m_state.GetNodes())
+            {
+                if (n.alive && n.id == hoveredNode)
+                {
+                    callNode = &n;
+                    break;
+                }
+            }
+
+            if (callNode && callNode->nodeType == NodeType::CallFunction)
+            {
+                const NodeField* nameField = GraphEditorUtils::FindField(callNode->fields, "Name");
+                const std::string targetName = nameField ? nameField->value : std::string{};
+
+                if (!targetName.empty())
+                {
+                    ed::NodeId targetFnId = 0;
+                    for (const auto& n : m_state.GetNodes())
+                    {
+                        if (!n.alive || n.nodeType != NodeType::Function)
+                            continue;
+
+                        const NodeField* fnNameField = GraphEditorUtils::FindField(n.fields, "Name");
+                        if (fnNameField && fnNameField->value == targetName)
+                        {
+                            targetFnId = n.id;
+                            break;
+                        }
+                    }
+
+                    if (targetFnId.Get() != 0)
+                    {
+                        ed::ClearSelection();
+                        ed::SelectNode(targetFnId, true);
+                        ed::NavigateToSelection(/* zoomIn */ true, /* duration */ 0.20f);
+                    }
+                }
+            }
+        }
+    }
+
     RefreshGraphAndMarkDirty();
 
     ed::End();
