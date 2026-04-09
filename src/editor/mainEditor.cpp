@@ -253,7 +253,7 @@ void MainEditor::draw()
         
         m_graphState=std::make_unique<GraphState>();
         m_graphEditor=std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
-        m_compiler=std::make_unique<GraphCompilation>();
+        m_compiler=std::make_unique<GraphExecutor>();
         GraphSerializer::Load(*m_graphState, selectedPath.string().c_str());
 
         //Apply loaded positions to the editor
