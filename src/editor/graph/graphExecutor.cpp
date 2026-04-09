@@ -1,6 +1,7 @@
 #include "graphExecutor.h"
 #include "graphState.h"
 #include "core/compiler/graphCompiler.h"
+#include "core/graphModel/visualNodeUtils.h"
 #include "VM.h"
 #include "Parser/Node.h"
 #include "../../../Demo/previewNatives.h"
@@ -9,6 +10,7 @@
 #include <mutex>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <utility>
 
 // Run pipeline (CompileGraphSnapshot):
@@ -117,6 +119,41 @@ GraphExecutor::CompileResult GraphExecutor::CompileGraphSnapshot(
             m_logSink(status);
         }
         return { false, status };
+    }
+
+    // Validate function nodes before compiling (no duplicate names for function definitions)
+    {
+        std::unordered_map<std::string, unsigned long long> firstByName;
+
+        for (const VisualNode& n : nodes)
+        {
+            if (!n.alive || n.nodeType != NodeType::Function)
+                continue;
+
+            const std::string* fnName = FindField(n, "Name");
+            const std::string name = fnName ? *fnName : std::string();
+            const unsigned long long rawId = (unsigned long long)n.id.Get();
+
+            if (name.empty())
+            {
+                const std::string status = "[ERROR] Compile error: Function node has an empty Name field (node id "
+                    + std::to_string(rawId) + ")\n";
+                if (m_logSink)
+                    m_logSink(status);
+                return { false, status };
+            }
+
+            auto [it, inserted] = firstByName.emplace(name, rawId);
+            if (!inserted)
+            {
+                const std::string status = "[ERROR] Compile error: Duplicate Function name '" + name
+                    + "' (node ids " + std::to_string(it->second) + " and " + std::to_string(rawId)
+                    + "). Function names must be unique.\n";
+                if (m_logSink)
+                    m_logSink(status);
+                return { false, status };
+            }
+        }
     }
 
     if (m_forceStopRequested.load())
