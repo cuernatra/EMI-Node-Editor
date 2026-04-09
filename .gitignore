@@ -49,6 +49,7 @@ build*/
 .vscode/
 graph.txt
 node_editor.json
+NodeEditor.json
 build_cline_check/
 
 .vs/
