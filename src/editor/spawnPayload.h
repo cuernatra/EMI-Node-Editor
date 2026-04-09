@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/graph/types.h"
+#include "core/graphModel/types.h"
 
 /**
  * @brief Drag payload used to spawn nodes from the palette.

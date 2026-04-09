@@ -8,7 +8,7 @@
 #include "../ui/fileBar.h"
 #include "graph/graphState.h"
 #include "graph/graphEditor.h"
-#include "graph/graphCompilation.h"
+#include "graph/graphExecutor.h"
 #include <memory>
 #include "../dependencies/imgui-filebrowser/imfilebrowser.h"
 #include <cstdint>
@@ -85,9 +85,9 @@ private:
     std::function<void(const std::string&)> m_uiCompileLogSink;
     std::mutex m_pendingCompileLogsMutex;
     std::vector<std::string> m_pendingCompileLogs;
-    std::future<GraphCompilation::CompileResult> m_compileFuture;
+    std::future<GraphExecutor::CompileResult> m_compileFuture;
     bool m_compileInProgress = false;
-    std::unique_ptr<GraphCompilation> m_compiler;  ///< Graph compile/execute engine.
+    std::unique_ptr<GraphExecutor> m_compiler;  ///< Graph compile/execute engine.
     std::function<void()> m_compileCallback;
     bool m_resultOnlyCompile = true;               ///< If true, keep compile status output minimal.
     bool m_shouldFocusAfterLoad = false;           ///< Flag to defer focus until next frame

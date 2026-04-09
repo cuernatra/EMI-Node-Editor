@@ -11,7 +11,7 @@
 #define LEFTPANEL_H
 
 #include "app/constants.h"
-#include "core/graph/types.h"
+#include "core/graphModel/types.h"
 #include <vector>
 
 /**
@@ -43,6 +43,8 @@ public:
 private:
     /// Palette node types in deterministic display order
     std::vector<NodeType> m_nodeTypes;
+    /// Search field text used to filter visible palette entries
+    char m_searchBuffer[128] = {};
 };
 
 #endif

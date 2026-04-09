@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "core/graph/visualNode.h"
-#include "core/graph/link.h"
-#include "core/graph/idGen.h"
+#include "core/graphModel/visualNode.h"
+#include "core/graphModel/link.h"
+#include "core/graphModel/idGen.h"
 #include <vector>
 #include <string>
 

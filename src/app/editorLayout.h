@@ -17,6 +17,7 @@
 #include "editor/panels/consolePanel.h"
 #include "editor/panels/consoleEmiLogger.h"
 #include "editor/panels/graphPreviewPanel.h"
+#include "editor/panels/renderPanel.h"
 #include "editor/settings.h"
 #include <cstdint>
 #include <memory>
@@ -92,6 +93,7 @@ private:
     ConsolePanel m_consolePanel;
     std::unique_ptr<ConsoleEmiLogger> m_consoleEmiLogger;
     GraphPreviewPanel m_graphPreviewPanel;
+    RenderPanel m_renderPanel;
     
     /// Current width of left panel (-1 = uninitialized, auto-sized on first draw)
     float m_leftPanelWidth = Settings::leftPanelWidth;

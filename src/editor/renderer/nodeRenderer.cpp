@@ -5,7 +5,6 @@
 
 #include "app/constants.h"
 #include "core/registry/nodeRegistry.h"
-#include "editor/nodeColorCategories.h"
 #include "editor/settings.h"
 #include "editor/graph/graphSerializer.h"
 
@@ -21,6 +20,7 @@
 #include <cstdlib>
 #include <functional>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 namespace ed = ax::NodeEditor;
@@ -29,22 +29,9 @@ namespace
 {
 ImVec4 GetNodeCategoryHeaderColor(const NodeDescriptor* desc)
 {
-    switch (GetNodeColorCategory(desc))
-    {
-        case NodeColorCategory::Event:
-            return ImVec4(Settings::nodeHeaderEventColorR, Settings::nodeHeaderEventColorG, Settings::nodeHeaderEventColorB, Settings::nodeHeaderEventColorA);
-        case NodeColorCategory::Data:
-            return ImVec4(Settings::nodeHeaderDataColorR, Settings::nodeHeaderDataColorG, Settings::nodeHeaderDataColorB, Settings::nodeHeaderDataColorA);
-        case NodeColorCategory::Struct:
-            return ImVec4(Settings::nodeHeaderStructColorR, Settings::nodeHeaderStructColorG, Settings::nodeHeaderStructColorB, Settings::nodeHeaderStructColorA);
-        case NodeColorCategory::Logic:
-            return ImVec4(Settings::nodeHeaderLogicColorR, Settings::nodeHeaderLogicColorG, Settings::nodeHeaderLogicColorB, Settings::nodeHeaderLogicColorA);
-        case NodeColorCategory::Flow:
-            return ImVec4(Settings::nodeHeaderFlowColorR, Settings::nodeHeaderFlowColorG, Settings::nodeHeaderFlowColorB, Settings::nodeHeaderFlowColorA);
-        case NodeColorCategory::More:
-        default:
-            return ImVec4(Settings::nodeHeaderMoreColorR, Settings::nodeHeaderMoreColorG, Settings::nodeHeaderMoreColorB, Settings::nodeHeaderMoreColorA);
-    }
+    const std::string& category = desc ? desc->category : std::string{};
+    const auto rgba = Settings::GetNodeHeaderColor(category);
+    return ImVec4(rgba[0], rgba[1], rgba[2], rgba[3]);
 }
 
 NodeField* FindFieldByName(VisualNode& node, const char* name)
@@ -389,17 +376,19 @@ static bool NodePopupComboDynamic(const char* id,
     return changed;
 }
 
-bool IsDeferredInputPin(const NodeDescriptor* desc, const Pin& pin)
+bool IsDeferredInputPin(const VisualNode& node, const NodeDescriptor* desc, const Pin& pin)
 {
-    if (!desc)
+    if (!desc || !pin.isInput)
         return false;
 
-    // StructCreate adds input pins at runtime.
-    // We treat all those pins as deferred, except the main "Struct" pin.
-    if (desc->renderStyle == NodeRenderStyle::StructCreate && pin.name != "Struct")
+    if (std::find(desc->deferredInputPins.begin(), desc->deferredInputPins.end(), pin.name) != desc->deferredInputPins.end())
         return true;
 
-    return std::find(desc->deferredInputPins.begin(), desc->deferredInputPins.end(), pin.name) != desc->deferredInputPins.end();
+    const bool wildcard = std::find(desc->deferredInputPins.begin(), desc->deferredInputPins.end(), "*") != desc->deferredInputPins.end();
+    if (!wildcard)
+        return false;
+
+    return FindFieldByName(node, pin.name.c_str()) != nullptr;
 }
 
 float MeasureFieldWidth(NodeRenderStyle renderStyle, const NodeField& field)
@@ -527,21 +516,14 @@ struct NodeRenderFlags
     bool isArrayReplaceNode = false;
     bool isArrayLengthNode  = false;
     bool hasArrayInputField = false;
+
+    bool isFunctionNode     = false;
+    bool isCallFunctionNode = false;
 };
 
 struct DeferredPinState
 {
-    bool defaultPin  = false;
-    bool startPin    = false;
-    bool countPin    = false;
-    bool aPin        = false;
-    bool bPin        = false;
-    bool durationPin = false;
-    bool xPin        = false;
-    bool yPin        = false;
-    bool wPin        = false;
-    bool hPin        = false;
-    bool indexPin    = false;
+    std::unordered_set<std::string> drawnPins;
 };
 
 namespace NodeRendererSpecialCases
@@ -558,7 +540,7 @@ struct FieldRenderContext
     DeferredPinState& deferred;         // Tracks deferred pins already drawn inline.
 
     std::function<void(NodeField&, const char*)>        drawFieldWithConnectionRule;
-    std::function<void(NodeField&, const char*, bool*)> drawDeferredPinAndField;
+    std::function<void(NodeField&, const char*)>        drawDeferredPinAndField;
     std::function<bool(const char*)>                    isInputPinConnected;
 };
 
@@ -625,44 +607,55 @@ bool HandleVariableField(NodeField& field, FieldRenderContext& context)
         return true;
     }
 
-    if (context.flags.isSetVariable && field.name == "Default")
-    {
-        context.drawDeferredPinAndField(field, "Default", &context.deferred.defaultPin);
-        return true;
-    }
-
     return false;
 }
 
 bool HandleFlowStyleField(NodeField& field, FieldRenderContext& context)
 {
-    if (context.flags.isLoopNode && (field.name == "Start" || field.name == "Count"))
+    if (context.flags.isCallFunctionNode && field.name == "Name")
     {
-        if (field.name == "Start")
-            context.drawDeferredPinAndField(field, "Start", &context.deferred.startPin);
+        std::vector<std::string> functionNames;
+
+        if (context.allNodes)
+        {
+            for (const VisualNode& other : *context.allNodes)
+            {
+                if (!other.alive || other.nodeType != NodeType::Function)
+                    continue;
+
+                const NodeField* nameField = FindFieldByName(other, "Name");
+                if (!nameField || nameField->value.empty())
+                    continue;
+
+                if (std::find(functionNames.begin(), functionNames.end(), nameField->value) == functionNames.end())
+                    functionNames.push_back(nameField->value);
+            }
+        }
+
+        if (functionNames.empty())
+        {
+            if (!field.value.empty())
+            {
+                field.value.clear();
+                context.changed = true;
+            }
+            ImGui::TextUnformatted("Function");
+            ImGui::SameLine();
+            ImGui::TextDisabled("(none)");
+        }
         else
-            context.drawDeferredPinAndField(field, "Count", &context.deferred.countPin);
-        return true;
-    }
+        {
+            if (std::find(functionNames.begin(), functionNames.end(), field.value) == functionNames.end())
+            {
+                field.value = functionNames.front();
+                context.changed = true;
+            }
 
-    if (context.flags.isBinaryDefaultNode && (field.name == "A" || field.name == "B"))
-    {
-        if (field.name == "A")
-            context.drawDeferredPinAndField(field, "A", &context.deferred.aPin);
-        else
-            context.drawDeferredPinAndField(field, "B", &context.deferred.bPin);
-        return true;
-    }
+            ImGui::TextUnformatted("Function");
+            ImGui::SameLine();
+            context.changed |= NodePopupComboDynamic("##CallFunctionCombo", field.value, functionNames, 110.0f);
+        }
 
-    if (context.flags.isUnaryDefaultNode && field.name == "A")
-    {
-        context.drawDeferredPinAndField(field, "A", &context.deferred.aPin);
-        return true;
-    }
-
-    if (context.flags.isDelayNode && field.name == "Duration")
-    {
-        context.drawDeferredPinAndField(field, "Duration", &context.deferred.durationPin);
         return true;
     }
 
@@ -678,12 +671,6 @@ bool HandleArrayStyleField(NodeField& field, FieldRenderContext& context)
             DrawArrayFieldPreviewReadOnly(field, 3);
         else
             context.changed |= DrawField(field);
-        return true;
-    }
-
-    if (context.flags.isArrayIndexNode && field.name == "Index")
-    {
-        context.drawDeferredPinAndField(field, "Index", &context.deferred.indexPin);
         return true;
     }
 
@@ -738,16 +725,6 @@ bool HandleArrayStyleField(NodeField& field, FieldRenderContext& context)
 
 bool HandleDrawStyleField(NodeField& field, FieldRenderContext& context)
 {
-    if (context.flags.isDrawNode &&
-        (field.name == "X" || field.name == "Y" || field.name == "W" || field.name == "H"))
-    {
-        if (field.name == "X") context.drawDeferredPinAndField(field, "X", &context.deferred.xPin);
-        else if (field.name == "Y") context.drawDeferredPinAndField(field, "Y", &context.deferred.yPin);
-        else if (field.name == "W") context.drawDeferredPinAndField(field, "W", &context.deferred.wPin);
-        else if (field.name == "H") context.drawDeferredPinAndField(field, "H", &context.deferred.hPin);
-        return true;
-    }
-
     if (context.flags.isDrawNode && field.name == "Color")
     {
         ImGui::Text("%s", field.name.c_str());
@@ -784,12 +761,6 @@ bool HandleStructStyleField(NodeField& field, FieldRenderContext& context)
         ImGui::TextUnformatted("Fields");
         ImGui::SameLine();
         ImGui::TextDisabled("[%d]", fieldCount);
-        return true;
-    }
-
-    if (context.flags.isStructCreateNode && field.name != "Struct Name")
-    {
-        context.drawDeferredPinAndField(field, field.name.c_str(), nullptr);
         return true;
     }
 
@@ -837,43 +808,26 @@ NodeRenderFlags BuildNodeRenderFlags(const VisualNode& n, NodeRenderStyle render
     flags.isArrayLengthNode = (renderStyle == NodeRenderStyle::Array && n.nodeType == NodeType::ArrayLength);
     flags.hasArrayInputField = (flags.isForEachNode || flags.isArrayIndexNode || flags.isArrayLengthNode);
 
+    flags.isFunctionNode = (n.nodeType == NodeType::Function);
+    flags.isCallFunctionNode = (n.nodeType == NodeType::CallFunction);
+
     return flags;
 }
 
-void DrawDeferredPinsIfMissing(const NodeRenderFlags& flags,
+void DrawDeferredPinsIfMissing(const VisualNode& n,
+                               const NodeDescriptor* desc,
                                const DeferredPinState& deferred,
                                const std::function<void(const char*)>& drawDeferredPinByName)
 {
-    if (flags.isSetVariable && !deferred.defaultPin)
-        drawDeferredPinByName("Default");
-
-    if (flags.isLoopNode)
+    for (const Pin& pin : n.inPins)
     {
-        if (!deferred.startPin) drawDeferredPinByName("Start");
-        if (!deferred.countPin) drawDeferredPinByName("Count");
-    }
+        if (!IsDeferredInputPin(n, desc, pin))
+            continue;
 
-    if (flags.isBinaryDefaultNode)
-    {
-        if (!deferred.aPin) drawDeferredPinByName("A");
-        if (!deferred.bPin) drawDeferredPinByName("B");
-    }
+        if (deferred.drawnPins.find(pin.name) != deferred.drawnPins.end())
+            continue;
 
-    if (flags.isUnaryDefaultNode && !deferred.aPin)
-        drawDeferredPinByName("A");
-
-    if (flags.isDelayNode && !deferred.durationPin)
-        drawDeferredPinByName("Duration");
-
-    if (flags.isArrayIndexNode && !deferred.indexPin)
-        drawDeferredPinByName("Index");
-
-    if (flags.isDrawNode)
-    {
-        if (!deferred.xPin) drawDeferredPinByName("X");
-        if (!deferred.yPin) drawDeferredPinByName("Y");
-        if (!deferred.wPin) drawDeferredPinByName("W");
-        if (!deferred.hPin) drawDeferredPinByName("H");
+        drawDeferredPinByName(pin.name.c_str());
     }
 }
 
@@ -902,6 +856,87 @@ bool DrawSequenceStyleControls(VisualNode& n, IdGen* idGen)
         if (n.outPins.size() > 1)
         {
             n.outPins.pop_back();
+            changed = true;
+        }
+    }
+
+    return changed;
+}
+
+bool DrawFunctionParamControls(VisualNode& n)
+{
+    if (n.nodeType != NodeType::Function)
+        return false;
+
+    bool changed = false;
+
+    if (ImGui::SmallButton("+ Param"))
+    {
+        int nextIndex = 0;
+        for (const NodeField& f : n.fields)
+        {
+            if (f.name.rfind("Param", 0) != 0)
+                continue;
+
+            const std::string suffix = f.name.substr(5);
+            if (suffix.empty())
+                continue;
+
+            bool allDigits = true;
+            for (char ch : suffix)
+                allDigits = allDigits && std::isdigit(static_cast<unsigned char>(ch));
+            if (!allDigits)
+                continue;
+
+            try
+            {
+                const int idx = std::stoi(suffix);
+                nextIndex = std::max(nextIndex, idx + 1);
+            }
+            catch (...) {}
+        }
+
+        const std::string paramName = "param" + std::to_string(nextIndex);
+        n.fields.push_back(NodeField{ "Param" + std::to_string(nextIndex), PinType::String, paramName });
+        changed = true;
+    }
+
+    if (ImGui::SmallButton("- Param"))
+    {
+        int bestIndex = -1;
+        int bestFieldIndex = -1;
+
+        for (int i = 0; i < static_cast<int>(n.fields.size()); ++i)
+        {
+            const NodeField& f = n.fields[static_cast<size_t>(i)];
+            if (f.name.rfind("Param", 0) != 0)
+                continue;
+
+            const std::string suffix = f.name.substr(5);
+            if (suffix.empty())
+                continue;
+
+            bool allDigits = true;
+            for (char ch : suffix)
+                allDigits = allDigits && std::isdigit(static_cast<unsigned char>(ch));
+            if (!allDigits)
+                continue;
+
+            try
+            {
+                const int idx = std::stoi(suffix);
+                if (idx > bestIndex)
+                {
+                    bestIndex = idx;
+                    bestFieldIndex = i;
+                }
+            }
+            catch (...) {}
+        }
+
+        if (bestFieldIndex >= 0)
+        {
+            n.fields.erase(n.fields.begin() + bestFieldIndex);
             changed = true;
         }
     }
@@ -999,7 +1034,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     // Deferred pins are skipped here and drawn next to fields.
     for (const Pin& pin : n.inPins)
     {
-        if (IsDeferredInputPin(desc, pin))
+        if (IsDeferredInputPin(n, desc, pin))
             continue;
         DrawPin(pin, contentWidth, allLinks);
     }
@@ -1041,11 +1076,20 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
                 changed |= DrawField(field);
         };
 
-        auto drawDeferredPinAndField = [&](NodeField& field, const char* pinName, bool* drewFlag = nullptr)
+        auto hasMatchingDeferredInputPin = [&](const char* fieldName) -> bool
+        {
+            for (const Pin& pin : n.inPins)
+            {
+                if (pin.name == fieldName && IsDeferredInputPin(n, desc, pin))
+                    return true;
+            }
+            return false;
+        };
+
+        auto drawDeferredPinAndField = [&](NodeField& field, const char* pinName)
         {
             drawDeferredPinByName(pinName);
-            if (drewFlag)
-                *drewFlag = true;
+            deferredPins.drawnPins.insert(pinName);
             drawFieldWithConnectionRule(field, pinName);
         };
 
@@ -1070,6 +1114,12 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
             if (field.name == "Variant")
                 continue; // Internal metadata field; hidden from node body.
 
+            if (hasMatchingDeferredInputPin(field.name.c_str()))
+            {
+                drawDeferredPinAndField(field, field.name.c_str());
+                continue;
+            }
+
             if (NodeRendererSpecialCases::HandleCustomFieldRendering(field, specialCtx))
                 continue;
 
@@ -1084,7 +1134,7 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     }
 
     // Phase 4: draw any deferred pins that were not drawn beside fields.
-    DrawDeferredPinsIfMissing(renderFlags, deferredPins, drawDeferredPinByName);
+    DrawDeferredPinsIfMissing(n, desc, deferredPins, drawDeferredPinByName);
 
     if (renderFlags.isDrawNode)
     {
@@ -1097,6 +1147,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
 
     if (renderStyle == NodeRenderStyle::Sequence)
         changed |= DrawSequenceStyleControls(n, idGen);
+
+    if (renderFlags.isFunctionNode)
+        changed |= DrawFunctionParamControls(n);
 
     // Phase 5: draw output pins.
     for (const Pin& pin : n.outPins)

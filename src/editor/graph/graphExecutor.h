@@ -1,5 +1,13 @@
-/** @file graphCompilation.h */
-/** @brief Compile and execute graph snapshots. */
+/** @file graphExecutor.h */
+/**
+ * @brief Drives the full graph run: build AST → compile bytecode → execute.
+ *
+ * This is the bridge between the editor (GraphState) and the core compiler
+ * (GraphCompiler) + VM. It is the right place to start when debugging what
+ * happens when the user presses Run.
+ *
+ * For the graph → AST step specifically, see core/compiler/graphCompiler.h.
+ */
 
 #pragma once
 
@@ -13,8 +21,8 @@ class GraphState;
 struct VisualNode;
 struct Link;
 
-/** @brief Bridges editor graph data to compiler/VM execution. */
-class GraphCompilation
+/** @brief Orchestrates graph compilation and VM execution. */
+class GraphExecutor
 {
 public:
     using LogSink = std::function<void(const std::string&)>;
@@ -26,10 +34,10 @@ public:
     };
 
     /** @brief Initialize compilation runtime resources. */
-    GraphCompilation();
+    GraphExecutor();
 
     /** @brief Release compilation runtime resources. */
-    ~GraphCompilation();
+    ~GraphExecutor();
 
     /** @brief Compile and execute using mutable editor state. */
     void CompileGraph(GraphState& state, bool resultOnly = false);
@@ -55,5 +63,3 @@ private:
     LogSink m_logSink;
     std::atomic<bool> m_forceStopRequested{ false };
 };
-
-

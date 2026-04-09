@@ -1,8 +1,63 @@
-#include "../nodeRegistry.h"
-#include "nodeCompileHelpers.h"
 
-namespace
+#include "../nodeRegistry.h"
+#include "../../compiler/nodeCompileHelpers.h"
+
+namespace {
+// Unified ArrayOperation node (backward compatible, does not replace existing nodes)
+Node* CompileArrayOperationNode(GraphCompiler* compiler, const VisualNode& n)
 {
+    const std::string* opStr = FindField(n, "Operation");
+    if (!opStr) {
+        compiler->Error("ArrayOperation node missing Operation field");
+        return nullptr;
+    }
+
+    const Pin* arrayPin = FindInputPin(n, "Array");
+    if (!arrayPin) {
+        compiler->Error("ArrayOperation node needs Array input");
+        return nullptr;
+    }
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
+    if (!arrayExpr) return nullptr;
+
+    if (*opStr == "Push" || *opStr == "PushFront" || *opStr == "PushUnique") {
+        const Pin* valuePin = FindInputPin(n, "Value");
+        if (!valuePin) {
+            compiler->Error("ArrayOperation (" + *opStr + ") needs Value input");
+            delete arrayExpr;
+            return nullptr;
+        }
+        Node* valueExpr = compiler->BuildExpr(*valuePin);
+        if (!valueExpr) {
+            delete arrayExpr;
+            return nullptr;
+        }
+            return MakeFunctionCallNode("Array." + *opStr, { arrayExpr, valueExpr });
+    }
+    else if (*opStr == "Clear") {
+            return MakeFunctionCallNode("Array.Clear", { arrayExpr });
+    }
+    else if (*opStr == "Resize") {
+        const Pin* sizePin = FindInputPin(n, "Size");
+        if (!sizePin) {
+            compiler->Error("ArrayOperation (Resize) needs Size input");
+            delete arrayExpr;
+            return nullptr;
+        }
+        Node* sizeExpr = compiler->BuildExpr(*sizePin);
+        if (!sizeExpr) {
+            delete arrayExpr;
+            return nullptr;
+        }
+            return MakeFunctionCallNode("Array.Resize", { arrayExpr, sizeExpr });
+    }
+    else {
+        compiler->Error("Unknown ArrayOperation: " + *opStr);
+        delete arrayExpr;
+        return nullptr;
+    }
+}
+
 Node* CompileConstantNode(GraphCompiler* compiler, const VisualNode& n)
 {
     const std::string* val = FindField(n, "Value");
@@ -95,6 +150,40 @@ Node* CompileVariableNode(GraphCompiler* compiler, const VisualNode& n)
     return assign;
 }
 
+void CompilePreludeVariableNode(GraphCompiler* compiler, const VisualNode& n, Node*, Node* graphBodyScope)
+{
+    if (!compiler || !graphBodyScope)
+        return;
+
+    const std::string* variant = FindField(n, "Variant");
+    const bool isGet = (variant && *variant == "Get");
+    if (isGet)
+        return;
+
+    const std::string* nameStr = FindField(n, "Name");
+    const std::string varName = (nameStr && !nameStr->empty()) ? *nameStr : "__unnamed";
+    if (!compiler->TryDeclareGraphVariable(varName))
+        return;
+
+    const std::string* typeStr = FindField(n, "Type");
+    const std::string typeName = typeStr ? *typeStr : "Number";
+
+    Token typeToken = Token::TypeNumber;
+    if (typeName == "Boolean")
+        typeToken = Token::TypeBoolean;
+    else if (typeName == "String")
+        typeToken = Token::TypeString;
+    else if (typeName == "Array")
+        typeToken = Token::TypeArray;
+    else if (typeName == "Any")
+        typeToken = Token::AnyType;
+
+    Node* decl = MakeNode(Token::VarDeclare);
+    decl->data = varName;
+    decl->children.push_back(MakeNode(typeToken));
+    graphBodyScope->children.push_back(decl);
+}
+
 bool DeserializeVariableNode(VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds)
 {
     if (pinIds.size() == 1)
@@ -135,9 +224,9 @@ Node* CompileArrayGetNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin, "Array");
-    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin, "Index");
-    return compiler->EmitIndexer(arrayExpr, indexExpr);
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
+    Node* indexExpr = BuildNumberOperand(compiler, n, *indexPin);
+        return MakeIndexerNode(arrayExpr, indexExpr);
 }
 
 Node* CompileArrayAddNode(GraphCompiler* compiler, const VisualNode& n)
@@ -151,13 +240,31 @@ Node* CompileArrayAddNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin, "Array");
-    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin, "Index");
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
+    Node* indexExpr = BuildNumberOperand(compiler, n, *indexPin);
     Node* valueExpr = nullptr;
     if (compiler->Resolve(*valuePin))
+    {
         valueExpr = compiler->BuildExpr(*valuePin);
+    }
     else
-        valueExpr = BuildTypedFieldValue(compiler, n, "Add Type", "Add Value");
+    {
+        const std::string* typeText  = FindField(n, "Add Type");
+        const std::string* valueText = FindField(n, "Add Value");
+        const std::string  typeName  = typeText  ? *typeText  : "Number";
+        const std::string  valueName = valueText ? *valueText : "0.0";
+        if (typeName == "Boolean")
+            valueExpr = MakeBoolLiteral(valueName == "true" || valueName == "True" || valueName == "1");
+        else if (typeName == "String")
+            valueExpr = MakeStringLiteral(valueName);
+        else if (typeName == "Array")
+            valueExpr = compiler->BuildArrayLiteralNode(valueName);
+        else
+        {
+            try { valueExpr = MakeNumberLiteral(std::stod(valueName)); }
+            catch (...) { valueExpr = MakeNumberLiteral(0.0); }
+        }
+    }
 
     if (!arrayExpr || !indexExpr || !valueExpr)
     {
@@ -167,7 +274,7 @@ Node* CompileArrayAddNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    return compiler->EmitFunctionCall("Array.Insert", { arrayExpr, indexExpr, valueExpr });
+        return MakeFunctionCallNode("Array.Insert", { arrayExpr, indexExpr, valueExpr });
 }
 
 Node* CompileArrayReplaceNode(GraphCompiler* compiler, const VisualNode& n)
@@ -181,13 +288,31 @@ Node* CompileArrayReplaceNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin, "Array");
-    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin, "Index");
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
+    Node* indexExpr = BuildNumberOperand(compiler, n, *indexPin);
     Node* valueExpr = nullptr;
     if (compiler->Resolve(*valuePin))
+    {
         valueExpr = compiler->BuildExpr(*valuePin);
+    }
     else
-        valueExpr = BuildTypedFieldValue(compiler, n, "Replace Type", "Replace Value");
+    {
+        const std::string* typeText  = FindField(n, "Replace Type");
+        const std::string* valueText = FindField(n, "Replace Value");
+        const std::string  typeName  = typeText  ? *typeText  : "Number";
+        const std::string  valueName = valueText ? *valueText : "0.0";
+        if (typeName == "Boolean")
+            valueExpr = MakeBoolLiteral(valueName == "true" || valueName == "True" || valueName == "1");
+        else if (typeName == "String")
+            valueExpr = MakeStringLiteral(valueName);
+        else if (typeName == "Array")
+            valueExpr = compiler->BuildArrayLiteralNode(valueName);
+        else
+        {
+            try { valueExpr = MakeNumberLiteral(std::stod(valueName)); }
+            catch (...) { valueExpr = MakeNumberLiteral(0.0); }
+        }
+    }
 
     if (!arrayExpr || !indexExpr || !valueExpr)
     {
@@ -255,8 +380,8 @@ Node* CompileArrayRemoveNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin, "Array");
-    Node* indexExpr = BuildNumberInput(compiler, n, *indexPin, "Index");
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
+    Node* indexExpr = BuildNumberOperand(compiler, n, *indexPin);
     if (!arrayExpr || !indexExpr)
     {
         delete arrayExpr;
@@ -264,7 +389,7 @@ Node* CompileArrayRemoveNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    return compiler->EmitFunctionCall("Array.RemoveIndex", { arrayExpr, indexExpr });
+        return MakeFunctionCallNode("Array.RemoveIndex", { arrayExpr, indexExpr });
 }
 
 Node* CompileArrayLengthNode(GraphCompiler* compiler, const VisualNode& n)
@@ -276,12 +401,13 @@ Node* CompileArrayLengthNode(GraphCompiler* compiler, const VisualNode& n)
         return nullptr;
     }
 
-    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin, "Array");
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
     if (!arrayExpr)
         return nullptr;
 
-    return compiler->EmitFunctionCall("Array.Size", { arrayExpr });
+        return MakeFunctionCallNode("Array.Size", { arrayExpr });
 }
+
 
 Node* CompileOutputNode(GraphCompiler* compiler, const VisualNode& n)
 {
@@ -291,22 +417,57 @@ Node* CompileOutputNode(GraphCompiler* compiler, const VisualNode& n)
     const std::string* label = FindField(n, "Label");
     const std::string text = label ? *label : "result";
 
-    scope->children.push_back(compiler->EmitFunctionCall(
+    scope->children.push_back(MakeFunctionCallNode(
         "println",
-        { ParseTextLiteralNode("[Debug Print] " + text) }
+        { MakeStringLiteral("[Debug Print] " + text) }
     ));
 
     const Pin* valuePin = FindInputPin(n, "Value");
     if (valuePin)
     {
-        Node* valueExpr = BuildOutputValue(compiler, n, *valuePin);
+        Node* valueExpr = nullptr;
+        if (compiler->Resolve(*valuePin))
+        {
+            valueExpr = compiler->BuildExpr(*valuePin);
+        }
+        else
+        {
+            // If unwired and fed by a ForEach, automatically use the ForEach element.
+            const Pin* flowIn = FindInputPin(n, "In");
+            if (!flowIn)
+                flowIn = FindInputPin(n, "Flow");
+
+            if (flowIn)
+            {
+                const FlowTarget* flowSrc = compiler->ResolveFlow(*flowIn);
+                if (flowSrc && flowSrc->node && flowSrc->node->nodeType == NodeType::ForEach)
+                {
+                    int elementOutIdx = -1;
+                    for (int i = 0; i < static_cast<int>(flowSrc->node->outPins.size()); ++i)
+                    {
+                        const Pin& outPin = flowSrc->node->outPins[static_cast<size_t>(i)];
+                        if (outPin.type != PinType::Flow && outPin.name == "Element")
+                        {
+                            elementOutIdx = i;
+                            break;
+                        }
+                    }
+                    if (elementOutIdx >= 0)
+                        valueExpr = compiler->BuildNode(*flowSrc->node, elementOutIdx);
+                }
+            }
+
+            if (!valueExpr)
+                valueExpr = compiler->BuildExpr(*valuePin);
+        }
+
         if (!valueExpr)
         {
             delete scope;
             return nullptr;
         }
 
-        scope->children.push_back(compiler->EmitFunctionCall("println", { valueExpr }));
+        scope->children.push_back(MakeFunctionCallNode("println", { valueExpr }));
     }
 
     return scope;
@@ -318,199 +479,297 @@ Node* CompilePreviewPickRectNode(GraphCompiler*, const VisualNode&)
     // but return a valid no-op scope so registry/compiler validation passes.
     return MakeNode(Token::Scope);
 }
+
+Node* CompileArrayReverseNode(GraphCompiler* compiler, const VisualNode& n)
+{
+    const Pin* arrayPin = FindInputPin(n, "Array");
+    if (!arrayPin)
+    {
+        compiler->Error("Array Reverse node needs Array input");
+        return nullptr;
+    }
+
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
+    return MakeFunctionCallNode("Array.Reverse", { arrayExpr });
+}
+
+Node* CompileArrayContainsNode(GraphCompiler* compiler, const VisualNode& n)
+{
+    const Pin* arrayPin = FindInputPin(n, "Array");
+    const Pin* valuePin = FindInputPin(n, "Value");
+    if (!arrayPin || !valuePin)
+    {
+        compiler->Error("Array Contains node needs Array and Value inputs");
+        return nullptr;
+    }
+
+    Node* arrayExpr = BuildArrayInput(compiler, n, *arrayPin);
+    Node* valueExpr = nullptr;
+    if (compiler->Resolve(*valuePin))
+        valueExpr = compiler->BuildExpr(*valuePin);
+    else
+        valueExpr = MakeNumberLiteral(0.0);
+
+    return MakeFunctionCallNode("Array.Contains", { arrayExpr, valueExpr });
+}
 }
 
 void NodeRegistry::RegisterDataNodes()
 {
-    // Register(...) fields follow NodeDescriptor member order.
-    Register({
-        NodeType::Constant,
-        "Constant",
-        {
+    // Use named initializers so it's obvious what NodeDescriptor fields exist.
+
+    // Unified ArrayOperation node (backward compatible, does not replace existing nodes)
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayOperation,
+        .label = "Array Operation",
+        .pins = {
+            { "In", PinType::Flow, true },
+            { "Array", PinType::Array, true },
+            { "Value", PinType::Any, false }, // Only used for Push/PushFront/PushUnique
+            { "Size", PinType::Number, false }, // Only used for Resize
+            { "Out", PinType::Flow, false }
+        },
+        .fields = {
+            { "Operation", PinType::String, "Push", { "Push", "PushFront", "PushUnique", "Clear", "Resize" } }
+        },
+        .compile = CompileArrayOperationNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayOperation",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Array
+    });
+
+    Register(NodeDescriptor{
+        .type = NodeType::Constant,
+        .label = "Constant",
+        .pins = {
             { "Value", PinType::Any, false }
         },
-        {
+        .fields = {
             { "Type", PinType::String, "Number", { "Number", "Boolean", "String", "Array" } },
             { "Value", PinType::Any, "0.0" }
         },
-        CompileConstantNode,
-        nullptr,
-        "Data",
-        {},
-        "Constant",
-        {},
-        NodeRenderStyle::Constant
+        .compile = CompileConstantNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "Constant",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Constant
     });
 
-    Register({
-        NodeType::Variable,
-        "Set Variable",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::Variable,
+        .label = "Set Variable",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Default", PinType::Any, true },
             { "Out", PinType::Flow, false }
         },
-        {
+        .fields = {
             { "Variant", PinType::String, "Set", { "Set", "Get" } },
             { "Name", PinType::String, "myVar" },
             { "Type", PinType::String, "Number", { "Number", "Boolean", "String", "Array" } },
             { "Default", PinType::String, "0.0" }
         },
-        CompileVariableNode,
-        DeserializeVariableNode,
-        "Data",
-        {
+        .compile = CompileVariableNode,
+        .compilePrelude = CompilePreludeVariableNode,
+        .deserialize = DeserializeVariableNode,
+        .category = "Data",
+        .paletteVariants = {
             { "Set Variable", "Variable:Set" },
             { "Get Variable", "Variable:Get" }
         },
-        "Variable",
-        { "Default" },
-        NodeRenderStyle::Variable
+        .saveToken = "Variable",
+        .deferredInputPins = { "Default" },
+        .renderStyle = NodeRenderStyle::Variable
     });
 
-    Register({
-        NodeType::ArrayGetAt,
-        "Array Get",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayGetAt,
+        .label = "Array Get",
+        .pins = {
             { "Array", PinType::Array, true },
             { "Index", PinType::Number, true },
             { "Value", PinType::Any, false }
         },
-        {
+        .fields = {
             { "Array", PinType::Array, "[]" },
             { "Index", PinType::Number, "0" }
         },
-        CompileArrayGetNode,
-        nullptr,
-        "Data",
-        {},
-        "ArrayGet",
-        { "Index" },
-        NodeRenderStyle::Array
+        .compile = CompileArrayGetNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayGet",
+        .deferredInputPins = { "Index" },
+        .renderStyle = NodeRenderStyle::Array
     });
 
-    Register({
-        NodeType::ArrayAddAt,
-        "Array Add",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayAddAt,
+        .label = "Array Add",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Array", PinType::Array, true },
             { "Index", PinType::Number, true },
             { "Value", PinType::Any, true },
             { "Out", PinType::Flow, false }
         },
-        {
+        .fields = {
             { "Array", PinType::Array, "[]" },
             { "Index", PinType::Number, "0" },
             { "Add Type", PinType::String, "Number", { "Number", "Boolean", "String", "Array" } },
             { "Add Value", PinType::Any, "0.0" }
         },
-        CompileArrayAddNode,
-        nullptr,
-        "Data",
-        {},
-        "ArrayAdd",
-        { "Index" },
-        NodeRenderStyle::Array
+        .compile = CompileArrayAddNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayAdd",
+        .deferredInputPins = { "Index" },
+        .renderStyle = NodeRenderStyle::Array
     });
 
-    Register({
-        NodeType::ArrayReplaceAt,
-        "Array Replace",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayReplaceAt,
+        .label = "Array Replace",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Array", PinType::Array, true },
             { "Index", PinType::Number, true },
             { "Value", PinType::Any, true },
             { "Out", PinType::Flow, false }
         },
-        {
+        .fields = {
             { "Array", PinType::Array, "[]" },
             { "Index", PinType::Number, "0" },
             { "Replace Type", PinType::String, "Number", { "Number", "Boolean", "String", "Array" } },
             { "Replace Value", PinType::Any, "0.0" }
         },
-        CompileArrayReplaceNode,
-        nullptr,
-        "Data",
-        {},
-        "ArrayReplace",
-        { "Index" },
-        NodeRenderStyle::Array
+        .compile = CompileArrayReplaceNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayReplace",
+        .deferredInputPins = { "Index" },
+        .renderStyle = NodeRenderStyle::Array
     });
 
-    Register({
-        NodeType::ArrayRemoveAt,
-        "Array Remove",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayRemoveAt,
+        .label = "Array Remove",
+        .pins = {
             { "In", PinType::Flow, true },
             { "Array", PinType::Array, true },
             { "Index", PinType::Number, true },
             { "Out", PinType::Flow, false }
         },
-        {
+        .fields = {
             { "Index", PinType::Number, "0" }
         },
-        CompileArrayRemoveNode,
-        nullptr,
-        "Data",
-        {},
-        "ArrayRemove",
-        { "Index" },
-        NodeRenderStyle::Array
+        .compile = CompileArrayRemoveNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayRemove",
+        .deferredInputPins = { "Index" },
+        .renderStyle = NodeRenderStyle::Array
     });
 
-    Register({
-        NodeType::ArrayLength,
-        "Array Length",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayLength,
+        .label = "Array Length",
+        .pins = {
             { "Array", PinType::Array, true },
             { "Length", PinType::Number, false }
         },
-        {
+        .fields = {
             { "Array", PinType::Array, "[]" }
         },
-        CompileArrayLengthNode,
-        nullptr,
-        "Data",
-        {},
-        "ArrayLength",
-        {},
-        NodeRenderStyle::Array
+        .compile = CompileArrayLengthNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayLength",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Array
     });
 
-    Register({
-        NodeType::PreviewPickRect,
-        "Rect Click",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::PreviewPickRect,
+        .label = "Rect Click",
+        .pins = {
             { "Out", PinType::Flow, false },
             { "X", PinType::Number, false },
             { "Y", PinType::Number, false }
         },
-        {},
-        CompilePreviewPickRectNode,
-        nullptr,
-        "Data",
-        {},
-        "PreviewPickRect",
-        {},
-        NodeRenderStyle::Default
+        .fields = {},
+        .compile = CompilePreviewPickRectNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "PreviewPickRect",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Default
     });
 
-    Register({
-        NodeType::Output,
-        "Debug Print",
-        {
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayReverse,
+        .label = "Array Reverse",
+        .pins = {
+            { "In", PinType::Flow, true },
+            { "Array", PinType::Array, true },
+            { "Out", PinType::Flow, false }
+        },
+        .fields = {},
+        .compile = CompileArrayReverseNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayReverse",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Array
+    });
+
+    Register(NodeDescriptor{
+        .type = NodeType::ArrayContains,
+        .label = "Array Contains",
+        .pins = {
+            { "Array", PinType::Array, true },
+            { "Value", PinType::Any, true },
+            { "Result", PinType::Boolean, false }
+        },
+        .fields = {
+            { "Array", PinType::Array, "[]" }
+        },
+        .compile = CompileArrayContainsNode,
+        .deserialize = nullptr,
+        .category = "Data",
+        .paletteVariants = {},
+        .saveToken = "ArrayContains",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Array
+    });
+
+    Register(NodeDescriptor{
+        .type = NodeType::Output,
+        .label = "Debug Print",
+        .pins = {
             { "In", PinType::Flow, true, true },
             { "Value", PinType::Any, true }
         },
-        {
+        .fields = {
             { "Label", PinType::String, "result" }
         },
-        CompileOutputNode,
-        nullptr,
-        "Flow",
-        {},
-        "Output"
+        .compile = CompileOutputNode,
+        .deserialize = nullptr,
+        .category = "Flow",
+        .paletteVariants = {},
+        .saveToken = "Output",
+        .deferredInputPins = {},
+        .renderStyle = NodeRenderStyle::Default
     });
 }

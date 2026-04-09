@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "core/graph/visualNode.h"
+#include "core/graphModel/visualNode.h"
 #include "imgui_node_editor.h"
 #include <cstdint>
 

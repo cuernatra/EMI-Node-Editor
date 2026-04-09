@@ -73,5 +73,18 @@ void TopPanel::draw()
     }
 
     ImGui::PopStyleColor(3);
+    ImGui::SameLine(0, 10);
+    // Add RenderPanel button
+    if (ImGui::Button("Render", ImVec2(85, buttonHeight)))
+    {
+        if (m_renderPanelCallback)
+            m_renderPanelCallback();
+    }
     ImGui::PopStyleVar(3);
 }
+
+void TopPanel::setRenderPanelCallback(std::function<void()> cb)
+{
+    m_renderPanelCallback = std::move(cb);
+}
+// Removed stray closing brace

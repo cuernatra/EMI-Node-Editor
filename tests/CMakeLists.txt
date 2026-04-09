@@ -27,15 +27,17 @@ add_executable(tests
     ../src/core/registry/nodes/eventNodes.cpp
     ../src/core/registry/nodes/flowNodes.cpp
     ../src/core/registry/nodes/logicNodes.cpp
+    ../src/core/registry/nodes/renderNodes.cpp
     ../src/core/registry/nodes/structNodes.cpp
-    ../src/core/graph/pin.cpp
+    ../src/core/registry/nodes/demoNodes.cpp
+    ../src/core/graphModel/pin.cpp
 )
 
 target_include_directories(tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/dependencies/imgui-node-editor
-    ${CMAKE_SOURCE_DIR}/EMI-Script/EMI-Script-master/src
-    ${CMAKE_SOURCE_DIR}/EMI-Script/EMI-Script-master/include
+    ${CMAKE_SOURCE_DIR}/EMI-Script/src
+    ${CMAKE_SOURCE_DIR}/EMI-Script/include
     ${CMAKE_BINARY_DIR}/_deps/unordered_dense-src/include
     ${CMAKE_BINARY_DIR}/_deps/imgui-src
 )

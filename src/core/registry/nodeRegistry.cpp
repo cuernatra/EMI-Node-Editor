@@ -28,6 +28,8 @@ NodeRegistry::NodeRegistry()
     RegisterLogicNodes();
     RegisterFlowNodes();
     RegisterStructNodes();
+    RegisterDemoNodes();
+    RegisterRenderNodes();
 }
 
 void NodeRegistry::Register(NodeDescriptor descriptor)
@@ -43,6 +45,9 @@ void NodeRegistry::Register(NodeDescriptor descriptor)
 
     for (const std::string& pinName : descriptor.deferredInputPins)
     {
+        if (pinName == "*")
+            continue;
+
         const auto pinIt = std::find_if(descriptor.pins.begin(), descriptor.pins.end(), [&](const PinDescriptor& pin)
         {
             return pin.isInput && pin.name == pinName;
@@ -53,6 +58,19 @@ void NodeRegistry::Register(NodeDescriptor descriptor)
             throw std::invalid_argument(
                 "NodeRegistry::Register: descriptor '" + descriptor.label +
                 "' references unknown deferred input pin '" + pinName + "'"
+            );
+        }
+
+        const auto fieldIt = std::find_if(descriptor.fields.begin(), descriptor.fields.end(), [&](const FieldDescriptor& field)
+        {
+            return field.name == pinName;
+        });
+
+        if (fieldIt == descriptor.fields.end())
+        {
+            throw std::invalid_argument(
+                "NodeRegistry::Register: descriptor '" + descriptor.label +
+                "' references deferred input pin '" + pinName + "' without a same-name field"
             );
         }
     }

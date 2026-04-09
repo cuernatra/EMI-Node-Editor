@@ -4,10 +4,12 @@ add_executable(emi-editor
   ui/fileBar.cpp
 
   app/editorLayout.cpp
+  ../Demo/NodeGameFunctions.cpp
+  ../Demo/previewNatives.cpp
   editor/mainEditor.cpp
   editor/graph/graphEditor.cpp
   editor/graph/graphEditorUtils.cpp
-  editor/graph/graphCompilation.cpp
+  editor/graph/graphExecutor.cpp
   editor/graph/graphState.cpp
   editor/graph/graphSerializer.cpp
 
@@ -16,14 +18,15 @@ add_executable(emi-editor
   editor/panels/consolePanel.cpp
   editor/panels/consoleEmiLogger.cpp
   editor/panels/graphPreviewPanel.cpp
+  editor/panels/renderPanel.cpp
   editor/panels/inspectorPanel.cpp
   editor/settings.cpp
   editor/renderer/pinRenderer.cpp
   editor/renderer/linkRenderer.cpp
   editor/renderer/nodeRenderer.cpp
   editor/renderer/fieldWidgetRenderer.cpp
-  core/graph/pin.cpp
-  core/graph/link.cpp
+  core/graphModel/pin.cpp
+  core/graphModel/link.cpp
   core/registry/nodeFactory.cpp
   core/registry/nodeRegistry.cpp
   core/registry/nodes/eventNodes.cpp
@@ -31,6 +34,8 @@ add_executable(emi-editor
   core/registry/nodes/logicNodes.cpp
   core/registry/nodes/flowNodes.cpp
   core/registry/nodes/structNodes.cpp
+  core/registry/nodes/demoNodes.cpp
+  core/registry/nodes/renderNodes.cpp
   core/compiler/graphCompiler.cpp
   core/compiler/pinResolver.cpp
 
@@ -59,7 +64,7 @@ target_include_directories(emi-editor PRIVATE
   ${_emi_src_dir}
 
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/core/graph
+  ${CMAKE_CURRENT_SOURCE_DIR}/core/graphModel
   ../dependencies/imgui-node-editor
 )
 target_include_directories(emi-editor PRIVATE ${CMAKE_SOURCE_DIR}/src dependencies/imgui-filebrowser)

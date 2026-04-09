@@ -2,7 +2,7 @@
 #include "graph/graphState.h"
 #include "graph/graphSerializer.h"
 #include "graph/graphEditor.h"
-#include "graph/graphCompilation.h"
+#include "graph/graphExecutor.h"
 #include "imgui.h"
 #include "../core/registry/nodeFactory.h"
 #include "imgui_node_editor.h"
@@ -28,7 +28,7 @@ MainEditor::MainEditor(): m_fileBar(this),
 
     m_graphState = std::make_unique<GraphState>();
     m_graphEditor = std::make_unique<GraphEditor>(m_editorContext, *m_graphState);
-    m_compiler = std::make_unique<GraphCompilation>();
+    m_compiler = std::make_unique<GraphExecutor>();
     m_compiler->SetLogSink([this](const std::string& message)
     {
         std::lock_guard<std::mutex> lock(m_pendingCompileLogsMutex);
@@ -119,7 +119,7 @@ void MainEditor::draw()
             const std::vector<VisualNode> nodesSnapshot = m_graphState->GetNodes();
             const std::vector<Link> linksSnapshot = m_graphState->GetLinks();
             const bool resultOnlySnapshot = m_resultOnlyCompile;
-            GraphCompilation* compiler = m_compiler.get();
+            GraphExecutor* compiler = m_compiler.get();
 
             if (m_compiler)
                 m_compiler->ClearForceStopRequest();
@@ -134,16 +134,12 @@ void MainEditor::draw()
     }
 
     ImGui::SameLine();
-    if (!m_compileInProgress)
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-    if (ImGui::Button("Force Stop") && m_compileInProgress)
+    if (ImGui::Button("Force Stop"))
     {
         if (m_compiler)
             m_compiler->RequestForceStop();
         m_graphState->SetCompileStatus(false, "[WARN] Force stop requested...\n");
     }
-    if (!m_compileInProgress)
-        ImGui::PopStyleVar();
 
     ImGui::SameLine();
     ImGui::Checkbox("Result only", &m_resultOnlyCompile);
@@ -451,7 +447,7 @@ void MainEditor::pollAsyncCompileResult()
     if (m_compileFuture.wait_for(0ms) != std::future_status::ready)
         return;
 
-    const GraphCompilation::CompileResult outcome = m_compileFuture.get();
+    const GraphExecutor::CompileResult outcome = m_compileFuture.get();
     m_compileInProgress = false;
     m_graphState->SetCompileStatus(outcome.success, outcome.message);
 }

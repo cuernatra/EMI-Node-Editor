@@ -1,5 +1,5 @@
 #include "graphEditorUtils.h"
-#include "core/graph/link.h"
+#include "core/graphModel/link.h"
 #include "core/registry/nodeRegistry.h"
 #include <algorithm>
 #include <cmath>
@@ -531,10 +531,325 @@ bool RefreshNodesFromRegistryDescriptors(GraphState& state)
         if (!desc)
             continue;
 
+        // Function + CallFunction nodes have dynamic pins (params) managed by dedicated refresh passes.
+        // Do not let the generic descriptor sync prune or rename them.
+        if (n.nodeType == NodeType::Function || n.nodeType == NodeType::CallFunction)
+            continue;
+
         if (ShouldSkipDescriptorSync(desc->renderStyle))
             continue;
 
         changed |= SyncNodeToDescriptor(state, n, *desc);
+    }
+
+    return changed;
+}
+
+bool RefreshFunctionNodeLayout(GraphState& state)
+{
+    bool changed = false;
+    auto& nodes = state.GetNodes();
+
+    auto collectParamFields = [&](VisualNode& n) -> std::vector<std::pair<int, NodeField*>>
+    {
+        std::vector<std::pair<int, NodeField*>> out;
+        for (NodeField& f : n.fields)
+        {
+            if (f.name.rfind("Param", 0) != 0)
+                continue;
+
+            const std::string suffix = f.name.substr(5);
+            if (suffix.empty())
+                continue;
+
+            bool allDigits = true;
+            for (char ch : suffix)
+                allDigits = allDigits && std::isdigit(static_cast<unsigned char>(ch));
+            if (!allDigits)
+                continue;
+
+            try
+            {
+                out.emplace_back(std::stoi(suffix), &f);
+            }
+            catch (...) {}
+        }
+
+        std::sort(out.begin(), out.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+        return out;
+    };
+
+    for (auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Function)
+            continue;
+
+        // Ensure body flow output.
+        Pin* outPin = FindPinByName(n.outPins, "Out");
+        if (!outPin)
+        {
+            n.outPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Out", PinType::Flow, false));
+            changed = true;
+        }
+
+        // Ensure one output pin per parameter.
+        std::vector<std::string> paramNames;
+        for (const auto& [idx, fieldPtr] : collectParamFields(n))
+        {
+            (void)idx;
+            if (!fieldPtr || fieldPtr->value.empty())
+                continue;
+            paramNames.push_back(fieldPtr->value);
+        }
+
+        for (size_t i = 0; i < paramNames.size(); ++i)
+        {
+            const std::string& paramName = paramNames[i];
+
+            Pin* paramPin = FindPinByName(n.outPins, paramName.c_str());
+            if (!paramPin)
+            {
+                // Try to reuse a placeholder pin name from older saves.
+                const std::string placeholder = "Param" + std::to_string(static_cast<int>(i));
+                Pin* placeholderPin = FindPinByName(n.outPins, placeholder.c_str());
+                if (placeholderPin)
+                {
+                    placeholderPin->name = paramName;
+                    placeholderPin->type = PinType::Any;
+                    changed = true;
+                }
+                else
+                {
+                    n.outPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, paramName, PinType::Any, false));
+                    changed = true;
+                }
+            }
+            else if (paramPin->type != PinType::Any)
+            {
+                paramPin->type = PinType::Any;
+                changed = true;
+            }
+        }
+
+        // Prune stale param pins only when they are unlinked.
+        for (auto it = n.outPins.begin(); it != n.outPins.end(); )
+        {
+            if (it->type == PinType::Flow || it->name == "Out")
+            {
+                ++it;
+                continue;
+            }
+
+            const bool stillExists = std::find(paramNames.begin(), paramNames.end(), it->name) != paramNames.end();
+            if (stillExists)
+            {
+                ++it;
+                continue;
+            }
+
+            if (IsPinLinked(state, it->id))
+            {
+                ++it;
+                continue;
+            }
+
+            it = n.outPins.erase(it);
+            changed = true;
+        }
+    }
+
+    return changed;
+}
+
+bool RefreshCallFunctionNodeLayout(GraphState& state)
+{
+    bool changed = false;
+    auto& nodes = state.GetNodes();
+    const auto& links = state.GetLinks();
+
+    auto collectParamNamesFromFunction = [&](const VisualNode& fn) -> std::vector<std::string>
+    {
+        std::vector<std::pair<int, std::string>> ordered;
+        for (const NodeField& f : fn.fields)
+        {
+            if (f.name.rfind("Param", 0) != 0)
+                continue;
+            const std::string suffix = f.name.substr(5);
+            if (suffix.empty())
+                continue;
+
+            bool allDigits = true;
+            for (char ch : suffix)
+                allDigits = allDigits && std::isdigit(static_cast<unsigned char>(ch));
+            if (!allDigits)
+                continue;
+
+            if (f.value.empty())
+                continue;
+
+            try
+            {
+                ordered.emplace_back(std::stoi(suffix), f.value);
+            }
+            catch (...) {}
+        }
+
+        std::sort(ordered.begin(), ordered.end(), [](const auto& a, const auto& b) { return a.first < b.first; });
+
+        std::vector<std::string> out;
+        out.reserve(ordered.size());
+        for (const auto& [_, name] : ordered)
+            out.push_back(name);
+        return out;
+    };
+
+    // Build function signature map.
+    struct FunctionDef { std::vector<std::string> params; };
+    std::unordered_map<std::string, FunctionDef> functionDefs;
+    std::vector<std::string> functionNames;
+
+    for (const VisualNode& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::Function)
+            continue;
+
+        const NodeField* nameField = FindField(n.fields, "Name");
+        if (!nameField || nameField->value.empty())
+            continue;
+
+        FunctionDef def;
+        def.params = collectParamNamesFromFunction(n);
+        functionDefs[nameField->value] = def;
+
+        if (std::find(functionNames.begin(), functionNames.end(), nameField->value) == functionNames.end())
+            functionNames.push_back(nameField->value);
+    }
+
+    for (auto& n : nodes)
+    {
+        if (!n.alive || n.nodeType != NodeType::CallFunction)
+            continue;
+
+        // Ensure base pins.
+        if (!FindPinByName(n.inPins, "In"))
+        {
+            n.inPins.insert(n.inPins.begin(), MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "In", PinType::Flow, true));
+            changed = true;
+        }
+
+        if (!FindPinByName(n.outPins, "Out"))
+        {
+            n.outPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Out", PinType::Flow, false));
+            changed = true;
+        }
+
+        Pin* resultPin = FindPinByName(n.outPins, "Result");
+        if (!resultPin)
+        {
+            n.outPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Result", PinType::Any, false));
+            changed = true;
+        }
+        else if (resultPin->type != PinType::Any)
+        {
+            resultPin->type = PinType::Any;
+            changed = true;
+        }
+
+        NodeField* nameField = FindField(n.fields, "Name");
+        const std::string funcName = nameField ? nameField->value : "";
+
+        // If current selection is invalid, choose first available.
+        if (nameField && !functionNames.empty())
+        {
+            if (std::find(functionNames.begin(), functionNames.end(), nameField->value) == functionNames.end())
+            {
+                nameField->value = functionNames.front();
+                changed = true;
+            }
+        }
+
+        auto it = functionDefs.find(funcName);
+        const std::vector<std::string> params = (it != functionDefs.end()) ? it->second.params : std::vector<std::string>{};
+
+        // Ensure input pins for parameters.
+        for (size_t i = 0; i < params.size(); ++i)
+        {
+            const std::string& paramName = params[i];
+            if (paramName.empty())
+                continue;
+
+            Pin* paramPin = FindPinByName(n.inPins, paramName.c_str());
+            if (!paramPin)
+            {
+                const std::string placeholder = "Arg" + std::to_string(static_cast<int>(i));
+                Pin* placeholderPin = FindPinByName(n.inPins, placeholder.c_str());
+                if (placeholderPin)
+                {
+                    placeholderPin->name = paramName;
+                    placeholderPin->type = PinType::Any;
+                    placeholderPin->isInput = true;
+                    changed = true;
+                }
+                else
+                {
+                    n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, paramName, PinType::Any, true));
+                    changed = true;
+                }
+            }
+        }
+
+        // Prune stale non-flow input pins when unlinked.
+        for (auto itPin = n.inPins.begin(); itPin != n.inPins.end(); )
+        {
+            if (itPin->type == PinType::Flow || itPin->name == "In")
+            {
+                ++itPin;
+                continue;
+            }
+
+            const bool stillExists = std::find(params.begin(), params.end(), itPin->name) != params.end();
+            if (stillExists)
+            {
+                ++itPin;
+                continue;
+            }
+
+            if (IsPinLinked(state, itPin->id))
+            {
+                ++itPin;
+                continue;
+            }
+
+            itPin = n.inPins.erase(itPin);
+            changed = true;
+        }
+
+        // Best-effort type propagation for parameter pins based on their connected source.
+        for (Pin& pin : n.inPins)
+        {
+            if (pin.type == PinType::Flow || pin.name == "In")
+                continue;
+
+            PinType resolvedType = PinType::Any;
+            for (const Link& l : links)
+            {
+                if (!l.alive || l.endPinId != pin.id)
+                    continue;
+
+                const Pin* src = state.FindPin(l.startPinId);
+                if (src && src->type != PinType::Flow && src->type != PinType::Any)
+                {
+                    resolvedType = src->type;
+                    break;
+                }
+            }
+
+            if (pin.type != resolvedType)
+            {
+                pin.type = resolvedType;
+                changed = true;
+            }
+        }
     }
 
     return changed;
@@ -1185,6 +1500,8 @@ bool RunAllLayoutRefreshes(GraphState& state)
 
     static const LayoutRefreshEntry kLayoutRefreshTable[] = {
         { NodeType::Variable,     RefreshVariableNodeTypes },
+        { NodeType::Function,     RefreshFunctionNodeLayout },
+        { NodeType::CallFunction, RefreshCallFunctionNodeLayout },
         { NodeType::ForEach,      RefreshForEachNodeLayout },
         { NodeType::Output,       RefreshOutputNodeInputTypes },
         { NodeType::StructDefine, RefreshStructNodeLayouts },

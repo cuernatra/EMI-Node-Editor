@@ -4,8 +4,8 @@
 #ifndef NODE_FACTORY_H
 #define NODE_FACTORY_H
 
-#include "../graph/visualNode.h"
-#include "../graph/idGen.h"
+#include "../graphModel/visualNode.h"
+#include "../graphModel/idGen.h"
 
 /** @brief Create a new node using fresh ids. */
 VisualNode CreateNodeFromType(NodeType type, IdGen& gen, ImVec2 pos);

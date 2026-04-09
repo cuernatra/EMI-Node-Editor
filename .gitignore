@@ -51,6 +51,9 @@ graph.txt
 node_editor.json
 build_cline_check/
 
+.vs/
+src/.vs/
+
 # cmake preset
 CMakePresets.json
 

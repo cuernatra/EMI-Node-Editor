@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/graph/nodeField.h"
+#include "core/graphModel/nodeField.h"
 
 #include <string>
 #include <vector>

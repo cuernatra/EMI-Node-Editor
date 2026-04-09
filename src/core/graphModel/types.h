@@ -23,8 +23,13 @@ enum class NodeType
     Comparison,  ///< Comparison operation
     Logic,       ///< Logic operation
     Not,         ///< Boolean negate
+    NativeCall,  ///< Call a registered native function from flow
+    NativeGet,   ///< Read value from a registered native function
     DrawRect,    ///< Draw rectangle preview
     DrawGrid,    ///< Draw grid preview
+    DrawCell,    ///< Draw one grid cell (calls drawcell native)
+    ClearGrid,   ///< Clear the render grid (calls cleargrid native)
+    RenderGrid,  ///< Flush the render grid (calls rendergrid native)
     Delay,       ///< Delay in flow
     Sequence,    ///< One input, many ordered outputs
     Branch,      ///< If/else branching
@@ -35,14 +40,22 @@ enum class NodeType
     ArrayReplaceAt, ///< Replace array value at index
     ArrayRemoveAt, ///< Remove array value at index
     ArrayLength, ///< Array item count
+    ArrayOperation, ///< Unified array operation node
+    Ticker,      ///< Ticker node (phase 2)
     StructDefine, ///< Define struct schema
     StructCreate, ///< Create struct instance
     PreviewPickRect, ///< Preview-picked rectangle position
     While,       ///< While loop
     Variable,    ///< Variable get/set
-    Function,    ///< Function define/call
-    Output,      ///< Graph return/output
-    Unknown      ///< Unknown type
+    CallFunction, ///< Flow call to a user-defined function
+    Function,    ///< Function definition node
+    Output,      ///< Debug print/output sink
+    MathUnary,   ///< Unary math function (Sqrt, Floor, Round, Abs)
+    MathBinary,  ///< Binary math function (Max, Min)
+    MathClamp,   ///< Math clamp (value, min, max)
+    ArrayReverse,  ///< Reverse array in place
+    ArrayContains, ///< Check if array contains a value
+    Unknown      ///< Uninitialized or invalid type
 };
 
 namespace std {

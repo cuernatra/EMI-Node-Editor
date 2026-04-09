@@ -1,6 +1,6 @@
 #include "nodeFactory.h"
 #include "nodeRegistry.h"
-#include "../graph/nodeField.h"
+#include "../graphModel/nodeField.h"
 #include <cassert>
 #include <iostream>
 

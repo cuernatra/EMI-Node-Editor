@@ -1603,15 +1603,7 @@ void ASTWalker::handle_For(Node* n) {
 		GetFirstNode()
 		WalkOne(first);
 
-		const std::string indexSymbolName =
-			std::string("_index_") + std::to_string(static_cast<unsigned long long>(reinterpret_cast<uintptr_t>(n)));
-		auto sym = CurrentScope->addSymbol(indexSymbolName.c_str());
-		if (!sym) {
-			Error("Failed to allocate unique loop index symbol");
-			CurrentScope = CurrentScope->parent;
-			Registers = regs;
-			return;
-		}
+		auto sym = CurrentScope->addSymbol("_index_");
 		sym->Sym = new Symbol();
 		sym->Register = GetFirstFree();
 		sym->Sym->setType(SymbolType::Static);
@@ -1629,12 +1621,6 @@ void ASTWalker::handle_For(Node* n) {
 		uint8_t regtarget = 0;
 		if (isVar) {
 			auto var = CurrentScope->addSymbol(data);
-			if (!var) {
-				Error("Loop element symbol already defined: " << data.toString());
-				CurrentScope = CurrentScope->parent;
-				Registers = regs;
-				return;
-			}
 			var->Sym = new Symbol();
 			var->Register = GetFirstFree();
 			var->Sym->setType(SymbolType::Variable);
