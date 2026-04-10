@@ -511,6 +511,8 @@ struct NodeRenderFlags
     bool isDrawNode         = false;
     bool isStructDefineNode = false;
     bool isStructCreateNode = false;
+    bool isStructReadNode   = false;
+    bool isStructWriteNode  = false;
     bool isArrayIndexNode   = false;
     bool isArrayAddNode     = false;
     bool isArrayReplaceNode = false;
@@ -752,8 +754,283 @@ bool HandleDrawStyleField(NodeField& field, FieldRenderContext& context)
 
 bool HandleStructStyleField(NodeField& field, FieldRenderContext& context)
 {
-    if (context.flags.isStructCreateNode && field.name == "Schema Fields")
+    auto resolveStructFieldTypeFromSchema = [](const std::string& schemaText, const std::string& wantedField) -> PinType
+    {
+        if (wantedField.empty())
+            return PinType::Any;
+
+        const std::vector<std::string> defs = ParseArrayItemsForNodeView(schemaText);
+        for (std::string raw : defs)
+        {
+            raw = TrimArrayToken(raw);
+            if (raw.size() >= 2
+                && ((raw.front() == '"' && raw.back() == '"')
+                    || (raw.front() == '\'' && raw.back() == '\'')))
+            {
+                raw = raw.substr(1, raw.size() - 2);
+            }
+
+            const size_t sep = raw.find(':');
+            const std::string name = TrimArrayToken(
+                (sep == std::string::npos) ? raw : raw.substr(0, sep)
+            );
+
+            if (name != wantedField)
+                continue;
+
+            const std::string typeName = TrimArrayToken(
+                (sep == std::string::npos) ? std::string("Any") : raw.substr(sep + 1)
+            );
+            return ValuePinTypeFromString(typeName, PinType::Any);
+        }
+
+        return PinType::Any;
+    };
+
+    auto collectDefinedStructNames = [&]() -> std::vector<std::string>
+    {
+        std::vector<std::string> names;
+        if (!context.allNodes)
+            return names;
+
+        for (const VisualNode& other : *context.allNodes)
+        {
+            if (!other.alive || other.nodeType != NodeType::StructDefine)
+                continue;
+
+            const NodeField* nameField = FindFieldByName(other, "Struct Name");
+            const std::string value = (nameField && !nameField->value.empty()) ? nameField->value : "test";
+            if (std::find(names.begin(), names.end(), value) == names.end())
+                names.push_back(value);
+        }
+        return names;
+    };
+
+    auto collectStructInstanceNames = [&]() -> std::vector<std::string>
+    {
+        std::vector<std::string> names;
+        if (!context.allNodes)
+            return names;
+
+        for (const VisualNode& other : *context.allNodes)
+        {
+            if (!other.alive || other.nodeType != NodeType::StructCreate)
+                continue;
+
+            const NodeField* instanceField = FindFieldByName(other, "Instance Name");
+            const std::string value = (instanceField && !instanceField->value.empty()) ? instanceField->value : "structItem";
+            if (std::find(names.begin(), names.end(), value) == names.end())
+                names.push_back(value);
+        }
+
+        return names;
+    };
+
+    auto countStructDefineName = [&](const std::string& candidate) -> int
+    {
+        if (!context.allNodes || candidate.empty())
+            return 0;
+
+        int count = 0;
+        for (const VisualNode& other : *context.allNodes)
+        {
+            if (!other.alive || other.nodeType != NodeType::StructDefine)
+                continue;
+
+            const NodeField* nameField = FindFieldByName(other, "Struct Name");
+            const std::string value = nameField ? nameField->value : std::string();
+            if (value == candidate)
+                ++count;
+        }
+        return count;
+    };
+
+    auto countStructInstanceName = [&](const std::string& candidate) -> int
+    {
+        if (!context.allNodes || candidate.empty())
+            return 0;
+
+        int count = 0;
+        for (const VisualNode& other : *context.allNodes)
+        {
+            if (!other.alive || other.nodeType != NodeType::StructCreate)
+                continue;
+
+            const NodeField* nameField = FindFieldByName(other, "Instance Name");
+            const std::string value = nameField ? nameField->value : std::string();
+            if (value == candidate)
+                ++count;
+        }
+        return count;
+    };
+
+    if (context.flags.isStructDefineNode && field.name == "Struct Name")
+    {
+        context.changed |= DrawField(field);
+        if (!field.value.empty() && countStructDefineName(field.value) > 1)
+            ImGui::TextColored(colors::error, "Duplicate Struct Name");
         return true;
+    }
+
+    if (context.flags.isStructCreateNode && field.name == "Instance Name")
+    {
+        context.changed |= DrawField(field);
+        if (!field.value.empty() && countStructInstanceName(field.value) > 1)
+            ImGui::TextColored(colors::error, "Duplicate Instance Name");
+        return true;
+    }
+
+    if ((context.flags.isStructCreateNode
+        || context.flags.isStructReadNode
+        || context.flags.isStructWriteNode)
+        && field.name == "Schema Fields")
+        return true;
+
+    if ((context.flags.isStructCreateNode || context.flags.isStructReadNode || context.flags.isStructWriteNode)
+        && field.name == "Struct Name")
+    {
+        std::vector<std::string> names = collectDefinedStructNames();
+        if (!names.empty())
+        {
+            if (std::find(names.begin(), names.end(), field.value) == names.end())
+            {
+                field.value = names.front();
+                context.changed = true;
+            }
+            ImGui::TextUnformatted("Struct");
+            ImGui::SameLine();
+            const char* comboId = context.flags.isStructCreateNode
+                ? "##StructCreateStructNameCombo"
+                : (context.flags.isStructReadNode
+                    ? "##StructReadStructNameCombo"
+                    : "##StructWriteStructNameCombo");
+            context.changed |= NodePopupComboDynamic(comboId, field.value, names, 120.0f);
+        }
+        else
+        {
+            ImGui::TextUnformatted("Struct");
+            ImGui::SameLine();
+            ImGui::TextDisabled("(none)");
+        }
+        return true;
+    }
+
+    if ((context.flags.isStructReadNode || context.flags.isStructWriteNode) && field.name == "Instance Name")
+    {
+        std::vector<std::string> names = collectStructInstanceNames();
+        if (!names.empty())
+        {
+            if (std::find(names.begin(), names.end(), field.value) == names.end())
+            {
+                field.value = names.front();
+                context.changed = true;
+            }
+            ImGui::TextUnformatted("Instance");
+            ImGui::SameLine();
+            context.changed |= NodePopupComboDynamic(
+                context.flags.isStructReadNode ? "##StructReadInstanceNameCombo" : "##StructWriteInstanceNameCombo",
+                field.value,
+                names,
+                120.0f
+            );
+        }
+        else
+        {
+            context.changed |= DrawField(field);
+        }
+        return true;
+    }
+
+    if ((context.flags.isStructReadNode || context.flags.isStructWriteNode) && field.name == "Field Name")
+    {
+        const NodeField* schemaField = FindFieldByName(context.node, "Schema Fields");
+        const std::string schemaText = schemaField ? schemaField->value : "[]";
+        const std::vector<std::string>& names = GetStructFieldNamesCached(schemaField ? schemaField->value : "[]");
+        bool selectionChanged = false;
+        if (!names.empty())
+        {
+            if (std::find(names.begin(), names.end(), field.value) == names.end())
+            {
+                field.value = names.front();
+                context.changed = true;
+                selectionChanged = true;
+            }
+            ImGui::TextUnformatted("Field");
+            ImGui::SameLine();
+            const bool comboChanged = NodePopupComboDynamic(
+                context.flags.isStructReadNode ? "##StructReadFieldNameCombo" : "##StructWriteFieldNameCombo",
+                field.value,
+                names,
+                120.0f
+            );
+            if (comboChanged)
+            {
+                context.changed = true;
+                selectionChanged = true;
+            }
+        }
+        else
+        {
+            context.changed |= DrawField(field);
+        }
+
+        // For Struct Write, update Value field type immediately when Field changes,
+        // so UI and fallback compile literal use the selected field's type.
+        if (context.flags.isStructWriteNode)
+        {
+            const PinType targetType = resolveStructFieldTypeFromSchema(schemaText, field.value);
+            if (NodeField* valueField = FindFieldByName(context.node, "Value"))
+            {
+                if (valueField->valueType != targetType)
+                {
+                    valueField->valueType = targetType;
+                    selectionChanged = true;
+                }
+
+                // Keep current typed value when possible, only normalize obvious invalids.
+                if (targetType == PinType::Number)
+                {
+                    char* end = nullptr;
+                    const double parsed = std::strtod(valueField->value.c_str(), &end);
+                    if (!(end && *end == '\0'))
+                    {
+                        valueField->value = "0.0";
+                        selectionChanged = true;
+                    }
+                    else
+                    {
+                        (void)parsed;
+                    }
+                }
+                else if (targetType == PinType::Boolean)
+                {
+                    const bool isTrue = (valueField->value == "true" || valueField->value == "True" || valueField->value == "1");
+                    const bool isFalse = (valueField->value == "false" || valueField->value == "False" || valueField->value == "0");
+                    if (!isTrue && !isFalse)
+                    {
+                        valueField->value = "false";
+                        selectionChanged = true;
+                    }
+                }
+                else if ((targetType == PinType::Array || targetType == PinType::Struct) && valueField->value.empty())
+                {
+                    valueField->value = "[]";
+                    selectionChanged = true;
+                }
+            }
+        }
+
+        if (selectionChanged)
+            context.changed = true;
+
+        return true;
+    }
+
+    if (context.flags.isStructWriteNode && field.name == "Value")
+    {
+        context.drawFieldWithConnectionRule(field, "Value");
+        return true;
+    }
 
     if (context.flags.isStructDefineNode && field.name == "Fields")
     {
@@ -802,6 +1079,8 @@ NodeRenderFlags BuildNodeRenderFlags(const VisualNode& n, NodeRenderStyle render
     flags.isDrawNode = (renderStyle == NodeRenderStyle::Draw);
     flags.isStructDefineNode = (renderStyle == NodeRenderStyle::StructDefine);
     flags.isStructCreateNode = (renderStyle == NodeRenderStyle::StructCreate);
+    flags.isStructReadNode   = (renderStyle == NodeRenderStyle::StructRead);
+    flags.isStructWriteNode  = (renderStyle == NodeRenderStyle::StructWrite);
     flags.isArrayIndexNode = (renderStyle == NodeRenderStyle::Array);
     flags.isArrayAddNode = (renderStyle == NodeRenderStyle::Array && n.nodeType == NodeType::ArrayAddAt);
     flags.isArrayReplaceNode = (renderStyle == NodeRenderStyle::Array && n.nodeType == NodeType::ArrayReplaceAt);

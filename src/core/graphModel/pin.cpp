@@ -15,7 +15,14 @@ bool Pin::CanConnect(const Pin& output, const Pin& input)
     if (output.type == PinType::Any || input.type == PinType::Any)
         return true;
 
-    return output.type == input.type;
+    if (output.type == input.type)
+        return true;
+
+    // Struct and Array share the same runtime representation, so they are
+    // interchangeable on the wire (e.g. StructCreate → ForEach still works).
+    const bool outStructLike = (output.type == PinType::Struct || output.type == PinType::Array);
+    const bool inStructLike  = (input.type  == PinType::Struct || input.type  == PinType::Array);
+    return outStructLike && inStructLike;
 }
 
 Pin MakePin(uint32_t id, ed::NodeId parentNodeId, NodeType parentNodeType,
@@ -40,6 +47,7 @@ const char* PinTypeToString(PinType t)
         case PinType::Boolean:  return "Boolean";
         case PinType::String:   return "String";
         case PinType::Array:    return "Array";
+        case PinType::Struct:   return "Struct";
         case PinType::Function: return "Function";
         case PinType::Flow:     return "Flow";
         default:                return "Any";
@@ -52,6 +60,7 @@ PinType PinTypeFromString(std::string_view s)
     if (s == "Boolean")  return PinType::Boolean;
     if (s == "String")   return PinType::String;
     if (s == "Array")    return PinType::Array;
+    if (s == "Struct")   return PinType::Struct;
     if (s == "Function") return PinType::Function;
     if (s == "Flow")     return PinType::Flow;
     return PinType::Any;
@@ -66,6 +75,7 @@ bool IsValuePinType(PinType t)
         case PinType::Boolean:
         case PinType::String:
         case PinType::Array:
+        case PinType::Struct:
             return true;
         default:
             return false;

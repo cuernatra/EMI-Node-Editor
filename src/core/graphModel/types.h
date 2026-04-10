@@ -10,6 +10,7 @@ enum class PinType
     Boolean,   ///< true/false value
     String,    ///< Text value
     Array,     ///< List/array value
+    Struct,    ///< Struct value (stored as array at runtime, semantically distinct)
     Function,  ///< Function reference
     Flow,      ///< Execution flow signal
     Any        ///< Wildcard type
@@ -44,6 +45,8 @@ enum class NodeType
     Ticker,      ///< Ticker node (phase 2)
     StructDefine, ///< Define struct schema
     StructCreate, ///< Create struct instance
+    StructRead,   ///< Read one field value from a struct
+    StructWrite,  ///< Write one field value into a struct (returns updated struct)
     PreviewPickRect, ///< Preview-picked rectangle position
     While,       ///< While loop
     Variable,    ///< Variable get/set

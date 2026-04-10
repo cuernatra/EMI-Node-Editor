@@ -187,6 +187,8 @@ TEST_CASE("All current NodeTypes are registered and compile callbacks are valid"
         NodeType::ArrayLength,
         NodeType::StructDefine,
         NodeType::StructCreate,
+        NodeType::StructRead,
+        NodeType::StructWrite,
         NodeType::PreviewPickRect,
         NodeType::While,
         NodeType::Variable,

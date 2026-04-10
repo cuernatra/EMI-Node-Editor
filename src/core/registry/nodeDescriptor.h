@@ -96,7 +96,9 @@ enum class NodeRenderStyle
     Array,
     Draw,
     StructDefine,
-    StructCreate
+    StructCreate,
+    StructRead,
+    StructWrite
 };
 
 /** @brief Full template for one node type. */

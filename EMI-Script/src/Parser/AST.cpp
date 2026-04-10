@@ -1333,6 +1333,32 @@ void ASTWalker::helper_Assign(Node* n, Node* last) {
 	auto& lhs = first;
 	auto& rhs = last;
 
+	// Special-case index assignment so StoreIndex.target always points to the
+	// actual RHS value register (not a temporary register chosen by WalkStore).
+	if (lhs->type == Token::Indexer)
+	{
+		Node* indexBase = lhs->children.size() ? lhs->children.front() : nullptr;
+		Node* indexExpr = lhs->children.size() ? lhs->children.back() : nullptr;
+		if (!indexBase || !indexExpr)
+		{
+			Error("Invalid index assignment");
+			return;
+		}
+
+		WalkOne(indexBase);
+		WalkOne(indexExpr);
+
+		Op(StoreIndex);
+		instruction.target = rhs->regTarget;
+		In8 = indexBase->regTarget;
+		In8_2 = indexExpr->regTarget;
+		FreeConstant(indexExpr);
+
+		n->regTarget = rhs->regTarget;
+		n->varType = rhs->varType;
+		return;
+	}
+
 	if (!rhs->sym || (rhs->sym && rhs->sym->NeedsLoading)) {
 		WalkStore(lhs);
 		FreeConstant(rhs);

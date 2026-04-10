@@ -69,6 +69,8 @@ void DrawNodePreview(NodeType nodeType, const char* titleOverride)
     const bool isDrawGridPreview = (nodeType == NodeType::DrawGrid);
     const bool isStructDefinePreview = (nodeType == NodeType::StructDefine);
     const bool isStructCreatePreview = (nodeType == NodeType::StructCreate);
+    const bool isStructReadPreview = (nodeType == NodeType::StructRead);
+    const bool isStructWritePreview = (nodeType == NodeType::StructWrite);
 
     auto keepPin = [&](const PinDescriptor& pd) -> bool
     {
@@ -79,10 +81,16 @@ void DrawNodePreview(NodeType nodeType, const char* titleOverride)
             return (pd.name == "In" || pd.name == "W" || pd.name == "H" || pd.name == "Out");
 
         if (isStructDefinePreview)
-            return (!pd.isInput && pd.name == "Schema");
+            return false;
 
         if (isStructCreatePreview)
-            return (pd.name == "Struct" || pd.name == "Item");
+            return (pd.name == "In" || pd.name == "Out");
+
+        if (isStructReadPreview)
+            return (!pd.isInput && pd.name == "Value");
+
+        if (isStructWritePreview)
+            return (pd.name == "In" || pd.name == "Value" || pd.name == "Out");
 
         if (!isVariableSetPreview && !isVariableGetPreview)
             return true;
@@ -114,7 +122,13 @@ void DrawNodePreview(NodeType nodeType, const char* titleOverride)
             return (fd.name == "Struct Name" || fd.name == "Fields");
 
         if (isStructCreatePreview)
-            return (fd.name == "Struct Name");
+            return (fd.name == "Struct Name" || fd.name == "Instance Name");
+
+        if (isStructReadPreview)
+            return (fd.name == "Struct Name" || fd.name == "Instance Name" || fd.name == "Field Name");
+
+        if (isStructWritePreview)
+            return (fd.name == "Struct Name" || fd.name == "Instance Name" || fd.name == "Field Name");
 
         return true;
     };

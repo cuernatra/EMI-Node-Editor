@@ -1,6 +1,7 @@
 #include "pinRenderer.h"
 
 #include <algorithm>
+#include <array>
 
 namespace
 {
@@ -29,6 +30,7 @@ ImVec4 GetPinTypeColor(PinType type)
         case PinType::Boolean:  return palette.boolean;
         case PinType::String:   return palette.string;
         case PinType::Array:    return palette.array;
+        case PinType::Struct:   return palette.struct_;
         case PinType::Function: return palette.function;
         case PinType::Flow:     return palette.flow;
         case PinType::Any:
@@ -56,6 +58,7 @@ PinIconType GetPinTypeIcon(PinType type)
         case PinType::Boolean:  return palette.boolean;
         case PinType::String:   return palette.string;
         case PinType::Array:    return palette.array;
+        case PinType::Struct:   return palette.struct_;
         case PinType::Function: return palette.function;
         case PinType::Flow:     return palette.flow;
         case PinType::Any:
@@ -174,6 +177,43 @@ void DrawPinIcon(ImDrawList* drawList,
             {
                 buildFlowPath();
                 drawList->PathFillConvex(color);
+            }
+            break;
+        }
+        case PinIconType::Diamond:
+        {
+            const float r = 0.36f * s;
+            const ImVec2 top(c.x, c.y - r);
+            const ImVec2 right(c.x + r, c.y);
+            const ImVec2 bottom(c.x, c.y + r);
+            const ImVec2 left(c.x - r, c.y);
+
+            if (!filled && (innerColor & 0xFF000000))
+            {
+                drawList->AddConvexPolyFilled(
+                    std::array<ImVec2, 4>{ top, right, bottom, left }.data(),
+                    4,
+                    innerColor
+                );
+            }
+
+            if (filled)
+            {
+                drawList->AddConvexPolyFilled(
+                    std::array<ImVec2, 4>{ top, right, bottom, left }.data(),
+                    4,
+                    color
+                );
+            }
+            else
+            {
+                drawList->AddPolyline(
+                    std::array<ImVec2, 5>{ top, right, bottom, left, top }.data(),
+                    5,
+                    color,
+                    false,
+                    2.0f * outlineScale
+                );
             }
             break;
         }

@@ -16,7 +16,7 @@ static std::array<float, 4> GenerateDefaultColor(const std::string& category)
     static const std::unordered_map<std::string, std::array<float, 4>> kDefaults = {
         { "Events",  { 0.220f, 0.340f, 0.760f, 1.000f } },
         { "Data",    { 0.180f, 0.520f, 0.420f, 1.000f } },
-        { "Structs", { 0.470f, 0.340f, 0.700f, 1.000f } },
+        { "Structs", { 0.900f, 0.520f, 0.180f, 1.000f } },
         { "Logic",   { 0.820f, 0.520f, 0.200f, 1.000f } },
         { "Flow",    { 0.770f, 0.300f, 0.320f, 1.000f } },
         { "Demo",    { 0.320f, 0.320f, 0.360f, 1.000f } },

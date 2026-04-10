@@ -156,6 +156,76 @@ GraphExecutor::CompileResult GraphExecutor::CompileGraphSnapshot(
         }
     }
 
+    // Validate Struct Define names (must be unique and non-empty)
+    {
+        std::unordered_map<std::string, unsigned long long> firstByName;
+
+        for (const VisualNode& n : nodes)
+        {
+            if (!n.alive || n.nodeType != NodeType::StructDefine)
+                continue;
+
+            const std::string* structNameField = FindField(n, "Struct Name");
+            const std::string name = structNameField ? *structNameField : std::string();
+            const unsigned long long rawId = (unsigned long long)n.id.Get();
+
+            if (name.empty())
+            {
+                const std::string status = "[ERROR] Compile error: Struct Define has an empty Struct Name (node id "
+                    + std::to_string(rawId) + ")\n";
+                if (m_logSink)
+                    m_logSink(status);
+                return { false, status };
+            }
+
+            auto [it, inserted] = firstByName.emplace(name, rawId);
+            if (!inserted)
+            {
+                const std::string status = "[ERROR] Compile error: Duplicate Struct Define name '" + name
+                    + "' (node ids " + std::to_string(it->second) + " and " + std::to_string(rawId)
+                    + "). Struct names must be unique.\n";
+                if (m_logSink)
+                    m_logSink(status);
+                return { false, status };
+            }
+        }
+    }
+
+    // Validate Struct Create instance names (must be unique and non-empty)
+    {
+        std::unordered_map<std::string, unsigned long long> firstByName;
+
+        for (const VisualNode& n : nodes)
+        {
+            if (!n.alive || n.nodeType != NodeType::StructCreate)
+                continue;
+
+            const std::string* instanceNameField = FindField(n, "Instance Name");
+            const std::string name = instanceNameField ? *instanceNameField : std::string();
+            const unsigned long long rawId = (unsigned long long)n.id.Get();
+
+            if (name.empty())
+            {
+                const std::string status = "[ERROR] Compile error: Struct Create has an empty Instance Name (node id "
+                    + std::to_string(rawId) + ")\n";
+                if (m_logSink)
+                    m_logSink(status);
+                return { false, status };
+            }
+
+            auto [it, inserted] = firstByName.emplace(name, rawId);
+            if (!inserted)
+            {
+                const std::string status = "[ERROR] Compile error: Duplicate Struct instance name '" + name
+                    + "' (node ids " + std::to_string(it->second) + " and " + std::to_string(rawId)
+                    + "). Instance names must be unique.\n";
+                if (m_logSink)
+                    m_logSink(status);
+                return { false, status };
+            }
+        }
+    }
+
     if (m_forceStopRequested.load())
     {
         return makeCancelled();

@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cctype>
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -202,7 +203,8 @@ std::string DefaultValueForPinType(PinType t)
     {
         case PinType::Boolean: return "false";
         case PinType::String:  return "";
-        case PinType::Array:   return "[]";
+        case PinType::Array:
+        case PinType::Struct:  return "[]";
         case PinType::Number:
         default:               return "0.0";
     }
@@ -227,6 +229,7 @@ void NormalizeValueForPinType(PinType t, std::string& value)
         }
 
         case PinType::Array:
+        case PinType::Struct:
             if (value.empty())
                 value = "[]";
             break;
@@ -298,6 +301,8 @@ bool ShouldSkipDescriptorSync(NodeRenderStyle style)
         case NodeRenderStyle::Variable:
         case NodeRenderStyle::StructDefine:
         case NodeRenderStyle::StructCreate:
+        case NodeRenderStyle::StructRead:
+        case NodeRenderStyle::StructWrite:
             return true; // handled by bespoke refresh passes
 
         default:
@@ -1234,37 +1239,63 @@ bool RefreshStructNodeLayouts(GraphState& state)
     auto& nodes = state.GetNodes();
 
     static const std::vector<VisualNode>* s_lastNodesPtr = nullptr;
-    static size_t s_lastAliveStructDefineCount = 0;
     static size_t s_lastAliveStructShapeHash = 0;
 
-    size_t aliveStructDefineCount = 0;
     size_t aliveStructShapeHash = 1469598103934665603ull; // FNV offset basis
+    auto hashMix = [&](size_t v)
+    {
+        aliveStructShapeHash ^= v;
+        aliveStructShapeHash *= 1099511628211ull;
+    };
 
     for (const auto& n : nodes)
     {
-        if (!n.alive || n.nodeType != NodeType::StructDefine)
+        if (!n.alive)
             continue;
 
-        ++aliveStructDefineCount;
+        const bool isStructNode =
+            (n.nodeType == NodeType::StructDefine)
+            || (n.nodeType == NodeType::StructCreate)
+            || (n.nodeType == NodeType::StructRead)
+            || (n.nodeType == NodeType::StructWrite);
 
-        // Mix stable, cheap shape inputs only (avoid full schema parsing every frame).
-        aliveStructShapeHash ^= static_cast<size_t>(n.id.Get());
-        aliveStructShapeHash *= 1099511628211ull;
-        aliveStructShapeHash ^= n.fields.size();
-        aliveStructShapeHash *= 1099511628211ull;
-        aliveStructShapeHash ^= n.inPins.size();
-        aliveStructShapeHash *= 1099511628211ull;
-        aliveStructShapeHash ^= n.outPins.size();
-        aliveStructShapeHash *= 1099511628211ull;
+        if (!isStructNode)
+            continue;
+
+        hashMix(static_cast<size_t>(n.nodeType));
+        hashMix(static_cast<size_t>(n.id.Get()));
+        hashMix(std::hash<std::string>{}(n.title));
+
+        hashMix(n.fields.size());
+        for (const NodeField& f : n.fields)
+        {
+            hashMix(std::hash<std::string>{}(f.name));
+            hashMix(std::hash<std::string>{}(f.value));
+            hashMix(static_cast<size_t>(f.valueType));
+        }
+
+        hashMix(n.inPins.size());
+        for (const Pin& p : n.inPins)
+        {
+            hashMix(static_cast<size_t>(p.id.Get()));
+            hashMix(std::hash<std::string>{}(p.name));
+            hashMix(static_cast<size_t>(p.type));
+        }
+
+        hashMix(n.outPins.size());
+        for (const Pin& p : n.outPins)
+        {
+            hashMix(static_cast<size_t>(p.id.Get()));
+            hashMix(std::hash<std::string>{}(p.name));
+            hashMix(static_cast<size_t>(p.type));
+        }
     }
 
     const bool structLikelyDirty =
         (s_lastNodesPtr != &nodes)
-        || (s_lastAliveStructDefineCount != aliveStructDefineCount)
         || (s_lastAliveStructShapeHash != aliveStructShapeHash);
 
     s_lastNodesPtr = &nodes;
-    s_lastAliveStructDefineCount = aliveStructDefineCount;
     s_lastAliveStructShapeHash = aliveStructShapeHash;
 
     if (!structLikelyDirty)
@@ -1302,17 +1333,14 @@ bool RefreshStructNodeLayouts(GraphState& state)
             changed = true;
         }
 
-        RemovePinsByNameExcept(n.inPins, {});
-        RemovePinsByNameExcept(n.outPins, { "Schema" });
-        Pin* schemaPin = FindPinByName(n.outPins, "Schema");
-        if (!schemaPin)
+        if (!n.inPins.empty())
         {
-            n.outPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Schema", PinType::Array, false));
+            n.inPins.clear();
             changed = true;
         }
-        else if (schemaPin->type != PinType::Array)
+        if (!n.outPins.empty())
         {
-            schemaPin->type = PinType::Array;
+            n.outPins.clear();
             changed = true;
         }
 
@@ -1370,14 +1398,13 @@ bool RefreshStructNodeLayouts(GraphState& state)
                 changed = true;
             }
 
-            RemovePinsByNameExcept(n.outPins, { "Item" });
-
+            // --- Sync inspector fields (keep only well-known + schema fields) ---
             {
                 std::vector<NodeField> filteredFields;
                 filteredFields.reserve(n.fields.size());
                 for (const NodeField& field : n.fields)
                 {
-                    if (field.name == "Struct Name" || field.name == "Schema Fields")
+                    if (field.name == "Struct Name" || field.name == "Schema Fields" || field.name == "Instance Name")
                     {
                         filteredFields.push_back(field);
                         continue;
@@ -1399,82 +1426,84 @@ bool RefreshStructNodeLayouts(GraphState& state)
                     n.fields = std::move(filteredFields);
             }
 
-            Pin* structPin = FindPinByName(n.inPins, "Struct");
-            if (!structPin)
+            // --- Sync "In" flow input pin (must be first in inPins) ---
+            Pin* inFlowPin = FindPinByName(n.inPins, "In");
+            if (!inFlowPin)
             {
-                n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Struct", PinType::String, true));
+                n.inPins.insert(n.inPins.begin(), MakePin(
+                    static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                    n.id, n.nodeType, "In", PinType::Flow, true));
                 changed = true;
             }
-            else if (structPin->type != PinType::String)
+            else if (inFlowPin->type != PinType::Flow)
             {
-                structPin->type = PinType::String;
+                inFlowPin->type = PinType::Flow;
                 changed = true;
             }
 
-            std::unordered_set<uintptr_t> claimedInputPinIds;
-            if (structPin)
-                claimedInputPinIds.insert(static_cast<uintptr_t>(structPin->id.Get()));
-
-            auto isSchemaFieldName = [&](const std::string& pinName) -> bool
+            // --- Sync "Out" flow output pin ---
+            Pin* outFlowPin = FindPinByName(n.outPins, "Out");
+            if (!outFlowPin)
             {
-                return std::any_of(
-                    entry.defs.begin(),
-                    entry.defs.end(),
-                    [&](const StructFieldDef& def) { return def.name == pinName; }
-                );
-            };
-
-            auto findReusableLegacyInputPin = [&]() -> Pin*
+                n.outPins.clear(); // remove any stale output pins
+                n.outPins.push_back(MakePin(
+                    static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                    n.id, n.nodeType, "Out", PinType::Flow, false));
+                changed = true;
+            }
+            else
             {
-                for (Pin& p : n.inPins)
+                // Keep only the Out pin.
+                if (n.outPins.size() != 1)
                 {
-                    if (p.name == "Struct")
-                        continue;
-
-                    const uintptr_t pid = static_cast<uintptr_t>(p.id.Get());
-                    if (claimedInputPinIds.find(pid) != claimedInputPinIds.end())
-                        continue;
-
-                    // Prefer legacy placeholders produced by older deserialization
-                    // ("Field N"). Fall back to any non-schema, non-Struct input.
-                    const bool isLegacyPlaceholder = (p.name.rfind("Field ", 0) == 0);
-                    const bool isSchemaNamed = isSchemaFieldName(p.name);
-                    if (isLegacyPlaceholder || !isSchemaNamed)
-                        return &p;
-                }
-                return nullptr;
-            };
-
-            for (const StructFieldDef& def : entry.defs)
-            {
-                Pin* fieldPin = FindPinByName(n.inPins, def.name.c_str());
-                if (!fieldPin)
-                {
-                    if (Pin* reusable = findReusableLegacyInputPin())
-                    {
-                        if (reusable->name != def.name)
-                        {
-                            reusable->name = def.name;
-                            changed = true;
-                        }
-                        fieldPin = reusable;
-                    }
-                    else
-                    {
-                        n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, def.name, def.type, true));
-                        fieldPin = &n.inPins.back();
-                        changed = true;
-                    }
-                }
-
-                if (fieldPin && fieldPin->type != def.type)
-                {
-                    fieldPin->type = def.type;
+                    Pin kept = *outFlowPin;
+                    n.outPins = { kept };
                     changed = true;
                 }
+                if (n.outPins[0].type != PinType::Flow)
+                {
+                    n.outPins[0].type = PinType::Flow;
+                    changed = true;
+                }
+            }
 
-                if (fieldPin)
-                    claimedInputPinIds.insert(static_cast<uintptr_t>(fieldPin->id.Get()));
+            // --- Sync dynamic field input pins (after the "In" flow pin) ---
+            // Build the desired list: [In] + [field0, field1, ...]
+            // Existing placeholder pins (named "__pinN__" from deserialization)
+            // are matched by position to reuse their IDs and preserve links.
+            std::vector<Pin> syncedInPins;
+            syncedInPins.reserve(1 + entry.defs.size());
+
+            // Preserve the "In" flow pin (always first).
+            syncedInPins.push_back(*FindPinByName(n.inPins, "In"));
+
+            for (size_t i = 0; i < entry.defs.size(); ++i)
+            {
+                const StructFieldDef& def = entry.defs[i];
+
+                const Pin* existing = FindPinByName(n.inPins, def.name.c_str());
+                if (!existing)
+                {
+                    // Fallback: placeholder pin at the same field index.
+                    const std::string placeholder = "__pin" + std::to_string(i) + "__";
+                    existing = FindPinByName(n.inPins, placeholder.c_str());
+                }
+
+                if (existing)
+                {
+                    Pin p = *existing;
+                    if (p.name != def.name)  { p.name  = def.name;  changed = true; }
+                    if (p.type != def.type)  { p.type  = def.type;  changed = true; }
+                    if (!p.isInput)          { p.isInput = true;    changed = true; }
+                    syncedInPins.push_back(std::move(p));
+                }
+                else
+                {
+                    syncedInPins.push_back(MakePin(
+                        static_cast<uint32_t>(state.GetIdGen().NewPin().Get()),
+                        n.id, n.nodeType, def.name, def.type, true));
+                    changed = true;
+                }
 
                 NodeField* valueField = EnsureField(n.fields, def.name, def.type, DefaultValueForPinType(def.type), changed);
                 const std::string before = valueField->value;
@@ -1483,46 +1512,182 @@ bool RefreshStructNodeLayouts(GraphState& state)
                     changed = true;
             }
 
-            // Prune stale dynamic input pins only when they are unlinked.
-            // Keep linked extras to avoid dropping user wires during live schema edits.
+            bool layoutChanged = (n.inPins.size() != syncedInPins.size());
+            if (!layoutChanged)
             {
-                n.inPins.erase(
-                    std::remove_if(n.inPins.begin(), n.inPins.end(), [&](const Pin& p)
+                for (size_t i = 0; i < syncedInPins.size(); ++i)
+                {
+                    if (n.inPins[i].id   != syncedInPins[i].id
+                        || n.inPins[i].name != syncedInPins[i].name
+                        || n.inPins[i].type != syncedInPins[i].type)
                     {
-                        if (p.name == "Struct")
-                            return false;
-
-                        const bool existsInSchema = std::any_of(
-                            entry.defs.begin(),
-                            entry.defs.end(),
-                            [&](const StructFieldDef& def) { return def.name == p.name; }
-                        );
-
-                        if (existsInSchema)
-                            return false;
-
-                        if (IsPinLinked(state, p.id))
-                            return false;
-
-                        changed = true;
-                        return true;
-                    }),
-                    n.inPins.end()
-                );
+                        layoutChanged = true;
+                        break;
+                    }
+                }
             }
 
-            Pin* itemPin = FindPinByName(n.outPins, "Item");
-            if (!itemPin)
+            if (layoutChanged)
             {
-                n.outPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Item", PinType::Array, false));
-                changed = true;
-            }
-            else if (itemPin->type != PinType::Array)
-            {
-                itemPin->type = PinType::Array;
+                n.inPins = std::move(syncedInPins);
                 changed = true;
             }
         }
+
+        if (n.nodeType == NodeType::StructRead)
+        {
+            auto [structName, entry] = ensureSchemaFields(n, "test");
+            EnsureField(n.fields, "Instance Name", PinType::String, "structItem", changed);
+            EnsureField(n.fields, "Field Name", PinType::String, "field", changed);
+
+            NodeField* fieldNameField = GraphEditorUtils::FindField(n.fields, "Field Name");
+            if (fieldNameField && !entry.defs.empty())
+            {
+                const bool exists = std::any_of(entry.defs.begin(), entry.defs.end(), [&](const StructFieldDef& def) {
+                    return def.name == fieldNameField->value;
+                });
+                if (!exists)
+                {
+                    fieldNameField->value = entry.defs.front().name;
+                    changed = true;
+                }
+            }
+
+            std::string fieldPart = (fieldNameField && !fieldNameField->value.empty()) ? fieldNameField->value : "field";
+            const std::string wantedTitle = "Read " + structName + "." + fieldPart;
+            if (n.title != wantedTitle)
+            {
+                n.title = wantedTitle;
+                changed = true;
+            }
+
+            if (!n.inPins.empty())
+            {
+                n.inPins.clear();
+                changed = true;
+            }
+
+            RemovePinsByNameExcept(n.outPins, { "Value" });
+            PinType resolved = PinType::Any;
+            if (fieldNameField)
+            {
+                for (const StructFieldDef& def : entry.defs)
+                {
+                    if (def.name == fieldNameField->value)
+                    {
+                        resolved = def.type;
+                        break;
+                    }
+                }
+            }
+
+            Pin* valuePin = FindPinByName(n.outPins, "Value");
+            if (!valuePin)
+            {
+                n.outPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Value", resolved, false));
+                changed = true;
+            }
+            else if (valuePin->type != resolved)
+            {
+                valuePin->type = resolved;
+                changed = true;
+            }
+        }
+
+        if (n.nodeType == NodeType::StructWrite)
+        {
+            auto [structName, entry] = ensureSchemaFields(n, "test");
+            EnsureField(n.fields, "Instance Name", PinType::String, "structItem", changed);
+            EnsureField(n.fields, "Field Name", PinType::String, "field", changed);
+            EnsureField(n.fields, "Value", PinType::Any, "0.0", changed);
+
+            NodeField* fieldNameField = GraphEditorUtils::FindField(n.fields, "Field Name");
+            if (fieldNameField && !entry.defs.empty())
+            {
+                const bool exists = std::any_of(entry.defs.begin(), entry.defs.end(), [&](const StructFieldDef& def) {
+                    return def.name == fieldNameField->value;
+                });
+                if (!exists)
+                {
+                    fieldNameField->value = entry.defs.front().name;
+                    changed = true;
+                }
+            }
+
+            std::string fieldPart = (fieldNameField && !fieldNameField->value.empty()) ? fieldNameField->value : "field";
+            const std::string wantedTitle = "Write " + structName + "." + fieldPart;
+            if (n.title != wantedTitle)
+            {
+                n.title = wantedTitle;
+                changed = true;
+            }
+
+            RemovePinsByNameExcept(n.inPins, { "In", "Value" });
+            RemovePinsByNameExcept(n.outPins, { "Out" });
+
+            Pin* inFlowPin = FindPinByName(n.inPins, "In");
+            if (!inFlowPin)
+            {
+                n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "In", PinType::Flow, true));
+                changed = true;
+            }
+            else if (inFlowPin->type != PinType::Flow)
+            {
+                inFlowPin->type = PinType::Flow;
+                changed = true;
+            }
+
+            PinType resolved = PinType::Any;
+            if (fieldNameField)
+            {
+                for (const StructFieldDef& def : entry.defs)
+                {
+                    if (def.name == fieldNameField->value)
+                    {
+                        resolved = def.type;
+                        break;
+                    }
+                }
+            }
+
+            Pin* valuePin = FindPinByName(n.inPins, "Value");
+            if (!valuePin)
+            {
+                n.inPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Value", resolved, true));
+                changed = true;
+            }
+            else if (valuePin->type != resolved)
+            {
+                valuePin->type = resolved;
+                changed = true;
+            }
+
+            if (NodeField* valueField = GraphEditorUtils::FindField(n.fields, "Value"))
+            {
+                if (valueField->valueType != resolved)
+                {
+                    valueField->valueType = resolved;
+                    changed = true;
+                }
+                const std::string before = valueField->value;
+                NormalizeValueForPinType(resolved, valueField->value);
+                if (valueField->value != before)
+                    changed = true;
+            }
+
+            Pin* outFlowPin = FindPinByName(n.outPins, "Out");
+            if (!outFlowPin)
+            {
+                n.outPins.push_back(MakePin(static_cast<uint32_t>(state.GetIdGen().NewPin().Get()), n.id, n.nodeType, "Out", PinType::Flow, false));
+                changed = true;
+            }
+            else if (outFlowPin->type != PinType::Flow)
+            {
+                outFlowPin->type = PinType::Flow;
+                changed = true;
+            }
+        }
+
     }
 
     return changed;
@@ -1545,6 +1710,8 @@ bool RunAllLayoutRefreshes(GraphState& state)
         { NodeType::Output,       RefreshOutputNodeInputTypes },
         { NodeType::StructDefine, RefreshStructNodeLayouts },
         { NodeType::StructCreate, RefreshStructNodeLayouts },
+        { NodeType::StructRead,   RefreshStructNodeLayouts },
+        { NodeType::StructWrite,  RefreshStructNodeLayouts },
     };
 
     bool changed = false;

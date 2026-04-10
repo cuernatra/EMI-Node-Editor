@@ -87,6 +87,22 @@ static std::vector<std::string> CollectDefinedStructNames(const GraphState& stat
 	return names;
 }
 
+static std::vector<std::string> CollectStructInstanceNames(const GraphState& state)
+{
+	std::vector<std::string> names;
+	for (const auto& node : state.GetNodes())
+	{
+		if (!node.alive || node.nodeType != NodeType::StructCreate)
+			continue;
+
+		const NodeField* instanceField = GraphEditorUtils::FindField(node.fields, "Instance Name");
+		const std::string name = (instanceField && !instanceField->value.empty()) ? instanceField->value : "structItem";
+		if (std::find(names.begin(), names.end(), name) == names.end())
+			names.push_back(name);
+	}
+	return names;
+}
+
 static bool ContainsString(const std::vector<std::string>& list, const std::string& value)
 {
 	return std::find(list.begin(), list.end(), value) != list.end();
@@ -426,10 +442,21 @@ void InspectorPanel::draw(GraphState& state, uintptr_t selectedNodeRawId)
 
 			ImGui::PopID();
 		}
-		else if (selectedNode->nodeType == NodeType::StructCreate)
+		else if (selectedNode->nodeType == NodeType::StructCreate
+			|| selectedNode->nodeType == NodeType::StructRead
+			|| selectedNode->nodeType == NodeType::StructWrite)
 		{
 			NodeField* structNameField = GraphEditorUtils::FindField(selectedNode->fields, "Struct Name");
+			NodeField* instanceNameField = GraphEditorUtils::FindField(selectedNode->fields, "Instance Name");
+			NodeField* fieldNameField = GraphEditorUtils::FindField(selectedNode->fields, "Field Name");
+			const NodeField* schemaField = GraphEditorUtils::FindField(selectedNode->fields, "Schema Fields");
+			const std::vector<InspectorStructFieldDef> defs = ParseStructDefs(schemaField ? schemaField->value : "[]");
+			std::vector<std::string> fieldNames;
+			for (const auto& def : defs)
+				if (!def.name.empty() && !ContainsString(fieldNames, def.name))
+					fieldNames.push_back(def.name);
 			const std::vector<std::string> structNames = CollectDefinedStructNames(state);
+			const std::vector<std::string> instanceNames = CollectStructInstanceNames(state);
 			const NodeDescriptor* desc = NodeRegistry::Get().Find(selectedNode->nodeType);
 
 			ImGui::PushID(static_cast<int>(selectedNode->id.Get()));
@@ -442,6 +469,73 @@ void InspectorPanel::draw(GraphState& state, uintptr_t selectedNodeRawId)
 				/*skipNames=*/{ "Schema Fields" },
 				/*overrideDrawer=*/[&](NodeField& field) -> bool
 				{
+					if (instanceNameField && &field == instanceNameField
+						&& (selectedNode->nodeType == NodeType::StructRead || selectedNode->nodeType == NodeType::StructWrite))
+					{
+						if (!instanceNames.empty())
+						{
+							if (!ContainsString(instanceNames, instanceNameField->value))
+							{
+								instanceNameField->value = instanceNames.front();
+								fieldsChanged = true;
+							}
+
+							if (ImGui::BeginCombo("Instance", instanceNameField->value.c_str()))
+							{
+								for (const std::string& name : instanceNames)
+								{
+									const bool selected = (instanceNameField->value == name);
+									if (ImGui::Selectable(name.c_str(), selected))
+									{
+										instanceNameField->value = name;
+										fieldsChanged = true;
+									}
+									if (selected)
+										ImGui::SetItemDefaultFocus();
+								}
+								ImGui::EndCombo();
+							}
+						}
+						else
+						{
+							fieldsChanged |= DrawField(*instanceNameField, FieldWidgetLayout::Inspector);
+						}
+						return true;
+					}
+
+					if (fieldNameField && &field == fieldNameField)
+					{
+						if (!fieldNames.empty())
+						{
+							if (!ContainsString(fieldNames, fieldNameField->value))
+							{
+								fieldNameField->value = fieldNames.front();
+								fieldsChanged = true;
+							}
+
+							if (ImGui::BeginCombo("Field", fieldNameField->value.c_str()))
+							{
+								for (const std::string& name : fieldNames)
+								{
+									const bool selected = (fieldNameField->value == name);
+									if (ImGui::Selectable(name.c_str(), selected))
+									{
+										fieldNameField->value = name;
+										fieldsChanged = true;
+									}
+									if (selected)
+										ImGui::SetItemDefaultFocus();
+								}
+								ImGui::EndCombo();
+							}
+						}
+						else
+						{
+							DrawFieldReadOnly(*fieldNameField, FieldWidgetLayout::Inspector);
+						}
+						return true;
+					}
+
 					if (!structNameField || &field != structNameField)
 						return false;
 

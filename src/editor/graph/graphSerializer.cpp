@@ -201,7 +201,8 @@ static std::string DefaultConstantValueForType(PinType t)
         case PinType::Boolean: return "false";
         case PinType::Number:  return "0.0";
         case PinType::String:  return "";
-        case PinType::Array:   return "[]";
+        case PinType::Array:
+        case PinType::Struct:  return "[]";
         default:               return "";
     }
 }
@@ -368,8 +369,11 @@ void GraphSerializer::Load(GraphState& state, const char* path)
                     }
                 }
 
-                // Keep extra StructCreate fields so later refresh logic can reconnect them.
-                if (!applied && (n.nodeType == NodeType::StructCreate || n.nodeType == NodeType::Function))
+                // Keep extra struct/function fields so later refresh logic can reconnect them.
+                if (!applied && (n.nodeType == NodeType::StructCreate
+                    || n.nodeType == NodeType::StructRead
+                    || n.nodeType == NodeType::StructWrite
+                    || n.nodeType == NodeType::Function))
                     n.fields.push_back(NodeField{ name, PinType::String, val });
             }
 

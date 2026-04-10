@@ -397,7 +397,8 @@ Node* GraphCompiler::BuildExpr(const Pin& inputPin)
             case PinType::Number:  return MakeNumberLiteral(0.0);
             case PinType::Boolean: return MakeBoolLiteral(false);
             case PinType::String:  return MakeStringLiteral("");
-            case PinType::Array:   return MakeNode(Token::Array);
+            case PinType::Array:
+            case PinType::Struct:  return MakeNode(Token::Array);
             default:               return MakeNode(Token::Null);
         }
     };

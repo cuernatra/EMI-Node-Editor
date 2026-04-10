@@ -14,6 +14,7 @@ struct PinStylePalette
     ImVec4 boolean  = {1.0f, 0.0f, 0.0f, 1.0f};
     ImVec4 string   = {0.0f, 1.0f, 0.0f, 1.0f};
     ImVec4 array    = {0.0f, 0.0f, 1.0f, 1.0f};
+    ImVec4 struct_  = {1.0f, 0.5f, 0.0f, 1.0f};   ///< Orange — distinct from Array (blue)
     ImVec4 function = {1.0f, 0.0f, 1.0f, 1.0f};
     ImVec4 flow     = {1.0f, 1.0f, 1.0f, 1.0f};
     ImVec4 any      = {0.5f, 0.5f, 0.5f, 1.0f};
@@ -22,6 +23,7 @@ struct PinStylePalette
 enum class PinIconType
 {
     Circle,
+    Diamond,
     Flow
 };
 
@@ -32,6 +34,7 @@ struct PinIconPalette
     PinIconType boolean  = PinIconType::Circle;
     PinIconType string   = PinIconType::Circle;
     PinIconType array    = PinIconType::Circle;
+    PinIconType struct_  = PinIconType::Diamond;
     PinIconType function = PinIconType::Circle;
     PinIconType flow     = PinIconType::Flow;
     PinIconType any      = PinIconType::Circle;
