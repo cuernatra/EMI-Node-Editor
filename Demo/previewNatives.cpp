@@ -100,6 +100,65 @@ static bool InBounds(int x, int y)  { return x >= 0 && y >= 0 && x < s_astar.w &
 // -----------------------------------------------------------------------------
 
 
+// Runs the A* search from (sx,sy) to (gx,gy).
+// Fills came[] with backtrack indices (-1 = unvisited). Returns true if goal was reached.
+static bool RunAStarSearch(int sx, int sy, int gx, int gy, std::vector<int>& came)
+{
+    const int total = s_astar.w * s_astar.h;
+    came.assign(total, -1);
+    std::vector<int> gcost(total, std::numeric_limits<int>::max());
+
+    auto heuristic = [gx, gy](int x, int y) { return std::abs(gx - x) + std::abs(gy - y); };
+
+    struct OpenItem { int f, i; bool operator<(const OpenItem& o) const { return f > o.f; } };
+    std::priority_queue<OpenItem> open;
+
+    const int start = CellIdx(sx, sy);
+    const int goal  = CellIdx(gx, gy);
+    gcost[start] = 0;
+    open.push({ heuristic(sx, sy), start });
+
+    static constexpr int kDirs[4][2] = { {-1,0},{1,0},{0,-1},{0,1} };
+    while (!open.empty())
+    {
+        int cur = open.top().i; open.pop();
+        if (cur == goal) return true;
+        const int cx = cur % s_astar.w, cy = cur / s_astar.w;
+        for (const auto& d : kDirs)
+        {
+            const int nx = cx + d[0], ny = cy + d[1];
+            if (!InBounds(nx, ny)) continue;
+            const int ni = CellIdx(nx, ny);
+            if (s_astar.walls[ni]) continue;
+            const int cand = gcost[cur] + 1;
+            if (cand < gcost[ni])
+            {
+                gcost[ni] = cand;
+                came[ni]  = cur;
+                open.push({ cand + heuristic(nx, ny), ni });
+            }
+        }
+    }
+    return false;
+}
+
+// Walks came[] backwards from goal to start and writes the result into s_astar.path.
+// Returns false if the backtrack chain is broken.
+static bool ReconstructPath(int goal, int start, const std::vector<int>& came)
+{
+    s_astar.path.clear();
+    for (int at = goal;;)
+    {
+        s_astar.path.push_back({ at % s_astar.w, at / s_astar.w });
+        if (at == start) break;
+        at = came[at];
+        if (at < 0) { s_astar.path.clear(); return false; }
+    }
+    std::reverse(s_astar.path.begin(), s_astar.path.end());
+    return true;
+}
+
+
 // Node: astar_findpath
 // Inputs: startX (number), startY (number), goalX (number), goalY (number)
 // Output: number (path length, 0 = no path)
@@ -120,87 +179,67 @@ static double astar_findpath_impl(double startX, double startY,
     const int goal  = CellIdx(gx, gy);
     if (s_astar.walls[start] || s_astar.walls[goal]) { s_astar.path.clear(); return 0.0; }
 
-    auto heuristic = [gx, gy](int x, int y) { return std::abs(gx - x) + std::abs(gy - y); };
+    std::vector<int> came;
+    const bool reached = RunAStarSearch(sx, sy, gx, gy, came);
+    if (!reached && start != goal) { s_astar.path.clear(); return 0.0; }
+    if (!ReconstructPath(goal, start, came)) return 0.0;
 
-    const int total = s_astar.w * s_astar.h;
-    std::vector<int> came(total, -1);
-    std::vector<int> g(total, std::numeric_limits<int>::max());
-
-    struct OpenItem { int f, i; bool operator<(const OpenItem& o) const { return f > o.f; } };
-    std::priority_queue<OpenItem> open;
-    g[start] = 0;
-    open.push({ heuristic(sx, sy), start });
-
-    static constexpr int kDirs[4][2] = { {-1,0},{1,0},{0,-1},{0,1} };
-    while (!open.empty())
-    {
-        int cur = open.top().i; open.pop();
-        if (cur == goal) break;
-        int cx = cur % s_astar.w, cy = cur / s_astar.w;
-        for (const auto& d : kDirs)
-        {
-            int nx = cx + d[0], ny = cy + d[1];
-            if (!InBounds(nx, ny)) continue;
-            int ni = CellIdx(nx, ny);
-            if (s_astar.walls[ni]) continue;
-            int cand = g[cur] + 1;
-            if (cand < g[ni]) { g[ni] = cand; came[ni] = cur; open.push({ cand + heuristic(nx, ny), ni }); }
-        }
-    }
-
-    if (came[goal] == -1 && start != goal) { s_astar.path.clear(); return 0.0; }
-
-    s_astar.path.clear();
-    for (int at = goal;;)
-    {
-        s_astar.path.push_back({ at % s_astar.w, at / s_astar.w });
-        if (at == start) break;
-        at = came[at];
-        if (at < 0) { s_astar.path.clear(); return 0.0; }
-    }
-    std::reverse(s_astar.path.begin(), s_astar.path.end());
     s_astar.pathStep = 1;
-
     return (double)s_astar.path.size();
+}
+
+
+// Node: astar_fillwalls
+// Inputs: (none)
+// Output: void
+// Description: Randomly fills walls at ~20% density, keeping agent and goal cells open.
+//              Does not check whether a path still exists — call astar_recompute_path after.
+static void astar_fillwalls_impl()
+{
+    if (!s_astar.initialized) return;
+    s_astar.walls.assign(s_astar.w * s_astar.h, 0);
+    std::bernoulli_distribution wallDist(0.20);
+    for (int y = 0; y < s_astar.h; ++y)
+        for (int x = 0; x < s_astar.w; ++x)
+            s_astar.walls[CellIdx(x, y)] = wallDist(s_astar.rng) ? 1 : 0;
+    s_astar.walls[CellIdx(s_astar.agentX, s_astar.agentY)] = 0;
+    s_astar.walls[CellIdx(s_astar.goalX,  s_astar.goalY)]  = 0;
+    s_astar.wallsInitialized = true;
+}
+
+
+// Node: astar_clearwalls
+// Inputs: (none)
+// Output: void
+// Description: Removes all walls, leaving the grid completely open.
+static void astar_clearwalls_impl()
+{
+    if (!s_astar.initialized) return;
+    s_astar.walls.assign(s_astar.w * s_astar.h, 0);
+    s_astar.wallsInitialized = true;
 }
 
 
 // Node: astar_initwalls
 // Inputs: (none)
 // Output: void
-// Description: Randomly fills s_astar.walls, retrying until a valid path exists.
+// Description: Randomly fills walls, retrying up to 16 times until a valid path exists.
+//              Falls back to a clear grid if no valid layout is found.
 static void astar_initwalls_impl()
 {
     if (s_astar.wallsInitialized) return;
 
-    s_astar.walls.assign(s_astar.w * s_astar.h, 0);
-    std::bernoulli_distribution wallDist(0.20);
-
-    auto tryFill = [&]()
-    {
-        for (int y = 0; y < s_astar.h; ++y)
-            for (int x = 0; x < s_astar.w; ++x)
-                s_astar.walls[CellIdx(x, y)] = wallDist(s_astar.rng) ? 1 : 0;
-        s_astar.walls[CellIdx(s_astar.agentX, s_astar.agentY)] = 0;
-        s_astar.walls[CellIdx(s_astar.goalX,  s_astar.goalY)]  = 0;
-    };
-
     for (int attempt = 0; attempt < 16; ++attempt)
     {
-        tryFill();
+        astar_fillwalls_impl();
         if (astar_findpath_impl(s_astar.agentX, s_astar.agentY,
-                                s_astar.goalX,  s_astar.goalY) >= 2) break;
+                                s_astar.goalX,  s_astar.goalY) >= 2) return;
     }
 
     // Fallback: open grid
-    if (s_astar.path.size() < 2)
-    {
-        std::fill(s_astar.walls.begin(), s_astar.walls.end(), 0);
-        astar_findpath_impl(s_astar.agentX, s_astar.agentY,
-                            s_astar.goalX,  s_astar.goalY);
-    }
-
-    s_astar.wallsInitialized = true;
+    astar_clearwalls_impl();
+    astar_findpath_impl(s_astar.agentX, s_astar.agentY,
+                        s_astar.goalX,  s_astar.goalY);
 }
 
 
@@ -228,13 +267,15 @@ static void astar_retarget_impl()
 }
 
 
-// Node: astar_init
-// Inputs: gridW (number), gridH (number), startX (number), startY (number), goalX (number), goalY (number)
+// Node: astar_setgrid
+// Inputs: gridW, gridH, startX, startY, goalX, goalY
 // Output: void
-// Description: Sets grid dimensions and starting positions, then delegates to sub-nodes.
-static void astar_init_impl(double gridW, double gridH,
-                            double startX, double startY,
-                            double goalX,  double goalY)
+// Description: Sets grid dimensions and starting positions. Resets wall state if
+//              the grid size changed. Does NOT generate walls or compute a path —
+//              call astar_initwalls and astar_recompute_path explicitly after this.
+static void astar_setgrid_impl(double gridW, double gridH,
+                               double startX, double startY,
+                               double goalX,  double goalY)
 {
     if (!GetNativeRenderPanel()) return;
 
@@ -246,19 +287,38 @@ static void astar_init_impl(double gridW, double gridH,
     s_astar.goalY  = std::clamp(ToInt(goalY),  0, s_astar.h - 1);
 
     if (!s_astar.wallsInitialized || (int)s_astar.walls.size() != s_astar.w * s_astar.h)
-    {
         s_astar.wallsInitialized = false;
-        astar_initwalls_impl();                                     // Phase 6: graph loop
-    }
 
-    s_astar.walls[CellIdx(s_astar.agentX, s_astar.agentY)] = 0;
-    s_astar.walls[CellIdx(s_astar.goalX,  s_astar.goalY)]  = 0;
     s_astar.initialized = true;
+}
 
+
+// Node: astar_recompute_path
+// Inputs: (none)
+// Output: void
+// Description: Finds a path from the current agent position to the current goal.
+//              If the resulting path is too short, retargets to a new random goal.
+static void astar_recompute_path_impl()
+{
+    if (!s_astar.initialized) return;
     astar_findpath_impl(s_astar.agentX, s_astar.agentY,
-                        s_astar.goalX,  s_astar.goalY);             // Phase 7: graph
+                        s_astar.goalX,  s_astar.goalY);
+    if (s_astar.path.size() < 2)
+        astar_retarget_impl();
+}
 
-    if (s_astar.path.size() < 2) astar_retarget_impl();             // Phase 5: graph
+
+// Node: astar_init  (convenience wrapper — graph can call setgrid+initwalls+recompute instead)
+// Inputs: gridW (number), gridH (number), startX (number), startY (number), goalX (number), goalY (number)
+// Output: void
+// Description: Sets grid dimensions and starting positions, then delegates to sub-nodes.
+static void astar_init_impl(double gridW, double gridH,
+                            double startX, double startY,
+                            double goalX,  double goalY)
+{
+    astar_setgrid_impl(gridW, gridH, startX, startY, goalX, goalY);
+    astar_initwalls_impl();
+    astar_recompute_path_impl();
 }
 
 
@@ -312,11 +372,12 @@ static double astar_getwall_impl(double x, double y)
 }
 
 
-// Node: astar_setwall
+// Node: astar_setwall_raw
 // Inputs: x (number), y (number), isWall (number)
 // Output: void
-// Description: Writes wall state, recomputes path via astar_findpath, retargets if blocked.
-static void astar_setwall_impl(double x, double y, double isWall)
+// Description: Writes wall state only — does NOT recompute path.
+//              Call astar_recompute_path explicitly after batching wall changes.
+static void astar_setwall_raw_impl(double x, double y, double isWall)
 {
     if (!s_astar.initialized) return;
 
@@ -329,11 +390,17 @@ static void astar_setwall_impl(double x, double y, double isWall)
     if (s_astar.walls[i] == newVal) return;
 
     s_astar.walls[i] = newVal;
+}
 
-    astar_findpath_impl(s_astar.agentX, s_astar.agentY,
-                        s_astar.goalX,  s_astar.goalY);             // Phase 7: graph
 
-    if (s_astar.path.size() < 2) astar_retarget_impl();             // Phase 5: graph
+// Node: astar_setwall  (convenience wrapper — graph can call setwall_raw + recompute_path instead)
+// Inputs: x (number), y (number), isWall (number)
+// Output: void
+// Description: Writes wall state then immediately recomputes path and retargets if blocked.
+static void astar_setwall_impl(double x, double y, double isWall)
+{
+    astar_setwall_raw_impl(x, y, isWall);
+    astar_recompute_path_impl();
 }
 
 
@@ -401,19 +468,24 @@ static void astar_setpathstep_impl(double step)
 // EMI registrations — primitives live in NodeGameFunctions.cpp
 // -----------------------------------------------------------------------------
 
-EMI_REGISTER(astar_findpath,      astar_findpath_impl)
-EMI_REGISTER(astar_initwalls,     astar_initwalls_impl)
-EMI_REGISTER(astar_retarget,      astar_retarget_impl)
-EMI_REGISTER(astar_init,          astar_init_impl)
-EMI_REGISTER(astar_step,          astar_step_impl)
-EMI_REGISTER(astar_get,           astar_get_impl)
-EMI_REGISTER(astar_getwall,       astar_getwall_impl)
-EMI_REGISTER(astar_setwall,       astar_setwall_impl)
-EMI_REGISTER(astar_getpathlen,    astar_getpathlen_impl)
-EMI_REGISTER(astar_getpathcell_x, astar_getpathcell_x_impl)
-EMI_REGISTER(astar_getpathcell_y, astar_getpathcell_y_impl)
-EMI_REGISTER(astar_setagent,      astar_setagent_impl)
-EMI_REGISTER(astar_setpathstep,   astar_setpathstep_impl)
+EMI_REGISTER(astar_findpath,        astar_findpath_impl)
+EMI_REGISTER(astar_fillwalls,       astar_fillwalls_impl)
+EMI_REGISTER(astar_clearwalls,      astar_clearwalls_impl)
+EMI_REGISTER(astar_initwalls,       astar_initwalls_impl)
+EMI_REGISTER(astar_retarget,        astar_retarget_impl)
+EMI_REGISTER(astar_setgrid,         astar_setgrid_impl)
+EMI_REGISTER(astar_recompute_path,  astar_recompute_path_impl)
+EMI_REGISTER(astar_init,            astar_init_impl)
+EMI_REGISTER(astar_step,            astar_step_impl)
+EMI_REGISTER(astar_get,             astar_get_impl)
+EMI_REGISTER(astar_getwall,         astar_getwall_impl)
+EMI_REGISTER(astar_setwall_raw,     astar_setwall_raw_impl)
+EMI_REGISTER(astar_setwall,         astar_setwall_impl)
+EMI_REGISTER(astar_getpathlen,      astar_getpathlen_impl)
+EMI_REGISTER(astar_getpathcell_x,   astar_getpathcell_x_impl)
+EMI_REGISTER(astar_getpathcell_y,   astar_getpathcell_y_impl)
+EMI_REGISTER(astar_setagent,        astar_setagent_impl)
+EMI_REGISTER(astar_setpathstep,     astar_setpathstep_impl)
 
 // Used by compiler-emitted graphs (Ticker/Delay) to allow Force Stop to break
 // out even while sleeping.
