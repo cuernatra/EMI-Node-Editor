@@ -217,7 +217,7 @@ Node* CompileStructWriteNode(GraphCompiler* compiler, const VisualNode& n)
 {
     const std::vector<SchemaField> schema = ParseSchemaFields(n);
     if (schema.empty())
-        return nullptr;
+        return MakeNode(Token::Scope);
 
     const std::string* fieldNameField = FindField(n, "Field Name");
     const std::string  fieldName = (fieldNameField && !fieldNameField->empty())
@@ -262,6 +262,13 @@ Node* CompileStructWriteNode(GraphCompiler* compiler, const VisualNode& n)
     return assign;
 }
 
+// StructDefine — schema editor only, no runtime execution.
+// Returns a no-op scope so registry/compiler validation passes.
+Node* CompileStructDefineNode(GraphCompiler*, const VisualNode&)
+{
+    return MakeNode(Token::Scope);
+}
+
 } // namespace
 
 void NodeRegistry::RegisterStructNodes()
@@ -275,6 +282,7 @@ void NodeRegistry::RegisterStructNodes()
             { "Struct Name", PinType::String, "test"                           },
             { "Fields",      PinType::Array,  "[\"id:Number\", \"type:String\"]" }
         },
+        .compile   = CompileStructDefineNode,
         .category  = "Structs",
         .saveToken = "StructDefine",
         .renderStyle = NodeRenderStyle::StructDefine,

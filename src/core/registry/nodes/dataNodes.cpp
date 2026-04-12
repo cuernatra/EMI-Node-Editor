@@ -27,7 +27,9 @@ Node* CompileArrayOperationNode(GraphCompiler* compiler, const VisualNode& n)
             delete arrayExpr;
             return nullptr;
         }
-        Node* valueExpr = compiler->BuildExpr(*valuePin);
+        Node* valueExpr = compiler->Resolve(*valuePin)
+            ? compiler->BuildExpr(*valuePin)
+            : MakeNumberLiteral(0.0);
         if (!valueExpr) {
             delete arrayExpr;
             return nullptr;
@@ -525,8 +527,8 @@ void NodeRegistry::RegisterDataNodes()
         .pins = {
             { "In", PinType::Flow, true },
             { "Array", PinType::Array, true },
-            { "Value", PinType::Any, false }, // Only used for Push/PushFront/PushUnique
-            { "Size", PinType::Number, false }, // Only used for Resize
+            { "Value", PinType::Any, true }, // Only used for Push/PushFront/PushUnique
+            { "Size", PinType::Number, true }, // Only used for Resize
             { "Out", PinType::Flow, false }
         },
         .fields = {

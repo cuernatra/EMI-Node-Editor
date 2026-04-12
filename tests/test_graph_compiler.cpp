@@ -173,25 +173,38 @@ TEST_CASE("All current NodeTypes are registered and compile callbacks are valid"
         NodeType::Comparison,
         NodeType::Logic,
         NodeType::Not,
+        NodeType::MathUnary,
+        NodeType::MathBinary,
+        NodeType::MathClamp,
         NodeType::DrawRect,
         NodeType::DrawGrid,
+        NodeType::DrawCell,
+        NodeType::ClearGrid,
+        NodeType::RenderGrid,
         NodeType::Delay,
         NodeType::Sequence,
         NodeType::Branch,
         NodeType::Loop,
         NodeType::ForEach,
+        NodeType::While,
+        NodeType::Ticker,
+        NodeType::CallFunction,
         NodeType::ArrayGetAt,
         NodeType::ArrayAddAt,
         NodeType::ArrayReplaceAt,
         NodeType::ArrayRemoveAt,
         NodeType::ArrayLength,
+        NodeType::ArrayOperation,
+        NodeType::ArrayReverse,
+        NodeType::ArrayContains,
         NodeType::StructDefine,
         NodeType::StructCreate,
         NodeType::StructRead,
         NodeType::StructWrite,
         NodeType::PreviewPickRect,
-        NodeType::While,
         NodeType::Variable,
+        NodeType::NativeCall,
+        NodeType::NativeGet,
         NodeType::Function,
         NodeType::Output
     };
@@ -205,6 +218,16 @@ TEST_CASE("All current NodeTypes are registered and compile callbacks are valid"
     for (const auto& [type, _desc] : all)
         REQUIRE(expectedSet.find(type) != expectedSet.end());
 
+    // These nodes require non-trivial runtime configuration (e.g. a function name
+    // that must resolve in the compiler's symbol table) and cannot be smoke-tested
+    // with a default-constructed node.  Registration and compile != nullptr are
+    // still verified; only the actual compile invocation is skipped.
+    const std::unordered_set<NodeType> skipCompileSmoke = {
+        NodeType::CallFunction,  // requires a named user function to exist in the graph
+        NodeType::NativeCall,    // requires a non-empty Function field
+        NodeType::NativeGet,     // requires a non-empty Function field
+    };
+
     IdGen gen;
     for (NodeType type : expectedTypes)
     {
@@ -217,6 +240,9 @@ TEST_CASE("All current NodeTypes are registered and compile callbacks are valid"
         VisualNode node = CreateNodeFromType(type, gen, ImVec2(0.0f, 0.0f));
         REQUIRE(node.nodeType == type);
         REQUIRE(node.title == desc->label);
+
+        if (skipCompileSmoke.count(type))
+            continue;
 
         GraphCompiler compiler;
         Node* compiled = desc->compile(&compiler, node);
