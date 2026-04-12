@@ -432,6 +432,26 @@ float MeasureNodeContentWidth(const VisualNode& n, const NodeDescriptor* desc)
     if (n.nodeType == NodeType::PreviewPickRect || n.nodeType == NodeType::Sequence)
         maxWidth += 14.0f;
 
+    // The header title is rendered at a larger font size (fontSize + 3) inside a
+    // colour bar that is inset by headerInsetX on both sides from the draw bounds.
+    // Ensure contentWidth is large enough that the colour bar can contain the title.
+    //   colorBarWidth = contentWidth + headerPaddingX*2 + nodePad.x + nodePad.z - headerInsetX*2
+    // Solving for the minimum contentWidth:
+    //   contentWidth >= titleLargeWidth - headerPaddingX*2 - nodePad.x - nodePad.z + headerInsetX*2
+    {
+        constexpr float headerPaddingX = 6.0f;
+        constexpr float headerInsetX   = 12.0f;
+        const auto&     nodePad        = ed::GetStyle().NodePadding;
+        const float     titleLargeW    = ImGui::GetFont()->CalcTextSizeA(
+                                             ImGui::GetFontSize() + 3.0f, FLT_MAX, 0.0f,
+                                             n.title.c_str()).x;
+        const float minForTitle = titleLargeW
+                                  - headerPaddingX * 2.0f
+                                  - nodePad.x - nodePad.z
+                                  + headerInsetX * 2.0f;
+        maxWidth = std::max(maxWidth, minForTitle);
+    }
+
     return maxWidth;
 }
 
