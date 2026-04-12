@@ -36,7 +36,7 @@ namespace Settings
 
     inline float consolePanelHeight = -1.0f; ///< Height of the console panel in pixels
 
-    inline bool consolePanelIsMinimized = false; ///< Whether the console panel is currently minimized
+    inline bool consolePanelIsMinimized = true; ///< Whether the console panel is currently minimized
 
     // -------------------------------------------------------------------------
     // Graph canvas colors
