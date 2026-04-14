@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "core/graphModel/types.h"
 #include "editor/graph/graphState.h"
 
 namespace
@@ -54,4 +55,23 @@ TEST_CASE("GraphState deletes links connected to a deleted node", "[graph]")
 
     REQUIRE(state.GetLinks().empty());
     REQUIRE_FALSE(state.GetNodes()[0].alive);
+}
+
+TEST_CASE("Pins connections work properly")
+{
+    // Same types connects
+    Pin out = MakePin(1, ed::NodeId(10), NodeType::Constant, "Value", PinType::Number, false);
+    Pin in = MakePin(2, ed::NodeId(11), NodeType::Output, "Value", PinType::Number, true);
+    REQUIRE(Pin::CanConnect(out, in));
+    
+    // Different types don't connect
+    Pin strOut = MakePin(3, ed::NodeId(12), NodeType::Constant, "Value", PinType::String, false);
+    REQUIRE_FALSE(Pin::CanConnect(strOut, in));
+
+    // Any type connects to any
+    Pin anyIn = MakePin(4, ed::NodeId(13), NodeType::Output, "Value", PinType::Any, true);
+    REQUIRE(Pin::CanConnect(strOut, anyIn));
+
+    // Input and output are backwards
+    REQUIRE_FALSE(Pin::CanConnect(in, out));
 }
