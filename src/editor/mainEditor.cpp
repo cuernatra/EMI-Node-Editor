@@ -40,6 +40,8 @@ MainEditor::MainEditor(): m_fileBar(this),
 
     // Load persisted UI/theme settings.
     Settings::Load();
+
+    fileOpen.SetTypeFilters({".txt"});
 }
 
 MainEditor::~MainEditor()
