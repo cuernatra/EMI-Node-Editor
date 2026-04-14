@@ -345,7 +345,8 @@ static void astar_step_impl()
 // Node: astar_get
 // Inputs: key (number)
 // Output: number
-// Description: key 0 = agentX, 1 = agentY, 2 = goalX, 3 = goalY
+// Description: key 0 = agentX, 1 = agentY, 2 = goalX, 3 = goalY,
+//              4 = grid width (w), 5 = grid height (h)
 static double astar_get_impl(double key)
 {
     if (!s_astar.initialized) return 0.0;
@@ -355,6 +356,8 @@ static double astar_get_impl(double key)
         case 1: return (double)s_astar.agentY;
         case 2: return (double)s_astar.goalX;
         case 3: return (double)s_astar.goalY;
+        case 4: return (double)s_astar.w;
+        case 5: return (double)s_astar.h;
         default: return 0.0;
     }
 }

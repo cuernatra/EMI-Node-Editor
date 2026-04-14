@@ -3,6 +3,39 @@
 
 namespace
 {
+Node* BuildNativeArgOperand(GraphCompiler* compiler, const VisualNode& n, const Pin& pin, const char* fieldName = nullptr)
+{
+    if (compiler->Resolve(pin))
+        return compiler->BuildExpr(pin);
+
+    const std::string* fieldValue = FindInputFallbackField(n, pin, fieldName);
+    const std::string raw = fieldValue ? TrimCopy(*fieldValue) : std::string();
+
+    if (raw.empty())
+        return MakeNumberLiteral(0.0);
+
+    if (raw == "true" || raw == "True" || raw == "1")
+        return MakeBoolLiteral(true);
+    if (raw == "false" || raw == "False" || raw == "0")
+        return MakeBoolLiteral(false);
+
+    if (raw.size() >= 2 && raw.front() == '[' && raw.back() == ']')
+        return compiler->BuildArrayLiteralNode(raw);
+
+    if (raw.size() >= 2
+        && ((raw.front() == '"' && raw.back() == '"')
+            || (raw.front() == '\'' && raw.back() == '\'')))
+    {
+        return MakeStringLiteral(raw.substr(1, raw.size() - 2));
+    }
+
+    double numberValue = 0.0;
+    if (TryParseDoubleExact(raw, numberValue))
+        return MakeNumberLiteral(numberValue);
+
+    return MakeStringLiteral(raw);
+}
+
 Node* CompileNativeCallNode(GraphCompiler* compiler, const VisualNode& n)
 {
     const std::string* nameStr = FindField(n, "Function");
@@ -30,7 +63,7 @@ Node* CompileNativeCallNode(GraphCompiler* compiler, const VisualNode& n)
         const Pin* pin = FindInputPin(n, pinName.c_str());
         if (!pin)
             continue;
-        args.push_back(BuildNumberOperand(compiler, n, *pin));
+        args.push_back(BuildNativeArgOperand(compiler, n, *pin, pinName.c_str()));
         if (compiler->HasError)
             return nullptr;
     }
@@ -66,7 +99,7 @@ Node* CompileNativeGetNode(GraphCompiler* compiler, const VisualNode& n)
         const Pin* pin = FindInputPin(n, pinName.c_str());
         if (!pin)
             continue;
-        args.push_back(BuildNumberOperand(compiler, n, *pin));
+        args.push_back(BuildNativeArgOperand(compiler, n, *pin, pinName.c_str()));
         if (compiler->HasError)
             return nullptr;
     }
@@ -82,24 +115,24 @@ void NodeRegistry::RegisterDemoNodes()
         .label = "Native Call",
         .pins = {
             PinDescriptor{ .name = "In", .type = PinType::Flow, .isInput = true, .isMultiInput = false },
-            PinDescriptor{ .name = "Arg0", .type = PinType::Number, .isInput = true, .isMultiInput = false },
-            PinDescriptor{ .name = "Arg1", .type = PinType::Number, .isInput = true, .isMultiInput = false },
-            PinDescriptor{ .name = "Arg2", .type = PinType::Number, .isInput = true, .isMultiInput = false },
-            PinDescriptor{ .name = "Arg3", .type = PinType::Number, .isInput = true, .isMultiInput = false },
-            PinDescriptor{ .name = "Arg4", .type = PinType::Number, .isInput = true, .isMultiInput = false },
-            PinDescriptor{ .name = "Arg5", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg0", .type = PinType::Any, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg1", .type = PinType::Any, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg2", .type = PinType::Any, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg3", .type = PinType::Any, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg4", .type = PinType::Any, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg5", .type = PinType::Any, .isInput = true, .isMultiInput = false },
             PinDescriptor{ .name = "Out", .type = PinType::Flow, .isInput = false, .isMultiInput = false },
             PinDescriptor{ .name = "Value", .type = PinType::Any, .isInput = false, .isMultiInput = false }
         },
         .fields = {
             FieldDescriptor{ .name = "Function", .valueType = PinType::String, .defaultValue = "", .options = {} },
             FieldDescriptor{ .name = "ArgCount", .valueType = PinType::String, .defaultValue = "0", .options = { "0", "1", "2", "3", "4", "5", "6" } },
-            FieldDescriptor{ .name = "Arg0", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
-            FieldDescriptor{ .name = "Arg1", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
-            FieldDescriptor{ .name = "Arg2", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
-            FieldDescriptor{ .name = "Arg3", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
-            FieldDescriptor{ .name = "Arg4", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
-            FieldDescriptor{ .name = "Arg5", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} }
+            FieldDescriptor{ .name = "Arg0", .valueType = PinType::Any, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg1", .valueType = PinType::Any, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg2", .valueType = PinType::Any, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg3", .valueType = PinType::Any, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg4", .valueType = PinType::Any, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg5", .valueType = PinType::Any, .defaultValue = "0.0", .options = {} }
         },
         .compile = CompileNativeCallNode,
         .deserialize = nullptr,
@@ -114,23 +147,23 @@ void NodeRegistry::RegisterDemoNodes()
         .type = NodeType::NativeGet,
         .label = "Native Get",
         .pins = {
-            PinDescriptor{ .name = "Arg0", .type = PinType::Number, .isInput = true, .isMultiInput = false },
-            PinDescriptor{ .name = "Arg1", .type = PinType::Number, .isInput = true, .isMultiInput = false },
-            PinDescriptor{ .name = "Arg2", .type = PinType::Number, .isInput = true, .isMultiInput = false },
-            PinDescriptor{ .name = "Arg3", .type = PinType::Number, .isInput = true, .isMultiInput = false },
-            PinDescriptor{ .name = "Arg4", .type = PinType::Number, .isInput = true, .isMultiInput = false },
-            PinDescriptor{ .name = "Arg5", .type = PinType::Number, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg0", .type = PinType::Any, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg1", .type = PinType::Any, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg2", .type = PinType::Any, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg3", .type = PinType::Any, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg4", .type = PinType::Any, .isInput = true, .isMultiInput = false },
+            PinDescriptor{ .name = "Arg5", .type = PinType::Any, .isInput = true, .isMultiInput = false },
             PinDescriptor{ .name = "Value", .type = PinType::Any, .isInput = false, .isMultiInput = false }
         },
         .fields = {
             FieldDescriptor{ .name = "Function", .valueType = PinType::String, .defaultValue = "", .options = {} },
             FieldDescriptor{ .name = "ArgCount", .valueType = PinType::String, .defaultValue = "0", .options = { "0", "1", "2", "3", "4", "5", "6" } },
-            FieldDescriptor{ .name = "Arg0", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
-            FieldDescriptor{ .name = "Arg1", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
-            FieldDescriptor{ .name = "Arg2", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
-            FieldDescriptor{ .name = "Arg3", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
-            FieldDescriptor{ .name = "Arg4", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} },
-            FieldDescriptor{ .name = "Arg5", .valueType = PinType::Number, .defaultValue = "0.0", .options = {} }
+            FieldDescriptor{ .name = "Arg0", .valueType = PinType::Any, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg1", .valueType = PinType::Any, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg2", .valueType = PinType::Any, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg3", .valueType = PinType::Any, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg4", .valueType = PinType::Any, .defaultValue = "0.0", .options = {} },
+            FieldDescriptor{ .name = "Arg5", .valueType = PinType::Any, .defaultValue = "0.0", .options = {} }
         },
         .compile = CompileNativeGetNode,
         .deserialize = nullptr,
