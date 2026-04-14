@@ -4,15 +4,24 @@ node 70010 NativeCall 9 70011 70012 70013 70014 70015 70016 70017 70018 70019 8 
 node 70020 NativeCall 9 70021 70022 70023 70024 70025 70026 70027 70028 70029 8 Function=astar_recompute_path ArgCount=0 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 -536 160
 node 200 Ticker 4 201 202 203 204 1 FPS=15.000000 -294 160
 node 300 NativeCall 9 301 302 303 304 305 306 307 308 309 8 Function=astar_step ArgCount=0 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 -86 160
-node 10000 Sequence 5 20001 20002 20003 20004 20005 0 160 144
+node 92000 Sequence 5 92001 92002 92003 92004 92005 0 8 144
+node 92010 NativeGet 7 92011 92012 92013 92014 92015 92016 92017 8 Function=astar_get ArgCount=1 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 208 64
+node 92020 StructWrite 3 92021 92022 92023 5 Struct%20Name=AStarState Instance%20Name=structItem Field%20Name=agentX Value=0.000000 Schema%20Fields=%5B%22initialized%3ABoolean%22%2C%20%22wallsInitialized%3ABoolean%22%2C%20%22w%3ANumber%22%2C%20%22h%3ANumber%22%2C%20%22agentX%3ANumber%22%2C%20%22agentY%3ANumber%22%2C%20%22goalX%3ANumber%22%2C%20%22goalY%3ANumber%22%2C%20%22walls%3AArray%22%2C%20%22path%3AArray%22%2C%20%22pathStep%3ANumber%22%2C%20%22rng%3ANumber%22%5D 416 64
+node 92030 NativeGet 7 92031 92032 92033 92034 92035 92036 92037 8 Function=astar_get ArgCount=1 Arg0=1.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 624 64
+node 92040 StructWrite 3 92041 92042 92043 5 Struct%20Name=AStarState Instance%20Name=structItem Field%20Name=agentY Value=0.000000 Schema%20Fields=%5B%22initialized%3ABoolean%22%2C%20%22wallsInitialized%3ABoolean%22%2C%20%22w%3ANumber%22%2C%20%22h%3ANumber%22%2C%20%22agentX%3ANumber%22%2C%20%22agentY%3ANumber%22%2C%20%22goalX%3ANumber%22%2C%20%22goalY%3ANumber%22%2C%20%22walls%3AArray%22%2C%20%22path%3AArray%22%2C%20%22pathStep%3ANumber%22%2C%20%22rng%3ANumber%22%5D 832 64
+node 92050 NativeGet 7 92051 92052 92053 92054 92055 92056 92057 8 Function=astar_get ArgCount=1 Arg0=2.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 1024 64
+node 92060 StructWrite 3 92061 92062 92063 5 Struct%20Name=AStarState Instance%20Name=structItem Field%20Name=goalX Value=0.000000 Schema%20Fields=%5B%22initialized%3ABoolean%22%2C%20%22wallsInitialized%3ABoolean%22%2C%20%22w%3ANumber%22%2C%20%22h%3ANumber%22%2C%20%22agentX%3ANumber%22%2C%20%22agentY%3ANumber%22%2C%20%22goalX%3ANumber%22%2C%20%22goalY%3ANumber%22%2C%20%22walls%3AArray%22%2C%20%22path%3AArray%22%2C%20%22pathStep%3ANumber%22%2C%20%22rng%3ANumber%22%5D 1392 -112
+node 92070 NativeGet 7 92071 92072 92073 92074 92075 92076 92077 8 Function=astar_get ArgCount=1 Arg0=3.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 1680 64
+node 92080 StructWrite 3 92081 92082 92083 5 Struct%20Name=AStarState Instance%20Name=structItem Field%20Name=goalY Value=0.000000 Schema%20Fields=%5B%22initialized%3ABoolean%22%2C%20%22wallsInitialized%3ABoolean%22%2C%20%22w%3ANumber%22%2C%20%22h%3ANumber%22%2C%20%22agentX%3ANumber%22%2C%20%22agentY%3ANumber%22%2C%20%22goalX%3ANumber%22%2C%20%22goalY%3ANumber%22%2C%20%22walls%3AArray%22%2C%20%22path%3AArray%22%2C%20%22pathStep%3ANumber%22%2C%20%22rng%3ANumber%22%5D 2032 352
+node 10000 Sequence 5 20001 20002 20003 20004 20005 0 288 624
 node 10010 Variable 3 20011 20012 20013 4 Variant=Set Name=mouseX Type=Number Default=0.000000 832 -80
 node 10020 NativeGet 7 20021 20022 20023 20024 20025 20026 20027 8 Function=getmousex ArgCount=0 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 608 -64
-node 10030 Variable 3 20031 20032 20033 4 Variant=Set Name=mouseY Type=Number Default=0.000000 1072 -80
+node 10030 Variable 3 20031 20032 20033 4 Variant=Set Name=mouseY Type=Number Default=0.000000 1072 -144
 node 10040 NativeGet 7 20041 20042 20043 20044 20045 20046 20047 8 Function=getmousey ArgCount=0 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 842 -224
 node 10050 Branch 4 20051 20052 20053 20054 0 870 224
 node 10060 NativeGet 7 20061 20062 20063 20064 20065 20066 20067 8 Function=ismousebuttondown ArgCount=1 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 592 304
 node 70030 NativeCall 9 70031 70032 70033 70034 70035 70036 70037 70038 70039 8 Function=astar_setwall_raw ArgCount=3 Arg0=0.000000 Arg1=0.000000 Arg2=1.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 1232 256
-node 70040 NativeCall 9 70041 70042 70043 70044 70045 70046 70047 70048 70049 8 Function=astar_recompute_path ArgCount=0 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 1472 256
+node 70040 NativeCall 9 70041 70042 70043 70044 70045 70046 70047 70048 70049 8 Function=astar_recompute_path ArgCount=0 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 1680 320
 node 10080 Variable 1 10081 4 Variant=Get Name=mouseX Type=Number Default=0.000000 1008 320
 node 10090 Variable 1 10091 4 Variant=Get Name=mouseY Type=Number Default=0.000000 1008 432
 node 10100 Branch 4 20101 20102 20103 20104 0 864 784
@@ -45,15 +54,15 @@ node 6109 Variable 1 61091 4 Variant=Get Name=pathX Type=Number Default=0.000000
 node 6110 Variable 3 61101 61102 61103 4 Variant=Set Name=pathY Type=Number Default=0.000000 3574 2256
 node 6111 Variable 1 61111 4 Variant=Get Name=pathY Type=Number Default=0.000000 3574 2592
 node 6044 DrawCell 7 60441 60442 60443 60444 60445 60446 60447 5 X=0.000000 Y=0.000000 R=0.000000 G=100.000000 B=220.000000 3846 2368
-node 6051 NativeGet 7 60511 60512 60513 60514 60515 60516 60517 8 Function=astar_get ArgCount=1 Arg0=2.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 1542 1712
-node 6052 NativeGet 7 60521 60522 60523 60524 60525 60526 60527 8 Function=astar_get ArgCount=1 Arg0=3.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 1766 2016
-node 6112 Variable 3 61121 61122 61123 4 Variant=Set Name=goalX Type=Number Default=0.000000 1740 1712
+node 6051 StructRead 1 60517 4 Struct%20Name=AStarState Instance%20Name=structItem Field%20Name=goalX Schema%20Fields=%5B%22initialized%3ABoolean%22%2C%20%22wallsInitialized%3ABoolean%22%2C%20%22w%3ANumber%22%2C%20%22h%3ANumber%22%2C%20%22agentX%3ANumber%22%2C%20%22agentY%3ANumber%22%2C%20%22goalX%3ANumber%22%2C%20%22goalY%3ANumber%22%2C%20%22walls%3AArray%22%2C%20%22path%3AArray%22%2C%20%22pathStep%3ANumber%22%2C%20%22rng%3ANumber%22%5D 1542 1712
+node 6052 StructRead 1 60527 4 Struct%20Name=AStarState Instance%20Name=structItem Field%20Name=goalY Schema%20Fields=%5B%22initialized%3ABoolean%22%2C%20%22wallsInitialized%3ABoolean%22%2C%20%22w%3ANumber%22%2C%20%22h%3ANumber%22%2C%20%22agentX%3ANumber%22%2C%20%22agentY%3ANumber%22%2C%20%22goalX%3ANumber%22%2C%20%22goalY%3ANumber%22%2C%20%22walls%3AArray%22%2C%20%22path%3AArray%22%2C%20%22pathStep%3ANumber%22%2C%20%22rng%3ANumber%22%5D 1766 2016
+node 6112 Variable 3 61121 61122 61123 4 Variant=Set Name=goalX Type=Number Default=0.000000 1760 1712
 node 6113 Variable 3 61131 61132 61133 4 Variant=Set Name=goalY Type=Number Default=0.000000 2054 2016
 node 6114 Variable 1 61141 4 Variant=Get Name=goalX Type=Number Default=0.000000 2044 2224
 node 6115 Variable 1 61151 4 Variant=Get Name=goalY Type=Number Default=0.000000 2044 2352
 node 6050 DrawCell 7 60501 60502 60503 60504 60505 60506 60507 5 X=0.000000 Y=0.000000 R=0.000000 G=180.000000 B=60.000000 2310 2128
-node 6061 NativeGet 7 60611 60612 60613 60614 60615 60616 60617 8 Function=astar_get ArgCount=1 Arg0=0.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 780 1712
-node 6062 NativeGet 7 60621 60622 60623 60624 60625 60626 60627 8 Function=astar_get ArgCount=1 Arg0=1.000000 Arg1=0.000000 Arg2=0.000000 Arg3=0.000000 Arg4=0.000000 Arg5=0.000000 1392 2336
+node 6061 StructRead 1 60617 4 Struct%20Name=AStarState Instance%20Name=structItem Field%20Name=agentX Schema%20Fields=%5B%22initialized%3ABoolean%22%2C%20%22wallsInitialized%3ABoolean%22%2C%20%22w%3ANumber%22%2C%20%22h%3ANumber%22%2C%20%22agentX%3ANumber%22%2C%20%22agentY%3ANumber%22%2C%20%22goalX%3ANumber%22%2C%20%22goalY%3ANumber%22%2C%20%22walls%3AArray%22%2C%20%22path%3AArray%22%2C%20%22pathStep%3ANumber%22%2C%20%22rng%3ANumber%22%5D 780 1712
+node 6062 StructRead 1 60627 4 Struct%20Name=AStarState Instance%20Name=structItem Field%20Name=agentY Schema%20Fields=%5B%22initialized%3ABoolean%22%2C%20%22wallsInitialized%3ABoolean%22%2C%20%22w%3ANumber%22%2C%20%22h%3ANumber%22%2C%20%22agentX%3ANumber%22%2C%20%22agentY%3ANumber%22%2C%20%22goalX%3ANumber%22%2C%20%22goalY%3ANumber%22%2C%20%22walls%3AArray%22%2C%20%22path%3AArray%22%2C%20%22pathStep%3ANumber%22%2C%20%22rng%3ANumber%22%5D 1392 2336
 node 6116 Variable 3 61161 61162 61163 4 Variant=Set Name=agentX Type=Number Default=0.000000 1324 1728
 node 6117 Variable 3 61171 61172 61173 4 Variant=Set Name=agentY Type=Number Default=0.000000 1686 2368
 node 6118 Variable 1 61181 4 Variant=Get Name=agentX Type=Number Default=0.000000 1680 2576
@@ -68,7 +77,16 @@ link 80001 70008 70011 Flow
 link 80002 70018 70021 Flow
 link 80003 70028 201 Flow
 link 1002 203 301 Flow
-link 3000 308 20001 Flow
+link 3000 308 92001 Flow
+link 92090 92002 92021 Flow
+link 92091 92017 92022 Any
+link 92092 92023 92041 Flow
+link 92093 92037 92042 Any
+link 92094 92043 92061 Flow
+link 92095 92057 92062 Any
+link 92096 92063 92081 Flow
+link 92097 92077 92082 Any
+link 92098 92083 20001 Flow
 link 3001 20002 20011 Flow
 link 3002 20027 20012 Any
 link 3003 20013 20031 Flow
@@ -120,13 +138,13 @@ link 5109 60427 61082 Any
 link 5110 61083 61101 Flow
 link 5111 60437 61102 Any
 link 5112 60004 61121 Flow
-link 5113 60517 61122 Any
+link 5113 60517 61122 Number
 link 5114 61123 61131 Flow
-link 5115 60527 61132 Any
+link 5115 60527 61132 Number
 link 5116 60005 61161 Flow
-link 5117 60617 61162 Any
+link 5117 60617 61162 Number
 link 5118 61163 61171 Flow
-link 5119 60627 61172 Any
+link 5119 60627 61172 Number
 link 61202 61201 60312 Number
 link 61203 61196 60311 Number
 link 61206 504 60001 Flow
