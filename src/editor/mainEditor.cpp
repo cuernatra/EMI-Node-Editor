@@ -13,7 +13,7 @@
 #include <utility>
 
 MainEditor::MainEditor(): m_fileBar(this),
-    fileOpen(),
+    fileOpen(ImGuiFileBrowserFlags_ConfirmOnEnter),
     fileSaveAs(ImGuiFileBrowserFlags_EnterNewFilename)
 {
     ed::Config config;

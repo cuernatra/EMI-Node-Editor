@@ -36,7 +36,21 @@ void FileBar::draw()
             }
             ImGui::EndMenu();
         }
+
+        ImGui::SameLine(0,10.0f);
+
+        if (ImGui::MenuItem("Settings"))
+        {
+            if (m_settingsCallback)
+                m_settingsCallback();
+        }
+
         ImGui::EndMenuBar();
     }
     ImGui::PopStyleVar();
+}
+
+void FileBar::setSettingsCallback(std::function<void()> cb)
+{
+    m_settingsCallback = std::move(cb);
 }

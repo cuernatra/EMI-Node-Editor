@@ -23,8 +23,6 @@ public:
     /// Render the top panel (called every frame).
     void draw();
 
-    void setFilesystemCallback(std::function<void()> cb);
-    void setSettingsCallback(std::function<void()> cb);
     void setPreviewCallback(std::function<void(bool)> cb);
     void setRenderPanelCallback(std::function<void()> cb);
 
@@ -36,7 +34,6 @@ private:
     float m_height;
 
     std::function<void()> m_filesystemCallback;
-    std::function<void()> m_settingsCallback;
     std::function<void(bool)> m_previewCallback;
     std::function<void()> m_renderPanelCallback;
     bool m_previewEnabled = false;

@@ -4,15 +4,10 @@ TopPanel::TopPanel() : m_height{elementSizes::topBarHeight}
 {
 }
 
-void TopPanel::setFilesystemCallback(std::function<void()> cb)
-{
-    m_filesystemCallback = std::move(cb);
-}
-
-void TopPanel::setSettingsCallback(std::function<void()> cb)
-{
-    m_settingsCallback = std::move(cb);
-}
+// void TopPanel::setFilesystemCallback(std::function<void()> cb)
+// {
+//     m_filesystemCallback = std::move(cb);
+// }
 
 void TopPanel::setPreviewCallback(std::function<void(bool)> cb)
 {
@@ -31,22 +26,6 @@ void TopPanel::draw()
     ImGui::PushStyleColor(ImGuiCol_Button, colors::elevated);
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colors::topPanelButtonHover);
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, colors::surface);
-
-    if (ImGui::Button("Filesystem", ImVec2(95, buttonHeight)))
-    {
-        if (m_filesystemCallback)
-            m_filesystemCallback();
-    }
-
-    ImGui::SameLine(0, 10);
-
-    if (ImGui::Button("Settings", ImVec2(85, buttonHeight)))
-    {
-        if (m_settingsCallback)
-            m_settingsCallback();
-    }
-
-    ImGui::SameLine(0, 10);
 
     const bool previewWasEnabled = m_previewEnabled;
 

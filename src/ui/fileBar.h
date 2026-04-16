@@ -3,6 +3,7 @@
 
 #include "../app/constants.h"
 #include <vector>
+#include <functional>
 #include "imgui.h"
 
 /**
@@ -18,11 +19,13 @@ class FileBar
 public: 
     FileBar(MainEditor* editor);
     void draw();
+    void setSettingsCallback(std::function<void()> cb);
     
 private:
     float m_height;
     //Reference to the main editor, used for save and load actions
     MainEditor* m_editor;
+    std::function<void()> m_settingsCallback;
 };
 
 #endif
