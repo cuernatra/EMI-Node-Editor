@@ -75,3 +75,4 @@ TEST_CASE("Pins connections work properly")
     // Input and output are backwards
     REQUIRE_FALSE(Pin::CanConnect(in, out));
 }
+

@@ -17,6 +17,7 @@ add_executable(tests
     test_settings_placeholder.cpp
     test_serializer_placeholder.cpp
     test_graph_compiler.cpp
+    test_graph_model.cpp
     ../src/editor/graph/graphState.cpp
     ../src/editor/settings.cpp
     ../src/core/compiler/graphCompiler.cpp
@@ -31,6 +32,7 @@ add_executable(tests
     ../src/core/registry/nodes/structNodes.cpp
     ../src/core/registry/nodes/demoNodes.cpp
     ../src/core/graphModel/pin.cpp
+    ../src/core/graphModel/link.cpp
 )
 
 target_include_directories(tests PRIVATE
