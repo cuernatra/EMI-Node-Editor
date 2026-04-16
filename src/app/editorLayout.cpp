@@ -22,10 +22,7 @@ EditorLayout::EditorLayout()
         m_renderPanel.open();
     });
 
-    m_topPanel.setFilesystemCallback([this]() {
-        m_consolePanel.addLogText("Filesystem");
-    });
-    m_topPanel.setSettingsCallback([this]() {
+    m_fileBar.setSettingsCallback([this]() {
         m_showSettingsOverlay = !m_showSettingsOverlay;
         if (m_showSettingsOverlay)
         {
