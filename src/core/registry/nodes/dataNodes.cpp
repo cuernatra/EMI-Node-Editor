@@ -152,9 +152,9 @@ Node* CompileVariableNode(GraphCompiler* compiler, const VisualNode& n)
     return assign;
 }
 
-void CompilePreludeVariableNode(GraphCompiler* compiler, const VisualNode& n, Node*, Node* graphBodyScope)
+void CompilePreludeVariableNode(GraphCompiler* compiler, const VisualNode& n, Node* rootScope, Node*)
 {
-    if (!compiler || !graphBodyScope)
+    if (!compiler || !rootScope)
         return;
 
     const std::string* variant = FindField(n, "Variant");
@@ -183,7 +183,10 @@ void CompilePreludeVariableNode(GraphCompiler* compiler, const VisualNode& n, No
     Node* decl = MakeNode(Token::VarDeclare);
     decl->data = varName;
     decl->children.push_back(MakeNode(typeToken));
-    graphBodyScope->children.push_back(decl);
+    // Declare at root scope (globally) so variables are accessible from all
+    // function flows, not just __graph__(). This mirrors how visual scripting
+    // environments typically handle graph-level variables.
+    rootScope->children.push_back(decl);
 }
 
 bool DeserializeVariableNode(VisualNode& n, const NodeDescriptor& desc, const std::vector<int>& pinIds)

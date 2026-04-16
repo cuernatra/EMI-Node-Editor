@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <functional>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -64,6 +65,47 @@ float ParseNodeFloat(const std::string& value, float fallback = 0.0f)
     {
         return fallback;
     }
+}
+
+int ParseNativeArgCount(const VisualNode& node)
+{
+    const NodeField* argCountField = FindFieldByName(node, "ArgCount");
+    if (!argCountField)
+        return 0;
+
+    try
+    {
+        return std::clamp(std::stoi(argCountField->value), 0, 6);
+    }
+    catch (...)
+    {
+        return 0;
+    }
+}
+
+bool IsNativeArgName(std::string_view name, int& outIndex)
+{
+    if (name.size() != 4 || name[0] != 'A' || name[1] != 'r' || name[2] != 'g')
+        return false;
+
+    const char d = name[3];
+    if (d < '0' || d > '5')
+        return false;
+
+    outIndex = static_cast<int>(d - '0');
+    return true;
+}
+
+bool IsNativeArgVisible(const VisualNode& node, std::string_view name)
+{
+    if (node.nodeType != NodeType::NativeCall && node.nodeType != NodeType::NativeGet)
+        return true;
+
+    int argIndex = -1;
+    if (!IsNativeArgName(name, argIndex))
+        return true;
+
+    return argIndex < ParseNativeArgCount(node);
 }
 
 std::string FormatFloatString(float value)
@@ -417,13 +459,19 @@ float MeasureNodeContentWidth(const VisualNode& n, const NodeDescriptor* desc)
     float maxWidth = ImGui::CalcTextSize(n.title.c_str()).x;
 
     for (const Pin& pin : n.inPins)
+    {
+        if (!IsNativeArgVisible(n, pin.name))
+            continue;
         maxWidth = std::max(maxWidth, pinRowPad + ImGui::CalcTextSize(pin.name.c_str()).x);
+    }
 
     for (const Pin& pin : n.outPins)
         maxWidth = std::max(maxWidth, ImGui::CalcTextSize(pin.name.c_str()).x + pinGap + iconWidth);
 
     for (const NodeField& field : n.fields)
     {
+        if (!IsNativeArgVisible(n, field.name))
+            continue;
         if (field.name == "Variant") continue;
         maxWidth = std::max(maxWidth, MeasureFieldWidth(renderStyle, field));
     }
@@ -1120,6 +1168,9 @@ void DrawDeferredPinsIfMissing(const VisualNode& n,
 {
     for (const Pin& pin : n.inPins)
     {
+        if (!IsNativeArgVisible(n, pin.name))
+            continue;
+
         if (!IsDeferredInputPin(n, desc, pin))
             continue;
 
@@ -1339,6 +1390,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
     // Deferred pins are skipped here and drawn next to fields.
     for (const Pin& pin : n.inPins)
     {
+        if (!IsNativeArgVisible(n, pin.name))
+            continue;
+
         if (IsDeferredInputPin(n, desc, pin))
             continue;
         DrawPin(pin, contentWidth, allLinks);
@@ -1385,6 +1439,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         {
             for (const Pin& pin : n.inPins)
             {
+                if (!IsNativeArgVisible(n, pin.name))
+                    continue;
+
                 if (pin.name == fieldName && IsDeferredInputPin(n, desc, pin))
                     return true;
             }
@@ -1416,6 +1473,9 @@ bool DrawVisualNode(VisualNode& n, IdGen* idGen, const std::vector<VisualNode>* 
         ImGui::PushID((int)n.id.Get());
         for (NodeField& field : n.fields)
         {
+            if (!IsNativeArgVisible(n, field.name))
+                continue;
+
             if (field.name == "Variant")
                 continue; // Internal metadata field; hidden from node body.
 
